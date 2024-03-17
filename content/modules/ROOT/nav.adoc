@@ -1,0 +1,11 @@
+
+* xref:01_setup_and_introduction_lab[Setup and Introduction]
+* xref:02_vulnerability_management_lab[Vulnerability Management]
+* xref:03_configuration_management_lab[Configuration Management]
+* xref:04_risk_profiling_lab[Risk Profiling & Runtime]
+* xref:05_policy_management_lab[Policy Management]
+* xref:06_ci/cd_lab[I/CD Integration]
+* xref:07_compliance[Compliance]
+* xref:08_alerts_and_notifications[Notifications]
+* xref:09_capture_the_flag[Capture the Flag]
+* xref:10_log_4_shell[Log4Shell Exploit]

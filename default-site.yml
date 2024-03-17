@@ -1,0 +1,35 @@
+---
+site:
+  title: OpenShift Security Roadshow
+  url: https://redhat-scholars.github.io/course-template
+  start_page: modules::index.adoc
+
+content:
+  sources:
+    - url: ./
+      start_path: content
+
+# asciidoc:
+#   attributes:
+#     release-version: master
+#     page-pagination: true
+#   extensions:
+#     - ./content/supplemental-ui/lib/tab-block.js
+#     - ./content/supplemental-ui/lib/remote-include-processor.js
+
+ui:
+  bundle:
+    #    demo.redhat.com default UI
+    url: https://github.com/rhpds/showroom_theme_rhdp/releases/download/rhdp-v0.0.2/ui-bundle.zip
+    snapshot: true
+  supplemental_files:
+    - path: ./content/supplemental-ui
+    - path: .nojekyll
+    - path: ui.yml
+      contents: "static_files: [ .nojekyll ]"
+
+runtime:
+  cache_dir: ./.cache/antora
+
+output:
+  dir: ./www

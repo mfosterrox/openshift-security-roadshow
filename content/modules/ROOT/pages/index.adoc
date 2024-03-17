@@ -1,0 +1,6 @@
+= {lab_name}
+
+=== Lab Access
+
+The terminal window to your right is *already* logged into the lab environment as the `{ssh_user}` user via `ssh`. 
+All steps of this lab are to be completed as the `{ssh_user}` user.

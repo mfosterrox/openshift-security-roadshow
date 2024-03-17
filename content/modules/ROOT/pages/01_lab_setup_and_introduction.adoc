@@ -1,0 +1,556 @@
+:labname: Workshop Setup and Overview
+
+== {labname} Lab
+
+:numbered:
+
+[source,bash,role="execute"]
+[source,bash,role="copypaste copypaste-warning"]
+
+== Introduction to Course Setup and Product Overview
+
+This course offers you hands-on experience working with the essential use cases of Red Hat^(R)^ Advanced Cluster Security for Kubernetes (RHACS) and the spotlight on new features in new releases.
+
+In this lab, you learn about the environment deployed for running RHACS, verify that you can access the various components of RHACS, and review its major components.
+
+.Goals
+* Understand, provision, and access the environment
+* Review RHACS architecture
+* Review the RHACS console
+* Test practical use cases and features in RHACS
+
+== Lab Components
+
+In this course, you will utilize the following:
+
+* RHACS portal
+* OpenShift Container Platform web console
+* Command line
+
+To complete all of the lab tasks.
+
+=== Environment Architecture 
+
+This course comprises a single-node OpenShift Container Platform (OCP) cluster, an OpenShift control plane and a worker node in one large virtual machine (VM). A Linux VM to enable connection to the Lab components is called a Linux^(R)^ student VM. There the lab is comprised of the following components.
+
+1. Red Hat OpenShift^(R)^ Container Platform 4.12 with RHACS installed on a single virtual machine (VM)
+2. A Linux^(R)^ student VM (hostname `bastion`) for command line tasks
+
+=== Red Hat OpenShift^(R)^ Container Platform (OCP) Components
+
+==== Installed OCP Components (RHACS and more)
+
+The following components are necessary to complete the labs installed in the environment. These components include the Red Hat^(R)^ Advanced Cluster Security for Kubernetes (RHACS) application, Red Hat OpenShift Pipelines, and example code to run Tekton pipelines demonstrating RHACS integration.
+
+*  Red Hat^(R)^ Advanced Cluster Security for Kubernetes
+** RHACS Central services
+*** Central
+*** Scanner
+** RHACS Secured cluster services
+*** Sensor
+*** Collector
+*** Admission controller
+
+* Red Hat^(R)^ OpenShift Pipelines Operator 
+** Tekton Pipelines 
+** Tekton Triggers 
+** ClusterTasks based on Tekton Catalog 
+
+=== Linux Student VM
+
+A Linux student VM has been provisioned for you with the necessary command line tools to complete the labs.
+
+.Linux Student VM Components
+* `roxctl` RHACS command line tool
+* `oc` OpenShift command line tool
+* `tkn` Tekton command line tool
+
+== Managing the Lab Environment
+
+=== Provisioning the Lab Environment
+It is assumed that the lab environment has been provisioned by you already.
+
+The lab environment is cloud-based, so you can access it online from anywhere. Red Hat has made efforts to provide a lab environment that is sufficiently powered to meet the lab's needs. Feel free to use this environment for your experiments with Red Hat Advanced Cluster Security.
+
+NOTE: The environment automatically shuts down after approximately four hours of runtime, so try to finish this course in one sitting.
+If necessary, extend the runtime of your environment through the link:https://demo.redhat.com/[Red Hat Demo Platform^].
+
+Read the email carefully and specifically note the following:
+
+* The URL for the RHACS portal and the necessary credentials
+* The URL for the OpenShift Container Platform web console and the necessary credentials
+* The hostname for your student VM environment and instructions for connecting to it via SSH
+
+[NOTE]
+This information will be available in the services tab at link:https://demo.redhat.com/[demo.redhat.com^]. Or in the lab provisioning email.
+
+=== Restarting the Lab Environment After Shutdown
+
+To conserve resources, the lab environment shuts down automatically after four hours.
+This section provides the steps to restart it.
+
+.Procedure
+. Go to the link:https://demo.redhat.com/[demo.redhat.com^] using your login credentials.
+. Navigate to *Services* on the left side
+. Locate your lab environment in the list of your services
+. On the right-hand side, under the Actions column, you will find the start button, use it.
+
+After a few minutes, expect to receive an email letting you know that the Hands-On with Red Hat Advanced Cluster Security environment has been started.
+
+[NOTE]
+After the lab has been restarted, you can extend the default shutdown time out until the end of the day. Otherwise, the lab will pause after 6 hours have lapsed.
+
+== Access Lab Components
+Now that you have provisioned the environment, you must verify that you can access the lab's connections.
+
+=== Access the OpenShift Container Platform Web Console 
+First, make sure you can access the OpenShift Container Platform web console.
+
+*Requirements*
+
+* The console administrator credentials are `opentlc-mgr`.
+* The OpenShift console URL
+
+[NOTE]
+This information will be available in the services tab at link:https://demo.redhat.com/[demo.redhat.com^]. Or in the lab provisioning email.
+
+.Procedure
+
+[start=1]
+. In the provisioning email (or services tab) you received, click the URL for the OpenShift Container Platform web console.
+* The URL for the web console of the cluster
+** For example, 'https://console-openshift-console.apps.cluster-4klh8.4klh8.sandbox1150.opentlc.com'
+
+image::00-console-dashboard-0.png[OpenShift console]
+
+[start=2]
+. Log in with the ADMINISTRATOR credentials (opentlc-mgr)
+
+image::00-console-dashboard-1.png[OpenShift input]
+
+[start=3]
+. Ensure you have access to the console and keep your tab open for the future labs 
+
+image::00-console-dashboard-2.png[OpenShift console]
+
+=== Access the RHACS Console
+In this section, you confirm that you can connect to RHACS from the command line and that you can connect to the RHACS portal.
+
+*Requirements* 
+
+* The RHACS `admin` credentials
+* The URL for the RHACS portal
+
+[NOTE]
+This information will be available in the services tab at link:https://demo.redhat.com/[demo.redhat.com^]. Or in the lab provisioning email.
+
+.Procedure
+[start=1]
+. Click the URL for the RHACS web console to head to the console's login page.
+** For example, 'https://central-stackrox.apps.cluster-4klh8.4klh8.sandbox1150.opentlc.com'
+
+image::00-console-dashboard-3.png[RHACS console login]
+
+[start=2]
+. Log in with the ADMINISTRATOR credentials (admin)
+
+image::00-console-dashboard-4.png[RHACS input]
+
+[start=3]
+. Ensure you maintain access to the console and keep your tab open for the future lab sections. 
+
+image::00-console-dashboard-5.png[RHACS dashboard]
+
+
+=== Access the Student VM via SSH
+
+The student VM host serves as an important access point into the environment, so you must ensure you can connect to it.
+
+*Requirements* 
+
+* *The ssh address for the bastion host:* 
+** For example, 'lab-user@bastion.4klh8.sandbox1150.opentlc.com' 
+* *The username and password for the Linux student VM (lab-user)*
+
+[NOTE]
+This information will be available in the services tab at link:https://demo.redhat.com/[demo.redhat.com^]. Or in the lab provisioning email.
+
+.Procedure
+[start=1]
+
+. Connect to your student VM host using the command and password you received in the provisioning email:
+
+*Sample command*
+[source,bash,role="copypaste copypaste-warning"]
+----
+ssh lab-user@bastion.<$GUID>.<$BASEDOMAIN>
+----
+*Sample output*
+[source,bash]
+----
+The authenticity of host' bastion.4klh8.sandbox1150.opentlc.com (3.134.153.6)' cant be established.
+ED25519 key fingerprint is SHA256:g0H5C1vP1xNqhL7fp0HxMRDPgjgzuAdi3ZIyKQl1mPU.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+----
+
+[start=2]
+. Verify that the GUID variable is set correctly for your environment:
+
+*Sample command*
+[source,bash,role="execute"]
+----
+echo $GUID
+----
+*Sample output*
+[source,bash]
+----
+c3po
+----
+
+[NOTE]
+Your GUID may be a 4- or 5-character alphanumeric string.
+
+=== Access the OpenShift Cluster in the Student VM via the 'oc' Command
+
+We must first connect to the *Linux Student VM* environment to connect to the OpenShift cluster. In the provisioning email (or service tab)you received, note the following:
+ 
+*Requirements* 
+
+* *The OpenShift credentials for the ADMINISTRATOR OpenShift users:* 
+** `opentlc-mgr`, Which is the privileged user and comes with a unique password 
+* *The URL for the API of the cluster*
+** For example, 'https://api.cluster-4klh8.4klh8.sandbox1150.opentlc.com:6443'
+
+[NOTE]
+This information will be available in the services tab at link:https://demo.redhat.com/[demo.redhat.com^]. Or in the lab provisioning email.
+
+.Procedure
+[start=1]
+. Use the `oc login` command to log in to the cluster as the `opentlc-mgr` user:
+
+*Sample input*
+[source,bash,role="copypaste copypaste-warning"]
+----
+oc login -u opentlc-mgr -p <password from email> <OpenShift API URL from email>
+----
+*Sample output*
+[source,bash]
+----
+Login successful.
+
+You have access to 78 projects, the list has been suppressed. You can list all projects with 'oc projects'
+
+Using project "default".
+----
+
+To illustrate that the installation is running Single Node OpenShift. Here is the output of an example `oc get nodes` command that shows the `master` node is also a `worker` node:
+
+*Sample input*
+[source,bash,role="execute"]
+----
+oc get nodes
+----
+*Sample output*
+[source,bash]
+----
+NAME                                         STATUS   ROLES           AGE   VERSION
+ip-10-0-143-248.us-east-2.compute.internal   Ready    master,worker   92m   v1.22.3+ffbb954
+----
+
+=== Access the RHACS Central Services in the Student VM via the 'roxctl' Command
+
+In this section, you use the `roxctl` command line tool to send commands to the RHACS server.
+
+* In the provisioning email you received, note the following:
+** The URL for the RHACS portal
+
+[NOTE]
+This information will be available in the services tab at link:https://demo.redhat.com/[demo.redhat.com^]. Or in the lab provisioning email.
+
+
+.Procedure
+. From the student VM, use the following command to verify your connection to RHACS Central:
+*Sample input*
+[source,bash,role="execute"]
+----
+roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" central whoami
+----
+*Sample output*
+[source,bash]
+----
+User:
+  auth-token:03b73fd3-313e-40a0-91f5-6ac88d8517a4
+Roles:
+ Admin, Analyst, Continuous Integration, None, Scope Manager, Sensor Creator, Vulnerability Management Approver, Vulnerability Management Requester, Vulnerability Report Creator
+Access:
+  rw APIToken
+  rw Alert
+  rw AllComments
+  rw AuthPlugin
+  rw AuthProvider
+[... further access authorizations omitted for brevity ..]
+----
+
+=== Review Lab Access
+
+You should now have access to the following
+* Access to the OpenShift Web Console
+* Access to the RHACS Web Console
+* Access to the Linux Student VM that contains command line access to both
+** OpenShift Cluster via 'oc' command
+** RHACS Central services via 'roxctl' command
+
+Congrats! Please review the RHACS architecture before moving to the next lab.
+
+== Review RHACS Architecture
+
+For all updated information regarding the RHACS product documentation and architecture. Please refer to the publically available documentation.
+
+*link:https://docs.openshift.com/acs/architecture/acs-architecture.html[RHACS Architecture]*
+
+---
+
+The RHACS Security Platform installs as a set of pods in your OpenShift cluster and includes the following components:
+
+* link:https://docs.openshift.com/acs/3.74/architecture/acs-architecture.html#centralized-components_acs-architecture[**Central**^]: [Centralized component] Central is the main component of RHACS and it is installed as a Kubernetes deployment.
+It handles data persistence, API interactions, and user interface (portal) access.
+You can use the same Central instance to secure multiple OpenShift Container Platform or Kubernetes clusters.
+
+* link:https://docs.openshift.com/acs/3.74/architecture/acs-architecture.html#centralized-components_acs-architecture[**Scanner**^]: [Centralized component] RHACS includes an image vulnerability scanning component called Scanner.
+It analyzes the image layers to check for known vulnerabilities from the Common Vulnerabilities and Exposures (CVEs) list.
+Scanner also identifies vulnerabilities in packages installed by package managers and in dependencies for multiple programming languages.
+
+* link:https://docs.openshift.com/acs/3.74/architecture/acs-architecture.html#per-cluster-components_acs-architecture[**Sensor**^]: [1 per cluster] RHACS uses the Sensor component to monitor Kubernetes and OpenShift Container Platform clusters.
+It handles interactions with the OpenShift Container Platform or Kubernetes API server for policy detection and enforcement, and it coordinates with Collector.
+
+* link:https://docs.openshift.com/acs/3.74/architecture/acs-architecture.html#per-cluster-components_acs-architecture[**Admission controller**^]: [1 per cluster] The admission controller prevents users from creating workloads that violate security policies in RHACS.
+[1 x Admission Controller]
+
+* link:https://docs.openshift.com/acs/3.74/architecture/acs-architecture.html#per-node-components_acs-architecture[**Collector**^]: [1 per node] Collector collects and monitors information about container runtime and network activity.
+It then sends the collected information to Sensor.
+
+
+*Once you are finished, please move on to the next lab activity*
+
+:labname: Introduction to the RHACS Dashboard
+
+== {labname}
+
+:numbered:
+
+= Navigating the RHACS Console
+In this section, you familiarize yourself with the RHACS portal, including its tabs, search capabilities and dashboard functionality.
+
+Head to the RHACS web console from the course introduction lab. If you do not have access, please repeat the steps in the first lab titled "Access the RHACS Console."
+
+== The 4 Main Dashboard Sections
+The RHACS dashboard has four main sections:
+
+[start=1]
+. Top Bar
+. Global search
+. Navigation menu
+. Dashboard
+
+image::01-dashboard-00.png[RHACS dashboard labelled]
+
+=== Top Bar
+
+The top bar contains the following functionality 
+* Global Search
+* Command-line tools
+* Cluster Health
+* Documentation
+* API Reference
+* Enable Dark/Light Mode
+* Logged-in user account
+
+[NOTE]
+The top bar is available in EVERY tab and displayed when accessing the RHACS console.
+
+=== Global Search
+
+image::01-dashboard-01.png[RHACS global search]
+
+==== Searching and filtering
+
+The ability to instantly find resources is essential to safeguard your cluster. Utilize the RHACS search feature to find relevant resources faster. 
+
+For example, you can use it to find deployments exposed to a newly published CVE or all deployments with external network exposure.
+
+.Search syntax
+A search query consists of two parts:
+
+* An attribute that identifies the resource type you want to search for.
+* A search term that finds the matching resource.
+
+*For example,* to find all violations in the visa-processor deployment, the search query is Deployment:visa-processor. In this search query, Deployment is the attribute, and visa-processor is the search term.
+
+image::01-dashboard-02.png[RHACS search visa]
+
+==== Using local page filtering
+You can use local page filtering from within all views in the RHACS portal. Local page filtering works similarly to the global search, but only relevant attributes are available. You can select the search bar to show all available attributes for a specific view.
+
+==== Common search queries
+Here are some common search queries you can run with Red Hat Advanced Cluster Security for Kubernetes.
+
+[start=1]
+. Finding deployments that are affected by a specific CVE
+
+[cols="2,2"]  
+|=== 
+|*Query*
+|*Example*
+|CVE:<CVE_number>
+|CVE:CVE-2018-11776
+|===
+
+[start=2]
+. Finding privileged running deployments
+
+[cols="2,2"]
+|=== 
+|*Query*
+|*Example*
+|Privileged:<true_or_false>
+|Privileged:true
+|===
+
+[start=3]
+. Finding deployments that have external network exposure
+
+[cols="2,2"]
+|=== 
+|*Query*
+|*Example*
+|Exposure Level:<level>
+|Exposure Level:External
+|===
+
+[NOTE]
+There are plenty more local and global search examples in the link:https://docs.openshift.com/acs/operating/search-filter.html[RHACS documentation] 
+
+=== Navigation Menu
+
+image::01-dashboard-03.png[RHACS navigation]
+
+The left-hand navigation menu provides access to each of the security use cases, as well as product configuration to integrate RHACS with your existing tooling.
+The navigation menu has the following items:
+
+* *Dashboard*: Summary view of your environment
+* *Network Graph*: Configured and actual network flows and the creation of Network Policies to implement network segmentation
+* *Violations*: Events that do not match the defined security policies
+* *Compliance*: Several industry and regulatory security standards, such as PCI DSS
+* *Vulnerability Management*: Information about known vulnerabilities affecting your environment, including deployed workloads and infrastructure, risk acceptance and reporting.
+* *Configuration Management*: Identification of potential misconfigurations that can lead to security issues
+* *Risk*: Risks affecting your environment, such as suspicious executions
+* *Platform Configuration*: RHACS configuration, policy management and integration details, including;
+** *Clusters*
+** *Policy Management*
+** *Integrations*
+** *Access Control*
+** *System Configuration*
+** *System Health*
+
+This course follows the pattern of the major use cases, but in the order of most common to least common, starting with the *Main Dashboard* and moving to the *Vulnerability Management* tab next.
+
+=== Dashboard
+
+The Red Hat Advanced Cluster Security for Kubernetes (RHACS) Dashboard provides quick access to the data you need. It contains additional navigation shortcuts and actionable widgets that are easy to filter and customize so that you can focus on the data that matters most to you. You can view information about levels of risk in your environment, compliance status, policy violations, and common vulnerabilities and exposures (CVEs) in images.
+
+image::01-dashboard-04.png[RHACS main dashboard]
+
+[NOTE]
+When you open the RHACS portal for the first time, the Dashboard might be empty. After you deploy Sensor in at least one cluster, the Dashboard reflects the status of your environment.
+
+== Navigating the Main Dashboard
+
+The main Dashboard is your place to look at the vulnerabilities, risk, compliance, and policy violations across your clusters and namespaces. This section addresses all of the functionality in the main Dashboard to help you navigate it more effectively in the future.
+
+Let's start by breaking the Dashboard down into sections.
+
+=== The Three Dashboard Sections
+
+The three core dashboard components are as follows
+[start=1]
+. The Status Bar
+. The Dashboard Filter
+. The Actionable Widgets
+
+image::01-dashboard-05.png[RHACS dashboard numbered]
+
+=== The Status Bar
+
+The Status Bar provides at-a-glance numerical counters for critical resources. The counters reflect what is visible with your current access scope, defined by the roles associated with your user profile. These counters are clickable, providing fast access to the desired list view pages as follows:
+
+[cols="1,2"]
+|===
+|*Counter*|*Destination*
+|Clusters|Platform Configuration → Clusters
+|Nodes|Configuration Management → Application & Infrastructure → Nodes
+|Violations|Violations main menu
+|Deployments|Configuration Management → Application & Infrastructure → Deployments
+|Images|Vulnerability Management → Dashboard → Images
+|Secrets|Configuration Management → Application & Infrastructure → Secrets
+|===
+=== The Dashboard Filter
+The Dashboard includes a top-level filter that applies simultaneously to all widgets. You can select clusters and one or more namespaces within selected clusters. *When no clusters or namespaces are selected, the view automatically switches to All*. Any change to the filter is immediately reflected by all widgets, limiting the data they present to the selected scope. 
+
+[NOTE]
+The Dashboard filter does not affect the Status Bar.
+
+image::01-dashboard-06.png[RHACS dashboard filter]
+
+=== Actionable widgets
+The following sections describe the actionable widgets available in the Dashboard. There are six in total, and they cannot be set for future use. 
+
+==== Policy violations by severity
+
+image::01-widget-00.png[policy violations]
+
+This widget shows the distribution of violations across severity levels for the Dashboard-filtered scope. Clicking a severity level in the chart takes you to the Violations page, filtered for that severity and scope. It also lists the three most recent violations of a Critical level policy within the scope you defined in the Dashboard filter. Clicking a specific violation takes you directly to the Violations detail page for that violation.
+
+==== Images at most risk
+
+image::01-widget-01.png[Images at most risk]
+
+This widget lists the top six vulnerable images within the Dashboard-filtered scope, sorted by their computed risk priority and the number of critical and important CVEs they contain. Click on an image name directly on the Image Findings page under Vulnerability Management. Use the Options menu to focus on fixable CVEs or further focus on active images.
+
+When clusters or namespaces have been selected in the Dashboard filter, the data displayed is already filtered to active images or images used by deployments within the filtered scope.
+
+==== Deployments at most risk
+
+image::01-widget-02.png[deployments at most risk]
+
+This widget provides information about the top deployments at risk in your environment. It displays additional information, such as the resource location (cluster and namespace) and the risk priority score. Additionally, you can click on a deployment to view risk information about the Deployment; for example, its policy violations and vulnerabilities.
+
+==== Aging images
+
+image::01-widget-03.png[Aging images]
+
+Older images present a higher security risk because they can contain vulnerabilities that have already been addressed. If older images are active, they can expose deployments to exploits. This widget can quickly assess your security posture and identify offending images. You can use the default ranges or customize the age intervals with your values. You can view both inactive and active images or use the Dashboard filter to focus on a particular area for active images. You can then click on an age group in this widget to view only those images in the Vulnerability Management → Images page.
+
+==== Policy violations by category
+
+image::01-widget-04.png[Policy violations]
+
+This widget can help you gain insights into your organization's challenges in complying with security policies by analyzing which types of policies are violated more than others. The widget shows the five policy categories of highest interest. Explore the Options menu for different ways to slice the data. You can filter the data to focus exclusively on deployment or runtime violations.
+
+You can also change the sorting mode. By default, the data is sorted by the number of violations within the highest severity first. Therefore, all categories with critical policies will appear before those without. The other sorting mode considers the total number of violations regardless of severity. Because some categories contain no necessary policies (for example, "Docker CIS"), the two sorting modes can provide significantly different views, offering additional insight.
+
+Click on a severity level at the bottom of the Graph to include or exclude that level from the data. Selecting different severity levels can result in another top-five selection or ranking order. Data is filtered to the chosen scope by the Dashboard filter.
+
+==== compliance by standard
+image::01-widget-05.png[Compliance ]
+You can use the compliance by the standard widget with the Dashboard filter to focus on areas that matter most to you. Depending on sort order, the widget lists the top or bottom six compliance benchmarks. Select Options to sort by the coverage percentage. Click on one of the benchmark labels or graphs to go directly to the Compliance Controls page, filtered by the Dashboard scope and the selected benchmark.
+
+[NOTE] You must perform a compliance scan for any information to show up in the widget. Clicking the widget will take you to the compliance dashboard, where you can scan the environment.
+
+== Summary
+
+Congratulations!
+
+You should now be able to navigate the main RHACS dashboard effectively. Let's take a look at more use cases in the next section.
+
+Please continue to the Vulnerability Management lab.
