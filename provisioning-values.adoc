@@ -1,0 +1,79 @@
+OpenShift Console: https://console-openshift-console.apps.cluster-h4vcd.sandbox422.opentlc.com
+OpenShift API for command line 'oc' client: https://api.cluster-h4vcd.sandbox422.opentlc.com:6443
+Download oc client from http://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.12.24/openshift-client-linux-4.12.24.tar.gzYour RHACM console is available at:  https://multicloud-console.apps.cluster-h4vcd.sandbox422.opentlc.comRed Hat Quay is available at https://quay-h4vcd.apps.cluster-h4vcd.sandbox422.opentlc.com"A Quay Super User 'quayadmin' has been created." "The super user password is MjMzNTc4". "The token for the super user is G081WYD4VKGFV23C4GI07WLATY73BJ7F11MMVDR4"."Red Hat Quay Config is available at https://quay-quay-config-editor-quay-enterprise.apps.cluster-h4vcd.sandbox422.opentlc.com." "- Config User: quayconfig." "- Config Password: OJ9PGuFz5j5HNDcl."SonarQube url: https://sonarqube-sonarqube.apps.cluster-h4vcd.sandbox422.opentlc.comSonarQube user: adminSonarQube password: MjMzNTc4Your RHACS console is available at:https://central-stackrox.apps.cluster-h4vcd.sandbox422.opentlc.comRHACS portal username: adminRHACS portal password: MjMzNTc4Your Openshift login credentials:Openshift console: https://console-openshift-console.apps.cluster-h4vcd.sandbox422.opentlc.comOpenshift admin user: adminOpenshift admin password: MjMzNTc4Your Backstage login credentials:RH Developer Hub: https://backstage-backstage.apps.cluster-h4vcd.sandbox422.opentlc.comRH Developer Hub identity provider: GitLabRH Developer Hub user: user1RH Developer Hub password: MjMzNTc4Your Janus ArgoCD login credentials:ArgoCD: https://argocd-server-janus-argocd.apps.cluster-h4vcd.sandbox422.opentlc.comArgoCD user: adminArgoCD password: MjMzNTc4Your GitLab login credentials:GitLab: https://gitlab-gitlab.apps.cluster-h4vcd.sandbox422.opentlc.comGitLab user: user1GitLab password: MjMzNTc4Your Devspaces login credentials:Devspaces: https://devspaces.apps.cluster-h4vcd.sandbox422.opentlc.comDevspaces user: user1Devspaces password: MjMzNTc4noVNC Web URL: https://bastion.h4vcd.sandbox422.opentlc.com/vnc.html?autoconnect=true&resize=remote
+noVNC Password: MjMzNTc4
+You can access your bastion via SSH:
+ssh lab-user@bastion.h4vcd.sandbox422.opentlc.com
+
+Make sure you use the username 'lab-user' and the password 'MjMzNTc4' when prompted.
+Instance                                                     State      Type
+----------------------------------------------------------------
+cluster-h4vcd-t5th5-master-2                                 running    m5.4xlarge
+bastion                                                      running    m5.8xlarge
+cluster-h4vcd-t5th5-master-0                                 running    m5.4xlarge
+cluster-h4vcd-t5th5-worker-us-east-2a-55mfq                  running    m5.8xlarge
+cluster-h4vcd-t5th5-worker-us-east-2a-xg4gb                  running    m5.8xlarge
+cluster-h4vcd-t5th5-worker-us-east-2a-lwdgw                  running    m5.8xlarge
+cluster-h4vcd-t5th5-master-1                                 running    m5.4xlarge
+Status Data
+acm_route: https://multicloud-console.apps.cluster-h4vcd.sandbox422.opentlc.com
+acs_portal_password: MjMzNTc4
+acs_portal_username: admin
+acs_route: https://central-stackrox.apps.cluster-h4vcd.sandbox422.opentlc.com
+api_url: https://api.cluster-h4vcd.sandbox422.opentlc.com:6443
+argocd_url: https://argocd-server-janus-argocd.apps.cluster-h4vcd.sandbox422.opentlc.com
+argocd_user: admin
+argocd_user_password: MjMzNTc4
+bastion_public_hostname: bastion.h4vcd.sandbox422.opentlc.com
+bastion_ssh_password: MjMzNTc4
+bastion_ssh_user_name: lab-user
+devspaces_url: https://devspaces.apps.cluster-h4vcd.sandbox422.opentlc.com
+devspaces_user: user1
+devspaces_user_password: MjMzNTc4
+gitlab_url: https://gitlab-gitlab.apps.cluster-h4vcd.sandbox422.opentlc.com
+gitlab_user: user1
+gitlab_user_password: MjMzNTc4
+guid: h4vcd
+novnc_user_password: MjMzNTc4
+novnc_web_url: >-
+  https://bastion.h4vcd.sandbox422.opentlc.com/vnc.html?autoconnect=true&resize=remote
+openshift_admin_password: MjMzNTc4
+openshift_admin_user: admin
+openshift_api_url: https://api.cluster-h4vcd.sandbox422.opentlc.com:6443
+openshift_client_download_url: >-
+  http://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.12.24/openshift-client-linux-4.12.24.tar.gz
+openshift_cluster_ingress_domain: apps.cluster-h4vcd.sandbox422.opentlc.com
+openshift_console_url: https://console-openshift-console.apps.cluster-h4vcd.sandbox422.opentlc.com
+quay_admin_password: MjMzNTc4
+quay_admin_token: G081WYD4VKGFV23C4GI07WLATY73BJ7F11MMVDR4
+quay_admin_username: quayadmin
+quay_config_password: OJ9PGuFz5j5HNDcl
+quay_config_url: >-
+  https://quay-quay-config-editor-quay-enterprise.apps.cluster-h4vcd.sandbox422.opentlc.com
+quay_config_username: quayconfig
+quay_console_url: https://quay-h4vcd.apps.cluster-h4vcd.sandbox422.opentlc.com
+rhdh_id_provider: GitLab
+rhdh_url: https://backstage-backstage.apps.cluster-h4vcd.sandbox422.opentlc.com
+rhdh_user: user1
+rhdh_user_password: MjMzNTc4
+sonarqube_password: MjMzNTc4
+sonarqube_url: https://sonarqube-sonarqube.apps.cluster-h4vcd.sandbox422.opentlc.com
+sonarqube_username: admin
+tpa_console_url: https://console.apps.cluster-h4vcd.sandbox422.opentlc.com
+tpa_password: MjMzNTc4
+tpa_username: admin
+users:
+  user1:
+    lab_ui_url: >-
+      https://showroom-showroom-h4vcd-user1.apps.cluster-h4vcd.sandbox422.opentlc.com/
+    msg: >-
+      Lab instructions:
+      https://showroom-showroom-h4vcd-user1.apps.cluster-h4vcd.sandbox422.opentlc.com/
+
+      Lab instructions:
+      https://showroom-showroom-h4vcd-user1.apps.cluster-h4vcd.sandbox422.opentlc.com/
+    password: MjMzNTc4
+    showroom_primary_view_url: >-
+      https://showroom-showroom-h4vcd-user1.apps.cluster-h4vcd.sandbox422.opentlc.com/
+    user: user1
+web_console_url: https://console-openshift-console.apps.cluster-h4vcd.sandbox422.opentlc.com

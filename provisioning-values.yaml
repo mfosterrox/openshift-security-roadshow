@@ -1,0 +1,556 @@
+apiVersion: poolboy.gpte.redhat.com/v1
+kind: ResourceClaim
+metadata:
+  annotations:
+    babylon.gpte.redhat.com/catalogDisplayName: RHDP Development
+    babylon.gpte.redhat.com/catalogItemDisplayName: Openshift Security Roadshow
+    babylon.gpte.redhat.com/cost-tracker: >-
+      {"estimatedCost": 0.000568005, "lastUpdate": "2024-03-18T00:03:19Z",
+      "lastRequest": "2024-03-18T00:03:19Z"}
+    babylon.gpte.redhat.com/notifier: disable
+    demo.redhat.com/purpose: Developing a custom demo
+    demo.redhat.com/purpose-activity: Asset Development
+    demo.redhat.com/rhdh-version: stable
+    demo.redhat.com/salesforce-id: ''
+    poolboy.gpte.redhat.com/resource-claim-init-timestamp: '2024-03-17T21:11:47Z'
+    poolboy.gpte.redhat.com/resource-pool-name: disable
+  creationTimestamp: '2024-03-17T21:11:47Z'
+  finalizers:
+    - poolboy.gpte.redhat.com
+  generateName: sandboxes-gpte.openshift-security-roadshow.dev-
+  generation: 5
+  labels:
+    babylon.gpte.redhat.com/catalogItemName: sandboxes-gpte.openshift-security-roadshow.dev
+    babylon.gpte.redhat.com/catalogItemNamespace: babylon-catalog-dev
+    babylon.gpte.redhat.com/workshop: sandboxes-gpte.openshift-security-roadshow.dev
+    babylon.gpte.redhat.com/workshop-id: ''
+    babylon.gpte.redhat.com/workshop-provision: sandboxes-gpte.openshift-security-roadshow.dev
+    babylon.gpte.redhat.com/workshop-uid: 726bd397-c656-4fb2-85e0-5822d14cc4ca
+  name: sandboxes-gpte.openshift-security-roadshow.dev-fc2zz
+  namespace: user-mfoster-redhat-com
+  ownerReferences:
+    - apiVersion: babylon.gpte.redhat.com/v1
+      controller: true
+      kind: WorkshopProvision
+      name: sandboxes-gpte.openshift-security-roadshow.dev
+      uid: e2720a9d-1368-4e7c-9389-c21d70b79cc9
+  resourceVersion: '1717634170'
+  uid: 9e57f361-d383-42c1-b076-eb8e4d7968ad
+spec:
+  lifespan:
+    end: '2024-03-19T21:11:23Z'
+  resources:
+    - name: openshift-security-roadshow
+      provider:
+        apiVersion: poolboy.gpte.redhat.com/v1
+        kind: ResourceProvider
+        name: sandboxes-gpte.openshift-security-roadshow.dev
+        namespace: poolboy
+      template:
+        spec:
+          vars:
+            action_schedule:
+              start: '2024-03-17T21:11:47Z'
+              stop: '2024-03-18T03:11:23Z'
+            check_status_request_timestamp: '2024-03-18T00:04:00Z'
+            job_vars:
+              ocp4_workload_le_certificates_install_certificates: true
+              rhdh_version: stable
+status:
+  diffBase: >-
+    {"spec":{"lifespan":{"end":"2024-03-19T21:11:23Z"},"resources":[{"name":"openshift-security-roadshow","provider":{"apiVersion":"poolboy.gpte.redhat.com/v1","kind":"ResourceProvider","name":"sandboxes-gpte.openshift-security-roadshow.dev","namespace":"poolboy"},"template":{"spec":{"vars":{"action_schedule":{"start":"2024-03-17T21:11:47Z","stop":"2024-03-18T03:11:23Z"},"check_status_request_timestamp":"2024-03-18T00:04:00Z","job_vars":{"ocp4_workload_le_certificates_install_certificates":true,"rhdh_version":"stable"}}}}}]},"metadata":{"labels":{"babylon.gpte.redhat.com/catalogItemName":"sandboxes-gpte.openshift-security-roadshow.dev","babylon.gpte.redhat.com/catalogItemNamespace":"babylon-catalog-dev","babylon.gpte.redhat.com/workshop":"sandboxes-gpte.openshift-security-roadshow.dev","babylon.gpte.redhat.com/workshop-id":"","babylon.gpte.redhat.com/workshop-provision":"sandboxes-gpte.openshift-security-roadshow.dev","babylon.gpte.redhat.com/workshop-uid":"726bd397-c656-4fb2-85e0-5822d14cc4ca"},"annotations":{"babylon.gpte.redhat.com/catalogDisplayName":"RHDP
+    Development","babylon.gpte.redhat.com/catalogItemDisplayName":"Openshift
+    Security
+    Roadshow","babylon.gpte.redhat.com/cost-tracker":"{\"estimatedCost\":
+    0.000568005, \"lastUpdate\": \"2024-03-18T00:03:19Z\", \"lastRequest\":
+    \"2024-03-18T00:03:19Z\"}","babylon.gpte.redhat.com/notifier":"disable","demo.redhat.com/purpose":"Developing
+    a custom demo","demo.redhat.com/purpose-activity":"Asset
+    Development","demo.redhat.com/rhdh-version":"stable","demo.redhat.com/salesforce-id":"","poolboy.gpte.redhat.com/resource-claim-init-timestamp":"2024-03-17T21:11:47Z","poolboy.gpte.redhat.com/resource-pool-name":"disable"}}}
+  lifespan:
+    end: '2024-03-19T21:11:23Z'
+    maximum: 10d
+    relativeMaximum: 2d
+    start: '2024-03-17T21:11:47Z'
+  resourceHandle:
+    apiVersion: poolboy.gpte.redhat.com/v1
+    kind: ResourceHandle
+    name: guid-h4vcd
+    namespace: poolboy
+  resources:
+    - name: openshift-security-roadshow
+      provider:
+        apiVersion: poolboy.gpte.redhat.com/v1
+        kind: ResourceProvider
+        name: sandboxes-gpte.openshift-security-roadshow.dev
+        namespace: poolboy
+      state:
+        apiVersion: anarchy.gpte.redhat.com/v1
+        kind: AnarchySubject
+        metadata:
+          annotations:
+            anarchy.gpte.redhat.com/spec-sha256: 27EvZhFKABeZplF9VWz/zoEeKo+W9wwonoZzbmSLif4=
+            poolboy.gpte.redhat.com/resource-claim-name: sandboxes-gpte.openshift-security-roadshow.dev-fc2zz
+            poolboy.gpte.redhat.com/resource-claim-namespace: user-mfoster-redhat-com
+            poolboy.gpte.redhat.com/resource-handle-name: guid-h4vcd
+            poolboy.gpte.redhat.com/resource-handle-namespace: poolboy
+            poolboy.gpte.redhat.com/resource-handle-uid: 04dd9074-a8f8-4747-873e-871581416268
+            poolboy.gpte.redhat.com/resource-index: '0'
+            poolboy.gpte.redhat.com/resource-provider-name: sandboxes-gpte.openshift-security-roadshow.dev
+            poolboy.gpte.redhat.com/resource-provider-namespace: poolboy
+            poolboy.gpte.redhat.com/resource-requester-email: mfoster@redhat.com
+            poolboy.gpte.redhat.com/resource-requester-name: Michael Foster [16002849]
+            poolboy.gpte.redhat.com/resource-requester-preferred-username: mfoster@redhat.com
+            poolboy.gpte.redhat.com/resource-requester-user: mfoster@redhat.com
+          creationTimestamp: '2024-03-17T21:11:47Z'
+          finalizers:
+            - anarchy.gpte.redhat.com
+            - anarchy.gpte.redhat.com/subject
+            - demo.redhat.com/reporting
+            - babylon.gpte.redhat.com/reporting
+          generation: 8
+          labels:
+            anarchy.gpte.redhat.com/governor: sandboxes-gpte.openshift-security-roadshow.dev
+            sandbox: sandbox422
+            state: started
+          managedFields:
+            - apiVersion: anarchy.gpte.redhat.com/v1
+              fieldsType: FieldsV1
+              fieldsV1:
+                f:metadata:
+                  f:finalizers:
+                    .: {}
+                    v:"anarchy.gpte.redhat.com": {}
+              manager: kopf
+              operation: Update
+              time: '2024-03-17T21:11:47Z'
+            - apiVersion: anarchy.gpte.redhat.com/v1
+              fieldsType: FieldsV1
+              fieldsV1:
+                f:metadata:
+                  f:annotations:
+                    .: {}
+                    f:anarchy.gpte.redhat.com/spec-sha256: {}
+                    f:poolboy.gpte.redhat.com/resource-claim-name: {}
+                    f:poolboy.gpte.redhat.com/resource-claim-namespace: {}
+                    f:poolboy.gpte.redhat.com/resource-handle-name: {}
+                    f:poolboy.gpte.redhat.com/resource-handle-namespace: {}
+                    f:poolboy.gpte.redhat.com/resource-handle-uid: {}
+                    f:poolboy.gpte.redhat.com/resource-index: {}
+                    f:poolboy.gpte.redhat.com/resource-provider-name: {}
+                    f:poolboy.gpte.redhat.com/resource-provider-namespace: {}
+                    f:poolboy.gpte.redhat.com/resource-requester-email: {}
+                    f:poolboy.gpte.redhat.com/resource-requester-name: {}
+                    f:poolboy.gpte.redhat.com/resource-requester-preferred-username: {}
+                    f:poolboy.gpte.redhat.com/resource-requester-user: {}
+                  f:finalizers:
+                    v:"anarchy.gpte.redhat.com/subject": {}
+                    v:"babylon.gpte.redhat.com/reporting": {}
+                    v:"demo.redhat.com/reporting": {}
+                  f:labels:
+                    .: {}
+                    f:anarchy.gpte.redhat.com/governor: {}
+                    f:sandbox: {}
+                    f:state: {}
+                f:spec:
+                  .: {}
+                  f:governor: {}
+                  f:vars:
+                    .: {}
+                    f:action_schedule:
+                      .: {}
+                      f:default_runtime: {}
+                      f:maximum_runtime: {}
+                      f:start: {}
+                      f:stop: {}
+                    f:check_status_request_timestamp: {}
+                    f:check_status_state: {}
+                    f:current_state: {}
+                    f:desired_state: {}
+                    f:healthy: {}
+                    f:job_vars:
+                      .: {}
+                      f:HostedZoneId: {}
+                      f:guid: {}
+                      f:ocp4_workload_le_certificates_install_certificates: {}
+                      f:rhdh_version: {}
+                      f:sandbox_account: {}
+                      f:sandbox_hosted_zone_id: {}
+                      f:sandbox_name: {}
+                      f:sandbox_zone: {}
+                      f:subdomain_base_suffix: {}
+                      f:uuid: {}
+                    f:provision_data:
+                      .: {}
+                      f:acm_route: {}
+                      f:acs_portal_password: {}
+                      f:acs_portal_username: {}
+                      f:acs_route: {}
+                      f:api_url: {}
+                      f:argocd_url: {}
+                      f:argocd_user: {}
+                      f:argocd_user_password: {}
+                      f:bastion_public_hostname: {}
+                      f:bastion_ssh_password: {}
+                      f:bastion_ssh_user_name: {}
+                      f:devspaces_url: {}
+                      f:devspaces_user: {}
+                      f:devspaces_user_password: {}
+                      f:gitlab_url: {}
+                      f:gitlab_user: {}
+                      f:gitlab_user_password: {}
+                      f:guid: {}
+                      f:novnc_user_password: {}
+                      f:novnc_web_url: {}
+                      f:openshift_admin_password: {}
+                      f:openshift_admin_user: {}
+                      f:openshift_api_url: {}
+                      f:openshift_client_download_url: {}
+                      f:openshift_cluster_ingress_domain: {}
+                      f:openshift_console_url: {}
+                      f:quay_admin_password: {}
+                      f:quay_admin_token: {}
+                      f:quay_admin_username: {}
+                      f:quay_config_password: {}
+                      f:quay_config_url: {}
+                      f:quay_config_username: {}
+                      f:quay_console_url: {}
+                      f:rhdh_id_provider: {}
+                      f:rhdh_url: {}
+                      f:rhdh_user: {}
+                      f:rhdh_user_password: {}
+                      f:sonarqube_password: {}
+                      f:sonarqube_url: {}
+                      f:sonarqube_username: {}
+                      f:tpa_console_url: {}
+                      f:tpa_password: {}
+                      f:tpa_username: {}
+                      f:users:
+                        .: {}
+                        f:user1:
+                          .: {}
+                          f:lab_ui_url: {}
+                          f:msg: {}
+                          f:password: {}
+                          f:showroom_primary_view_url: {}
+                          f:user: {}
+                      f:web_console_url: {}
+                    f:provision_messages: {}
+              manager: OpenAPI-Generator
+              operation: Update
+              time: '2024-03-18T00:04:10Z'
+            - apiVersion: anarchy.gpte.redhat.com/v1
+              fieldsType: FieldsV1
+              fieldsV1:
+                f:status:
+                  f:diffBase: {}
+              manager: kopf
+              operation: Update
+              subresource: status
+              time: '2024-03-18T00:04:11Z'
+            - apiVersion: anarchy.gpte.redhat.com/v1
+              fieldsType: FieldsV1
+              fieldsV1:
+                f:status:
+                  .: {}
+                  f:activeAction:
+                    .: {}
+                    f:after: {}
+                    f:apiVersion: {}
+                    f:kind: {}
+                    f:name: {}
+                    f:namespace: {}
+                    f:uid: {}
+                  f:pendingActions: {}
+                  f:runStatus: {}
+                  f:runStatusMessage: {}
+                  f:runs:
+                    .: {}
+                    f:active: {}
+                  f:supportedActions:
+                    .: {}
+                    f:destroy: {}
+                    f:provision: {}
+                    f:start: {}
+                    f:status: {}
+                    f:stop: {}
+                  f:towerJobs:
+                    .: {}
+                    f:provision:
+                      .: {}
+                      f:completeTimestamp: {}
+                      f:deployerJob: {}
+                      f:jobStatus: {}
+                      f:startTimestamp: {}
+                      f:towerHost: {}
+                      f:towerJobURL: {}
+              manager: OpenAPI-Generator
+              operation: Update
+              subresource: status
+              time: '2024-03-18T00:04:27Z'
+          name: sandboxes-gpte.openshift-security-roadshow.dev-h4vcd
+          namespace: babylon-anarchy-ocp-wksp
+          resourceVersion: '1717634168'
+          uid: 0a103b98-3ac5-443f-9d40-93360332a4df
+        spec:
+          governor: sandboxes-gpte.openshift-security-roadshow.dev
+          vars:
+            action_schedule:
+              default_runtime: 6h
+              maximum_runtime: 48h
+              start: '2024-03-17T21:11:47Z'
+              stop: '2024-03-18T03:11:23Z'
+            check_status_request_timestamp: '2024-03-18T00:04:00Z'
+            check_status_state: pending
+            current_state: started
+            desired_state: started
+            healthy: true
+            job_vars:
+              HostedZoneId: Z12ZVUBFMBSIOW
+              guid: h4vcd
+              ocp4_workload_le_certificates_install_certificates: true
+              rhdh_version: stable
+              sandbox_account: '394447372852'
+              sandbox_hosted_zone_id: Z12ZVUBFMBSIOW
+              sandbox_name: sandbox422
+              sandbox_zone: sandbox422.opentlc.com
+              subdomain_base_suffix: .sandbox422.opentlc.com
+              uuid: a9cc7507-47c7-5363-885c-9a211c3d013d
+            provision_data:
+              acm_route: >-
+                https://multicloud-console.apps.cluster-h4vcd.sandbox422.opentlc.com
+              acs_portal_password: MjMzNTc4
+              acs_portal_username: admin
+              acs_route: >-
+                https://central-stackrox.apps.cluster-h4vcd.sandbox422.opentlc.com
+              api_url: https://api.cluster-h4vcd.sandbox422.opentlc.com:6443
+              argocd_url: >-
+                https://argocd-server-janus-argocd.apps.cluster-h4vcd.sandbox422.opentlc.com
+              argocd_user: admin
+              argocd_user_password: MjMzNTc4
+              bastion_public_hostname: bastion.h4vcd.sandbox422.opentlc.com
+              bastion_ssh_password: MjMzNTc4
+              bastion_ssh_user_name: lab-user
+              devspaces_url: https://devspaces.apps.cluster-h4vcd.sandbox422.opentlc.com
+              devspaces_user: user1
+              devspaces_user_password: MjMzNTc4
+              gitlab_url: https://gitlab-gitlab.apps.cluster-h4vcd.sandbox422.opentlc.com
+              gitlab_user: user1
+              gitlab_user_password: MjMzNTc4
+              guid: h4vcd
+              novnc_user_password: MjMzNTc4
+              novnc_web_url: >-
+                https://bastion.h4vcd.sandbox422.opentlc.com/vnc.html?autoconnect=true&resize=remote
+              openshift_admin_password: MjMzNTc4
+              openshift_admin_user: admin
+              openshift_api_url: https://api.cluster-h4vcd.sandbox422.opentlc.com:6443
+              openshift_client_download_url: >-
+                http://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.12.24/openshift-client-linux-4.12.24.tar.gz
+              openshift_cluster_ingress_domain: apps.cluster-h4vcd.sandbox422.opentlc.com
+              openshift_console_url: >-
+                https://console-openshift-console.apps.cluster-h4vcd.sandbox422.opentlc.com
+              quay_admin_password: MjMzNTc4
+              quay_admin_token: G081WYD4VKGFV23C4GI07WLATY73BJ7F11MMVDR4
+              quay_admin_username: quayadmin
+              quay_config_password: OJ9PGuFz5j5HNDcl
+              quay_config_url: >-
+                https://quay-quay-config-editor-quay-enterprise.apps.cluster-h4vcd.sandbox422.opentlc.com
+              quay_config_username: quayconfig
+              quay_console_url: https://quay-h4vcd.apps.cluster-h4vcd.sandbox422.opentlc.com
+              rhdh_id_provider: GitLab
+              rhdh_url: >-
+                https://backstage-backstage.apps.cluster-h4vcd.sandbox422.opentlc.com
+              rhdh_user: user1
+              rhdh_user_password: MjMzNTc4
+              sonarqube_password: MjMzNTc4
+              sonarqube_url: >-
+                https://sonarqube-sonarqube.apps.cluster-h4vcd.sandbox422.opentlc.com
+              sonarqube_username: admin
+              tpa_console_url: https://console.apps.cluster-h4vcd.sandbox422.opentlc.com
+              tpa_password: MjMzNTc4
+              tpa_username: admin
+              users:
+                user1:
+                  lab_ui_url: >-
+                    https://showroom-showroom-h4vcd-user1.apps.cluster-h4vcd.sandbox422.opentlc.com/
+                  msg: >-
+                    Lab instructions:
+                    https://showroom-showroom-h4vcd-user1.apps.cluster-h4vcd.sandbox422.opentlc.com/
+
+                    Lab instructions:
+                    https://showroom-showroom-h4vcd-user1.apps.cluster-h4vcd.sandbox422.opentlc.com/
+                  password: MjMzNTc4
+                  showroom_primary_view_url: >-
+                    https://showroom-showroom-h4vcd-user1.apps.cluster-h4vcd.sandbox422.opentlc.com/
+                  user: user1
+              web_console_url: >-
+                https://console-openshift-console.apps.cluster-h4vcd.sandbox422.opentlc.com
+            provision_messages:
+              - >-
+                OpenShift Console:
+                https://console-openshift-console.apps.cluster-h4vcd.sandbox422.opentlc.com
+
+                OpenShift API for command line 'oc' client:
+                https://api.cluster-h4vcd.sandbox422.opentlc.com:6443
+
+                Download oc client from
+                http://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.12.24/openshift-client-linux-4.12.24.tar.gz
+              - ''
+              - 'Your RHACM console is available at:'
+              - '  https://multicloud-console.apps.cluster-h4vcd.sandbox422.opentlc.com'
+              - >-
+                Red Hat Quay is available at
+                https://quay-h4vcd.apps.cluster-h4vcd.sandbox422.opentlc.com
+              - >-
+                "A Quay Super User 'quayadmin' has been created." "The super
+                user password is MjMzNTc4". "The token for the super user is
+                G081WYD4VKGFV23C4GI07WLATY73BJ7F11MMVDR4".
+              - >-
+                "Red Hat Quay Config is available at
+                https://quay-quay-config-editor-quay-enterprise.apps.cluster-h4vcd.sandbox422.opentlc.com."
+                "- Config User: quayconfig." "- Config Password:
+                OJ9PGuFz5j5HNDcl."
+              - ''
+              - >-
+                SonarQube url:
+                https://sonarqube-sonarqube.apps.cluster-h4vcd.sandbox422.opentlc.com
+              - 'SonarQube user: admin'
+              - 'SonarQube password: MjMzNTc4'
+              - ''
+              - 'Your RHACS console is available at:'
+              - >-
+                https://central-stackrox.apps.cluster-h4vcd.sandbox422.opentlc.com
+              - 'RHACS portal username: admin'
+              - 'RHACS portal password: MjMzNTc4'
+              - ''
+              - 'Your Openshift login credentials:'
+              - >-
+                Openshift console:
+                https://console-openshift-console.apps.cluster-h4vcd.sandbox422.opentlc.com
+              - 'Openshift admin user: admin'
+              - 'Openshift admin password: MjMzNTc4'
+              - ''
+              - 'Your Backstage login credentials:'
+              - >-
+                RH Developer Hub:
+                https://backstage-backstage.apps.cluster-h4vcd.sandbox422.opentlc.com
+              - 'RH Developer Hub identity provider: GitLab'
+              - 'RH Developer Hub user: user1'
+              - 'RH Developer Hub password: MjMzNTc4'
+              - ''
+              - 'Your Janus ArgoCD login credentials:'
+              - >-
+                ArgoCD:
+                https://argocd-server-janus-argocd.apps.cluster-h4vcd.sandbox422.opentlc.com
+              - 'ArgoCD user: admin'
+              - 'ArgoCD password: MjMzNTc4'
+              - ''
+              - 'Your GitLab login credentials:'
+              - >-
+                GitLab:
+                https://gitlab-gitlab.apps.cluster-h4vcd.sandbox422.opentlc.com
+              - 'GitLab user: user1'
+              - 'GitLab password: MjMzNTc4'
+              - ''
+              - 'Your Devspaces login credentials:'
+              - >-
+                Devspaces:
+                https://devspaces.apps.cluster-h4vcd.sandbox422.opentlc.com
+              - 'Devspaces user: user1'
+              - 'Devspaces password: MjMzNTc4'
+              - >
+                noVNC Web URL:
+                https://bastion.h4vcd.sandbox422.opentlc.com/vnc.html?autoconnect=true&resize=remote
+
+                noVNC Password: MjMzNTc4
+              - >
+                You can access your bastion via SSH:
+
+                ssh lab-user@bastion.h4vcd.sandbox422.opentlc.com
+
+
+                Make sure you use the username 'lab-user' and the password
+                'MjMzNTc4' when prompted.
+        status:
+          activeAction:
+            after: '2024-03-18T00:04:11Z'
+            apiVersion: anarchy.gpte.redhat.com/v1
+            kind: AnarchyAction
+            name: sandboxes-gpte.openshift-security-roadshow.dev-h4vcd-staturttnm
+            namespace: babylon-anarchy-ocp-wksp
+            uid: 2d32a4e3-b9da-462f-8468-438b4f181720
+          diffBase: >-
+            {"spec":{"governor":"sandboxes-gpte.openshift-security-roadshow.dev","vars":{"action_schedule":{"default_runtime":"6h","maximum_runtime":"48h","start":"2024-03-17T21:11:47Z","stop":"2024-03-18T03:11:23Z"},"check_status_request_timestamp":"2024-03-18T00:04:00Z","check_status_state":"pending","current_state":"started","desired_state":"started","healthy":true,"job_vars":{"HostedZoneId":"Z12ZVUBFMBSIOW","guid":"h4vcd","ocp4_workload_le_certificates_install_certificates":true,"rhdh_version":"stable","sandbox_account":"394447372852","sandbox_hosted_zone_id":"Z12ZVUBFMBSIOW","sandbox_name":"sandbox422","sandbox_zone":"sandbox422.opentlc.com","subdomain_base_suffix":".sandbox422.opentlc.com","uuid":"a9cc7507-47c7-5363-885c-9a211c3d013d"},"provision_data":{"acm_route":"https://multicloud-console.apps.cluster-h4vcd.sandbox422.opentlc.com","acs_portal_password":"MjMzNTc4","acs_portal_username":"admin","acs_route":"https://central-stackrox.apps.cluster-h4vcd.sandbox422.opentlc.com","api_url":"https://api.cluster-h4vcd.sandbox422.opentlc.com:6443","argocd_url":"https://argocd-server-janus-argocd.apps.cluster-h4vcd.sandbox422.opentlc.com","argocd_user":"admin","argocd_user_password":"MjMzNTc4","bastion_public_hostname":"bastion.h4vcd.sandbox422.opentlc.com","bastion_ssh_password":"MjMzNTc4","bastion_ssh_user_name":"lab-user","devspaces_url":"https://devspaces.apps.cluster-h4vcd.sandbox422.opentlc.com","devspaces_user":"user1","devspaces_user_password":"MjMzNTc4","gitlab_url":"https://gitlab-gitlab.apps.cluster-h4vcd.sandbox422.opentlc.com","gitlab_user":"user1","gitlab_user_password":"MjMzNTc4","guid":"h4vcd","novnc_user_password":"MjMzNTc4","novnc_web_url":"https://bastion.h4vcd.sandbox422.opentlc.com/vnc.html?autoconnect=true&resize=remote","openshift_admin_password":"MjMzNTc4","openshift_admin_user":"admin","openshift_api_url":"https://api.cluster-h4vcd.sandbox422.opentlc.com:6443","openshift_client_download_url":"http://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.12.24/openshift-client-linux-4.12.24.tar.gz","openshift_cluster_ingress_domain":"apps.cluster-h4vcd.sandbox422.opentlc.com","openshift_console_url":"https://console-openshift-console.apps.cluster-h4vcd.sandbox422.opentlc.com","quay_admin_password":"MjMzNTc4","quay_admin_token":"G081WYD4VKGFV23C4GI07WLATY73BJ7F11MMVDR4","quay_admin_username":"quayadmin","quay_config_password":"OJ9PGuFz5j5HNDcl","quay_config_url":"https://quay-quay-config-editor-quay-enterprise.apps.cluster-h4vcd.sandbox422.opentlc.com","quay_config_username":"quayconfig","quay_console_url":"https://quay-h4vcd.apps.cluster-h4vcd.sandbox422.opentlc.com","rhdh_id_provider":"GitLab","rhdh_url":"https://backstage-backstage.apps.cluster-h4vcd.sandbox422.opentlc.com","rhdh_user":"user1","rhdh_user_password":"MjMzNTc4","sonarqube_password":"MjMzNTc4","sonarqube_url":"https://sonarqube-sonarqube.apps.cluster-h4vcd.sandbox422.opentlc.com","sonarqube_username":"admin","tpa_console_url":"https://console.apps.cluster-h4vcd.sandbox422.opentlc.com","tpa_password":"MjMzNTc4","tpa_username":"admin","users":{"user1":{"lab_ui_url":"https://showroom-showroom-h4vcd-user1.apps.cluster-h4vcd.sandbox422.opentlc.com/","msg":"Lab
+            instructions:
+            https://showroom-showroom-h4vcd-user1.apps.cluster-h4vcd.sandbox422.opentlc.com/\nLab
+            instructions:
+            https://showroom-showroom-h4vcd-user1.apps.cluster-h4vcd.sandbox422.opentlc.com/","password":"MjMzNTc4","showroom_primary_view_url":"https://showroom-showroom-h4vcd-user1.apps.cluster-h4vcd.sandbox422.opentlc.com/","user":"user1"}},"web_console_url":"https://console-openshift-console.apps.cluster-h4vcd.sandbox422.opentlc.com"},"provision_messages":["OpenShift
+            Console:
+            https://console-openshift-console.apps.cluster-h4vcd.sandbox422.opentlc.com\nOpenShift
+            API for command line 'oc' client:
+            https://api.cluster-h4vcd.sandbox422.opentlc.com:6443\nDownload oc
+            client from
+            http://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.12.24/openshift-client-linux-4.12.24.tar.gz","","Your
+            RHACM console is available at:"," 
+            https://multicloud-console.apps.cluster-h4vcd.sandbox422.opentlc.com","Red
+            Hat Quay is available at
+            https://quay-h4vcd.apps.cluster-h4vcd.sandbox422.opentlc.com","\"A
+            Quay Super User 'quayadmin' has been created.\" \"The super user
+            password is MjMzNTc4\". \"The token for the super user is
+            G081WYD4VKGFV23C4GI07WLATY73BJ7F11MMVDR4\".","\"Red Hat Quay Config
+            is available at
+            https://quay-quay-config-editor-quay-enterprise.apps.cluster-h4vcd.sandbox422.opentlc.com.\"
+            \"- Config User: quayconfig.\" \"- Config Password:
+            OJ9PGuFz5j5HNDcl.\"","","SonarQube url:
+            https://sonarqube-sonarqube.apps.cluster-h4vcd.sandbox422.opentlc.com","SonarQube
+            user: admin","SonarQube password: MjMzNTc4","","Your RHACS console
+            is available
+            at:","https://central-stackrox.apps.cluster-h4vcd.sandbox422.opentlc.com","RHACS
+            portal username: admin","RHACS portal password: MjMzNTc4","","Your
+            Openshift login credentials:","Openshift console:
+            https://console-openshift-console.apps.cluster-h4vcd.sandbox422.opentlc.com","Openshift
+            admin user: admin","Openshift admin password: MjMzNTc4","","Your
+            Backstage login credentials:","RH Developer Hub:
+            https://backstage-backstage.apps.cluster-h4vcd.sandbox422.opentlc.com","RH
+            Developer Hub identity provider: GitLab","RH Developer Hub user:
+            user1","RH Developer Hub password: MjMzNTc4","","Your Janus ArgoCD
+            login credentials:","ArgoCD:
+            https://argocd-server-janus-argocd.apps.cluster-h4vcd.sandbox422.opentlc.com","ArgoCD
+            user: admin","ArgoCD password: MjMzNTc4","","Your GitLab login
+            credentials:","GitLab:
+            https://gitlab-gitlab.apps.cluster-h4vcd.sandbox422.opentlc.com","GitLab
+            user: user1","GitLab password: MjMzNTc4","","Your Devspaces login
+            credentials:","Devspaces:
+            https://devspaces.apps.cluster-h4vcd.sandbox422.opentlc.com","Devspaces
+            user: user1","Devspaces password: MjMzNTc4","noVNC Web URL:
+            https://bastion.h4vcd.sandbox422.opentlc.com/vnc.html?autoconnect=true&resize=remote\nnoVNC
+            Password: MjMzNTc4\n","You can access your bastion via SSH:\nssh
+            lab-user@bastion.h4vcd.sandbox422.opentlc.com\n\nMake sure you use
+            the username 'lab-user' and the password 'MjMzNTc4' when
+            prompted.\n"]}},"metadata":{"labels":{"anarchy.gpte.redhat.com/governor":"sandboxes-gpte.openshift-security-roadshow.dev","sandbox":"sandbox422","state":"started"},"annotations":{"anarchy.gpte.redhat.com/spec-sha256":"27EvZhFKABeZplF9VWz/zoEeKo+W9wwonoZzbmSLif4=","poolboy.gpte.redhat.com/resource-claim-name":"sandboxes-gpte.openshift-security-roadshow.dev-fc2zz","poolboy.gpte.redhat.com/resource-claim-namespace":"user-mfoster-redhat-com","poolboy.gpte.redhat.com/resource-handle-name":"guid-h4vcd","poolboy.gpte.redhat.com/resource-handle-namespace":"poolboy","poolboy.gpte.redhat.com/resource-handle-uid":"04dd9074-a8f8-4747-873e-871581416268","poolboy.gpte.redhat.com/resource-index":"0","poolboy.gpte.redhat.com/resource-provider-name":"sandboxes-gpte.openshift-security-roadshow.dev","poolboy.gpte.redhat.com/resource-provider-namespace":"poolboy","poolboy.gpte.redhat.com/resource-requester-email":"mfoster@redhat.com","poolboy.gpte.redhat.com/resource-requester-name":"Michael
+            Foster
+            [16002849]","poolboy.gpte.redhat.com/resource-requester-preferred-username":"mfoster@redhat.com","poolboy.gpte.redhat.com/resource-requester-user":"mfoster@redhat.com"}}}
+          pendingActions: []
+          runStatus: failed
+          runStatusMessage: 'Failed to setup run: Failed ansible-galaxy collection install: '
+          runs:
+            active:
+              - apiVersion: anarchy.gpte.redhat.com/v1
+                kind: AnarchyRun
+                name: >-
+                  sandboxes-gpte.openshift-security-roadshow.dev-h4vcd-statu8dkfd
+                namespace: babylon-anarchy-ocp-wksp
+                uid: 0d3e938f-e6b2-47d6-9509-b8548dd70fbe
+          supportedActions:
+            destroy: {}
+            provision: {}
+            start: {}
+            status: {}
+            stop: {}
+          towerJobs:
+            provision:
+              completeTimestamp: '2024-03-17T22:46:48Z'
+              deployerJob: 338708
+              jobStatus: successful
+              startTimestamp: '2024-03-17T21:13:38Z'
+              towerHost: aap2-prod-us-east-2.aap.infra.demo.redhat.com
+              towerJobURL: aap2-prod-us-east-2.aap.infra.demo.redhat.com#/jobs/338708/
