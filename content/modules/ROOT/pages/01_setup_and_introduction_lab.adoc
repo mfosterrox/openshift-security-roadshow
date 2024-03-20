@@ -10,16 +10,9 @@
 == Lab goals
 * Access the environment
 
+== Lab components
 
-== Accessing the workshop
-
-This course offers you hands-on experience working with the essential security use cases of Red Hat^(R)^ OpenShift Container Platform (OCP), Red Hat OpenShift^(R)^ Container Platform Platform Plus (OPP) including products like Red Hat^(R)^ Advanced Cluster Security (RHACS), Red Hat^(R)^ OpenShift Pipelines, the Red Hat^(R)^ Compliance Operator, and more.
-
-Let's start by ensuring you have access to all the necessary resources to complete this lab. 
-
-=== Lab components
-
-In this course, you will utilize the following:
+In this roadshow, you will utilize the following throughout the modules:
 
 * Red Hat^(R)^ OpenShift Container Platform (OCP) console
 * Red Hat^(R)^ Advanced Cluster Security (RHACS) console
@@ -27,6 +20,12 @@ In this course, you will utilize the following:
 * Red Hat^(R)^ Enterprise Linux (RHEL) bastion host 
 
 To complete all of the lab tasks.
+
+== Accessing the workshop
+
+This course offers you hands-on experience working with the essential security use cases of Red Hat^(R)^ OpenShift Container Platform (OCP), Red Hat OpenShift^(R)^ Container Platform Platform Plus (OPP) including products like Red Hat^(R)^ Advanced Cluster Security (RHACS), Red Hat^(R)^ OpenShift Pipelines, the Red Hat^(R)^ Compliance Operator, and more.
+
+Let's start by ensuring you have access to all the necessary resources to complete this lab. 
 
 === Access the Red Hat^(R)^ OpenShift Container Platform (OCP) web console 
 
@@ -45,8 +44,7 @@ image::01-ocp-login-admin.png[OpenShift console]
 
 image::01-ocp-login-password.png[OpenShift console login]
 
-[NOTE]
-If the variables on the screen are unavailable, please inform your workshop administrator.
+IMPORTANT: If the variables on the screen are unavailable, please inform your workshop administrator.
 
 === Access the Red Hat^(R)^ Advanced Cluster Security (RHACS) web console 
 
@@ -58,7 +56,7 @@ First, access the RHACS web console.
 . Log into the RHACS console at `{acs_route}`
 . Click the "Advanced" button in your browser
 
-image::01-rhacs-advanced.png[RHACS login not private]
+image::01-rhacs-advanced.png[RHACS login not private] 
 
 [start=3]
 . Click "Proceed to .... (URL)"
@@ -91,6 +89,18 @@ image::01-quay-login.png[quay login]
 . Enter the Quay *username:* '{quay_admin_username}' and *password:* '{quay_admin_password}'
 
 image::01-quay-dashboard.png[quay console]
+
+image::307-quay-create-account.png[link=self, window=blank, width=100%, Create Quay Account]
+
+. Once we have created our quay login we can create our first repository by clicking the *Create New Repository* button.
+
+image::308-create-repo.png[link=self, window=blank, width=100%, Create Quay Repo]
+
+. We can name this repository *rh1-lab* and make it public or private so we can choose who has access to it.
+
+image::309-name-repo.png[link=self, window=blank, width=100%, Name Quay Repo]
+
+NOTE: In addition to creating a repository in the Quay console, we can create one by pushing an image and defining the repository name on the command line. We will do this in our next lab step.
 
 === Login to the Red Hat^(R)^ Enterprise Linux (RHEL) bastion host 
 
@@ -138,131 +148,75 @@ ctzgs
 [NOTE]
 Your GUID may be a 4- or 5-character alphanumeric string.
 
-=== BONUS MANDATORY STEP
+== Demo application setup
 
+=== Upload the "Juice Shop" application to Quay via the bastion host
 
+. We can find the Quay url from the output of the following CLI command:
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-=== Access the OpenShift Cluster in the Student VM via the 'oc' Command
-
-We must first connect to the *Linux Student VM* environment to connect to the OpenShift cluster. In the provisioning email (or service tab)you received, note the following:
- 
-*Requirements* 
-
-* *The OpenShift credentials for the ADMINISTRATOR OpenShift users:* 
-** `opentlc-mgr`, Which is the privileged user and comes with a unique password 
-* *The URL for the API of the cluster*
-** For example, 'https://api.cluster-4klh8.4klh8.sandbox1150.opentlc.com:6443'
-
-[NOTE]
-This information will be available in the services tab at link:https://demo.redhat.com/[demo.redhat.com^]. Or in the lab provisioning email.
-
-.Procedure
-[start=1]
-. Use the `oc login` command to log in to the cluster as the `opentlc-mgr` user:
-
-*Sample input*
-[source,bash,role="copypaste copypaste-warning"]
+[source,sh,role=execute]
 ----
-oc login -u opentlc-mgr -p <password from email> <OpenShift API URL from email>
-----
-*Sample output*
-[source,bash]
-----
-Login successful.
-
-You have access to 78 projects, the list has been suppressed. You can list all projects with 'oc projects'
-
-Using project "default".
+export QUAY_USER=quayadmin
 ----
 
-To illustrate that the installation is running Single Node OpenShift. Here is the output of an example `oc get nodes` command that shows the `master` node is also a `worker` node:
+[[working-images]]
 
-*Sample input*
-[source,bash,role="execute"]
-----
-oc get nodes
-----
-*Sample output*
-[source,bash]
-----
-NAME                                         STATUS   ROLES           AGE   VERSION
-ip-10-0-143-248.us-east-2.compute.internal   Ready    master,worker   92m   v1.22.3+ffbb954
-----
+== Working With Images
 
-=== Access the RHACS Central Services in the Student VM via the 'roxctl' Command
+For a simple task to demonstrate the functionality of Quay, we can pull an image from a public respository and then upload it to our newly created private registry. For this purpose we are going to use the Juice Shop image.
 
-In this section, you use the `roxctl` command line tool to send commands to the RHACS server.
+. Using the terminal on the bastion host, login to quay using the podman cli as shown below:
 
-* In the provisioning email you received, note the following:
-** The URL for the RHACS portal
-
-[NOTE]
-This information will be available in the services tab at link:https://demo.redhat.com/[demo.redhat.com^]. Or in the lab provisioning email.
-
-
-.Procedure
-. From the student VM, use the following command to verify your connection to RHACS Central:
-*Sample input*
-[source,bash,role="execute"]
+[source,sh,role=execute]
 ----
-roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" central whoami
-----
-*Sample output*
-[source,bash]
-----
-User:
-  auth-token:03b73fd3-313e-40a0-91f5-6ac88d8517a4
-Roles:
- Admin, Analyst, Continuous Integration, None, Scope Manager, Sensor Creator, Vulnerability Management Approver, Vulnerability Management Requester, Vulnerability Report Creator
-Access:
-  rw APIToken
-  rw Alert
-  rw AllComments
-  rw AuthPlugin
-  rw AuthProvider
-[... further access authorizations omitted for brevity ..]
+podman login $QUAY_URL 
 ----
 
-=== Review Lab Access
+NOTE: Use the credentials you just created to complete the login process.
 
-You should now have access to the following
-* Access to the OpenShift Web Console
-* Access to the RHACS Web Console
-* Access to the Linux Student VM that contains command line access to both
-** OpenShift Cluster via 'oc' command
-** RHACS Central services via 'roxctl' command
+. Pull the Juice Shop container image with the following cli command:
+
+[source,sh,role=execute]
+----
+podman pull quay.io/mfoster/vulnerable-demo-applications:juice-shop-0.1
+----
+
+. After we have a copy of the Juice Shop image downloaded locally we can tag it and push it to our private registry using the following commands:
+
+[source,sh,role=execute]
+----
+podman tag quay.io/mfoster/vulnerable-demo-applications:juice-shop-0.1 $QUAY_URL/$QUAY_USER/roadshow/juice-shop:0.1
+----
+
+[source,sh,role=execute]
+----
+podman push $QUAY_URL/$QUAY_USER/roadshow/juice-shop:0.1 --remove-signatures
+----
+
+. Once the image is successfully pushed, we can browse the Quay UI to validate it.
+
+. Click on the *Repositories* button, and you will be taken to a screen that shows our original empty repository, and the newly created Juice Shop one.
+
+image::310-quay-repos.png[link=self, window=blank, width=100%, Quay Repositories]
+
 
 == Demo applications setup
 
 [source,sh,subs="attributes",role=execute]
-
 ----
 git clone https://github.com/mfosterrox/demo-apps.git demo-apps
 export TUTORIAL_HOME="$(pwd)/demo-apps"
 oc apply -f $TUTORIAL_HOME/kubernetes-manifests/ --recursive
-kubectl apply -f $TUTORIAL_HOME/kubernetes-manifests/ --recursive
-export ROX_CENTRAL_ADDRESS={acs_route}
 ----
 
-:labname: Introduction to the RHACS Dashboard
+== roxctl CLI verification
 
-== {labname}
+[source,sh,subs="attributes",role=execute]
+----
+export ROX_CENTRAL_ADDRESS={acs_route}
+roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" central whoami
+----
 
-:numbered:
 
 = Navigating the RHACS Console
 In this section, you familiarize yourself with the RHACS portal, including its tabs, search capabilities and dashboard functionality.

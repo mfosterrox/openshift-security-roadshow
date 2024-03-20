@@ -1,81 +1,75 @@
-= {lab_name}
+= '{lab_name}'
 
 == Lab homepage
 
 You can find all the URLs and passwords needed to complete the lab on the homepage. 
 
-*The first section* will highlight all of the *MANDATORY* applications for the completion of the OpenShift Security Roadshows. 
-*The second section* will contain other *optional* applications for you to test out and play around with on your own time. 
+*The first section* will highlight all of the applications used in the OpenShift Security Roadshow. 
+*The second section* will contain other optional applications for you to test out and play around with on your own time. 
 
 ---
 
 == Mandatory applications
 
 === Red Hat^(R)^ OpenShift Container Platform (OCP) console information
-- {web_console_url}{openshift_console_url}
-- {openshift_admin_user}
-- {openshift_admin_password}
-- {openshift_api_url}
-- {openshift_client_download_url}
+- Console URL: '{web_console_url}'
+- Username: '{openshift_admin_user}'
+- Password: '{openshift_admin_password}'
 
 === Red Hat^(R)^ Advanced Cluster Security (RHACS) console information
-- {acs_portal_password}
-- {acs_portal_username}
-- {acs_route}
+- Console URL: '{acs_route}'
+- Username: '{acs_portal_username}'
+- Password: '{acs_portal_password}'
+
 
 === Red Hat^(R)^ Quay
-- {quay_console_url}
-- {quay_admin_username}
-- {quay_admin_password}
+- Console URL: '{quay_console_url}'
+- Username: '{quay_admin_username}'
+- Password: '{quay_admin_password}'
 
-- {quay_admin_token}
-- {quay_config_password}
-- {quay_config_url}
-- {quay_config_username}
+- '{quay_admin_token}'
+- '{quay_config_password}'
+- '{quay_config_url}'
+- '{quay_config_username}'
 
 === Red Hat^(R)^ Enterprise Linux (RHEL) bastion host information
-- ssh {bastion_ssh_user_name}@{bastion_public_hostname}
-- {bastion_ssh_password}
+- Username@host: '{bastion_ssh_user_name}'@'{bastion_public_hostname}'
+- Password: '{bastion_ssh_password}'
 
 == Optional applications
 
 === Red Hat^(R)^ Advanced Cluster Management (RHACM) information
-- {acm_route}
-- {api_url}
+- Console URL: ''{acm_route}'
+- Username: '{openshift_admin_user}'
+- Password: '{openshift_admin_password}'
 
 === Red Hat^(R)^ Devspaces information
-- {devspaces_url}
-- {devspaces_user}
-- {devspaces_user_password}
+- Console URL: '{devspaces_url}'
+- Username: '{devspaces_user}'
+- Password: '{devspaces_user_password}'
 
 === Red Hat^(R)^ Developer Hub (RHDP) information
-- {rhdh_url}
-- {rhdh_user}
-- {rhdh_user_password}
-- {rhdh_id_provider}
+- Console URL: '{rhdh_url}'
+- Username: '{rhdh_user}'
+- Password: '{rhdh_user_password}'
+- '{rhdh_id_provider}'
 
 === Red Hat^(R)^ Trusted Profile Analyzer (RHTAP) information
-- {tpa_console_url}
-- {tpa_password}
-- {tpa_username}
+- Console URL: '{tpa_console_url}'
+- Username: '{tpa_username}'
+- Password: '{tpa_password}'
 
 === GitLab
-- {gitlab_url}
-- {gitlab_user}
-- {gitlab_user_password}
+- Console URL: '{gitlab_url}'
+- Username: '{gitlab_user}'
+- Password: '{gitlab_user_password}'
 
 === ArgoCD information
-- {argocd_url}
-- {argocd_user}
-- {argocd_user_password}
+- Console URL: '{argocd_url}'
+- Username: '{argocd_user}'
+- Password: '{argocd_user_password}'
 
 === Sonarcube
-- {sonarqube_password}
-- {sonarqube_url}- 
-- {sonarqube_username- }
-
-=== Extra
-- {guid}
-- {novnc_user_password}
-- {novnc_web_url}
-- {openshift_cluster_ingress_domain}
+- Console URL: '{sonarqube_url}' 
+- Username: '{sonarqube_username}'
+- Password: '{sonarqube_password}'

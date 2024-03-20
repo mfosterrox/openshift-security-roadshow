@@ -7,5 +7,6 @@
 * xref:06_cicd_lab.adoc[CI/CD Integration]
 * xref:07_compliance_lab.adoc[Compliance]
 * xref:08_notifications_and_alerting_lab.adoc[Notifications and Alerting]
-* xref:09_capture_the_flag_lab.adoc[Capture the Flag]
-* xref:10_log_4_shell_lab.adoc[Log4Shell Exploit]
+* xref:09_log_4_shell_lab.adoc[Log4Shell Exploit]
+* xref:10_capture_the_flag_lab.adoc[Capture the Flag]
+
