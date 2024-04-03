@@ -1,75 +1,116 @@
-= '{lab_name}'
+= {lab_name}
+
+This course offers you hands-on experience working with the essential security use cases of Red Hat^(R)^ OpenShift Container Platform (OCP), Red Hat OpenShift^(R)^ Container Platform Platform Plus (OPP) including products like Red Hat^(R)^ Advanced Cluster Security (RHACS), Red Hat^(R)^ OpenShift Pipelines, the Red Hat^(R)^ Compliance Operator, and more.
 
 == Lab homepage
 
 You can find all the URLs and passwords needed to complete the lab on the homepage. 
 
-*The first section* will highlight all of the applications used in the OpenShift Security Roadshow. 
+*The first section* will highlight all of the applications used in the OpenShift Security Roadshow.
+
 *The second section* will contain other optional applications for you to test out and play around with on your own time. 
 
 ---
 
+IMPORTANT: If any of the *mandatory* values are cannot be found below please contact your administrator. 
+
 == Mandatory applications
 
 === Red Hat^(R)^ OpenShift Container Platform (OCP) console information
-- Console URL: '{web_console_url}'
-- Username: '{openshift_admin_user}'
-- Password: '{openshift_admin_password}'
+[cols="1,1"]  
+|=== 
+|Console URL| {web_console_url}
+|Username| {openshift_admin_user}
+|Password| {openshift_admin_password}
+|=== 
 
 === Red Hat^(R)^ Advanced Cluster Security (RHACS) console information
-- Console URL: '{acs_route}'
-- Username: '{acs_portal_username}'
-- Password: '{acs_portal_password}'
-
+[cols="1,1"]  
+|=== 
+|Console URL| {acs_route}
+|Username| {acs_portal_username}
+|Password| {acs_portal_password}
+|=== 
 
 === Red Hat^(R)^ Quay
-- Console URL: '{quay_console_url}'
-- Username: '{quay_admin_username}'
-- Password: '{quay_admin_password}'
+[cols="1,1"]  
+|=== 
+|Console URL| {quay_console_url}
+|Username| {quay_admin_username}
+|Password| {quay_admin_password}
+|=== 
 
-- '{quay_admin_token}'
-- '{quay_config_password}'
-- '{quay_config_url}'
-- '{quay_config_username}'
-
+[cols="1,1"]
+|=== 
+|Admin Token|{quay_admin_token}
+|Config Password|{quay_config_password}
+|Config URL|{quay_config_url}
+|Config Username|{quay_config_username}
+|=== 
 === Red Hat^(R)^ Enterprise Linux (RHEL) bastion host information
-- Username@host: '{bastion_ssh_user_name}'@'{bastion_public_hostname}'
-- Password: '{bastion_ssh_password}'
+[cols="1,1"]  
+|=== 
+|Username@host| {bastion_ssh_user_name}@{bastion_public_hostname}
+|Password| {bastion_ssh_password}
+|=== 
 
 == Optional applications
 
 === Red Hat^(R)^ Advanced Cluster Management (RHACM) information
-- Console URL: ''{acm_route}'
-- Username: '{openshift_admin_user}'
-- Password: '{openshift_admin_password}'
+[cols="1,1"]  
+|=== 
+|Console URL| {acm_route}
+|Username| {openshift_admin_user}
+|Password| {openshift_admin_password}
+|=== 
 
 === Red Hat^(R)^ Devspaces information
-- Console URL: '{devspaces_url}'
-- Username: '{devspaces_user}'
-- Password: '{devspaces_user_password}'
+[cols="1,1"]  
+|=== 
+|Console URL|{devspaces_url}
+|Username| {devspaces_user}
+|Password| {devspaces_user_password}
+|=== 
 
 === Red Hat^(R)^ Developer Hub (RHDP) information
-- Console URL: '{rhdh_url}'
-- Username: '{rhdh_user}'
-- Password: '{rhdh_user_password}'
-- '{rhdh_id_provider}'
+[cols="1,1"]  
+|=== 
+|Console URL| {rhdh_url}
+|Username| {rhdh_user}
+|Password| {rhdh_user_password}
+|RH ID Provider| {rhdh_id_provider}
+|=== 
+
+
 
 === Red Hat^(R)^ Trusted Profile Analyzer (RHTAP) information
-- Console URL: '{tpa_console_url}'
-- Username: '{tpa_username}'
-- Password: '{tpa_password}'
+[cols="1,1"]  
+|=== 
+|Console URL| {tpa_console_url}
+|Username| {tpa_username}
+|Password| {tpa_password}
+|=== 
 
 === GitLab
-- Console URL: '{gitlab_url}'
-- Username: '{gitlab_user}'
-- Password: '{gitlab_user_password}'
+[cols="1,1"]  
+|=== 
+|Console URL| {gitlab_url}
+|Username| {gitlab_user}
+|Password| {gitlab_user_password}
+|=== 
 
 === ArgoCD information
-- Console URL: '{argocd_url}'
-- Username: '{argocd_user}'
-- Password: '{argocd_user_password}'
+[cols="1,1"]  
+|=== 
+|Console URL| {argocd_url}
+|Username| {argocd_user}
+|Password| {argocd_user_password}
+|=== 
 
 === Sonarcube
-- Console URL: '{sonarqube_url}' 
-- Username: '{sonarqube_username}'
-- Password: '{sonarqube_password}'
+[cols="1,1"]  
+|=== 
+|Console URL| {sonarqube_url} 
+|Username| {sonarqube_username}
+|Password| {sonarqube_password}
+|=== 
