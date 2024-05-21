@@ -1,7 +1,7 @@
 ---
 site:
   title: OpenShift Security Roadshow
-  url: https://redhat-scholars.github.io/course-template
+  url: https://www.redhat.com/en/technologies/cloud-computing/openshift/platform-plus
   start_page: modules::index.adoc
 
 content:
