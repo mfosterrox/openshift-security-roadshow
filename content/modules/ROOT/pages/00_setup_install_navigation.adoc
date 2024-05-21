@@ -1,0 +1,538 @@
+= Lab setup and overview
+
+:numbered:
+
+[source,bash,role="execute"]
+[source,bash,role="copypaste copypaste-warning"]
+
+== Module goals
+
+* Access all of the applications in the lab environment
+* Deploy our default insecure applications
+* Ensuring OpenShift pipelines are properly setup
+
+== Lab components
+
+In this section, you will utilize the following applications:
+
+* Red Hat^(R)^ OpenShift Container Platform (OCP) console
+* Red Hat^(R)^ Advanced Cluster Security (RHACS) console
+* Red Hat^(R)^ Quay console
+* Red Hat^(R)^ Enterprise Linux (RHEL) bastion host 
+
+To complete all of the lab tasks.
+
+== Accessing the workshop
+
+Let's start by ensuring you have access to all the necessary resources to complete this lab. 
+
+=== Access the Red Hat^(R)^ OpenShift Container Platform (OCP) web console 
+
+First, make sure you can access the Red Hat^(R)^ OCP console web console.
+
+*Procedure*
+
+[start=1]
+. Log into the OCP console at `{openshift_console_url}`
+
+. Enter the OCP credentials 
+
+[cols="1,1"]
+|===
+*User:*| kubeadmin |
+*Password:*| {openshift_kubeadmin_password} |
+|===
+
+image::01-ocp-login-admin.png[OpenShift console]
+
+[start=3]
+. Enter the OpenShift username *{openshift_admin_user}* and password: *{openshift_admin_password}*
+
+image::01-ocp-login-password.png[OpenShift console login]
+
+IMPORTANT: If the variables on the screen are unavailable, please inform your workshop administrator.
+
+=== Access the Red Hat^(R)^ Advanced Cluster Security (RHACS) web console 
+
+Red Hat Advanced Cluster Security for Kubernetes is a Kubernetes-native security platform that equips you to build, deploy, and run cloud-native applications with more security. The solution helps protect containerized Kubernetes workloads in all major clouds and hybrid platforms, including Red Hat OpenShift, Amazon Elastic Kubernetes Service (EKS), Microsoft Azure Kubernetes Service (AKS), and Google Kubernetes Engine (GKE).
+
+First, access the RHACS web console.
+
+*Procedure*
+
+[start=1]
+. Log into the RHACS console at `{acs_route}`
+. Click the "Advanced" button in your browser
+
+image::01-rhacs-advanced.png[RHACS login not private] 
+
+[start=3]
+. Click "Proceed to {acs_portal_password}"
+
+image::01-rhacs-proceed.png[RHACS login proceed]
+
+[start=4]
+. Enter the RHACS credentials 
+
+[cols="1,1"]
+|===
+*RHACS Console Username:* | {acs_portal_username} |
+*RHACS Console Password:* | {acs_portal_password} |
+|===
+
+image::01-rhacs-login.png[RHACS console]
+
+image::01-rhacs-console-dashboard.png[RHACS console]
+
+====
+Congrats! Half way there.
+====
+
+=== Red Hat^(R)^ Quay console web console 
+
+Next, access the Quay web console.
+
+*Procedure*
+
+[start=1]
+. Log into the Quay console at {quay_console_url}
+
+. Enter the Quay credentials.
+
+[cols="1,1"]
+|===
+*Quay Console Username:* | {quay_admin_username} |
+*Quay Console Password:* | {quay_admin_password} |
+|===
+
+
+image::01-quay-login.png[quay login]
+
+image::01-quay-dashboard.png[quay console]
+
+[start=3]
+
+. Once we have logged in let's create our first repository by clicking the *Create New Repository* button in the top right corner of the page.
+
+image::01-quay-new-repo.png[new org]
+
+[start=4]
+
+. Name this repository *ctf-web-to-system* and make it public so we can allow our pipelines to access the repository without setting up the credentials.
+
+image::01-quay-repo-config.png[link=self, window=blank, width=100%, Create Quay Repo]
+
+=== Login to the Red Hat^(R)^ Enterprise Linux (RHEL) bastion host 
+
+In the final step we will get access to the OpenShift cluster and various CLI tools via the bastion host or *"Bastion Host"*.
+
+IMPORTANT: The default terminal in the Showroom environment should be the *Bastion Host*. The commands below will allow you to ssh into the bastion host should you lose connection.
+
+NOTE: Please proceed to the "OpenShift admin access verification" section if you already have access to the *Bastion Host*
+
+*Procedure*
+
+[start=1]
+. Open up a local shell application (Iterm2, PuTTY, PowerShell, Warp)
+. ssh into the bastion host using the following command: *ssh {bastion_ssh_user_name}@{bastion_public_hostname}*
+
+*Sample input*
+[source,bash]
+----
+ssh {bastion_ssh_user_name}@{bastion_public_hostname}
+----
+
+*Sample output*
+[source,bash]
+----
+The authenticity of host bastion.4klh8.sandbox1150.opentlc.com (3.134.153.6) cant be established.
+ED25519 key fingerprint is SHA256:g0H5C1vP1xNqhL7fp0HxMRDPgjgzuAdi3ZIyKQl1mPU.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+----
+
+[start=3]
+. Accept the connection by typing yes
+. Input the lab-user password: *{bastion_ssh_password}*
+
+image::01-ssh-logged-in.png[bastion login]
+
+[start=5]
+. Verify that the GUID variable is set correctly for your environment:
+
+*Sample command*
+[source,bash,role="execute"]
+----
+echo $GUID
+----
+*Sample output*
+[source,bash]
+----
+ctzgs
+----
+
+[NOTE]
+Your GUID should be a 4- or 5- character alphanumeric string.
+
+==== OpenShift admin access verification
+
+[source,sh,subs="attributes",role=execute]
+----
+oc whoami
+----
+
+==== roxctl CLI verification 
+
+[source,sh,subs="attributes",role=execute]
+----
+export ROX_CENTRAL_ADDRESS={acs_route}
+roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" central whoami
+----
+
+*Sample output*
+[source,bash]
+----
+UserID:
+	auth-token:718744a9-9548-488b-a8b9-07b2c59ea5e6
+User name:
+	anonymous bearer token "pipelines-ci-token" with roles [Admin] (jti: 718744a9-9548-488b-a8b9-07b2c59ea5e6, expires: 2025-04-03T15:15:06Z)
+Roles:
+	- Admin
+Access:
+	rw Access
+	rw Administration
+	rw Alert
+	rw CVE
+	rw Cluster
+	rw Compliance
+	rw Deployment
+	rw DeploymentExtension
+	rw Detection
+	rw Image
+	rw Integration
+	rw K8sRole
+	rw K8sRoleBinding
+	rw K8sSubject
+	rw Namespace
+	rw NetworkGraph
+	rw NetworkPolicy
+	rw Node
+	rw Secret
+	rw ServiceAccount
+	rw VulnerabilityManagementApprovals
+	rw VulnerabilityManagementRequests
+	rw WatchedImage
+	rw WorkflowAdministration
+----
+
+== Quay setup
+
+=== Download the "Java app" application and push the container image to Quay via the Student VM
+
+Make sure you use the password '{bastion_ssh_password}' when prompted.
+
+. Let's export a few variable to make our life easier
+
+[source,sh,subs="attributes",role=execute]
+----
+export QUAY_USER={quay_admin_username}
+----
+
+[start=2]
+
+. Set the Quay URL variable 
+
+[source,sh,subs="attributes",role=execute]
+----
+export QUAY_URL=$(oc -n quay get route quay-quay -o jsonpath='{.spec.host}')
+----
+
+IMPORTANT: Verify that the variables are correct
+
+[source,sh,subs="attributes",role=execute]
+----
+$QUAY_URL
+$QUAY_USER
+----
+
+[start=3]
+. Using the terminal on the bastion host, login to quay using the Podman CLI as shown below:
+
+[source,sh,subs="attributes",role=execute]
+----
+podman login $QUAY_URL
+----
+
+NOTE: Use the quay admin credentials, Username: *{quay_admin_username}* & password: *{quay_admin_password}*. You can create unique user and group credentials in Quay for proper segmentation. 
+
+*Sample output*
+[source,bash]
+----
+Username: quayadmin
+Password:
+Login Succeeded!
+----
+
+[start=4]
+. Pull the Java container image with the following CLI command:
+
+[source,sh,subs="attributes",role=execute]
+----
+podman pull quay.io/jechoisec/ctf-web-to-system-01
+----
+
+*Sample output*
+[source,bash]
+----
+Trying to pull quay.io/jechoisec/ctf-web-to-system-01:latest...
+Getting image source signatures
+Copying blob 37aaf24cf781 done 
+...
+...
+Copying config 1cbb2b7908 done  
+Writing manifest to image destination
+1cbb2b79086961e34d06f301b2fa15d2a7e359e49cfe67c06b6227f6f0005149
+----
+
+[start=5]
+. Now that you have a copy of the Java container image locally. You must tag the image before pushing it to Quay. 
+
+[source,sh,subs="attributes",role=execute]
+----
+podman tag quay.io/jechoisec/ctf-web-to-system-01 $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+----
+
+NOTE: Quay will automatically create a private registry to store our Java appplication. We will need to make it a public repository to be able to pull the miage without credentials. We will do this in the following module
+
+[start=6]
+. The last step is to push the image to Quay.
+
+[source,sh,subs="attributes",role=execute]
+----
+podman push $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 --remove-signatures
+----
+
+*Sample output*
+[source,bash]
+----
+Copying blob 3113fb957b33 done 
+...
+...
+Copying config 1cbb2b7908 done  
+Writing manifest to image destination
+----
+
+[start=6]
+
+Perfect! 
+
+
+= Red Hat Quay
+
+Red Hat Quay is an enterprise-quality registry for building, securing and serving container images. It provides secure storage, distribution, governance of containers and cloud-native artifacts on any infrastructure.
+
+To get started, make sure that you are logged in to Red Hat Quay and have access to the newly created *quayadmin/ctf-web-to-system* repository
+
+[[access-quay]]
+
+== Access Quay 
+
+Your Red Hat Quay console is available at: {quay_console_url}[window=blank]
+
+Administrator login is available with:
+
+[source,sh,subs="attributes",role=execute]
+
+[cols="1,1"]
+|===
+*Quay Console Username:* | {quay_admin_username} |
+*Quay Console Password:* | {quay_admin_password} |
+|===
+
+[[navigating-the-registry]]
+
+== Browse the registry
+
+In the setup module we downloaded built and pushed a insecure java application called *ctf-web-to-system*. Now it's time to deploy it to the OpenShift Cluster. To do this we will need to make the registry that we created public. 
+
+Let's take a look at our application in the registry.
+
+image::quay-login.png[link=self, window=blank, width=100%]
+
+. Next, click on the *ctf-web-to-system* repository. 
+
+image::quay-repo.png[link=self, window=blank, width=100%]
+
+On the left hand side of the window you should see the following icons labelled in order from top to bottom,
+
+image::quay-sidebar.png[link=self, window=blank, width=100%]
+
+- Information
+- Tags
+- Tag History
+- Usage Logs
+- Settings
+
+The information tab shows you information such as;
+
+- Podman and Docker commands
+- Repository activity
+- The repository description. 
+
+image::quay-information.png[link=self, window=blank, width=100%]
+
+[start=2]
+. Click on the *Tags* icon. 
+
+image::quay-tags.png[link=self, window=blank, width=100%]
+
+This tab displays all of the images and tags that have been upladed, providing information such as fixable vulnerabilities, the image size and allows for bulk changes to images based on the security posture. 
+
+image::quay-tags-security.png[link=self, window=blank, width=100%]
+
+[start=3]
+. Click on the *Tags History* icon. 
+
+image::quay-tags-history.png[link=self, window=blank, width=100%]
+
+This tab simply displays the container images history over time. 
+
+[start=4]
+. Click on the *Usage Logs* icon. 
+
+This tab displays the usage over time along with details about who/how the images were pushed to the cluster. 
+
+image::quay-usage-logs.png[link=self, window=blank, width=100%]
+
+You can see that you (The "quayadmin") pushed an image tagged 1.0 to the repository today. 
+
+[start=5]
+. Lastly click on the *Settings* icon. 
+
+image::quay-settings.png[link=self, window=blank, width=100%]
+
+In this tab you can add/remove users and update permissions, alter the privacy of the repository, and even schedule alerts based on found vulnerabilities.
+
+image::quay-tags-security.png[link=self, window=blank, width=100%]
+
+IMPORTANT: Make sure to make the repository public. Otherwise we will not be able to deploy the application in the next step.
+
+[start=6]
+. Make your repository public before deploying our application in the next step by clicking the *Make Public* button under `Repository Visability`
+
+image::quay-make-public.png[link=self, window=blank, width=100%]
+
+[start=7]
+. Click OK
+
+image::quay-make-public-ok.png[link=self, window=blank, width=100%]
+
+[[vulnerability-scanning-with-quay]]
+
+== Vulnerability Scanning with Quay
+
+Red Hat Quay can also help with securing our environments by performing a security scan on any images added to our registry, and advise which ones are potentially fixable.
+
+Use the following procedure to check the security scan results for our Java container image you have uploaded.
+
+. Click on the *Tags* icon on the left side of the screen like before.
+
+image::quay-tags.png[link=self, window=blank, width=100%]
+
+NOTE: You may need to click the checkbox near the image you would would like more information on, but the column for *Security Scan* should populate.
+
+[start=2]
+. By default, the security scan color codes the vulnerabilities, you can hover over the security scan for more information.
+
+image::quay-scan-hover.png[link=self, window=blank, width=100%]
+
+NOTE: The Java container image we are using in this lab shows 12 vulnerabilities, with 1 high vulnerabilities. This number will change with time and will be different between container scanners for a variety of reasons such as reporting mechanisms, vulnerability feeds and operating system support. 
+
+. Click on the list of vulnerabilities to see a more detailed view.
+
+image::quay-security-detailed.png[link=self, window=blank, width=100%, Image Security Details] 
+
+. Click on a vulnerabile package on the left menu to get more information about the vulnerability and see what you have to do to fix the issue.
+
+image::quay-vuln-detailed.png[link=self, window=blank, width=100%]
+
+NOTE: Toggling for fixable/unfixable vulnerabilities is an excellent way for developers to understand what is within their responsibility for fixing. For example, since we are using an older version of Java, many fixes are available for these common issues. 
+
+Congratulations, you now know how to examine images in your registry for potential vulnerabilities before deploying into your environment.
+
+[subs=attributes]
+
+IMPORTANT: Please ensure the deploy application are deployed to your cluster before moving onto the next module. 
+
+[[deploy-the-java-application]]
+
+== Deploy the Java application
+
+IMPORTANT: You will need to complete the following commands in the *Bastion VM* Please SSH to it (If you have not already) by using the following command:
+
+[source,sh,subs="attributes",role=execute]
+
+----
+ssh {bastion_ssh_user_name}@{bastion_public_hostname}
+----
+
+Make sure you use the password '{bastion_ssh_password}' when prompted.
+
+IMPORTANT: Make sure to REMOVE the *https://* from the URL command below.
+
+[source,sh,subs="attributes",role=execute]
+----
+export QUAY_USER={quay_admin_username}
+export QUAY_URL=$(oc -n quay get route quay-quay -o jsonpath='{.spec.host}')
+----
+
+Our insecure demo applications come from a variety of public GitHub repositories and sources. Including the Java application that you just pushed to Quay. Let's deploy them into our cluster.
+
+. Run the following command in the Bastion VM. 
+
+[NOTE]
+This command downloads a bunch of Kubernetes manifests to deploy to OpenShift. We also add the location of the local repository for our ctf-web-to-system application. 
+
+[source,sh,subs="attributes",role=execute]
+----
+git clone https://github.com/mfosterrox/demo-apps.git demo-apps
+export TUTORIAL_HOME="$(pwd)/demo-apps"
+sed -i "s|CHANGEME|$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0|g" $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml
+oc apply -f $TUTORIAL_HOME/kubernetes-manifests/ --recursive
+oc apply -f $TUTORIAL_HOME/openshift-pipelines/ --recursive
+----
+
+[IMPORTANT]
+You should see warnings such as: Warning: would violate PodSecurity "restricted:latest": unrestricted capabilities (container "Java" must set securityContext.capabilities.drop=["ALL"]) this is because we are deploying flawed container configurations and vulnerabile container applications into the OpenShift cluster.
+
+
+[start=2]
+. Run the following command and ensure that the applications are up and running
+
+[source,bash,role="execute"]
+----
+kubectl get deployments -l demo=roadshow -A
+----
+
+*Output*
+```bash
+NAMESPACE    NAME                READY   UP-TO-DATE   AVAILABLE   AGE
+backend      api-server          1/1     1            1           4h39m
+default      api-server          1/1     1            1           4h38m
+default      ctf-web-to-system   1/1     1            1           46m
+default      frontend            1/1     1            1           4h38m
+default      juice-shop          1/1     1            1           4h39m
+default      rce                 1/1     1            1           4h38m
+default      reporting           1/1     1            1           4h38m
+frontend     asset-cache         1/1     1            1           4h38m
+medical      reporting           1/1     1            1           4h38m
+operations   jump-host           1/1     1            1           4h38m
+payments     visa-processor      1/1     1            1           4h38m
+```
+
+[NOTE]
+The main focus needs to be that the *ctf-web-to-system* application deployed properly. 
+
+Nice job!
+
+

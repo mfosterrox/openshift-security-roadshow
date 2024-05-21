@@ -1,4 +1,5 @@
 
+
 * xref:01_setup_and_introduction_lab.adoc[Setup and Introduction]
 * xref:02_vulnerability_management_lab.adoc[Vulnerability Management]
 * xref:03_configuration_management_lab.adoc[Configuration Management]

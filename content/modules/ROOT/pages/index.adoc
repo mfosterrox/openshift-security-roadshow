@@ -4,7 +4,7 @@ This course offers you hands-on experience working with the essential security u
 
 == Lab homepage
 
-You can find all the URLs and passwords needed to complete the lab on the homepage. 
+You can find all the URLs and passwords needed to complete the lab on the homepage. If you ever get lost simple click the home button at the top of the webpage
 
 *The first section* will highlight all of the applications used in the OpenShift Security Roadshow.
 
@@ -54,7 +54,7 @@ IMPORTANT: If any of the *mandatory* values are cannot be found below please con
 |Password| {bastion_ssh_password}
 |=== 
 
-== Optional applications
+== Additional applications
 
 === Red Hat^(R)^ Advanced Cluster Management (RHACM) information
 [cols="1,1"]  
