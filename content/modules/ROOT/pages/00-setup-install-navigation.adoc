@@ -122,63 +122,18 @@ image::01-quay-new-repo.png[new org]
 
 image::01-quay-repo-config.png[link=self, window=blank, width=100%, Create Quay Repo]
 
-=== Login to the Red Hat^(R)^ Enterprise Linux (RHEL) bastion host 
-
-In the final step we will get access to the OpenShift cluster and various CLI tools via the bastion host or *"Bastion Host"*.
-
-IMPORTANT: The default terminal in the Showroom environment should be the *Bastion Host*. The commands below will allow you to ssh into the bastion host should you lose connection.
-
-NOTE: Please proceed to the "OpenShift admin access verification" section if you already have access to the *Bastion Host*
-
-*Procedure*
-
-[start=1]
-. Open up a local shell application (Iterm2, PuTTY, PowerShell, Warp)
-. ssh into the bastion host using the following command: *ssh {bastion_ssh_user_name}@{bastion_public_hostname}*
-
-*Sample input*
-[source,bash]
-----
-ssh {bastion_ssh_user_name}@{bastion_public_hostname}
-----
-
-*Sample output*
-[source,bash]
-----
-The authenticity of host bastion.4klh8.sandbox1150.opentlc.com (3.134.153.6) cant be established.
-ED25519 key fingerprint is SHA256:g0H5C1vP1xNqhL7fp0HxMRDPgjgzuAdi3ZIyKQl1mPU.
-This key is not known by any other names.
-Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
-----
-
-[start=3]
-. Accept the connection by typing yes
-. Input the lab-user password: *{bastion_ssh_password}*
-
-image::01-ssh-logged-in.png[bastion login]
-
-[start=5]
-. Verify that the GUID variable is set correctly for your environment:
-
-*Sample command*
-[source,bash,role="execute"]
-----
-echo $GUID
-----
-*Sample output*
-[source,bash]
-----
-ctzgs
-----
-
-[NOTE]
-Your GUID should be a 4- or 5- character alphanumeric string.
-
 ==== OpenShift admin access verification
 
 [source,sh,subs="attributes",role=execute]
 ----
 oc whoami
+----
+
+*Sample output*
+[source,bash]
+----
+[lab-user@bastion ~]$ oc whoami
+system:admin
 ----
 
 ==== roxctl CLI verification 
@@ -225,11 +180,9 @@ Access:
 	rw WorkflowAdministration
 ----
 
-== Quay setup
+== Download build and push a Java application
 
-=== Download the "Java app" application and push the container image to Quay via the Student VM
-
-Make sure you use the password '{bastion_ssh_password}' when prompted.
+=== Download the "Java app" application and push the container image to Quay
 
 . Let's export a few variable to make our life easier
 
@@ -244,7 +197,7 @@ export QUAY_USER={quay_admin_username}
 
 [source,sh,subs="attributes",role=execute]
 ----
-export QUAY_URL=$(oc -n quay get route quay-quay -o jsonpath='{.spec.host}')
+export QUAY_URL=$(oc -n quay-enterprise get route quay-quay -o jsonpath='{.spec.host}')
 ----
 
 IMPORTANT: Verify that the variables are correct
@@ -326,8 +279,7 @@ Writing manifest to image destination
 
 Perfect! 
 
-
-= Red Hat Quay
+== Red Hat Quay
 
 Red Hat Quay is an enterprise-quality registry for building, securing and serving container images. It provides secure storage, distribution, governance of containers and cloud-native artifacts on any infrastructure.
 
@@ -335,7 +287,7 @@ To get started, make sure that you are logged in to Red Hat Quay and have access
 
 [[access-quay]]
 
-== Access Quay 
+=== Access Quay 
 
 Your Red Hat Quay console is available at: {quay_console_url}[window=blank]
 
@@ -351,7 +303,7 @@ Administrator login is available with:
 
 [[navigating-the-registry]]
 
-== Browse the registry
+=== Browse the registry
 
 In the setup module we downloaded built and pushed a insecure java application called *ctf-web-to-system*. Now it's time to deploy it to the OpenShift Cluster. To do this we will need to make the registry that we created public. 
 
@@ -429,7 +381,7 @@ image::quay-make-public-ok.png[link=self, window=blank, width=100%]
 
 [[vulnerability-scanning-with-quay]]
 
-== Vulnerability Scanning with Quay
+=== Vulnerability Scanning with Quay
 
 Red Hat Quay can also help with securing our environments by performing a security scan on any images added to our registry, and advise which ones are potentially fixable.
 
@@ -466,7 +418,7 @@ IMPORTANT: Please ensure the deploy application are deployed to your cluster bef
 
 [[deploy-the-java-application]]
 
-== Deploy the Java application
+== Deploy the Java application to you OpenShift Clusters
 
 IMPORTANT: You will need to complete the following commands in the *Bastion VM* Please SSH to it (If you have not already) by using the following command:
 
@@ -477,8 +429,6 @@ ssh {bastion_ssh_user_name}@{bastion_public_hostname}
 ----
 
 Make sure you use the password '{bastion_ssh_password}' when prompted.
-
-IMPORTANT: Make sure to REMOVE the *https://* from the URL command below.
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -500,10 +450,11 @@ export TUTORIAL_HOME="$(pwd)/demo-apps"
 sed -i "s|CHANGEME|$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0|g" $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml
 oc apply -f $TUTORIAL_HOME/kubernetes-manifests/ --recursive
 oc apply -f $TUTORIAL_HOME/openshift-pipelines/ --recursive
+roxctl image scan $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 --force
 ----
 
 [IMPORTANT]
-You should see warnings such as: Warning: would violate PodSecurity "restricted:latest": unrestricted capabilities (container "Java" must set securityContext.capabilities.drop=["ALL"]) this is because we are deploying flawed container configurations and vulnerabile container applications into the OpenShift cluster.
+You should see warnings such as: Warning: would violate PodSecurity "restricted:latest": unrestricted capabilities (container "Java" must set securityContext.capabilities.drop=["ALL"]) this is because we are deploying flawed container configurations and vulnerable container applications into the OpenShift cluster.
 
 
 [start=2]

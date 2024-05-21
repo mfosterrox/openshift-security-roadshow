@@ -1,0 +1,203 @@
+=== RHACS basics
+
+RHACS provides the tools and capabilities to address the security needs of a cloud-native development approach on Kubernetes. These security features represent any developer or administrator’s primary work across various environments, including multiple datacenters, private clouds, or public clouds that run Kubernetes clusters.
+
+=== RHACS features
+
+Using Red Hat Advanced Cluster Security for Kubernetes, you can gain comprehensive Kubernetes security that includes the following use cases:
+
+- *Visibility:* See your entire landscape of images, registries, containers, deployments, and runtime behavior.
+- *Vulnerability* Management: Identify and remediate vulnerabilities in container images and Kubernetes across the entire software development life cycle.
+- *Compliance:* Audit your systems against CIS Benchmarks, NIST, PCI, and HIPAA, with interactive dashboards and one-click audit reports.
+- *Network Segmentation:* Visualize existing connections and enforce tighter segmentation using Kubernetes-native controls to reduce your blast radius.
+- *Risk Profiling:* See all your deployments ranked by risk level, using context from Kubernetes' declarative data, to prioritize remediation.
+- *Configuration Management:* Apply best practices for Docker and Kubernetes to harden your environment for a more secure and stable application.
+- *Threat Detection:* Use rules, automated allow lists, and baselining to identify suspicious activity in your running applications accurately.
+- *Incident Response:* Take action, from failing builds and blocking deployments to killing pods and thwarting attacks, using Kubernetes for enforcement.
+
+[[console-access]]
+
+=== Accessing the RHACS console
+
+In this section, you will confirm that you can connect to the RHACS portal.
+
+The following information will be available on the main lab screen:
+
+- The RHACS Admin Credentials
+- The URL for the RHACS portal
+
+=== Logging into the RHACS console
+
+==== RHACS console access
+
+Your RHACS Console is available at: {acs_route}[window=blank]
+
+Administrator login is available with:
+
+[cols="1,1"]
+|===
+*RHACS Console Username:* | {acs_portal_username} |
+*RHACS Console Password:* | {acs_portal_password} |
+|===
+
+NOTE: You will get a warning page that the webpage is not private. During setup, RHACS can integrate with your specific certification server to avoid these errors.
+
+.Procedure
+
+. Click *Advanced*
+
+image::acs-warning-00.png[]
+
+[start=2]
+. Click "Proceed to central-stackrox...."
+
+image::acs-warning-01.png[]
+
+IMPORTANT: Make sure to refresh the dashboard before moving on to the module
+
+[[acs-nav]]
+
+== Introduction to the RHACS console
+
+The first section of this lab will focus on navigation and vulnerability management. This work will take place in the UI and require you to use both the dashboard and the lab environment.
+
+=== Navigating the RHACS console
+
+In this section, you familiarize yourself with the RHACS portal, including its tabs, search capabilities and dashboard functionality.
+
+The RHACS dashboard has four main sections:
+
+. Navigation bar
+. Navigation drawer
+. Dashboard
+
+image::acs-numbered-dashboard.png[link=self, window=blank, width=100%, Numbered Dashboard]
+
+=== Navigation bar
+
+The top bar contains the following functionality: 
+
+- Global search 
+- Command-line tools 
+- Cluster health 
+- Documentation 
+- API reference 
+- Enable dark/light Mode 
+- Logged-in user account
+
+image::acs-top-bar.png[link=self, window=blank, width=100%, Navigation Bar]
+
+=== 1. Global Search
+
+The ability to instantly find resources is essential to safeguard your cluster. Utilize the RHACS search feature to find relevant resources faster.
+
+For example, you can use it to find deployments exposed to a newly published CVE or all deployments with external network exposure.
+
+A search query consists of two parts:
+
+- An attribute that identifies the resource type you want to search for.
+- A search term that finds the matching resource.
+
+For example, to find all violations in the *ctf-web-to-system* deployment, the search query is *Deployment:ctf-web-to-system*.
+
+In this search query, Deployment is the attribute, and ctf-web-to-system is the search term.
+
+NOTE: The search field in RHACS requires each attribute to be entered fully as a search term. Enter your first attribute, and hit the <tab> key to move along to the following attribute you would like to enter. Results will appear once they match the entered query.
+
+image::acs-search-ctf-00.png[link=self, window=blank, width=100%, Search Syntax]
+
+NOTE: RHACS maintains a library of searchable assets to help you search faster, they will appear in a drop-down list, and you can click on them to enter them as well. If a specific CVE or deployment cannot be found, please confirm the spelling of the asset name or that it is correctly deployed in the cluster. 
+
+==== Common search queries
+
+Here are some common search queries you can try in the RHACS search bar if you’d like to test its functionality.
+
+|============
+|Query|Example|Purpose
+|CVE:<CVE_number>|CVE:CVE-2018-11776|Finding deployments that are affected by a specific CVE
+|Privileged:<true_or_false>|Privileged:true|Finding privileged running deployments
+|Exposure Level:<level>|Exposure Level:External|Finding deployments that have external network exposure
+|============
+
+image::acs-search-cve.png[link=self, window=blank, width=100%, Search Syntax]
+
+NOTE: This is just a sample of the types of queries you can use to analyze your environment in RHACS. For additional examples of search queries, please see the RHACS documentation.
+
+==== Local page filtering
+
+You can use local page filtering from within all views in the RHACS portal. Local page filtering works similarly to the global search, but only relevant attributes are available. You can select the search bar to show all available attributes for a specific view.
+
+=== 2. Navigation menu
+
+image::acs-nav-01.png[link=self, window=blank, width=100%, Navigation Menu]
+
+The left-hand navigation menu provides access to each of the security use cases, as well as product configuration to integrate RHACS with your existing tooling. The navigation menu has the following items:
+
+- Dashboard: Summary view of your environment
+- Network Graph: Configured and actual network flows and the creation of Network Policies to implement network segmentation
+- Violations: Events that do not match the defined security policies
+- Compliance (2.0): Our new compliance dashboard update is in progress. With plans to make compliance reporting even easier with tailored compliance profiles and reporting by application, namespace and cluster. 
+- Compliance (1.0): Several industry and regulatory security standards, such as PCI DSS, our default dashboard.
+- Vulnerability Management (2.0): We are in the process of migrating our vulnerability management dashboard to focus on triaging by vulnerability. This is to help identify what layer contains vulnerability. Whether it be the node, cluster or application.
+- Vulnerability Management (1.0): Information about known vulnerabilities affecting your environment, including deployed workloads and infrastructure, risk acceptance and reporting.
+- Configuration Management: Identification of potential misconfigurations that can lead to security issues
+- Risk: Risks affecting your environment, such as suspicious executions
+- Platform Configuration: RHACS configuration, policy management and integration details, including;
+* Clusters
+* Policy Management
+* Collections
+* Integrations
+* Access Control
+* System Configuration
+* Administration Events
+* System Health
+
+=== 3. Dashboard 
+
+The Red Hat Advanced Cluster Security for Kubernetes (RHACS) Dashboard provides quick access to the data you need. It contains additional navigation shortcuts and actionable widgets that are easy to filter and customize so that you can focus on the data that matters most to you. You can view information about levels of risk in your environment, compliance status, policy violations, and common vulnerabilities and exposures (CVEs) in images.
+
+image::acs-dashboard-01.png[link=self, window=blank, width=100%, Center Dashboard]
+
+==== Navigating the main dashboard
+
+The main dashboard is your place to look at the vulnerabilities, risk, compliance, and policy violations across your clusters and namespaces. This section addresses all of the functionality in the main dashboard to help you navigate it more effectively in the future.
+The dashboard can be broken down into three main sections:
+
+. The status bar
+. The dashboard filter
+. The actionable widgets
+
+image::acs-dashboard-02.png[link=self, window=blank, width=100%, Three Dashboard Sections]
+
+==== 1. The status bar
+
+The status bar provides at-a-glance numerical counters for critical resources. The counters reflect what is visible with your current access scope, defined by the roles associated with your user profile. 
+
+These counters are clickable, providing fast access to the desired list view pages as follows:
+
+|============
+|Counter|Destination
+|Clusters|Platform Configuration -> Clusters
+|Nodes|Configuration Management -> Applications & Infrastructure -> Nodes
+|Violations|Violations Main Menu
+|Deployments|Configuration Management -> Applications & Infrastructure -> Deployments
+|Images|Vulnerability Management -> Dashboard -> Images
+|Secrets|Configuration Management -> Applications & Infrastructure -> Secrets
+|============
+
+==== 2. The dashboard filter 
+
+The dashboard includes a top-level filter that applies simultaneously to all widgets. You can select clusters and one or more namespaces within selected clusters. Any change to the filter is immediately reflected by all widgets, limiting the data they present to the selected scope.
+
+NOTE: The dashboard filter does not affect the status bar, and when no clusters or namespaces are selected, the view automatically switches to All.
+
+image::acs-dashboard-03.png[link=self, window=blank, width=100%, Dashboard Filter]
+
+image::acs-dashboard-04.png[link=self, window=blank, width=100%, Dashboard Drop-down]
+
+==== 3. Actionable widgets
+
+If you have time, adjust the dashboard filtering options and widgets to hone the filtering capabilities.
+
+With these widgets, you can customize the information displayed on the dashboard by default in order to find the items that you consider most important to your deployments and your business' security.
+
