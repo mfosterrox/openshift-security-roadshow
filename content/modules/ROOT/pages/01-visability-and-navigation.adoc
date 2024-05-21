@@ -158,8 +158,7 @@ The Red Hat Advanced Cluster Security for Kubernetes (RHACS) Dashboard provides 
 
 image::acs-dashboard-01.png[link=self, window=blank, width=100%, Center Dashboard]
 
-==== Navigating the main dashboard
-
+v
 The main dashboard is your place to look at the vulnerabilities, risk, compliance, and policy violations across your clusters and namespaces. This section addresses all of the functionality in the main dashboard to help you navigate it more effectively in the future.
 The dashboard can be broken down into three main sections:
 
@@ -201,3 +200,175 @@ If you have time, adjust the dashboard filtering options and widgets to hone the
 
 With these widgets, you can customize the information displayed on the dashboard by default in order to find the items that you consider most important to your deployments and your business' security.
 
+=== Navigating the main use cases
+
+==== Network tab
+
+We are going to work from the top down throughout the ACS dashboard to give you an overview of all of the use cases that ACS will cover, starting with the network UI.
+
+image::00-network-1.png[link=self, window=blank, width=100%, Dashboard Filter]
+
+The network user interface contains two drop-downs: the network graph tab and the listening endpoints tab. 
+
+The network graph tab allows you to visualize all the network connections in your cluster look at Baseline flows simulate Network policies manage CIDR blocks and more
+
+image::00-network-2.png[link=self, window=blank, width=100%, Dashboard Filter]
+
+The listening endpoints tab allows you to see all of the deployments across all of your clusters and audit for any reported listening endpoints as you drill down through cluster namespace and into deployments, you will see the exact process ID Port protocol pod ID and container name and if they are exposed.
+
+image::00-network-3.png[link=self, window=blank, width=100%, Dashboard Filter]
+
+==== Violations tab
+
+On to the violations tab.
+
+The violations tab is where you will manage all of your policy violations. The violations tab is excellent for managing policy violations in the workflow. 
+
+It contains:
+ - The exact policy that was violated 
+ - The Entity that violated the policy 
+ - the type 
+ - if it is enforced 
+ - the severity of that policy 
+ - the category 
+ - the life cycle 
+ - and the time of the violation
+
+image::00-violations-1.png[link=self, window=blank, width=100%]
+
+Don't worry we'll go through this policy violation workflow in later modules.
+
+==== Compliance 2.0
+
+Red Hat Advanced Cluster Security for Kubernetes supports OpenShift Container Platform configuration compliance standards through an integration with the OpenShift Container Platform Compliance Operator. In addition, it allows you to measure and report on configuration security best practices for OpenShift and supported Kubernetes platforms.
+
+The OpenShift Compliance Operator allows OpenShift Container Platform administrators to define the desired compliance state of a cluster and provides an overview of gaps and ways to remediate any non-compliant policy. We will be installing and managing the compliance operator in  later modules
+
+image::00-compliance-1.png[link=self, window=blank, width=100%]
+
+The compliance 2.0 tab is in tech preview this was just released in ACS 4.4, and we are currently in the process of migrating The existing 1.0 dashboard into 2.0
+
+==== Compliance 1.0
+
+The compliance 1.0 dashboard should be empty when you're in here for the first time. It's because you have not completed a scan.
+
+image::00-compliance-2.png[link=self, window=blank, width=100%]
+
+We will go into this in a later module, but for now, hit the *Scan environment* button in the top right of the page to kick off your first scan. 
+
+image::00-compliance-3.png[link=self, window=blank, width=100%]
+
+Ensure you see the bar graphs fill up with data before moving. We we will dissthesethis compliance results in a later module
+
+==== Vulnerability Management 2.0
+
+Next, we have the vulnerability management 2.0 tab, similar to the compliance 2.0 tab  vulnerability management is currently getting an overhaul.
+
+image::00-vuln-1.png[link=self, window=blank, width=100%]
+
+The vulnerability management 2.0 tab contains a workload cve Tab and a vulnerability reporting tab with the workload CV tab currently in Tech preview
+
+image::00-vuln-2.png[link=self, window=blank, width=100%]
+
+Feel free to click around however we will be exploring the vulnerability management section in the upcoming module
+
+==== Vulnerability Management 1.0
+
+The Vulnerability Management 1.0 tab has the original vulnerability management dashboard and the risk acceptance workflow.
+
+image::00-vuln-3.png[link=self, window=blank, width=100%]
+
+The underlying vulnerability data is the same as how we display, categorize and show it to the user. It is essential to to manage vulnerabilities at scale and make them actionable, which is a high priority in ACS. This is why we're prioritizing the vulnerability management workflow and eventually moving all features and functionality into a single tab
+
+image::00-vuln-4.png[link=self, window=blank, width=100%]
+
+Again, feel free to click around however we will be exploring the vulnerability management section in the upcoming module.
+
+==== Configuration Management
+
+The Configuration Management tab contains a bunch of information about the security configuration across your OpenShift and Kubernetes clusters
+
+image::00-config-1.png[link=self, window=blank, width=100%]
+
+This information includes:
+- Policy violations by severity
+- Specific standards like the CIS Kubernetes 1.5 standard
+- Users with the most cluster admin roles
+- Secrets used across deployments 
+
+image::00-config-2.png[link=self, window=blank, width=100%]
+
+==== Risk
+
+Another risk tab is a combination of security configuration management Network detection run time and incident response and vulnerability management all coming together so that users can gain a greater context and prioritize security issues throughout OpenShift and Kubernetes clusters
+
+image::00-risk-1.png[link=self, window=blank, width=100%]
+
+In this tab you can review risk indicators deployment details and look at process discoveries such as runtime processes in a container all of this information is designed to help you gain a greater understanding of the priority of specific workloads in your cluster as security is not only vulnerability management
+
+image::00-risk-2.png[link=self, window=blank, width=100%]
+
+==== Platform Configuration
+
+RHACS configuration, policy management and integration details, including;
+** Clusters:*
+
+image::00-pc-1.png[link=self, window=blank, width=100%]
+
+Where you can manage your clusters, check out cluster status, watch your credential expiration manager delegated scanning, and onboard your clusters via init bundles 
+
+** Policy Management*
+
+image::00-pc-2.png[link=self, window=blank, width=100%]
+
+The policy management tab is where you manage well … all of your policies. many of default policies are built into ACS, but this is where you will clone, edit, and create all of your policies via the UI
+
+** Collections*
+
+image::00-pc-3.png[link=self, window=blank, width=100%]
+
+In the collections tab, you can configure deployment collections to associate with other workflows to create a collection and then apply a policy directly to that collection of containers/deployments/clusters. This workflow and this tab will help you scale and manage your policies across clusters, groups, regions, or whatever it is you're seeking to apply specific policy, reporting, and compliance standards to
+
+** Integrations*
+
+image::00-pc-4.png[link=self, window=blank, width=100%]
+
+The integration tab holds all of your options for:
+- Image integration 
+- Signature Integrations 
+- Notifier Integrations 
+- Backup Integrations 
+- Cloud Source Integrations 
+- and authentication tokens
+
+** Access Control*
+
+image::00-pc-5.png[link=self, window=blank, width=100%]
+
+The access control tab is where you set up your authentication providers and the roles that you would like to have an ACS, along with permission sets and access scopes.
+
+** System Configuration*
+
+image::00-pc-6.png[link=self, window=blank, width=100%]
+
+The system configuration tab manages things like private data retention configuration cluster deletion public configuration and all of these are settings are editable
+
+** Administration Events*
+
+image::00-pc-7.png[link=self, window=blank, width=100%]
+
+The administration events tab is handy for troubleshooting platform issues by reviewing event logs now, these logs are approached after four days by default, but you can change that in the system configuration tab. We will have a whole section on the administration events later, but it is beneficial for diagnosing issues and looking into domains such as authentication image scanning Integrations and more 
+
+** System Health*
+
+image::00-pc-8.png[link=self, window=blank, width=100%]
+
+And lastly, the system Health Tap will help you handle things like Administration usage, generate diagnostic bundles that you monitor cluster status sensor upgrades, credential expiration, and more.
+
+----
+
+Nice job!
+
+Please check in with the proctors to confirm that you've completed the module and are ready to continue. This will help us manage the pacing and tell us if we need more content in the future. 
+
+Thanks!
