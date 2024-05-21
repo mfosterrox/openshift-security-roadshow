@@ -67,7 +67,7 @@ First, access the RHACS web console.
 image::01-rhacs-advanced.png[RHACS login not private] 
 
 [start=3]
-. Click "Proceed to {acs_portal_password}"
+. Click "Proceed to {acs_route}"
 
 image::01-rhacs-proceed.png[RHACS login proceed]
 
@@ -204,8 +204,8 @@ IMPORTANT: Verify that the variables are correct
 
 [source,sh,subs="attributes",role=execute]
 ----
-$QUAY_URL
-$QUAY_USER
+echo $QUAY_USER
+echo $QUAY_URL
 ----
 
 [start=3]
@@ -450,7 +450,7 @@ export TUTORIAL_HOME="$(pwd)/demo-apps"
 sed -i "s|CHANGEME|$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0|g" $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml
 oc apply -f $TUTORIAL_HOME/kubernetes-manifests/ --recursive
 oc apply -f $TUTORIAL_HOME/openshift-pipelines/ --recursive
-roxctl image scan $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 --force
+roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 --force
 ----
 
 [IMPORTANT]
