@@ -15,7 +15,7 @@ As we move into this next section, let's focus on identifying and enforcing a ru
 
 == RHACS Runtime Policy Basics
 
-RHACS observes container processes and collects this information to enable you to craft policies to prevent behavior that you don’t like. This information can also create baseline policy configurations that the user can update.
+RHACS observes container processes and collects this information to enable you to craft policies to prevent behavior that you don’t like. This information can also create baseline policy configurations that the user can update. Runtime policies can include all build-time and deploy-time policy criteria but they can also include data about process executions during runtime.
 
 The example below demonstrates how security may want to block a package manager from downloading any packages to the container. This runtime enforcement option is the first in the process of shifting left. After runtime enforcement, you will want to stop the package manager from being used in the container altogether.
 
@@ -176,7 +176,7 @@ You cannot use admission controller enforcement for:
 
 == Introduction to deploy-time policy enforcement
 
-Deploy-Time policy refers to enforcing configuration controls in the cluster and before deployment in the CI/CD process and the configuration of applications inside the cluster. In this example we want to stop the Ubuntu Package Manager from ever making it into the default namespace in the first place. 
+Deploy-time policy refers to enforcing configuration controls in the cluster and before deployment in the CI/CD process and the configuration of applications inside the cluster. Deploy-time policies can include all build-time policy criteria but they can also include data from your cluster configurations, such as running in privileged mode or mounting the Docker socket.
 
 There are two approaches to enforcing deploy-time policies in RHACS:
 
@@ -243,6 +243,23 @@ image::acs-deploy-05.png[link=self, window=blank, width=100%]
 Congrats! You're now enforcing at runtime and deploy time. We have one more step to enforce... Build-time!
 
 == Introduction to build-time policy enforcement (In progress)
+
+Build time policies for container images are guidelines that define how container images should be constructed. These policies aim to achieve several goals, including:
+
+- Security: Minimizing vulnerabilities and ensuring images are built with secure practices.
+- Efficiency: Reducing image size and build times for faster deployments.
+- Consistency: Maintaining a uniform structure and content across all images.
+Here are some key areas covered by build time policies:
+
+- Base Image: Specifying a minimal base image that only contains essential components.
+- Package Management: Encouraging the use of package managers for dependency installation and updates.
+- File Copying: Limiting what gets copied into the image to only required files and avoiding unnecessary bloat.
+- User Management: Defining a non-root user for the application process to run as.
+- Environment Variables: Storing sensitive information in environment variables outside the image.
+
+In RHACS, build-time policies apply to image fields such as CVEs and Dockerfile instructions.
+
+== Prevent the Ubuntu Package Manager in the ctf-web-to-system image from being pushed to Quay
 
 
 
