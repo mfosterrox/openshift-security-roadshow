@@ -1,9 +1,7 @@
 
 == Risk Acceptance
 
-[NOTE]
-The Common Vulnerability Scoring System (CVSS) is an open framework for communicating the characteristics and severity of software vulnerabilities.
-Find out more at the link:https://nvd.nist.gov/vuln-metrics/cvss[NIST website^].
+
 
 The CVE list for each image focuses on the _severe_ violations (CVSS >= 7) and the _fixable_ violations where the upstream package maintainers have published a fix.
 
@@ -53,26 +51,6 @@ Now move on to look at deployments of this vulnerability.
 === Explore Vulnerability Management Dashboard Reports
 
 The dashboard provides several important reports--where the vulnerabilities are, which are the most widespread or most recent, where your container images are coming from, and essential vulnerabilities in OpenShift^(R)^ itself.
-
-From the RHACS portal, navigate to *Vulnerability Management -> Dashboard* to see the Vulnerability Management Dashboard:
-
-image::02_vuln_dashboard.png[vuln-dashboard]
-
-Buttons along the top of the interface will list details by;
-
-- policy violations
-- cve
-- node vulnerabilities
-- image vulnerabilities and risk
-
-The *Application & Infrastructure* button displays a list that takes you to reports by;
-
-- cluster
-- namespace
-- deployment
-- component
-
-Also, note the *Filter CVES* buttons that limit the reports to only *fixable* CVEs or *ALL* CVEs.
 
 [NOTE]
 CVE stands for Common Vulnerabilities and Exposures and is managed by the link:https://www.cve.org/[CVE Program website^].

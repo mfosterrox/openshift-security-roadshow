@@ -57,14 +57,6 @@ IMPORTANT: If any of the *mandatory* values are cannot be found below please con
 
 == Additional applications
 
-=== Red Hat^(R)^ Advanced Cluster Management (RHACM) information
-[cols="1,1"]  
-|=== 
-|Console URL| {acm_route}
-|Username| {openshift_admin_user}
-|Password| {openshift_admin_password}
-|=== 
-
 === Red Hat^(R)^ Devspaces information
 [cols="1,1"]  
 |=== 

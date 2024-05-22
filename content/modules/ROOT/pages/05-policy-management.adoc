@@ -1,2 +1,346 @@
+== Policy Management
 
-test
+RHACS has many built-in policies to detect activity related to attacker goals: gain a foothold, maintain a presence, move laterally, and exfiltrate data. The continuous runtime monitoring observes all container activity and will automatically respond to events with appropriate enforcement and notification. However, that would be missing out on an opportunity - RHACS wants to go one step further, to take advantage of containers' ephemeral, immutable nature, to improve security in a measurable way from now on.
+
+We want to use runtime incidents and vulnerabilities as a learning opportunity to improve security going forward by constraining how our containers can act. We achieve this by creating policies and implementing them early in the CI/CD process.
+
+As we move into this next section, let's focus on identifying and enforcing a runtime policy in the cluster. For the upcoming example, we will focus on stopping the Ubuntu package manager from being run on pods in our cluster. 
+
+Our example container *ctf-web-to-system* has this package manager in the container. Let's ensure that it never calls for updates while present in our clusters.
+
+*Procedure*
+
+. On the left-hand side of the application, click the *Platform Configuration* tab and select *Policy Management*.
+
+image::acs-policy-00.png[link=self, window=blank, width=100%, Policy Management Dashboard]
+
+[start=2]
+
+. Filter through the policies to find *Ubuntu Package Manager Execution* or use the search bar to select *Policy*.
+
+image::acs-policy-01.png[link=self, window=blank, width=100%, Policy Management Search]
+
+[start=3]
+
+. Once you have found the policy *Ubuntu Package Manager Execution*, click on it to learn more.
+
+image::acs-policy-02.png[link=self, window=blank, width=100%, Policy Management Details]
+
+NOTE: If you click the actions button, you will see how easy it is to edit, clone, export or disable these policies. We also recommended cloning the policies and adding or removing specific filters as you need them.
+
+[[runtime-enforce]]
+
+== Introduction to *Runtime* policy enforcement
+
+RHACS observes container processes and collects this information to enable you to craft policies to prevent behavior that you don’t like. This information can also create baseline policy configurations that the user can update.
+
+The example below demonstrates how security may want to block a package manager from downloading any packages to the container. This runtime enforcement option is the first in the process of shifting left. After runtime enforcement, you will want to stop the package manager from being used in the container altogether.
+
+=== Prevent execution of package manager binary
+
+Package managers like apt (Ubuntu), apk (Alpine), or yum/dnf (RedHat) are binary software components used to manage and update installed software on a Linux® host system. They are used extensively to manage running virtual machines. However, using a package manager to install or remove software on a running container violates the immutable principle of container operation.
+
+This policy demonstrates how RHACS detects and avoids a runtime violation, using Linux kernel instrumentation to detect the running process and OpenShift® to terminate the pod for enforcement. Using OpenShift to enforce runtime policy is preferable to enforcing rules directly within containers or in the container engine, as it avoids a disconnect between the state that OpenShift is maintaining and the state where the container is operating. Furthermore, because a runtime policy may detect only part of an attacker’s activity inside a container, removing the container avoids the attack.
+
+=== Enable enforcement of policy
+
+. Navigate to *Platform Configuration → Policy Management* and find the *Ubuntu Package Manager Execution* policy.
+. On the *Policy Management* page, type *Policy* then *Ubuntu* into the filter bar at the top.
+
+image::acs-runtime-00.png[link=self, window=blank, width=100%]
+
+[start=3]
+
+. Select the policy *Ubuntu Package Manager Execution*.
+
+. Click the *Actions* button, then click *Edit policy*.
+
+image::acs-runtime-01.png[link=self, window=blank, width=100%]
+
+[start=5]
+
+. Select the *Policy Behavior* tab by hitting next or clicking the tab.
+
+image::acs-runtime-02.png[link=self, window=blank, width=100%]
+
+[start=6]
+
+. Enable runtime enforcement by clicking the *inform and enforce* button.
+. Configure enforcement behavior by selecting *Enforce at Runtime*.
+
+image::acs-runtime-03.png[link=self, window=blank, width=100%, Enforce Runtime Policy]
+
+[start=8]
+
+. Go to the *Review Policy* tab
+. Review the changes
+. Click save
+
+IMPORTANT: Make sure to save the policy changes! If you do not save the policy, the process will not be blocked!
+
+=== Testing the configured policy
+
+Next, we will use tmux to watch OpenShift events while running the test so you can see how RHACS enforces the policy at runtime.
+
+IMPORTANT: You will need to complete the following commands in the *Bastion VM* Please SSH to it (If you have not already) by using the following command:
+
+[source,sh,subs="attributes",role=execute]
+
+----
+ssh {bastion_ssh_user_name}@{bastion_public_hostname}
+----
+
+Make sure you use the password '{bastion_ssh_password}' when prompted.
+
+[start=1]
+
+. On your Bastion VM, ssh over to the *Bastion* host, and start tmux with two panes:
+
+[source,sh,role=execute]
+----
+tmux new-session \; split-window -v \; attach
+----
+
+[start=2]
+
+. Next, run a watch on OpenShift events in the first shell pane:
+
+[source,sh,role=execute]
+----
+oc get events -w
+----
+
+[start=3]
+
+. Press *Ctrlb, o* to switch to the next pane. (Ctrlb THEN o)
+. Exec into our Java application by getting the pod details and adding them to the following command.
+
+[source,sh,role=execute]
+----
+POD=$(oc get pod -l app=ctf-web-to-system -o jsonpath="{.items[0].metadata.name}")
+oc exec $POD -i --tty -- /bin/bash
+----
+
+*Sample output*
+[source,bash]
+----
+[demo-user@bastion ~]$ POD=$(oc get pod -l app=ctf-web-to-system -o jsonpath="{.items[0].metadata.name}")
+oc exec $POD -i --tty -- /bin/bash
+node@ctf-web-to-system-6db858448f-hz6j2:/app$
+----
+
+NOTE: If you see *node@ctf...* you've confirmed you have a shell and access to the Java application.
+
+. Run the Ubuntu package manager in this shell:
+
+[source,sh,role=execute]
+----
+apt update
+----
+
+. Examine the output and expect to see that the package manager attempts to perform an update operation:
+
+[source,texinfo,subs="attributes"]
+----
+node@ctf-web-to-system-6db858448f-stwhq:/$ apt update
+Reading package lists... Done
+E: List directory /var/lib/apt/lists/partial is missing. - Acquire (13: Permission denied)
+node@ctf-web-to-system-6db858448f-stwhq:/$ command terminated with exit code 137
+----
+
+. Examine the oc get events tmux pane (The pane on the bottom), and note that it shows that RHACS detected the package manager invocation and deleted the pod:
+
+[source,texinfo,subs="attributes"]
+----
+0s          Normal    Killing                  pod/ctf-web-to-system-6db858448f-hz6j2    Stopping container ctf-web-container
+0s          Normal    AddedInterface           pod/ctf-web-to-system-6db858448f-qp85v    Add eth0 [10.128.2.162/23] from ovn-kubernetes
+0s          Normal    Pulling                  pod/ctf-web-to-system-6db858448f-qp85v    Pulling image "quay.io/jechoisec/ctf-web-to-system-01"
+0s          Normal    Pulled                   pod/ctf-web-to-system-6db858448f-qp85v    Successfully pulled image "quay.io/jechoisec/ctf-web-to-system-01" in 262ms (263ms including waiting)
+0s          Normal    Created                  pod/ctf-web-to-system-6db858448f-qp85v    Created container ctf-web-container
+0s          Normal    Started                  pod/ctf-web-to-system-6db858448f-qp85v    Started container ctf-web-container
+----
+
+NOTE: After a few seconds, you can see the pod is deleted and recreated. In your tmux shell pane, note that your shell session has terminated and that you are returned to the Bastion VM command line.
+
+Congrats! You have successfully stopped yourself from downloading malicious packages! However, the security investigative process continues, as you have now raised a flag that must be triaged! We will triage our violations after we look at deploy time policies.
+
+NOTE: type exit in the terminal, use ctrl+c to stop the 'watch' command, and type exit one more time to get back to the default terminal.
+
+[[deploy-enforce]]
+
+== Introduction to *Deploy-Time* policy enforcement
+
+Deploy-Time policy referes to enforcing configuration controls in the cluster and before deployment in the CI/CD process. In this example we want to stop the Ubuntu Package Manager from ever making it into the default namespace in the first place. 
+
+There are two approaches to enforcing deploy-time policies in RHACS:
+
+- In clusters with **listen** and **enforce** AdmissionController options enabled, RHACS uses the admission controller to reject deployments that violate policy.
+- In clusters where the admission controller option is disabled, RHACS scales pod replicas to zero for deployments that violate policy.
+
+In the next example, we are going to configure a *Deploy-Time* policy to block applications from deploying into the default namespace with the *apt|dpkg* application in the image.
+
+== Prevent the Ubuntu Package Manager in the ctf-web-to-system image from being deployed
+
+. Navigate to Platform Configuration → Policy Management
+. On the *Policy Management* page, type *Policy* then *Ubuntu* into the filter bar at the top.
+
+NOTE: This time we are going to edit a different policy. Specifically related to the *Build & Deploy* phases.
+
+[start=3]
+
+. Click on the *Ubuntu Package Manager in Image* options (The three dots on the right side of the screen) and select *Clone policy*
+
+IMPORTANT: Make sure to *CLONE* the policy
+
+image::acs-deploy-00.png[link=self, window=blank, width=100%]
+
+[start=4]
+
+. Give the policy a new name. Something you will remember. The best practice would be to add a description for future policy enforcers as well. For example;
+
+image::acs-deploy-01.png[link=self, window=blank, width=100%]
+
+[start=5]
+
+. Next, update the policy to *inform and enforce* while clicking on the deploy stage only.
+
+IMPORTANT: Make sure to unselect the *Build* lifecycle before moving forward.
+
+image::acs-deploy-02.png[link=self, window=blank, width=100%]
+
+[start=6]
+
+Now, we want to target our specific deployment with an image label.
+
+. Click on the *Policy criteria* tab.
+. Click on the *Deployment metadata* dropdown on the right side of the browser.
+. Find the *Namespace* label and drag it to the default policy criteria.
+. Type *default* under the namespace criteria
+
+Your policy should look like this,
+
+image::acs-deploy-04.png[link=self, window=blank, width=100%]
+
+[start=10]
+
+. Lastly, go to the *Review Policy* tab
+. Review the changes
+
+NOTE: There is a preview tab on the right side of the page that will show you all of the affected applications with the introduction of this policy.
+
+image::acs-deploy-05.png[link=self, window=blank, width=100%]
+
+[start=12]
+
+. Click Save
+
+Congrats! You're now enforcing at runtime and deploy time. In the last step in this module. We will review
+
+== Report and Resolve Violations
+
+In this last section. We will resolve a few of the issues that we have created.
+
+*Procedure*
+
+. Navigate to the *Violations* page.
+. Filter by the policy violation *Ubuntu Package Manager Execution* OR by the most recent policy violations. You will see a policy violation that has been enforced 1 time.
+. Click the most recent violation and explore the list of the violation events:
+
+image::acs-violations-00.png[link=self, window=blank, width=100%, Violations Menu]
+
+If configured, each violation record is pushed to a Security Information and Event Management (SIEM) integration and is available to be retrieved via the API. The forensic data shown in the UI is recorded, including the timestamp, process user IDs, process arguments, process ancestors, and enforcement action.
+
+After this issue is addressed, in this case by the RHACS product using the runtime enforcement action, you can remove it from the list by marking it as *Resolved*.
+
+[start=4]
+
+. Lastly, hover over the violation in the list to see the resolution options and resolve this issue.
+
+image::acs-violations-01.png[link=self, window=blank, width=100%, Resolve Violations]
+
+For more information about integration with SIEM tools, see the RHACS help documentation on external tools.
+
+IMPORTANT: If you want to enforce on deploy-time you will need to use the roxctl CLI at deploy time. There are a few commands after the conclusion if you have time.
+
+=== Deploy-Time enforcement
+
+IMPORTANT: You will need to complete the following commands in the *Bastion VM* Please SSH to it (If you have not already) by using the following command:
+
+[source,sh,subs="attributes",role=execute]
+
+----
+ssh {bastion_ssh_user_name}@{bastion_public_hostname}
+----
+
+Make sure you use the password '{bastion_ssh_password}' when prompted.
+
+*Procedure*
+
+. Set variables to connect to RHACS Central.
+
+[source,sh,subs="attributes",role=execute]
+----
+export ROX_CENTRAL_ADDRESS={acs_route}
+cd ~/
+export TUTORIAL_HOME="$(pwd)/demo-apps"
+----
+
+[start=2]
+
+. Verify the ctf-web-to-system application against the policies you've created.
+
+[source,sh,subs="attributes",role=execute]
+----
+roxctl -e $ROX_CENTRAL_ADDRESS:443 deployment check --file $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml --insecure-skip-tls-verify
+----
+
+*Sample output*
+[source,bash]
+----
+[demo-user@bastion ~]$ roxctl -e $ROX_CENTRAL_ADDRESS:443 deployment check --file $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml --insecure-skip-tls-verify
+Policy check results for deployments: [ctf-web-to-system]
+(TOTAL: 7, LOW: 4, MEDIUM: 2, HIGH: 1, CRITICAL: 0)
+
++--------------------------------+----------+---------------+-------------------+--------------------------------+--------------------------------+--------------------------------+
+|             POLICY             | SEVERITY | BREAKS DEPLOY |    DEPLOYMENT     |          DESCRIPTION           |           VIOLATION            |          REMEDIATION           |
++--------------------------------+----------+---------------+-------------------+--------------------------------+--------------------------------+--------------------------------+
++--------------------------------+----------+---------------+-------------------+--------------------------------+--------------------------------+--------------------------------+
+|   Ubuntu Package Manager in    |   LOW    |       -       | ctf-web-to-system |      Alert on deployments      |          - Container           |    Run `dpkg -r --force-all    |
+|             Image              |          |               |                   |     with components of the     |  'ctf-web-container' includes  |     apt apt-get && dpkg -r     |
+|                                |          |               |                   |     Debian/Ubuntu package      |    component 'apt' (version    |  --force-all debconf dpkg` in  |
+|                                |          |               |                   |    management system in the    |             1.4.9)             | the image build for production |
+|                                |          |               |                   |             image.             |                                |          containers.           |
+|                                |          |               |                   |                                |          - Container           |                                |
+|                                |          |               |                   |                                |  'ctf-web-container' includes  |                                |
+|                                |          |               |                   |                                |   component 'dpkg' (version    |                                |
+|                                |          |               |                   |                                |            1.18.25)            |                                |
++--------------------------------+----------+---------------+-------------------+--------------------------------+--------------------------------+--------------------------------+
+|   Ubuntu Package Manager in    |   LOW    |       X       | ctf-web-to-system |      Alert on deployments      |          - Container           |    Run `dpkg -r --force-all    |
+|   Image - Default namespace    |          |               |                   |     with components of the     |  'ctf-web-container' includes  |     apt apt-get && dpkg -r     |
+|                                |          |               |                   |     Debian/Ubuntu package      |    component 'apt' (version    |  --force-all debconf dpkg` in  |
+|                                |          |               |                   |    management system in the    |             1.4.9)             | the image build for production |
+|                                |          |               |                   |             image.             |                                |          containers.           |
+|                                |          |               |                   |                                |          - Container           |                                |
+|                                |          |               |                   |                                |  'ctf-web-container' includes  |                                |
+|                                |          |               |                   |                                |   component 'dpkg' (version    |                                |
+|                                |          |               |                   |                                |            1.18.25)            |                                |
+|                                |          |               |                   |                                |                                |                                |
+|                                |          |               |                   |                                | - Namespace has name 'default' |                                |
++--------------------------------+----------+---------------+-------------------+--------------------------------+--------------------------------+--------------------------------+
+WARN:   A total of 7 policies have been violated
+ERROR:  failed policies found: 1 policies violated that are failing the check
+ERROR:  Policy "Ubuntu Package Manager in Image - Default namespace" within Deployment "ctf-web-to-system" - Possible remediation: "Run `dpkg -r --force-all apt apt-get && dpkg -r --force-all debconf dpkg` in the image build for production containers."
+ERROR:  checking deployment failed after 3 retries: breaking policies found: failed policies found: 1 policies violated that are failing the check
+----
+
+You should see one of the policies you've create breaking the deploy process while the others are in inform only mode. 
+
+[[conclusion]]
+
+== Conclusion
+
+In summary, we made use of the features provided by Red Hat Advanced Cluster Security for Kubernetes to display potential security violations in your cluster in a central dashboard. You crafted both deploy-time and runtime policies to help prevent malicious events from occurring in our cluster. Hopefully this lab has helped demonstrate to you the immense value provided by RHACS and OpenShift Platform Plus. Please feel free to continue and explore the RHACS lab environment.
+
+
+
+
