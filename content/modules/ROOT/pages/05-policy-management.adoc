@@ -1,4 +1,9 @@
-== Policy Management
+= Policy Management
+
+== Module goals
+* Create policies from filters
+
+== RHACS Policy Management Basics
 
 RHACS has many built-in policies to detect activity related to attacker goals: gain a foothold, maintain a presence, move laterally, and exfiltrate data. The continuous runtime monitoring observes all container activity and will automatically respond to events with appropriate enforcement and notification. However, that would be missing out on an opportunity - RHACS wants to go one step further, to take advantage of containers' ephemeral, immutable nature, to improve security in a measurable way from now on.
 
@@ -337,10 +342,44 @@ You should see one of the policies you've create breaking the deploy process whi
 
 [[conclusion]]
 
+== Create Policies from Filters
+
+Now that you are familiar with searching for interesting criteria, you can create a policy from the search filter to automatically identify these criteria going forward.
+
+=== Create Policies
+
+You can create new security policies based on the filtering criteria that you select.
+RHACS transforms the filtering criteria into policy criteria by converting the cluster, namespace, and deployment filters to equivalent policy scopes.
+
+To create a policy, you use the same filter to see which deployments have run `bash` that you used previously.
+
+image::images/02_vuln_13.png[policy creation]
+
+However, when you create new security policies from the *Risk* view based on the selected filtering criteria, not all requirements are directly applied to the new policy.
+You must fill out some additional information.
+
+.Procedure
+. Click the *+ (Create Policy)* next to the filter bar and complete the required fields to create a new policy:
+* *Name*: `No bash allowed`
+* *Severity*: `High`
+* *Categories*: `Anomalous Activity`
+* *Description*: `No bash allowed`
+* *Rationale*: `Too many known vulns`
+* *Guidance*: `Use ZSH`
+* *MITRE ATT&CK*: `The policy can be mapped to a MITRE ATT&CK technique.`
+* *Lifecycle stages*: `Runtime`
+* *Event sources*; `Deployment`
+* *Response method*: `Inform`
+* *Inform and enforce*: `Enform on Runtime`
+
+* *Policy Crieria*: `On the right there is a *drag out policy fields* bar.Find *Process Activity* and select *Unexpected process executed*. Drag into into the policy section.`
+
+Make sure to preview the policy before accepting it. 
+
 == Conclusion
+
+Sweet!
 
 In summary, we made use of the features provided by Red Hat Advanced Cluster Security for Kubernetes to display potential security violations in your cluster in a central dashboard. You crafted both deploy-time and runtime policies to help prevent malicious events from occurring in our cluster. Hopefully this lab has helped demonstrate to you the immense value provided by RHACS and OpenShift Platform Plus. Please feel free to continue and explore the RHACS lab environment.
 
-
-
-
+On to *CI/CD and Automation*!

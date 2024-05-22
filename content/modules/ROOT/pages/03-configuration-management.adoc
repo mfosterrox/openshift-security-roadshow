@@ -1,186 +1,80 @@
+= Configuration Management
 
-== Risk Acceptance
+== Module goals
 
+* Understand the extra configuration aspects of Kubernetes and OpenShift
+* Tie the vulnerabilities together with security configuration issues
+* Move on to identify "What is Risky?" in your clusters
 
+== The Configuration Management Tab
 
-The CVE list for each image focuses on the _severe_ violations (CVSS >= 7) and the _fixable_ violations where the upstream package maintainers have published a fix.
+Another configuration management tab has much information that directs you to other dashboards. It is currently undergoing an overhaul, so we are open to whatever you want to see in the configuration management dashboard. However, here are the four top use cases that we tend to see from people looking into security configuration management.
 
-In this part of the scenario, you have the role of a developer committing to fix a CVE later, or who has investigated the matter and assures the security analyst that this is a false positive.
+- Policy Violations
+- CIS Kubernetes 1.5
+- Users with most cluster admin roles
+- Secrets most used across deployments
 
-It is not practical to ask your teams to fix Linux^(R)^ or Javascript, but asking them to pick up fixes published by those communities is reasonable.
-You accept the risk by acknowledging the vulnerability and deferring resolution to a later time.
-You communicate this to the security team by creating a deferral and requesting approval.
-In later steps, you act as the deferral approver and address this.
+image::03-rm-1.png[link=self, window=blank, width=100%]
 
-. Procedure
-. Click the *Image Findings* tab.
-. Locate a fixable CVE in the list, `CVE-2022-1292`
+Let's break down each section. 
 
-You can use the search feature to narrow the list.
+=== The "Secrets most used across deployments" widget
 
-image::02_vuln_07.png[CVE Search]
+.Procedure
+. Click the *View all* button on the "Secrets most used across deployments" widget.
 
+image::03-rm-2.png[link=self, window=blank, width=100%]
 
-NOTE: 
-This CVE example is severe--scoring 9.8/10--but fixable.
-It is a vulnerability in OpenSSL, and these packages are present because they are either part of a base image or were deliberately added by a developer in one of the Dockerfile layers.
-
-[start=3]
-. Close the *Affected Components* window.
-. Click the options menu icon
-
-image::options_menu_icon.png[]
-
-
-In the right column and select *Defer CVE* to open the *Mark CVEs for deferral* dialog box.
-
-image::02_vuln_08.png[CVE Defer]
-
-[start=5]
-. Select *2 Weeks* and *Only this image tag*, enter a *Deferral rationale* of your choosing, and click *Request Approval*.
-+
-The CVE updates with a blue information icon next to the CVE name.
-
-. Click the blue information icon to the right of the CVE and copy the approval link to share with your organization's deferral approver.
-. Close the *Vulnerabilities Defer* windows by clicking *X* on the right.
-
-Now move on to look at deployments of this vulnerability.
-
-
-
-=== Explore Vulnerability Management Dashboard Reports
-
-The dashboard provides several important reports--where the vulnerabilities are, which are the most widespread or most recent, where your container images are coming from, and essential vulnerabilities in OpenShift^(R)^ itself.
-
-[NOTE]
-CVE stands for Common Vulnerabilities and Exposures and is managed by the link:https://www.cve.org/[CVE Program website^].
-
-
-== Exploring Widespread Vulnerabilities and How to Triage Accordingly
-
-All of this CVE detail is well and good, but it is a bit noisy.
-How do you judge the true risk--which vulnerabilities are likely to be exploited? In other words, which vulnerabilities do you have to fix first?
-
-RHACS can use other sources of information in the OpenShift Container Platform to judge the risk of a given vulnerability being exploited and set priorities for fixes.
-The first risk factor you can check is whether the vulnerable component is in a running deployment.
-
-. Procedure
-. Scroll back to the top of the *Vulnerability Management Dashboard* and locate the *MOST COMMON VULNERABILITIES* panel.
-
-. Click the `CVE-2021-42694` component to open a new panel with details about this vulnerability. This page will give an overview of where the vulnerability is and how big of an impact it has in the cluster. Click on the 'Deployment' tab at the top.
-
-image::02_vuln_09.png[CVE New]
-
-[start=3]
-. Click *22 deployments* in the *Related Entities* column on the right to be taken to a list of active deployments that include this vulnerable component.
-+
-These deployments are running right now with different containers that come from images with this vulnerability present.
-
-
-*Up and running* is a risk factor. Vulnerabilities are typically exploited in a running container somewhere in the cluster. RHACS displays the critical information here so that this image is present in the production cluster, in namespaces like payments, which provides context to the security team. The last column on the right displays the risk priority, which RHACS has already determined from configuration and runtime activity in the deployment.
-
-While this vulnerability is present, it is not currently fixable. If the fix comes out in the future, we will address it. For now, we can only shore up our configuration and defer the CVE to later. 
-
-=== Manage Risk Acceptance
-
-As a security analyst who is a deferral approver, you can evaluate requested deferrals and respond to them through the RHACS portal.
-
-. Procedure
-. Navigate to *Vulnerability Management -> Risk Acceptance* and search for the from the previous example, CVE-2022-1292.
-
-image::02_vuln_10.png[]
+In this view you will see all of your secrets across your clusters. You can filter the secrets and export all of the information to a CSV.
 
 [start=2]
-. Review the vulnerability's comments, scope, and action to decide if you want to approve it.
-. Click  the three dots,
+.Filter the secrets by *Cluster: production* & *Image Pull Secret Registry: quay.io*
 
-image::options_menu_icon.png[]
+image::03-rm-3.png[link=self, window=blank, width=100%]
 
-At the far right of the CVE, approve or deny the request for approval and provide a rationale.
+[start=3]
+. Next, try filtering by "Secret Type".
 
-You can see your *Approved Deferrals* from the appropriate tab above and make changes.
-. You can also click through to the deployment that has that vulnerability and see its *Risk Priority*:
+image::03-rm-4.png[link=self, window=blank, width=100%]
 
-[start=4]
-. Next, Click `1 deployment`:
+IMPORTANT: Not all secrets are the same and organizations should ensure secrets are properly managed through a [CSI driver](https://docs.openshift.com/container-platform/4.15/storage/container_storage_interface/persistent-storage-csi-secrets-store.html) or a secrets management tool.
 
-image::rhacs_vuln_deployment.png[RHACS 1 Deployment]
+== What would you do?
 
-[start=5]
-. Click the `visa-processor` link to be taken to the *Deployment Overview*.
+How does your organization manage secrets? Do you have a workflow to remove secrets from your cluster if they are not in use?
 
-image::02_vuln_11.png[Risk Visa]
+On to our next example!
 
-How is *Risk Priority* determined?
+=== The "Policy violations by severity" widget
 
-That is the subject of the next lab, *Risk Management*
+Now, the policies entity list in the configuration management UI gives you a complete overview of all of the 
+policies in the cluster, the policy status, whether it's disabled, whether it's enabled, and whether it's enforced or not
 
-== Report Vulnerabilities to Teams
+.Procedure
+. Click the *View all* button on the "Policy violations by severity" widget.
 
-IMPORTANT: You cannot send reports in this training lab. It is not integrated with an email server without an email notifier.
+image::03-rm-5.png[link=self, window=blank, width=100%]
 
-As organizations must constantly reassess and report on their vulnerabilities, some find it helpful to have scheduled communications with key stakeholders to help manage vulnerabilities.
+IMPORTANT: Notice in this tab that nothing should say enforced. This is because, by default in ACS, there is no policy that is being enforced by default this avoids the eviction of any workloads prematurely and allows you to ingest all of this security information at the beginning of your security journey.
 
-You can use RHACS to schedule these regular communications through email. Red Hat recommends that you scope these communications to the most relevant information that the key stakeholders need.
+Now as you add policies this this page will continue to fill up. It is useful to have the ability to export all of the policies and their status
 
-For sending these communications, you must consider the following questions:
+=== The "All entities" tab
 
-* What schedule would have the most impact when communicating with stakeholders?
-* Who is the audience?
-* Should you include only specific severity vulnerabilities in your report?
-* Should you include only fixable vulnerabilities in your report?
+The last section of this smaller module is  to review all of the confiuration options on the right tab labelled "All Entities"
 
-The following procedure creates a scheduled vulnerability report.
+All entities contain a massive amount of suggestions such as controls users and groups, service accounts, clusters namespaces, and more so by clicking the individual tabs, you can search deeper into the security posture of your OpenShift and Kubernetes.
 
-. Procedure
-. From the RHACS portal, navigate to *Vulnerability Management -> Reporting*.
+== What would you do?
 
-image::02_vuln_12.png[vuln report]
-
-. Click *Create report*.
-. Enter a name for your report in the *Report name* field: `Deferrals in Payments`.
-. Select a weekly or monthly cadence for your report under *Repeat report*: `Weekly`.
-. Enter a *Description* for the report: `All deferrals in the Payments namespace`.
-. On the next line, there is a series of dropdown boxes to select which vulnerabilities to report.
-There are options to report fixable vulnerabilities, vulnerabilities of a specific severity, or only vulnerabilities that have appeared since the last scheduled report.
-From the *CVE Severties* drow-down menu, select `Critical` and `Important` severities.
-. Under *Configure resource scope*, click *Create resource scope* and create one for the namespace `payments`, and under *Allowed resources* use the switch under *Manual selection* to select the `production` cluster.
-. Click *Save*, which returns to the *Create a vulnerability report* page.
-. Select or create an email notifier to send your report by email and configure your distribution list under *Notification and distribution*.
-. Click *Cancel* because this lab environment does not have an available SMTP server to back an email notifier.
+- How does your organization manage security policies? 
+- How will you use this dashboard to review your security posture?
+- What types of security configuration controls are you putting in place in your OpenShift and Kubernetes Clusters?
+- How would you make changes to your clusters?
 
 == Summary
 
-In this lab, you learned how to interpret the reports in the Vulnerability Management Dashboard.
-You went on to set and manage risk acceptance workflows.
-Finally, you created a simple report to email to stakeholders.
+Great job!! Short and sweet!
 
-== Security Scanning
-
-Red Hat Quay can also help with securing our environments by performing a security scan on any images added to our registry, and advise which ones are potentially fixable.
-
-We can use the following procedure to check the security scan results for our UBI image we just uploaded.
-
-. Click on the ubi repository and once inside click on the tags button on the left.
-
-image::311-image-tags.png[link=self, window=blank, width=100%, Image Tag Menu]
-
-NOTE: You may need to click the checkbox near the image you would would like more information on, but the column for *Security Scan* should populate.
-
-. By default, the security scan color codes the vulnerabilities, you can hover over the security scan for more information.
-
-image::312-quay-sec-scan.png[link=self, window=blank, width=100%, Quay Security Scan]
-
-NOTE: The ubi image we are using in this lab shows 36 medium vulnerabilities, and 187 total when you hover over it at the time of this lab's creation.
-
-. Click on the list of vulnerabilities to see a more detailed view.
-
-image::313-security-details.png[link=self, window=blank, width=100%, Image Security Details] 
-
-. Click the packages button on the left menu to see which specific packages in the image are affected by what vulnerabilities.
-
-image::314-image-packages.png[link=self, window=blank, width=100%, Image Packages]
-
-Congratulations, you now know how to examine images in your registry for potential vulnerabilities before deploying into your environment.
-
-IMPORTANT: As of the creation date of this lab the list of vulnerabilties and the scores assigned to the images may differ from those provided by the image scanning tools available in Red Hat Advanced Cluster Security for Kuberenetes. Beginning with updated versions to be released in Spring of 2024 these values will begin to coalesce. It's entirely possible this will be the case by the time you participate in this lab, if you attempt to replicate outside of this lab environment. 
+In this lab, you learned how to navigate the Configuration Management Dashboard. Now, on to *Understanding Risk*!!

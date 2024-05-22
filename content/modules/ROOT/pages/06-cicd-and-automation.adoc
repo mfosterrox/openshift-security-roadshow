@@ -1,2 +1,9 @@
+= CI/CD and Automation
 
-test
+== Module goals
+* Review the integrations available in RHACS
+* Review a simple pipeline create in OpenShift Pipelines
+*
+
+
+== RHACS Policy Management Basics

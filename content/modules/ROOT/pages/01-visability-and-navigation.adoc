@@ -1,4 +1,10 @@
-=== RHACS basics
+= Navigating RHACS
+
+== Module goals
+
+FILL OUT
+
+== RHACS basics
 
 RHACS provides the tools and capabilities to address the security needs of a cloud-native development approach on Kubernetes. These security features represent any developer or administrator’s primary work across various environments, including multiple datacenters, private clouds, or public clouds that run Kubernetes clusters.
 
@@ -133,16 +139,16 @@ image::acs-nav-01.png[link=self, window=blank, width=100%, Navigation Menu]
 
 The left-hand navigation menu provides access to each of the security use cases, as well as product configuration to integrate RHACS with your existing tooling. The navigation menu has the following items:
 
-- Dashboard: Summary view of your environment
-- Network Graph: Configured and actual network flows and the creation of Network Policies to implement network segmentation
-- Violations: Events that do not match the defined security policies
-- Compliance (2.0): Our new compliance dashboard update is in progress. With plans to make compliance reporting even easier with tailored compliance profiles and reporting by application, namespace and cluster. 
-- Compliance (1.0): Several industry and regulatory security standards, such as PCI DSS, our default dashboard.
-- Vulnerability Management (2.0): We are in the process of migrating our vulnerability management dashboard to focus on triaging by vulnerability. This is to help identify what layer contains vulnerability. Whether it be the node, cluster or application.
-- Vulnerability Management (1.0): Information about known vulnerabilities affecting your environment, including deployed workloads and infrastructure, risk acceptance and reporting.
-- Configuration Management: Identification of potential misconfigurations that can lead to security issues
-- Risk: Risks affecting your environment, such as suspicious executions
-- Platform Configuration: RHACS configuration, policy management and integration details, including;
+- *Dashboard:* Summary view of your environment
+- *Network Graph:* Configured and actual network flows and the creation of Network Policies to implement network segmentation
+- *Violations:* Events that do not match the defined security policies
+- *Compliance (2.0):* Our new compliance dashboard update is in progress. With plans to make compliance reporting even easier with tailored compliance profiles and reporting by application, namespace and cluster. 
+- *Compliance (1.0):* Several industry and regulatory security standards, such as PCI DSS, our default dashboard.
+- *Vulnerability Management (2.0):* We are in the process of migrating our vulnerability management dashboard to focus on triaging by vulnerability. This is to help identify what layer contains vulnerability. Whether it be the node, cluster or application.
+- *Vulnerability Management (1.0):* Information about known vulnerabilities affecting your environment, including deployed workloads and infrastructure, risk acceptance and reporting.
+- *Configuration Management:* Identification of potential misconfigurations that can lead to security issues
+- *Risk:* Risks affecting your environment, such as suspicious executions
+- *Platform Configuration:* RHACS configuration, policy management and integration details, including;
 * Clusters
 * Policy Management
 * Collections
@@ -234,7 +240,7 @@ It contains:
  - the life cycle 
  - and the time of the violation
 
-image::00-violations-1.png[link=self, window=blank, width=100%]
+image::01-violations-1.png[link=self, window=blank, width=100%]
 
 Don't worry we'll go through this policy violation workflow in later modules.
 
@@ -259,6 +265,8 @@ We will go into this in a later module, but for now, hit the *Scan environment* 
 image::00-compliance-3.png[link=self, window=blank, width=100%]
 
 Ensure you see the bar graphs fill up with data before moving. We we will dissthesethis compliance results in a later module
+
+image::00-compliance-4.png[link=self, window=blank, width=100%]
 
 === Vulnerability Management 2.0
 
@@ -365,10 +373,10 @@ image::00-pc-8.png[link=self, window=blank, width=100%]
 
 And lastly, the system Health Tap will help you handle things like Administration usage, generate diagnostic bundles that you monitor cluster status sensor upgrades, credential expiration, and more.
 
-----
+NOTE: Please check in with the proctors to confirm that you've completed the module and are ready to continue. This will help us manage the pacing and tell us if we need more content in the future. 
+
+== Summary
 
 Nice job!
 
-Please check in with the proctors to confirm that you've completed the module and are ready to continue. This will help us manage the pacing and tell us if we need more content in the future. 
-
-Thanks!
+In this module, you learned how to navigate the ACS dashboard and perform basic search queries. You have the navigational basics to move through the ACI UI proficiently. On to *Vulnerability Management*!!

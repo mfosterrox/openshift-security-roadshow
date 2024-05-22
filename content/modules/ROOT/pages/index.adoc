@@ -40,14 +40,6 @@ IMPORTANT: If any of the *mandatory* values are cannot be found below please con
 |Password| {quay_admin_password}
 |=== 
 
-[cols="1,1"]
-|=== 
-|Admin Token|{quay_admin_token}
-|Config Password|{quay_config_password}
-|Config URL|{quay_config_url}
-|Config Username|{quay_config_username}
-|=== 
-
 === Red Hat^(R)^ Enterprise Linux (RHEL) bastion host information
 [cols="1,1"]  
 |=== 
