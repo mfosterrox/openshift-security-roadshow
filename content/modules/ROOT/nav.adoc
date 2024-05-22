@@ -5,7 +5,7 @@
 * xref:02-vulnerability-management-lab.adoc[Vulnerability Management]
 * xref:03-configuration-management.adoc[Configuration Management]
 * xref:04-understanding-risk.adoc[Risk Management]
-* xref:05-policy-management[Policy Management]
+* xref:05-policy-management.adoc[Policy Management]
 * xref:06-cicd-and-automation.adoc[CI/CD Automation and Integration]
 * xref:07-compliance.adoc[Compliance]
 * xref:08-notifications.adoc[Notifications and Alerting]

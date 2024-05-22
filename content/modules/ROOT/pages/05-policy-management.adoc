@@ -1,7 +1,9 @@
 = Policy Management
 
 == Module goals
+* Create build, deploy and runtime policies 
 * Create policies from filters
+* Clone and edit policies based on the ACS defaults
 
 == RHACS Policy Management Basics
 
@@ -9,9 +11,15 @@ RHACS has many built-in policies to detect activity related to attacker goals: g
 
 We want to use runtime incidents and vulnerabilities as a learning opportunity to improve security going forward by constraining how our containers can act. We achieve this by creating policies and implementing them early in the CI/CD process.
 
-As we move into this next section, let's focus on identifying and enforcing a runtime policy in the cluster. For the upcoming example, we will focus on stopping the Ubuntu package manager from being run on pods in our cluster. 
+As we move into this next section, let's focus on identifying and enforcing a runtime policy in the cluster. For the upcoming example, we will focus on stopping the Ubuntu package manager from being run on pods in our cluster. Our example container *ctf-web-to-system* has this package manager in the container. Let's ensure that it never calls for updates while present in our clusters.
 
-Our example container *ctf-web-to-system* has this package manager in the container. Let's ensure that it never calls for updates while present in our clusters.
+== RHACS Runtime Policy Basics
+
+RHACS observes container processes and collects this information to enable you to craft policies to prevent behavior that you don’t like. This information can also create baseline policy configurations that the user can update.
+
+The example below demonstrates how security may want to block a package manager from downloading any packages to the container. This runtime enforcement option is the first in the process of shifting left. After runtime enforcement, you will want to stop the package manager from being used in the container altogether.
+
+IMPORTANT: For the Runtime stage, RHACS stops all pods that match the conditions of the policy. It does not, scale the deployment down to zero.
 
 *Procedure*
 
@@ -35,12 +43,6 @@ NOTE: If you click the actions button, you will see how easy it is to edit, clon
 
 [[runtime-enforce]]
 
-== Introduction to *Runtime* policy enforcement
-
-RHACS observes container processes and collects this information to enable you to craft policies to prevent behavior that you don’t like. This information can also create baseline policy configurations that the user can update.
-
-The example below demonstrates how security may want to block a package manager from downloading any packages to the container. This runtime enforcement option is the first in the process of shifting left. After runtime enforcement, you will want to stop the package manager from being used in the container altogether.
-
 === Prevent execution of package manager binary
 
 Package managers like apt (Ubuntu), apk (Alpine), or yum/dnf (RedHat) are binary software components used to manage and update installed software on a Linux® host system. They are used extensively to manage running virtual machines. However, using a package manager to install or remove software on a running container violates the immutable principle of container operation.
@@ -49,14 +51,7 @@ This policy demonstrates how RHACS detects and avoids a runtime violation, using
 
 === Enable enforcement of policy
 
-. Navigate to *Platform Configuration → Policy Management* and find the *Ubuntu Package Manager Execution* policy.
-. On the *Policy Management* page, type *Policy* then *Ubuntu* into the filter bar at the top.
-
-image::acs-runtime-00.png[link=self, window=blank, width=100%]
-
 [start=3]
-
-. Select the policy *Ubuntu Package Manager Execution*.
 
 . Click the *Actions* button, then click *Edit policy*.
 
@@ -87,15 +82,7 @@ IMPORTANT: Make sure to save the policy changes! If you do not save the policy, 
 
 Next, we will use tmux to watch OpenShift events while running the test so you can see how RHACS enforces the policy at runtime.
 
-IMPORTANT: You will need to complete the following commands in the *Bastion VM* Please SSH to it (If you have not already) by using the following command:
-
-[source,sh,subs="attributes",role=execute]
-
-----
-ssh {bastion_ssh_user_name}@{bastion_public_hostname}
-----
-
-Make sure you use the password '{bastion_ssh_password}' when prompted.
+IMPORTANT: Make sure that you are signed into the bastion host with OpenShift access when running the following commands. 
 
 [start=1]
 
@@ -117,7 +104,7 @@ oc get events -w
 
 [start=3]
 
-. Press *Ctrlb, o* to switch to the next pane. (Ctrlb THEN o)
+. Press *Ctrl+b THEN o* to switch to the next pane. (Ctrl+b THEN o)
 . Exec into our Java application by getting the pod details and adding them to the following command.
 
 [source,sh,role=execute]
@@ -136,6 +123,7 @@ node@ctf-web-to-system-6db858448f-hz6j2:/app$
 
 NOTE: If you see *node@ctf...* you've confirmed you have a shell and access to the Java application.
 
+[start=5]
 . Run the Ubuntu package manager in this shell:
 
 [source,sh,role=execute]
@@ -167,15 +155,28 @@ node@ctf-web-to-system-6db858448f-stwhq:/$ command terminated with exit code 137
 
 NOTE: After a few seconds, you can see the pod is deleted and recreated. In your tmux shell pane, note that your shell session has terminated and that you are returned to the Bastion VM command line.
 
-Congrats! You have successfully stopped yourself from downloading malicious packages! However, the security investigative process continues, as you have now raised a flag that must be triaged! We will triage our violations after we look at deploy time policies.
+Congrats! You have successfully stopped yourself from downloading malicious packages! However, the security investigative process continues, as you have now raised a flag that must be triaged! We will triage our violations later in this module.
 
-NOTE: type exit in the terminal, use ctrl+c to stop the 'watch' command, and type exit one more time to get back to the default terminal.
+NOTE: type exit in the terminal, use *ctrl+c* to stop the 'watch' command, and type exit one more time to get back to the default terminal.
+
+CONTENT -> Worth talking about the differences in enforcement?
+
+You can use admission controller enforcement for:
+
+- Options in the pod securityContext.
+- Deployment configurations.
+- Image components and vulnerabilities.
+
+You cannot use admission controller enforcement for:
+
+- Any runtime behavior, such as processes.
+- Any policies based on port exposure.
 
 [[deploy-enforce]]
 
-== Introduction to *Deploy-Time* policy enforcement
+== Introduction to deploy-time policy enforcement
 
-Deploy-Time policy referes to enforcing configuration controls in the cluster and before deployment in the CI/CD process. In this example we want to stop the Ubuntu Package Manager from ever making it into the default namespace in the first place. 
+Deploy-Time policy refers to enforcing configuration controls in the cluster and before deployment in the CI/CD process and the configuration of applications inside the cluster. In this example we want to stop the Ubuntu Package Manager from ever making it into the default namespace in the first place. 
 
 There are two approaches to enforcing deploy-time policies in RHACS:
 
@@ -239,7 +240,14 @@ image::acs-deploy-05.png[link=self, window=blank, width=100%]
 
 . Click Save
 
-Congrats! You're now enforcing at runtime and deploy time. In the last step in this module. We will review
+Congrats! You're now enforcing at runtime and deploy time. We have one more step to enforce... Build-time!
+
+== Introduction to build-time policy enforcement (In progress)
+
+
+
+
+
 
 == Report and Resolve Violations
 

@@ -194,7 +194,7 @@ How would you scope your filters by team/application/cluster?
 
 Try some of these scopes yourself by indicating different namespaces in your filters.
 
-=== Risk Acceptance workflow
+=== Risk Acceptance workflow (Needs work)
 
 As a security analyst who is a deferral approver, you can evaluate requested deferrals and respond to them through the RHACS portal.
 
