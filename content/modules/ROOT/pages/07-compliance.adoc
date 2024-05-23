@@ -32,13 +32,13 @@ image::01-ocp-login-admin.png[OpenShift console]
 . In the web console, go to the Operators → OperatorHub page.
 . Enter compliance operator into the Filter by keyword box to find the Compliance Operator.
 
-image::07-compliance-1.png[OpenShift console]
+image::07-comp-1.png[OpenShift console]
 
 [start=6]
 . Select the Compliance Operator to view the details page.
 . Read the information about the Operator, select the defaults, and then click Install.
 
-image::07-compliance-2.png[OpenShift console]
+image::07-comp-2.png[OpenShift console]
 
 == Configuring the ScanSettingBinding object
 
@@ -52,7 +52,7 @@ When installing RHACS you need to kick off a complaince scan to ensure that the 
 . Head to the Compliance 1.0 dashboard
 . Click the "Scan environment" button on the top left.
 
-image::07-compliance-3.png[OpenShift console]
+image::07-comp-3.png[OpenShift console]
 
 [start=3]
 
@@ -68,25 +68,27 @@ Each standard represents a series of controls, with guidance provided by RHACS o
 
 In the top right of the dashboard you will see two of the dropdown options
  
-image::07-comp-06.png[OpenShift console]
+image::07-comp-6.png[OpenShift console]
 
 * Manage standards &
 * Export
 
-. Click the "Manage standards button"
+*Click the "Manage standards button"*
 
 image::07-comp-6.png[OpenShift console]
 
 You will see all of the standards available to you in the dashboard. These standards will effect ALL of the controls that you see in the dashboad. For example;
 
-. Remove all of the options except NIST SP 800-53.
+*Remove all of the options except NIST SP 800-53.*
 
-image::07-comp-7.png[OpenShift console]
+image::07-comp-8.png[OpenShift console]
 
+And you should end up with a dashboard that looks like this
 
+image::07-comp-9.png[OpenShift console]
 
+*Click the "Manage standards button"*
 
-Procedure
 . Click on PCI, or the PCI percentage bar, in the upper-left “Passing Standards Across Clusters” graph
 
 image::07-comp-4.png[OpenShift console]
@@ -102,7 +104,135 @@ In OpenShift, that requirement, and other isolation requirements, is met by Netw
 
 The control guidance states "StackRox has visibility into the effects of Kubernetes Network Policies on your deployments. Network Policies can restrict inbound and outbound traffic. Therefore, if every deployment has inbound (ingress) Network Policies that apply to it, it can be considered compliant, so long as none of those deployments are using the host namespace, which allows circumvention of Network Policies."
 
-IMPORTANT: How would you bring this standard up to 100%?
+|====
+How would you bring this standard up to 100%?
+|====
+
+== Managing the compliance 2.0 feature (Technology Preview)
+
+You can view the compliance results associated with your cluster by using the compliance 2.0 feature in the Red Hat Advanced Cluster Security for Kubernetes (RHACS) portal. The feature collects compliance information gathered by the Compliance Operator into a single interface.
+
+Currently, the compliance 2.0 feature and the Compliance Operator evaluate only infrastructure and platform compliance.
+
+=== Viewing the cluster compliance page
+
+By viewing the cluster compliance page, you can get a comprehensive overview of the compliance status of your clusters.
+
+.Procedure
+. In the RHACS portal, go to the Compliance (2.0) → Cluster Compliance → Coverage tab.
+
+image::07-comp-10.png[OpenShift console]
+
+The cluster compliance page organizes information in the following groups:
+
+*1. Cluster:* Gives the details of your cluster and provides a snapshot of its current state and configurations.
+
+*2. Operator status:* Assesses the health and operational status of the Compliance Operator instance within your cluster and ensures that the Operator is running optimally and functioning seamlessly.
+
+*3. Compliance:* Shows the percentage of checks that have been passed for the scanned profiles.
+
+image::07-comp-11.png[OpenShift console]
+
+=== Creating a compliance scan schedule
+
+By creating a compliance scan schedule, you can customize and automate your compliance scans to align with your operational requirements.
+
+.Procedure
+. In the RHACS portal, go to the Compliance (2.0) → Cluster Compliance → Schedules tab.
+. Click Create scan schedule.
+
+In the Configuration options page, provide the following information:
+
+[cols="1,1"]
+|===
+| Name: | Enter a name to identify different compliance scans.
+| Description: | Specify the reason for each compliance scan.
+| Configure schedule: | Adjust the scan schedule to fit your required schedule:
+| Frequency: | From the drop-down list, select how often you want to perform the scan. Frequencies include Daily, Weekly, and Monthly.
+| On day(s): | From the list, select one or more days of the week on which you want to perform the scan. Valid values include Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday, The first of the month, and The middle of the month.
+*These values are only applicable if you specify the frequency of scan as Weekly or Monthly.*
+| Time: | Start to type the time in hh:mm at which you want to run the scan. From the list that is displayed, select a time.
+|===
+
+[start=3]
+. Click Next.
+
+. In the Clusters page, select one or more clusters that you want to include in the scan.
+
+image::07-comp-12.png[OpenShift console]
+
+[start=5]
+. Click Next.
+. In the Profiles page, select one or more profiles that you want to include in the scan.
+
+. Click Next.
+
+Review your scan configuration, and then click Create.
+
+Verification
+In the RHACS portal, go to the Compliance (2.0) → Cluster Compliance → Schedules tab.
+
+Select the compliance scan you have created.
+
+In the Clusters section, verify that the operator status is healthy.
+
+Optional: To edit the scan schedule, click Edit scan schedule, make your changes, and then click Save.
+
+Viewing the compliance scan status
+By viewing the status of a compliance scan, you can efficiently monitor and analyze the health of your clusters.
+
+Wait until the Compliance Operator returns the scan results. It might take a few minutes.
+
+Procedure
+In the RHACS portal, go to the Compliance (2.0) → Cluster Compliance → Coverage tab.
+
+Select a cluster to view the details of the individual scans.
+
+Optional: Enter the name of the compliance check in the Filter by keyword box to view the status.
+
+Optional: From the Compliance status drop-down list, select one or more statuses by using which you want to filter the scan details. Compliance statuses include Pass, Fail, Error, Info, Manual, Not Applicable, and Inconsistent.
+
+Compliance scan status overview
+By understanding the compliance scan status, you can manage the overall security posture of your environment.
+
+[cols="1,1"]
+|===
+Status |	Description
+
+|Fail 
+|The compliance check failed.
+
+| Pass 
+| The compliance check passed.
+| Not Applicable 
+| Skipped the compliance check because it was not applicable.
+| Info 
+| The compliance check gathered data, but RHACS could not make a pass or fail determination.
+| Error 
+| The compliance check failed due to a technical issue.
+| Manual 
+| Manual intervention is required to ensure compliance.
+| Inconsistent 
+| The compliance scan data is inconsistent, and requires closer inspection and targeted resolution.
+|=== 
+
+== test 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 Click on Compliance tab from the left hand side menu
