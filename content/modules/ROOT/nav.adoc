@@ -10,6 +10,7 @@
 * xref:07-compliance.adoc[Compliance]
 * xref:08-notifications.adoc[Notifications and Alerting]
 * xref:09-API-walkthrough.adoc[API Walkthrough]
-* xref:extra-log-4-shell-lab.adoc[Log4Shell Exploit]
-* xref:extra-capture-the-flag-lab.adoc[Capture the Flag]
+* xref:misc-network-segmentation.adoc[Extra - Network Segmentation]
+* xref:misc-network-segmentation.adoc[Extra - log4shell Example]
+
 

@@ -21,8 +21,6 @@ Using Red Hat Advanced Cluster Security for Kubernetes, you can gain comprehensi
 - *Threat Detection:* Use rules, automated allow lists, and baselining to identify suspicious activity in your running applications accurately.
 - *Incident Response:* Take action, from failing builds and blocking deployments to killing pods and thwarting attacks, using Kubernetes for enforcement.
 
-[[console-access]]
-
 === Accessing the RHACS console
 
 In this section, you will confirm that you can connect to the RHACS portal.
@@ -231,14 +229,15 @@ On to the violations tab.
 The violations tab is where you will manage all of your policy violations. The violations tab is excellent for managing policy violations in the workflow. 
 
 It contains:
- - The exact policy that was violated 
- - The Entity that violated the policy 
- - the type 
- - if it is enforced 
- - the severity of that policy 
- - the category 
- - the life cycle 
- - and the time of the violation
+
+* The exact policy that was violated 
+* The entity that violated the policy 
+* The type 
+* If it is enforced 
+* The severity of that policy 
+* The category 
+* The life cycle 
+* And the time of the violation
 
 image::01-violations-1.png[link=self, window=blank, width=100%]
 
@@ -252,11 +251,11 @@ The OpenShift Compliance Operator allows OpenShift Container Platform administra
 
 image::00-compliance-1.png[link=self, window=blank, width=100%]
 
-The compliance 2.0 tab is in tech preview this was just released in ACS 4.4, and we are currently in the process of migrating The existing 1.0 dashboard into 2.0
+The Compliance 2.0 tab is in tech preview this was just released in ACS 4.4, and we are currently in the process of migrating The existing 1.0 dashboard into 2.0
 
 === Compliance 1.0
 
-The compliance 1.0 dashboard should be empty when you're in here for the first time. It's because you have not completed a scan.
+The Compliance 1.0 dashboard should be empty when you're in here for the first time. It's because you have not completed a scan.
 
 image::00-compliance-2.png[link=self, window=blank, width=100%]
 

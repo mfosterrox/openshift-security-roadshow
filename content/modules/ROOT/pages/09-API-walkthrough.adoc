@@ -30,3 +30,47 @@ Test the roxctl image check against a well known image to check the system polic
 
 
 $ roxctl --insecure-skip-tls-verify image check --endpoint $ROX_CENTRAL_ADDRESS:443 --image quay.io/centos7/httpd-24-centos7:centos7
+
+
+
+=== Access the RHACS Central Services in the Student VM via the 'roxctl' Command
+
+In this section, you use the `roxctl` command line tool to send commands to the RHACS server.
+
+* In the provisioning email you received, note the following:
+** The URL for the RHACS portal
+
+[NOTE]
+This information will be available in the services tab at link:https://demo.redhat.com/[demo.redhat.com^]. Or in the lab provisioning email.
+
+.Procedure
+. From the student VM, use the following command to verify your connection to RHACS Central:
+*Sample input*
+[source,bash,role="execute"]
+----
+roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" central whoami
+----
+*Sample output*
+[source,bash]
+----
+User:
+  auth-token:03b73fd3-313e-40a0-91f5-6ac88d8517a4
+Roles:
+ Admin, Analyst, Continuous Integration, None, Scope Manager, Sensor Creator, Vulnerability Management Approver, Vulnerability Management Requester, Vulnerability Report Creator
+Access:
+  rw APIToken
+  rw Alert
+  rw AllComments
+  rw AuthPlugin
+  rw AuthProvider
+[... further access authorizations omitted for brevity ..]
+----
+
+=== Review Lab Access
+
+You should now have access to the following
+* Access to the OpenShift Web Console
+* Access to the RHACS Web Console
+* Access to the Linux Student VM that contains command line access to both
+** OpenShift Cluster via 'oc' command
+** RHACS Central services via 'roxctl' command

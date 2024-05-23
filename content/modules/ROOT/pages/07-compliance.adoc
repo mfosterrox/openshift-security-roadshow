@@ -1,4 +1,9 @@
-= Commpliance
+= Compliance
+
+== Module goals
+* Setup the Compliance Operator
+* Understand the Compliance 1.0 and 2.0 dashboard
+* Schedule a scan in the Compliance 2.0 dashboard
 
 == Compliance Operator and Compliance in ACS
 
@@ -8,38 +13,97 @@ The OpenShift Compliance Operator assesses both Kubernetes API resources and Ope
 
 Red Hat Advanced Cluster Security for Kubernetes (RHACS) supports OpenShift Container Platform configuration compliance standards through an integration with the OpenShift Container Platform Compliance Operator. In addition, it allows you to measure and report on configuration security best practices for OpenShift Container Platform.
 
-== Review Compliance Dashboard
+== Install the Compliance Operator
+
+.Procedure
+. Log into the OCP console at `{web_console_url}`
+. Click the *rhsso* option
+. Enter the OCP credentials 
+
+[cols="1,1"]
+|===
+*User:*| {openshift_admin_user} |
+*Password:*| {openshift_admin_password} |
+|===
+
+image::01-ocp-login-admin.png[OpenShift console]
+
+[start=4]
+. In the web console, go to the Operators → OperatorHub page.
+. Enter compliance operator into the Filter by keyword box to find the Compliance Operator.
+
+image::07-compliance-1.png[OpenShift console]
+
+[start=6]
+. Select the Compliance Operator to view the details page.
+. Read the information about the Operator, select the defaults, and then click Install.
+
+image::07-compliance-2.png[OpenShift console]
+
+== Configuring the ScanSettingBinding object
+
+Now, before the compliance 2.0 dashboard and ACS users would have had to set up a ScanSettingBinding object to schedule their compliance games through the compliance operator. 
 
 === Execute the first Compliance Scan
 
-Once the RHACS is installed the first compliance scan needs to be executed to ensure that the Compliance results are available. So let’s execute our first Compliance Scan.
+When installing RHACS you need to kick off a complaince scan to ensure that the Compliance results are available. So let’s execute our first compliance scan.
 
-Compliance Dashboard without the First Compliance Scan
+.Procedure
+. Head to the Compliance 1.0 dashboard
+. Click the "Scan environment" button on the top left.
 
-ACS 1
-Run compliance scanner
+image::07-compliance-3.png[OpenShift console]
 
-ACS 2
-Compliance Result
+[start=3]
 
-ACS 3
-TODO: Add more descriptions in compliance dashboard scan
+Wait a few seconds and your dashboard should populate.
 
-Review the Compliance Reports in the Compliance Dashboard
-The compliance reports gather information for configuration, industry standards, and best practices for container-based workloads running in OpenShift.
+== Review the Compliance Reports in the Compliance Dashboard
 
-In many ways, you’ve already seen the compliance features - because they’re tied to controls that we saw in Risk, in the Network Graph, and in Policies
+The compliance reports gather information for configuration, industry standards, and best practices for container-based workloads running in Kubernetes and OpenShift.
 
-Each standard represents a series of controls, with guidance provided by StackRox on the specific OpenShift configuration or DevOps process required to meet that control.
+Each standard represents a series of controls, with guidance provided by RHACS on the specific OpenShift configuration or DevOps process required to meet that control.
 
-Click on PCI, or the PCI percentage bar, in the upper-left “Passing Standards Across Clusters” graph
+*Let's review the dashboard.*
 
-Click on Control 1.1.4, “Requirements for a firewall…”
+In the top right of the dashboard you will see two of the dropdown options
+ 
+image::07-comp-06.png[OpenShift console]
 
-ACS 4
+* Manage standards &
+* Export
+
+. Click the "Manage standards button"
+
+image::07-comp-6.png[OpenShift console]
+
+You will see all of the standards available to you in the dashboard. These standards will effect ALL of the controls that you see in the dashboad. For example;
+
+. Remove all of the options except NIST SP 800-53.
+
+image::07-comp-7.png[OpenShift console]
+
+
+
+
+Procedure
+. Click on PCI, or the PCI percentage bar, in the upper-left “Passing Standards Across Clusters” graph
+
+image::07-comp-4.png[OpenShift console]
+
+[start=2]
+. Click on Control 1.1.4, “Requirements for a firewall…”
+
+image::07-comp-5.png[OpenShift console]
+
 For example, PCI-DSS has controls that refer to firewalls and DMZ - not exactly cloud-native
 
-In OpenShift, that requirement, and other isolation requirements, is met by Network Policies, and the 32% compliance score here indicates that only about one third of my deployments have correctly defined policies.
+In OpenShift, that requirement, and other isolation requirements, is met by Network Policies, and the 4% compliance score here indicates that very few deployments have correctly defined policies.
+
+The control guidance states "StackRox has visibility into the effects of Kubernetes Network Policies on your deployments. Network Policies can restrict inbound and outbound traffic. Therefore, if every deployment has inbound (ingress) Network Policies that apply to it, it can be considered compliant, so long as none of those deployments are using the host namespace, which allows circumvention of Network Policies."
+
+IMPORTANT: How would you bring this standard up to 100%?
+
 
 Click on Compliance tab from the left hand side menu
 
@@ -74,7 +138,6 @@ Red Hat Advanced Cluster Security for Kubernetes supports OpenShift Container Pl
 Follow the next steps to install and integrate the Compliance Operator with Advanced Cluster Security.
 
 Create a Namespace object YAML file by running:
-
 
 oc apply -f co-ns.yaml
 apiVersion: v1

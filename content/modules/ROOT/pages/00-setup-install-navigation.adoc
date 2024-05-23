@@ -6,17 +6,6 @@
 * Deploy our default insecure applications
 * Ensuring OpenShift pipelines are properly setup
 
-== Lab components
-
-In this section, you will utilize the following applications:
-
-* Red Hat^(R)^ OpenShift Container Platform (OCP) console
-* Red Hat^(R)^ Advanced Cluster Security (RHACS) console
-* Red Hat^(R)^ Quay console
-* Red Hat^(R)^ Enterprise Linux (RHEL) bastion host 
-
-To complete all of the lab tasks.
-
 == Accessing the workshop
 
 Let's start by ensuring you have access to all the necessary resources to complete this lab. 
@@ -29,7 +18,7 @@ First, make sure you can access the Red Hat^(R)^ OCP console web console.
 
 [start=1]
 . Log into the OCP console at `{web_console_url}`
-
+. Click the *rhsso* option
 . Enter the OCP credentials 
 
 [cols="1,1"]

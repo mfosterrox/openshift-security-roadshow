@@ -6,15 +6,24 @@ This course offers you hands-on experience working with the essential security u
 
 You can find all the URLs and passwords needed to complete the lab on the homepage. If you ever get lost simple click the home button at the top of the webpage
 
+== Lab components
+
+In this section, you will utilize the following applications:
+
+* Red Hat^(R)^ OpenShift Container Platform (OCP) console
+* Red Hat^(R)^ Advanced Cluster Security (RHACS) console
+* Red Hat^(R)^ Quay console
+* Red Hat^(R)^ Enterprise Linux (RHEL) bastion host 
+
+To complete all of the lab tasks.
+
+== All lab components
+
 *The first section* will highlight all of the applications used in the OpenShift Security Roadshow.
 
 *The second section* will contain other optional applications for you to test out and play around with on your own time. 
 
----
-
 IMPORTANT: If any of the *mandatory* values are cannot be found below please contact your administrator. 
-
-== Mandatory applications
 
 === Red Hat^(R)^ OpenShift Container Platform (OCP) console information
 [cols="1,1"]  
