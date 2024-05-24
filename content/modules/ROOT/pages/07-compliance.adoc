@@ -42,9 +42,70 @@ image::07-comp-2.png[OpenShift console]
 
 == Configuring the ScanSettingBinding object
 
-Now, before the compliance 2.0 dashboard and ACS users would have had to set up a ScanSettingBinding object to schedule their compliance games through the compliance operator. 
+Now, before the compliance 2.0 dashboard and ACS users would have had to set up a ScanSettingBinding object to schedule their compliance operator schedules this can be done in RHACS.
 
-=== Execute the first Compliance Scan
+But you still have to set your compliance profiles. 
+
+== Configuring the Compliance Operator ProfileBundles
+
+The `ProfileBundle` object requires two pieces of information: the URL of a container image that contains the contentImage and the file that contains the compliance content. The contentFile parameter is relative to the root of the file system. You can define the built-in `rhcos4` `ProfileBundle` object as shown in the following example:
+
+```YAML
+apiVersion: compliance.openshift.io/v1alpha1
+kind: ProfileBundle
+metadata:
+  creationTimestamp: "2022-10-19T12:06:30Z"
+  finalizers:
+  - profilebundle.finalizers.compliance.openshift.io
+  generation: 1
+  name: rhcos4
+  namespace: openshift-compliance
+  resourceVersion: "46741"
+  uid: 22350850-af4a-4f5c-9a42-5e7b68b82d7d
+spec:
+  contentFile: ssg-rhcos4-ds.xml 
+  contentImage: registry.redhat.io/compliance/openshift-compliance-content-rhel8@sha256:900e... 
+status:
+  conditions:
+  - lastTransitionTime: "2022-10-19T12:07:51Z"
+    message: Profile bundle successfully parsed
+    reason: Valid
+    status: "True"
+    type: Ready
+  dataStreamStatus: VALID
+```
+
+Let's ;look at the default ProfileBundles in OpenShift
+
+.Procedure
+. Run till following command to restart the RHACS scanner pod. This will speed up the process for the profiles to appear in RHACS Central.
+
+[source,sh,subs="attributes",role=execute]
+----
+oc delete pods -l app.kubernetes.io/component=sensor -n stackrox
+----
+
+[start=2]
+. Next run an "oc" command to look at the default ProfileBundles.
+
+[source,sh,subs="attributes",role=execute]
+----
+oc get -n openshift-compliance profilebundle.compliance
+----
+
+*Sample Output*
+
+[source,sh]
+----
+[lab-user@bastion pipeline]$ oc get -n openshift-compliance profilebundle.compliance
+NAME     CONTENTIMAGE                                                                                                                               CONTENTFILE         STATUS
+ocp4     registry.redhat.io/compliance/openshift-compliance-content-rhel8@sha256:dee91b7c0551a01fe2a3e6fcf3788e76f3ab5be8daa5ca59709840af6592203a   ssg-ocp4-ds.xml     VALID
+rhcos4   registry.redhat.io/compliance/openshift-compliance-content-rhel8@sha256:dee91b7c0551a01fe2a3e6fcf3788e76f3ab5be8daa5ca59709840af6592203a   ssg-rhcos4-ds.xml   VALID
+----
+
+So we have profiles. Now it's time to create a scan. 
+
+== Execute the first Compliance Scan
 
 When installing RHACS you need to kick off a complaince scan to ensure that the Compliance results are available. So let’s execute our first compliance scan.
 
@@ -102,7 +163,12 @@ For example, PCI-DSS has controls that refer to firewalls and DMZ - not exactly 
 
 In OpenShift, that requirement, and other isolation requirements, is met by Network Policies, and the 4% compliance score here indicates that very few deployments have correctly defined policies.
 
-The control guidance states "StackRox has visibility into the effects of Kubernetes Network Policies on your deployments. Network Policies can restrict inbound and outbound traffic. Therefore, if every deployment has inbound (ingress) Network Policies that apply to it, it can be considered compliant, so long as none of those deployments are using the host namespace, which allows circumvention of Network Policies."
+=== Evidence Export
+Last thing about compliance - you’re only as compliant as you can prove!
+
+. Click on the Export button in the upper right to show the “Evidence as CSV” option
+
+This is the evidence export that your auditors will want to see for proof that the security controls mandated are actually in place.
 
 |====
 How would you bring this standard up to 100%?
@@ -162,17 +228,16 @@ In the Configuration options page, provide the following information:
 image::07-comp-12.png[OpenShift console]
 
 [start=5]
-. Click Next.
+. Click *Next*.
 . In the Profiles page, select one or more profiles that you want to include in the scan.
+. Click *Next*.
+. Review your scan configuration, and then click Create.
 
-. Click Next.
+=== Verification
 
-Review your scan configuration, and then click Create.
-
-Verification
-In the RHACS portal, go to the Compliance (2.0) → Cluster Compliance → Schedules tab.
-
-Select the compliance scan you have created.
+.Procedure
+. In the RHACS portal, go to the Compliance (2.0) → Cluster Compliance → Schedules tab.
+. Select the compliance scan you have created.
 
 In the Clusters section, verify that the operator status is healthy.
 
@@ -183,16 +248,17 @@ By viewing the status of a compliance scan, you can efficiently monitor and anal
 
 Wait until the Compliance Operator returns the scan results. It might take a few minutes.
 
-Procedure
-In the RHACS portal, go to the Compliance (2.0) → Cluster Compliance → Coverage tab.
+. Procedure
+. In the RHACS portal, go to the Compliance (2.0) → Cluster Compliance → Coverage tab.
 
 Select a cluster to view the details of the individual scans.
 
-Optional: Enter the name of the compliance check in the Filter by keyword box to view the status.
+OPTIONAL: Enter the name of the compliance check in the Filter by keyword box to view the status.
 
-Optional: From the Compliance status drop-down list, select one or more statuses by using which you want to filter the scan details. Compliance statuses include Pass, Fail, Error, Info, Manual, Not Applicable, and Inconsistent.
+OPTIONAL: From the Compliance status drop-down list, select one or more statuses by using which you want to filter the scan details. Compliance statuses include Pass, Fail, Error, Info, Manual, Not Applicable, and Inconsistent.
 
-Compliance scan status overview
+== Compliance scan status overview
+
 By understanding the compliance scan status, you can manage the overall security posture of your environment.
 
 [cols="1,1"]
@@ -216,7 +282,6 @@ Status |	Description
 | The compliance scan data is inconsistent, and requires closer inspection and targeted resolution.
 |=== 
 
-== test 
 
 
 
@@ -224,99 +289,13 @@ Status |	Description
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-Click on Compliance tab from the left hand side menu
-
-Click on NIST SP 800-190. Click on Control 4.1.1, “Image vulnerabilities…”
-
-Similarly - NIST 800-190, the application containers security standard, requires a pipeline-based build approach to mitigating vulnerabilities in images.
-
-ACS 4_2
-Because we added enforcement to the CVSS >7 policy, we now meet the requirement dictated by control 4.1.1, and the 0% score changes to 100% because we now have the control in place to prevent known vulnerabilities from being deployed
-
-Namespace Compliance Details
-Click on Compliance tab on the left hand side menu
-
-Click on Namespaces in the top toolbar of the compliance page
-
-Of course, like every other report - it’s also valuable to break this data down by Clusters, Namespaces, and Deployments.
-
-Namespaces in particular - being able to see, application-by-application, or team-by-team, where the gaps in compliance are.
-
-Evidence Export
-Click on Compliance tab on the left hand side menu
-
-Last thing about compliance - you’re only as compliant as you can prove!
-
-Click on the Export button in the upper right to show the “Evidence as CSV” option
-
-This is the evidence export that your auditors will want to see for proof that the security controls mandated are actually in place.
-
-Integrating the OpenShift Compliance Operator with ACS
-Red Hat Advanced Cluster Security for Kubernetes supports OpenShift Container Platform configuration compliance standards through an integration with the OpenShift Container Platform Compliance Operator.
-
-Follow the next steps to install and integrate the Compliance Operator with Advanced Cluster Security.
-
-Create a Namespace object YAML file by running:
-
-oc apply -f co-ns.yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: openshift-compliance
-Create the Compliance Operator OperatorGroup object YAML file by running:
-
-apiVersion: operators.coreos.com/v1
-kind: OperatorGroup
-metadata:
-  name: compliance-operator
-  namespace: openshift-compliance
-spec:
-  targetNamespaces:
-  - openshift-compliance
-
-oc apply -f co-og.yaml
-Create the Compliance Operator Subscription object YAML file by running:
-
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
-  name: compliance-operator-sub
-  namespace: openshift-compliance
-spec:
-  channel: "release-0.1"
-  installPlanApproval: Automatic
-  name: compliance-operator
-  source: redhat-operators
-  sourceNamespace: openshift-marketplace
-
-oc apply -f co-subs.yaml
-Verify the installation succeeded by inspecting the CSV file:
-
-
-oc get csv -n openshift-compliance | grep compliance
-oc get csv -n openshift-compliance | grep compliance
-compliance-operator.v0.1.39   Compliance Operator   0.1.39   Succeeded
-Verify that the Compliance Operator is up and running:
 
 
 oc get pod -n openshift-compliance
-oc get pod -n openshift-compliance
-NAME                                            READY   STATUS    RESTARTS   AGE
-compliance-operator-5989ff994b-mrhc9            1/1     Running   1          4m42s
-ocp4-openshift-compliance-pp-6d7c7db4bd-2gnrf   1/1     Running   0          3m2s
-rhcos4-openshift-compliance-pp-c7b548bd-k4sz2   1/1     Running   0          3m2s
+
+
 Running compliance scans
+
 We now want to make sure that the nodes are scanned appropiately. For this, we’ll need a ScanSettingsBinding, this bind a profile with scan settings in order to get scans to run.
 
 Create a ScanSettingBinding object that binds to the default ScanSetting object and scans the cluster using the cis and cis-node profiles.

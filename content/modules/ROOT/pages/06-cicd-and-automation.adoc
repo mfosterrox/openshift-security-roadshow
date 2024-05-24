@@ -345,6 +345,7 @@ Your mission is completed with a successful pipeline run.
 * Would you have enforcement off at the beginning?
 * Are there any organizational policies that should be enforced in all pipelines?
 
+image::06-cd-14.png[link=self, window=blank, width=100%]
 
 == Summary
 
