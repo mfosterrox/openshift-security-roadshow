@@ -15,7 +15,7 @@ Another configuration management tab has much information that directs you to ot
 - Users with most cluster admin roles
 - Secrets most used across deployments
 
-image::03-rm-1.png[link=self, window=blank, width=100%]
+image::03-cm-1.png[link=self, window=blank, width=100%]
 
 Let's break down each section. 
 
@@ -24,19 +24,19 @@ Let's break down each section.
 .Procedure
 . Click the *View all* button on the "Secrets most used across deployments" widget.
 
-image::03-rm-2.png[link=self, window=blank, width=100%]
+image::03-cm-2.png[link=self, window=blank, width=100%]
 
 In this view you will see all of your secrets across your clusters. You can filter the secrets and export all of the information to a CSV.
 
 [start=2]
-.Filter the secrets by *Cluster: production* & *Image Pull Secret Registry: quay.io*
+. Filter the secrets by *Cluster: production* & *Image Pull Secret Registry: quay.io*
 
-image::03-rm-3.png[link=self, window=blank, width=100%]
+image::03-cm-3.png[link=self, window=blank, width=100%]
 
 [start=3]
 . Next, try filtering by "Secret Type".
 
-image::03-rm-4.png[link=self, window=blank, width=100%]
+image::03-cm-4.png[link=self, window=blank, width=100%]
 
 IMPORTANT: Not all secrets are the same and organizations should ensure secrets are properly managed through a [CSI driver](https://docs.openshift.com/container-platform/4.15/storage/container_storage_interface/persistent-storage-csi-secrets-store.html) or a secrets management tool.
 
@@ -54,7 +54,7 @@ policies in the cluster, the policy status, whether it's disabled, whether it's 
 .Procedure
 . Click the *View all* button on the "Policy violations by severity" widget.
 
-image::03-rm-5.png[link=self, window=blank, width=100%]
+image::03-cm-5.png[link=self, window=blank, width=100%]
 
 IMPORTANT: Notice in this tab that nothing should say enforced. This is because, by default in ACS, there is no policy that is being enforced by default this avoids the eviction of any workloads prematurely and allows you to ingest all of this security information at the beginning of your security journey.
 
@@ -74,6 +74,8 @@ All entities contain a massive amount of suggestions such as controls users and 
 - How would you make changes to your clusters?
 
 == Summary
+
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDR4amFzZ2ZiNGNkaTVwM3lscmxycDMzMnB4bTdwYWd0emlsOHJiYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/qunFC4tNsyA8y9M36d/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
 Great job!! Short and sweet!
 

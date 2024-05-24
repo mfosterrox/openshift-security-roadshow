@@ -19,6 +19,10 @@ First, make sure you can access the Red Hat^(R)^ OCP console web console.
 [start=1]
 . Log into the OCP console at `{web_console_url}`
 . Click the *rhsso* option
+
+image::01-ocp-login-admin.png[OpenShift console]
+
+[start=3]
 . Enter the OCP credentials 
 
 [cols="1,1"]
@@ -27,9 +31,8 @@ First, make sure you can access the Red Hat^(R)^ OCP console web console.
 *Password:*| {openshift_admin_password} |
 |===
 
-image::01-ocp-login-admin.png[OpenShift console]
 
-[start=3]
+[start=4]
 . Enter the OpenShift username *{openshift_admin_user}* and password: *{openshift_admin_password}*
 
 image::01-ocp-login-password.png[OpenShift console login]
@@ -130,9 +133,11 @@ Access:
 	rw WorkflowAdministration
 ----
 
-== Download build and push a Java application
+== Setup our workshop applications
 
-=== Download the "Java app" application and push the container image to Quay
+=== Build a container image
+
+In this section we will download the "Java app" application, give it a new tag and push the image to Quay. Later we will deploy the image to the OpenShift Cluster and use it in future modules.
 
 . Let's export a few variable to make our life easier
 
@@ -377,7 +382,7 @@ IMPORTANT: Please ensure the deploy application are deployed to your cluster bef
 
 [[deploy-the-java-application]]
 
-== Deploy the Java application to you OpenShift Clusters
+== Deploy the workshop applications
 
 IMPORTANT: You will need to ensure that the variables are set before running the following commands. 
 
@@ -398,7 +403,7 @@ echo $QUAY_URL
 Our insecure demo applications come from a variety of public GitHub repositories and sources. Including the Java application that you just pushed to Quay. Let's deploy them into our cluster.
 
 [start=5]
-. Run the following command in the Bastion VM. 
+. Run the following commands in the terminal
 
 |====
 This command downloads a bunch of Kubernetes manifests to deploy to OpenShift. We also add the location of the local repository for our ctf-web-to-system application. 
@@ -442,7 +447,7 @@ roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --ima
 ----
 
 [start=6]
-. Wait a few sceonds then run the following command and ensure that the applications are up and running
+. Wait a few sceonds then run the following command to ensure that the applications are up and running
 
 [source,bash,role="execute"]
 ----
@@ -469,6 +474,8 @@ payments     visa-processor      1/1     1            1           6m45s
 The main focus needs to be that the *ctf-web-to-system* application deployed properly. 
 
 == Summary
+
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNxZGd5Zm5qMnlpOHhrbm1hY2pwcG5ydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p18ohAgD3H60LSoI1C/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
 Beautiful!
 

@@ -37,7 +37,7 @@ Red Hat^(R)^ OpenShift Pipelines is a Kubernetes-native CI/CD (Continuous Integr
 .Procedure
 .Head over to the OpenShift Console. If you don't have access follow the steps below. If you do proceed to the following section.
 
-==== Access the Red Hat^(R)^ OpenShift Container Platform (OCP) web console 
+=== Access the Red Hat^(R)^ OpenShift Container Platform (OCP) web console 
 
 First, make sure you can access the Red Hat^(R)^ OCP console web console.
 
@@ -46,6 +46,10 @@ First, make sure you can access the Red Hat^(R)^ OCP console web console.
 [start=1]
 . Log into the OCP console at `{web_console_url}`
 . Click the *rhsso* option
+
+image::01-ocp-login-admin.png[OpenShift console]
+
+[start=3]
 . Enter the OCP credentials 
 
 [cols="1,1"]
@@ -54,15 +58,12 @@ First, make sure you can access the Red Hat^(R)^ OCP console web console.
 *Password:*| {openshift_admin_password} |
 |===
 
-image::01-ocp-login-admin.png[OpenShift console]
 
 [start=4]
 . Enter the OpenShift username *{openshift_admin_user}* and password: *{openshift_admin_password}*
 
 image::01-ocp-login-password.png[OpenShift console login]
 
-
-*Procedure Cont'd*
 
 |====
 You should be directed to the RHACM dashboard. RHACM is intergrated into the OpenShift dashboard.
@@ -338,15 +339,20 @@ IMPORTANT: Do not disable the policy. Disable the enforcement.
 
 Your mission is completed with a successful pipeline run.
 
+image::06-cd-14.png[link=self, window=blank, width=100%]
+
+
 == What would you do?
 
 * How would you implement roxctl into your pipelines?
 * Would you have enforcement off at the beginning?
 * Are there any organizational policies that should be enforced in all pipelines?
 
-image::06-cd-14.png[link=self, window=blank, width=100%]
-
 == Summary
+
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbTkyMGVyZW5qaG84dHB1cWM3Z3l0eWlpNWhseW9vODZocTVyZmZhMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7abGQa0aRJUurpII/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+THUMBS UP!
 
 In this lab, you review a basic CI/CD use case that implemented the build policy from the previous module. You then adjusted the policy so the pipeline would succeed. 
 

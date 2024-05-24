@@ -188,7 +188,9 @@ Your mission is completed with a Notification to Slack or Teams.
 
 == Summary
 
-Amazing! 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjJmczc4MmswYmk1cnhvZ254ZXBiZ2M3bGJzbDV5eDQ3OGlqNWdwdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QSSA5Bd56W25ytLIwz/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+Nice! 
 
 You integrations a webhook into RHACS and configured notifications based on previous policies.
 

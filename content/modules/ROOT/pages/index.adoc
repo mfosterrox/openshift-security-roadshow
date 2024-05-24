@@ -2,7 +2,8 @@
 
 This course offers you hands-on experience working with the essential security use cases of Red Hat^(R)^ OpenShift Container Platform (OCP) with Red Hat OpenShift^(R)^ Container Platform Platform Plus (OPP).
 
-Red Hat OPP includes
+Red Hat OPP includes:
+
 * Red Hat^(R)^ Advanced Cluster Security (RHACS)
 * Red Hat^(R)^ Advanced Cluster Management (RHACM)
 * Red Hat^(R)^ Quay

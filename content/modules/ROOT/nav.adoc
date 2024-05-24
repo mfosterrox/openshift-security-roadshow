@@ -1,7 +1,7 @@
 
 
 * xref:00-setup-install-navigation.adoc[Setup and Introduction]
-* xref:01-visability-and-navigation.adoc[Navigation and Visability]
+* xref:01-visability-and-navigation.adoc[Visability & Navigation]
 * xref:02-vulnerability-management-lab.adoc[Vulnerability Management]
 * xref:03-configuration-management.adoc[Configuration Management]
 * xref:04-understanding-risk.adoc[Risk Management]

@@ -356,9 +356,13 @@ Implement a daily scan that with the rhcos4-stig profile.
 
 And for those wondering, review this link discussing link:https://www.perforce.com/blog/kw/what-is-DISA-STIG[what is DISA STIG?]
 
+Your mission is completed with a successful run of a DISA STIG compliance run altering the compliance status of the *production* cluster.
+
 == Summary
 
-Great job!
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMGh0OWkxemNoNmF4dG9lNHE4bncwOWpkdzR6NHJ6dDNuOW0xYnMwaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7auaKlfmip8gE/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+What he said ^!
 
 In this lab, you installed the Compliance Operator and set up a daily scan that will report against OpenShift CIS benchmarks. You also review workload compliance in the COmpliance 1.0 dashboard. 
 
