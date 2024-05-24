@@ -140,31 +140,43 @@ image::04-risk-11.png[link=self, window=blank, width=100%]
 
 NOTE: Several deployments are shown to have run `bash` since they started--and all of them are in production. This could be a serious threat that we want to monitor.
 
-[start=3]
-. To the right of the filter bar, hover over the *+* (Create Policy) button to reveal the *Create Policy from Current Search* tooltip.
 
-image::04-risk-12.png[link=self, window=blank, width=100%]
+=== Creating policies via filters
 
-[start=4]
-. Fill the policy details with a name, severity and catagory and hit *Next*.
+You can create new security policies based on the filtering criteria that you select in the *Risk* dashboard. However, when you create new security policies from the *Risk* view based on the selected filtering criteria, not all requirements are directly applied to the new policy.
 
-NOTE: These steps are only to showcase the workflow. We will come back to policy creation later. Don't worry about being precise.
+RHACS transforms the filtering criteria into policy criteria by converting the cluster, namespace, and deployment filters to equivalent policy scopes.
 
-image::04-risk-13.png[link=self, window=blank, width=100%]
+.Procedure
+. Head to the *Risk* dashboard
+. Add *Process Name* THEN *apt or apt-get or dpkg* to the search bar
+. Next add  *Namespace* THEN default
 
-You will see that the policy behavior is set to runtime.
+NOTE: What deployments did you expect to see?
+
+. Click the *+ (Create Policy)* next to the filter bar 
+
+image::05-policy-1.png[link=self, window=blank, width=100%]
 
 [start=5]
-. click *Next*
+. Give the policy all of the necessary information and complete the required fields then hit next.
 
-image::04-risk-14.png[link=self, window=blank, width=100%]
 
-And you notice that the policy criteria is set to the Process name is: *bash*
+* *Name*: `No bash allowed`
+* *Severity*: `High`
+* *Categories*: `Anomalous Activity`
+* *Description*: `No bash allowed`
+* *Rationale*: `Too many known vulns`
+* *Guidance*: `Use ZSH`
+* *MITRE ATT&CK*: `The policy can be mapped to a MITRE ATT&CK technique.`
+* *Lifecycle stages*: `Runtime`
+* *Event sources*; `Deployment`
+* *Response method*: `Inform`
+* *Inform and enforce*: `Enform on Runtime`
 
-IMPORTANT:
-====
-Make sure to take advantage of the filtering capabilities in the Risk tab to craft policies. What other policies would be useful to your organization?
-====
+* *Policy Crieria*: `On the right there is a *drag out policy fields* bar.Find *Process Activity* and select *Unexpected process executed*. Drag into into the policy section.`
+
+Make sure to preview the policy before accepting it. 
 
 === Explore Advanced Filtering
 

@@ -2,6 +2,12 @@
 	"folders": [
 		{
 			"path": "../../../.."
+		},
+		{
+			"path": "../../../../../demo-apps"
+		},
+		{
+			"path": "../../../../../openshift-ops-workshops"
 		}
 	],
 	"settings": {

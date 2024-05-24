@@ -2,7 +2,9 @@
 
 == Module goals
 
-FILL OUT
+* Understand the various modules in RHACS
+* Comfortably navigate the UI
+* Set the basis for the rest of the modules that we will explore in the roadshow
 
 == RHACS basics
 

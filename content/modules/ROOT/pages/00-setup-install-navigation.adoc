@@ -400,24 +400,49 @@ Our insecure demo applications come from a variety of public GitHub repositories
 [start=5]
 . Run the following command in the Bastion VM. 
 
-[NOTE]
+|====
 This command downloads a bunch of Kubernetes manifests to deploy to OpenShift. We also add the location of the local repository for our ctf-web-to-system application. 
+|====
 
 [source,sh,subs="attributes",role=execute]
 ----
 git clone https://github.com/mfosterrox/demo-apps.git demo-apps
 export TUTORIAL_HOME="$(pwd)/demo-apps"
+----
+
+|====
+This command updates the ctf-w2s.yml with your local Quay repository information.
+|====
+
+[source,sh,subs="attributes",role=execute]
+----
 sed -i "s|CHANGEME|$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0|g" $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml
+----
+
+|====
+This command applys the manifests to OpenShift
+|====
+
+[source,sh,subs="attributes",role=execute]
+----
 oc apply -f $TUTORIAL_HOME/kubernetes-manifests/ --recursive
 oc apply -f $TUTORIAL_HOME/openshift-pipelines/ --recursive
-roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 --force
 ----
 
 [IMPORTANT]
 You should see warnings such as: Warning: would violate PodSecurity "restricted:latest": unrestricted capabilities (container "Java" must set securityContext.capabilities.drop=["ALL"]) this is because we are deploying flawed container configurations and vulnerable container applications into the OpenShift cluster.
 
+|====
+And this command triggers a vulnerability scan by RHACS to updates the vulnerability results. 
+|====
+
+[source,sh,subs="attributes",role=execute]
+----
+roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 --force
+----
+
 [start=6]
-. Run the following command and ensure that the applications are up and running
+. Wait a few sceonds then run the following command and ensure that the applications are up and running
 
 [source,bash,role="execute"]
 ----

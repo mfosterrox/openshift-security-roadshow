@@ -442,3 +442,5 @@ Click Next at the bottom panel until you get to Review Policy page.
 Click Save.
 
 At the main Policy Management page, find the Policy named, "Latest tag" and repeat the steps to disable enforcement and save the policy.
+
+== Summary

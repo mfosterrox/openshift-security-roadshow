@@ -74,3 +74,6 @@ You should now have access to the following
 * Access to the Linux Student VM that contains command line access to both
 ** OpenShift Cluster via 'oc' command
 ** RHACS Central services via 'roxctl' command
+
+
+== Summary
