@@ -100,7 +100,7 @@ This pipeline works by taking and image that you have created and passing it thr
 |====
 
 [start=9]
-. Let's use the *docker.io/library/rhel* image that we used in the previous module.
+. Let's use the *ubuntu:latest* image that we used in the previous module.
 
 image::06-cd-6.png[link=self, window=blank, width=100%]
 
@@ -159,240 +159,195 @@ cat $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
 *Sample output*
 [source,bash]
 ----
-[lab-user@bastion pipeline]$ ls $TUTORIAL_HOME/openshift-pipelines
-pipeline  secrets  tasks
-----
-
-== Enforce Container Image Vulnerability Violation at Build Time
-
-In this section, you configure the proper policies for enforcement, test them on the command line, and then execute them via Pipelines.
-
-=== Configure RHACS Policy
-
-.Procedure
-. From the left navigation menu, select *Platform Configuration -> Policy Management*.
-. Scroll down to `Fixable CVSS >= 7` (`rhacs_fix_image_vuln_policy`):
-+
-image::08_build_00.png[RHACS Policy - Configure]
-+
-TIP: You can find this policy quickly by entering `fixable` in the filter bar at the top of the page.
-+
-You can see that the `Fixable CVSS >= 7` policy has both the `Build` and `Deploy` lifecycles set as `Enabled: No`.
-RHACS can detect the presence of this vulnerability in images at both stages.
-But it is not yet enabled, and is not yet enforcing.
-The next steps are to edit the policy to enable and enforce it.
-
-. Review the other attributes, and note the `Rationale` and `Guidance` fields, which you can expect to see in the policy output later.
-. Click the `Actions` drop down and enable the policy.
-. You can also edit the policy and preview oputcomes before accept any changes to the policy.
-
-=== Codify Image Vulnerability Violation Enforcement in Pipeline
-
-When incorporated into a CI/CD build pipeline, this failure code stops the pipeline and leaves the policy violation output in the build job console.
-
-.Procedure
-. Navigate to your OpenShift web console, and on the left navigation menu select *Pipelines -> Pipelines*:
-+
-image::rhacs_pipeline_pipelines.png[RHACS - OpenShift Console Pipelines]
-+
-NOTE: You can find your OpenShift Console URL and credentials in your Red Hat provisioning email message.
-
-. Click `rox-pipeline` to rerun the failed `rox-pipeline` pipeline with the container image you tested earlier from the command line.
-+
-. From this *Pipeline details* page, use the *Actions* menu to select *Start*:
-+
-image::rhacs_pipeline_start.png[RHACS Pipeline Start]
-+
-. In the window that appears, paste the container image URL (`docker.io/vulnerables/cve-2017-7494`) and click *Start*:
-+
-image::rhacs_pipeline_failed_docker.png[RHACS PipelineRun TaskRun failure]
-+
-This PipelineRun kicked off a TaskRun to run the `image-check` task.
-It failed the same way it failed on the `stackrox` command line earlier.
-Only this time, it is part of a pipeline and causes a build failure.
-
-. Click the *Logs* tab to see the full output of the `image-check` failure.
-+
-NOTE: Because vulnerability changes often, your output results for the particular CVEs in this image may vary.
-The output is truncated for increased readability.
-
-////
-rhacs_pipeline_taskRun_no_bash_enforce_OFF.png
-rhacs_pipeline_taskRun_no_bash.png
-rhacs_pipeline_pipelineRun_failed_CVE7.png
-image::rhacs_pipeline_rerun.png[RHACS PipelineRun Rerun]
-////
-
-== Warn About Deployment Attributes at Build Time
-
-In this section, you explore RHACS's visibility and control over Kubernetes deployment attributes at build time--before an application is deployed--shortening the time to discover and correct workflow and configuration errors.
-
-Kubernetes deployments are defined in YAML and declare the desired state of the application and all of its components.
-Among the many supported attributes are privilege levels, secrets access, storage requirements, and, as illustrated in this next section, network service exposure.
-
-=== Test Warnings About Deployment Attributes from Command Line
-
-This simple YAML file declares an example deployment from a public image, and attempts to expose the service on that deployment on TCP port 22, typically reserved for SSH.
-
-.Procedure
-. On your student VM, create the `$HOME/deployment.yaml` file:
-+
-[source,sh]
-----
-cat << EOF >$HOME/deployment.yaml
+[lab-user@bastion pipeline]$ cat $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
 apiVersion: v1
-kind: Service
+stringData:
+  rox_central_endpoint: "$ROXCTL_CENTRAL_ENPOINT"
+  # The address:port tuple for StackRox Central (example - rox.stackrox.io:443)
+  rox_api_token: "$API_TOKEN"
+  # StackRox API token with CI permissions
+  # Refer to https://help.stackrox.com/docs/use-the-api/#generate-an-access-token
+kind: Secret
 metadata:
-  name: ubuntu-lb
-  labels:
-    app: ubuntu
-spec:
-  ports:
-    - port: 22
-  selector:
-    app: ubuntu
-  type: LoadBalancer
----
-apiVersion: apps/v1
-kind: Deployment
+  name: roxsecrets
+  namespace: pipeline-demo
+----
+
+Ok. So need the RHACS Central endpoint and a API token with the right permissions. Luckily we have the RHACS Central endpoint handy.
+
+Yours is {acs_route} but you can run the following command to update the rox-secrets file with your unique route.
+
+[start=13]
+. Run the following in the terminal.
+
+[source,sh,subs="attributes",role=execute]
+----
+ACS_URL=$(oc -n stackrox get route central -o jsonpath='{.spec.host}')
+ACS_URL_PORT=$(echo "$ACS_URL" | sed 's/$/:443/')
+sed -i "s|ROXCTL_CENTRAL_ENDPOINT|$ACS_URL_PORT|g" $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
+----
+
+[start=14]
+
+. Verify by running the following command
+
+[source,sh,subs="attributes",role=execute]
+----
+cat $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
+----
+
+*Sample output*
+[source,bash]
+----
+[lab-user@bastion pipeline]$ cat $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
+apiVersion: v1
+stringData:
+  rox_central_endpoint: "central-stackrox.apps.cluster-mjh4d.sandbox1834.opentlc.com:443"
+  # The address:port tuple for StackRox Central (example - rox.stackrox.io:443)
+  rox_api_token: "API_TOKEN"
+  # StackRox API token with CI permissions
+  # Refer to https://help.stackrox.com/docs/use-the-api/#generate-an-access-token
+kind: Secret
 metadata:
-  name: ubuntu
-  labels:
-    app: ubuntu
-spec:
-  selector:
-    matchLabels:
-      app: ubuntu
-  template:
-    metadata:
-      labels:
-        app: ubuntu
-    spec:
-      containers:
-      - name: ubuntu
-        image: ubuntu:18.04
-        ports:
-        - containerPort: 22
-EOF
+  name: roxsecrets
+  namespace: pipeline-demo
+type: Opaque
 ----
 
-. Use `roxctl` to run a check on the YAML code using the `--file` argument:
-+
-[source,sh]
-----
-roxctl -e $CENTRAL:443 deployment check --file deployment.yaml --insecure-skip-tls-verify
-----
-+
-.Sample Output
-[source,texinfo,options="nowrap"]
-----
-Policy check results for deployments: [ubuntu]
-(TOTAL: 5, LOW: 2, MEDIUM: 2, HIGH: 1, CRITICAL: 0)
+== Get an API token from RHACS 
 
-+--------------------------------+----------+---------------+------------+--------------------------------+--------------------------------+--------------------------------+
-|             POLICY             | SEVERITY | BREAKS DEPLOY | DEPLOYMENT |          DESCRIPTION           |           VIOLATION            |          REMEDIATION           |
-+--------------------------------+----------+---------------+------------+--------------------------------+--------------------------------+--------------------------------+
-|    Secure Shell (ssh) Port     |   HIGH   |       -       |   ubuntu   | Alert on deployments exposing  |    - Exposed port 22/TCP is    |  Ensure that non-SSH services  |
-|            Exposed             |          |               |            | port 22, commonly reserved for |            present             | are not using port 22. Ensure  |
-|                                |          |               |            |          SSH access.           |                                |  that any actual SSH servers   |
-|                                |          |               |            |                                |                                |       have been vetted.        |
-+--------------------------------+----------+---------------+------------+--------------------------------+--------------------------------+--------------------------------+
-| No resource requests or limits |  MEDIUM  |       -       |   ubuntu   | Alert on deployments that have | - CPU limit set to 0 cores for |    Specify the requests and    |
-|           specified            |          |               |            |  containers without resource   |       container 'ubuntu'       |  limits of CPU and Memory for  |
-|                                |          |               |            |      requests and limits       |                                |        your deployment.        |
-|                                |          |               |            |                                |  - CPU request set to 0 cores  |                                |
-|                                |          |               |            |                                |     for container 'ubuntu'     |                                |
-|                                |          |               |            |                                |                                |                                |
-|                                |          |               |            |                                | - Memory limit set to 0 MB for |                                |
-|                                |          |               |            |                                |       container 'ubuntu'       |                                |
-|                                |          |               |            |                                |                                |                                |
-|                                |          |               |            |                                |  - Memory request set to 0 MB  |                                |
-|                                |          |               |            |                                |     for container 'ubuntu'     |                                |
-+--------------------------------+----------+---------------+------------+--------------------------------+--------------------------------+--------------------------------+
-|   Pod Service Account Token    |  MEDIUM  |       -       |   ubuntu   |  Protect pod default service   |    - Deployment mounts the     |              Add               |
-|     Automatically Mounted      |          |               |            | account tokens from compromise |    service account tokens.     | `automountServiceAccountToken: |
-|                                |          |               |            |   by minimizing the mounting   |                                |   false` or a value distinct   |
-|                                |          |               |            |     of the default service     | - Namespace has name 'default' |     from 'default' for the     |
-|                                |          |               |            |  account token to only those   |                                |    `serviceAccountName` key    |
-|                                |          |               |            |     pods whose application     |  - Service Account is set to   |    to the deployment's Pod     |
-|                                |          |               |            | requires interaction with the  |           'default'            |         configuration.         |
-|                                |          |               |            |        Kubernetes API.         |                                |                                |
-+--------------------------------+----------+---------------+------------+--------------------------------+--------------------------------+--------------------------------+
-|  Docker CIS 4.1: Ensure That   |   LOW    |       -       |   ubuntu   |   Containers should run as a   | - Container 'ubuntu' has image | Ensure that the Dockerfile for |
-|  a User for the Container Has  |          |               |            |         non-root user          |        with user 'root'        |  each container switches from  |
-|          Been Created          |          |               |            |                                |                                |         the root user          |
-+--------------------------------+----------+---------------+------------+--------------------------------+--------------------------------+--------------------------------+
-|   Ubuntu Package Manager in    |   LOW    |       -       |   ubuntu   |      Alert on deployments      | - Container 'ubuntu' includes  |    Run `dpkg -r --force-all    |
-|             Image              |          |               |            |     with components of the     |    component 'apt' (version    |     apt apt-get && dpkg -r     |
-|                                |          |               |            |     Debian/Ubuntu package      |            1.6.14)             |  --force-all debconf dpkg` in  |
-|                                |          |               |            |    management system in the    |                                | the image build for production |
-|                                |          |               |            |             image.             | - Container 'ubuntu' includes  |          containers.           |
-|                                |          |               |            |                                |   component 'dpkg' (version    |                                |
-|                                |          |               |            |                                |       1.19.0.5ubuntu2.3)       |                                |
-+--------------------------------+----------+---------------+------------+--------------------------------+--------------------------------+--------------------------------+
-WARN:	A total of 5 policies have been violated
+Just like the title says.
+
+*Procedure*
+
+[start=1]
+. Head back to the RHACS dashboard and on *Platform Configuration* -> *Integrations* and scroll to the bottom of the page.
+
+image::06-cd-10.png[link=self, window=blank, width=100%]
+
+[start=2]
+. Click on *API Token.
+. Click on *Generate token*
+. Give your token a name, select *Continuous Integration* as the Role and set an expiration date and hit *Generate*
+
+image::06-cd-11.png[link=self, window=blank, width=100%]
+
+IMPORTANT: The role of CI has read only access to the RHACS Central Services. You can setup other roles but there are a few default roles like Admin, Analyst and Continuous Integration.
+
+[start=5]
+. Now either save the API Token into the `$TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml` file and replace *API_TOKEN* or export the variable and use SED with the following commands.
+
+[source,sh,subs="attributes",role=execute]
 ----
-+
-The warning is clear, and the policy was enforced.
-In the next section, you try it as part of a build pipeline.
+export ACS_API=
+----
 
-=== Warn About Deployment Attributes at Build Time from Pipeline
+[start=6]
+. Then run
 
-RHACS does not check only images from pipelines--it can also check the deployment and service manifests.
-In the pipeline provided in this lab, you can paste the base64-encoded manifests into the UI and verify them.
-This is just a simple, focused example.
-In a complete pipeline integration, these manifests are not delivered by hand as base64, but checked out of a source code control system such as Git by means of dedicated Tekton Pipeline tasks.
+[source,sh,subs="attributes",role=execute]
+----
+sed -i "s|API_TOKEN|$ACS_API|g" $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
+----
+
+[start=7]
+. And verify that your file is ready by running the following and getting a similar output. 
+
+[source,sh,subs="attributes",role=execute]
+----
+cat $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
+----
+
+*Sample output*
+[source,bash]
+----
+[lab-user@bastion pipeline]$ cat $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
+apiVersion: v1
+stringData:
+  rox_central_endpoint: "central-stackrox.apps.cluster-mjh4d.sandbox1834.opentlc.com:443"
+  # The address:port tuple for StackRox Central (example - rox.stackrox.io:443)
+  rox_api_token: "eyJhbGciOiJSUzI1NiIsImtpZCI6Imp3dGswIiwidHlwIjoiSldUIn0.eyJFeHBpcmVBdCI6IjIwMjQtMDUtMjRUMDQ6MDA6MDBaIiwiYXVkIjoiaHR0cHM6Ly9zdGFja3JveC5pby9qd3Qtc291cmNlcyNhcGktdG9rZW5zIiwiZXhwIjoxNzE2NTIzMjAwLCJpYXQiOjE3MTY1MTA4MzAsImlzcyI6Imh0dHBzOi8vc3RhY2tyb3guaW8vand0IiwianRpIjoiMTMxNmMwMGQtM2Q4Mi00NTVmLWJmNzktMzYyNzlmZTc5MWY1IiwibmFtZSI6ImNpY2QtdG9rZW4iLCJyb2xlcyI6WyJDb250aW51b3VzIEludGVncmF0aW9uIl19.Uxz2w8d_PPwS85bL4IuchaXVybBM80fSYQ2X6zAm69fNv72unXq_tne0amsrdbSlbzqE-MY9xKoLLfp0O7Y4jh0rN10g9G301M4Ure0uoXRe5X62Iso3_MBIDMY-JiZCqZ7dnHChgRj1bt7BOsLS1MOK-uGXlzFZlGDXZ_TVk0yqkyJUu-7oIq1Rd-UZJzL8FFkAUwPra33gQ_3bJJeZvbNmxFKalXoEhuLzOmrThGXqLG5Pnp5lg-6OOsFVfWbbe-HzeXAkY1qWD4GSPpaeiuqPXzmdc6N7EElpLyZzXyEUSQfqZc1SY0Rqe-8vR_qD0sk8Z8bwmbFXZ0lpyHVkLSlLBiyqeIuT8ReNPMxtYjFXnbHvrLy518TVPZYCleoz90gRuPNvkMjpp3rdXAodFNwjxW7-D8MxpMSlzMUTsoO9DiRM28ER5mU2OC5i6qeGhz0mTkwBtkmLW6Rcc54Xm6E2jPOWAi4PzK1CNGLlozfyQtCyZ0ljJ1aYOwe44Z-kEeYkd9QSjJIt2X4w4kpykimn03DEacfR-oq_2smI5J-PdcR_fUs6SZw7BdlTMx8rZcnnNDIAbOooinb0ggpDYjk2e2fbVe-ZWFtxidGApOkTDPVHiYzYqgBWCSWrqEK70spg7YTnvsuQC22DyEKRhfw7ikj5qZtO7H9L_-MfrdM"
+  # StackRox API token with CI permissions
+  # Refer to https://help.stackrox.com/docs/use-the-api/#generate-an-access-token
+kind: Secret
+metadata:
+  name: roxsecrets
+  namespace: pipeline-demo
+type: Opaque
+----
+
+[start=8]
+. Lastly apply the following and head over to the OpenShift Console
+
+[source,sh,subs="attributes",role=execute]
+----
+oc apply -f $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
+----
+
+*Sample output*
+[source,bash]
+----
+[lab-user@bastion pipeline]$ oc apply -f $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
+secret/roxsecrets configured
+----
+
+=== Let's try again
 
 .Procedure
-. Navigate to your OpenShift web console, and select *Pipelines -> Pipelines* from the left navigation menu:
-+
-image::rhacs_pipeline_pipelines.png[RHACS - OpenShift Console Pipelines]
-+
-NOTE: You can find your OpenShift Console URL and credentials in your Red Hat provisioning email message.
+. Let's make sure that you are looking at the pipeline we ran before.
 
-. Select `rox-deploy-pipeline` to run this pipeline with the container image you tested earlier from the command line.
-+
-IMPORTANT: This pipeline is named `rox-deploy-pipeline`.
-Do not confuse it with the prior pipeline `rox-pipeline`, which only verifies images.
+image::06-cd-12.png[link=self, window=blank, width=100%]
 
-. From this *Pipeline details* page, use the *Actions* menu to select *Start*:
-+
-image::rhacs_pipeline_start_check_deploy.png[RHACS Pipeline Start Check Deploy]
+[start=2]
+. Click the *Actions* dropdown and select *Rerun*. Then relax for a few seconds and grab a sip of water. 
 
-. In the window that appears, provide three required parameters:
-.. In the *Parameters yaml* field, paste the following data, which is the base64-encoded representation of the manifests that you created earlier:
-+
-[source,texinfo]
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeXdiMmFwaTNrbW02cTNod3BmaTh2aGRrdDJsc3d4NHpqNXY5ZzkwNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/073QSCJf2tIbtWjZpb/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+image::06-cd-13.png[link=self, window=blank, width=100%]
+
+|====
+What happened? Did you expect this behavior?
+|====
+
+[start=3]
+. Check the log snippet in bottom right of the page.
+
+*Sample output*
+[source,bash]
 ----
-YXBpVmVyc2lvbjogdjEKa2luZDogU2VydmljZQptZXRhZGF0YToKICBuYW1lOiB1YnVudHUtbGIKICBsYWJlbHM6CiAgICBhcHA6IHVidW50dQpzcGVjOgogIHBvcnRzOgogICAgLSBwb3J0OiAyMgogIHNlbGVjdG9yOgogICAgYXBwOiB1YnVudHUKICB0eXBlOiBMb2FkQmFsYW5jZXIKLS0tCmFwaVZlcnNpb246IGFwcHMvdjEKa2luZDogRGVwbG95bWVudAptZXRhZGF0YToKICBuYW1lOiB1YnVudHUKICBsYWJlbHM6CiAgICBhcHA6IHVidW50dQpzcGVjOgogIHNlbGVjdG9yOgogICAgbWF0Y2hMYWJlbHM6CiAgICAgIGFwcDogdWJ1bnR1CiAgdGVtcGxhdGU6CiAgICBtZXRhZGF0YToKICAgICAgbGFiZWxzOgogICAgICAgIGFwcDogdWJ1bnR1CiAgICBzcGVjOgogICAgICBjb250YWluZXJzOgogICAgICAtIG5hbWU6IHVidW50dQogICAgICAgIGltYWdlOiB1YnVudHU6MTguMDQKICAgICAgICBwb3J0czoKICAgICAgICAtIGNvbnRhaW5lclBvcnQ6IDIyCgo=
+--------------------------------+
+WARN:	A total of 4 policies have been violated
+ERROR:	failed policies found: 1 policies violated that are failing the check
+ERROR:	Policy "Ubuntu Package Manager in Image - Build-time" - Possible remediation: "Run `dpkg -r --force-all apt apt-get && dpkg -r --force-all debconf dpkg` in the image build for production containers."
+ERROR:	checking image failed after 3 retries: failed policies found: 1 policies violated that are failing the check
 ----
-+
-.. For *Workspaces* -> *files*, select `PersistentVolumeClaim`.
-.. For *Select a PVC*, select the first PVC.
-(PVCs can be reused, because the data is overwritten to the same file inside the PV each time.)
-+
-This PipelineRun kicked off two TaskRuns:
-+
-* The first, `write-yaml`, decoded the base64 and wrote it to the PV as `/deployfile/deploy.yaml`.
-* The second, `deploy-check`, actually ran `stackrox` against the file.
-+
-NOTE: This PipelineRun only generated a warning. This is the same way you received a warning on the `stackrox` command line earlier, but this time it is part of a pipeline.
 
-. Examine the *PipelineRun details* page and note that because there were no enforced policies, you do not see any failures or log snippets.
+So it looks like our build policy from the previous exercise impacted the ability to complete this pipeline run. 
 
-. Click the *Logs* tab to see the full output of the `deploy-check` failure:
-+
-image::rhacs_pipeline_deployment_warning_log.png[RHACS Deployment Check Warning]
 
-////
-If you'd like to investigate the `write-yaml` Task, it's implemented like this:
-----
-     script: |
-        #!/usr/bin/env bash
-        echo "$(params.yaml)" | base64 -d > /deployfile/deploy.yml
-----
-////
+== A task to complete on your own.
+
+*Here is your mission*
+
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNnJoNHE2MXhocm52ZzFmeHVyY3JiN3F5cGFjYW00dGsycXF2bnNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohs4lNKssQD2wewyQ/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+*Should you choose to accept it*
+
+Turn off the enforcement of the build lifecycle policy blocking this pipeline and rerun the pipeline.
+
+IMPORTANT: Do not disable the policy. Disable the enforcement.
+
+Your mission is completed with a successful pipeline run.
+
+== What would you do?
+
+* How would you implement roxctl into your pipelines?
+* Would you have enforcement off at the beginning?
+* Are there any organizational policies that should be enforced in all pipelines?
+
 
 == Summary
 
-In this lab, you became familiar with how to prevent vulnerabilities from reaching production by triggering build-time violations for images and deployments on the command line and CI/CD pipelines.
+In this lab, you review a basic CI/CD use case that implemented the build policy from the previous module. You then adjusted the policy so the pipeline would succeed. 
+
+Congrats! On to Compliance!
