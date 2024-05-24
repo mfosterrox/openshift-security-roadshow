@@ -324,7 +324,6 @@ ERROR:	checking image failed after 3 retries: failed policies found: 1 policies 
 
 So it looks like our build policy from the previous exercise impacted the ability to complete this pipeline run. 
 
-
 == A task to complete on your own.
 
 *Here is your mission*

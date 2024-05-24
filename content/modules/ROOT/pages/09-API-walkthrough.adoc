@@ -1,79 +1,113 @@
-RHACS API and CLI
-RHACS CLI Overview
-Within RHACS ecosystem, roxctl is a command-line interface (CLI) for running commands on Red Hat Advanced Cluster Security for Kubernetes.
+= API Walkthrough
 
-You can install the roxctl CLI to interact with Red Hat Advanced Cluster Security for Kubernetes from a command-line interface. You can install roxctl on Linux, Windows, or macOS. Follow the guide for installing roxtctl in your system.
+== Module goals
+* Understanding how notification and alerting work in RHACS
+* Setup a notification alert to a Microsoft teams channel
+* Setup a notification alert to a Slack channel
 
-For authentication, you can use an authentication token or your administrator password.
+== RHACS API Overview 
 
-Red Hat recommends using an authentication token in a production environment because each token is assigned specific access control permissions.
-RHACS CLI Integration
-Navigate to the RHACS portal.
+Red Hat Advanced Cluster Security (RHACS) for Kubernetes provides a robust API that allows users to programmatically interact with the platform. This API enables automation, integration, and customization of various security operations within the Kubernetes environment.
 
-Go to Platform Configuration → Integrations.
+=== API Endpoints
 
-Scroll down to the Authentication Tokens category, and click API Token.
+The RHACS API offers various endpoints for different functionalities such as policies, clusters, deployments, and compliance. Common endpoint categories include /v1/policies, /v1/clusters, /v1/deployments, and /v1/compliance. The API typically uses JSON for both requests and responses. Ensure that your API client is capable of handling JSON data.
 
-Click Generate Token.
+=== Authentication
 
-Enter a name for the token and select a role that provides the required level of access (for example, Continuous Integration or Sensor Creator).
+The API uses token-based authentication. You need to obtain an API token from the RHACS console to authenticate API requests.
 
-Click Generate.
+=== Common Operations:
 
-RHACS ROXCTL 1
-After you have generated the authentication token, export it as ROX_API_TOKEN variable:
+GET: Retrieve information (e.g., list of policies, details of a specific deployment).
+POST: Create new resources (e.g., create a new policy).
+PUT: Update existing resources (e.g., modify an existing policy).
+DELETE: Remove resources (e.g., delete a policy).
 
+== Interacting with the RHACS API
 
-$ export ROX_API_TOKEN=<api_token>
-$ export ROX_CENTRAL_ADDRESS=<address>:<port_number
-Test the roxctl image check against a well known image to check the system policies and the CVEs that are detected:
+*Procedure*
 
+[start=1]
+. Head back to the RHACS dashboard and on *Platform Configuration* -> *Integrations* and scroll to the bottom of the page.
 
-$ roxctl --insecure-skip-tls-verify image check --endpoint $ROX_CENTRAL_ADDRESS:443 --image quay.io/centos7/httpd-24-centos7:centos7
+image::06-cd-10.png[link=self, window=blank, width=100%]
 
+[start=2]
+. Click on *API Token.
+. Click on *Generate token*
+. Give your token a name, select *Admin*, since we are going to need full access to RHACS Central
+. Click *Generate*
+. Now it's time to export the API token as a variable for the roxctl CLI. 
 
+IMPORTANT:Be sure to put the AP token in the correct location.
 
-=== Access the RHACS Central Services in the Student VM via the 'roxctl' Command
-
-In this section, you use the `roxctl` command line tool to send commands to the RHACS server.
-
-* In the provisioning email you received, note the following:
-** The URL for the RHACS portal
-
-[NOTE]
-This information will be available in the services tab at link:https://demo.redhat.com/[demo.redhat.com^]. Or in the lab provisioning email.
-
-.Procedure
-. From the student VM, use the following command to verify your connection to RHACS Central:
-*Sample input*
-[source,bash,role="execute"]
+[source,sh,subs="attributes",role=execute]
 ----
-roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" central whoami
-----
-*Sample output*
-[source,bash]
-----
-User:
-  auth-token:03b73fd3-313e-40a0-91f5-6ac88d8517a4
-Roles:
- Admin, Analyst, Continuous Integration, None, Scope Manager, Sensor Creator, Vulnerability Management Approver, Vulnerability Management Requester, Vulnerability Report Creator
-Access:
-  rw APIToken
-  rw Alert
-  rw AllComments
-  rw AuthPlugin
-  rw AuthProvider
-[... further access authorizations omitted for brevity ..]
+ACS_URL=$(oc -n stackrox get route central -o jsonpath='{.spec.host}')
+ACS_URL_PORT=$(echo "$ACS_URL" | sed 's/$/:443/')=$(oc -n stackrox get route central -o jsonpath='{.spec.host}')
+API_TOKEN=your_api_token
 ----
 
-=== Review Lab Access
+=== Make API Requests
 
-You should now have access to the following
-* Access to the OpenShift Web Console
-* Access to the RHACS Web Console
-* Access to the Linux Student VM that contains command line access to both
-** OpenShift Cluster via 'oc' command
-** RHACS Central services via 'roxctl' command
+Use a tool like curl, Postman, or a programming language with HTTP client libraries (e.g., Python’s requests library) to interact with the API.
 
+*Example Using curl where you get a list of policies*
+
+[source,sh,subs="attributes",role=execute]
+----
+curl -X GET "$ACS_URL/v1/policies" -H "Authorization: Bearer $API_TOKEN"
+----
+
+*Example Using curl where you create a new policy*
+
+[source,sh,subs="attributes",role=execute]
+----
+curl -X POST "$ACS_URL/v1/policies" -H "Authorization: Bearer $API_TOKEN" -H "Content-Type: application/json" -d '{
+  "name": "New Policy",
+  "description": "Description of the new policy",
+  "policyDefinition": {
+    // policy details
+  }
+}'
+---- 
+
+*Example using curl where you update a policy*
+
+[source,sh,subs="attributes",role=execute]
+----
+curl -X PUT "$ACS_URL/v1/policies/{policy_id}" -H "Authorization: Bearer $API_TOKEN" -H "Content-Type: application/json" -d '{
+  "name": "Updated Policy Name",
+  "description": "Updated description"
+}'
+----
+
+*Example using curl where you delete a policy*
+
+[source,sh,subs="attributes",role=execute]
+----
+curl -X DELETE "$ACS_URL/v1/policies/{policy_id}" -H "Authorization: Bearer $API_TOKEN"
+----
+
+== Documentation and Resources
+
+The official RHACS API documentation provides detailed information on all available endpoints, request formats, and responses. This is available within the RHACS console.
+
+== A task to complete on your own.
+
+*LAST ONE*
+
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcTN6N2l3OXR0OXo4eGRkb3dpaHdocWRxZzQzN3A4OHQ3NTEycjFhaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/C1AaD43G6rMlZjT628/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+Review the API and come up with your own use case that can help automate your day-to-day workflows.
+
+We'll discuss after the module is done. 
 
 == Summary
+
+Amazing! 
+
+You've made it through the Roadshow! There are a few extra modules for you to work through.
+
+Thank you for all of your hard work!

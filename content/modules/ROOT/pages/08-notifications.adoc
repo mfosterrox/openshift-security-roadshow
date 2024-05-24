@@ -1,7 +1,195 @@
+= Notifications
+
+== Module goals
+* Understanding how notification and alerting work in RHACS
+* Setup a notification alert to a Microsoft teams channel
+* Setup a notification alert to a Slack channel
+
+== How do notifications and alerts work in RHACS 
+
+Red Hat Advanced Cluster Security for Kubernetes (RHACS) offers robust notification and alerting mechanisms to enhance the security and observability of Kubernetes environments. 
+
+=== Notification and Alerting Mechanisms
+
+==== Policy Violations
+
+RHACS uses a set of pre-defined and custom policies to monitor the cluster for security violations. These policies can cover a wide range of security aspects including image vulnerabilities, misconfigurations, runtime behaviors, and compliance checks. When a policy is violated, RHACS generates a violation event. These events are the primary triggers for notifications and alerts.
+
+==== Alert Configurations
+
+RHACS supports integrations with various notification and alerting systems such as Slack, Microsoft Teams, email, PagerDuty, Splunk, and more. For systems not directly supported, custom webhooks can be configured to send alerts to any endpoint that can process HTTP POST requests.
+
+==== Setting Up Notifications
+
+Administrators can configure notification channels through the RHACS console. This involves providing the necessary credentials and endpoints for the chosen notification service. These notifications can be scoped to specific policies, allowing for granular control over which violations generate alerts and where those alerts are sent.
+
+==== Alert Management
+
+Policies can be assigned different severity levels (Low, Medium, High, Critical). Alerts can be configured to trigger based on the severity level of the violation. Depending on the integration, alerts can be routed to different teams or systems. For example, critical violations can be sent to on-call engineers via PagerDuty, while lower-severity alerts might be sent to a Slack channel for informational purposes.
+
+==== Runtime Alerts
+
+RHACS continuously monitors Kubernetes clusters for runtime anomalies. Alerts can be configured to trigger on suspicious activities such as unexpected network connections, process executions, or file system changes.By analyzing the runtime behavior of applications, RHACS can alert on deviations from known good states or behaviors.
+Configuring Alerting in RHACS
+
+== Setup a Microsoft Teams Integration
+
+Let's setup a basic Microsoft teams integration. 
+
+IMPORTANT: For this lab I have setup a free personal account. If you do not have access to an account simply follow along and complete the steps that you are able to. Please head to the link:https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook?tabs=newteams%2Cdotnet[Microsoft site]
+
+IMPORTANT: The following instructions have not been verified.
+
+.Procedure
+. In the New Teams client, select Teams and navigate to the channel where you want to add an Incoming Webhook.
+. Select More options ••• on the right side of the channel name.
+. Select Manage channel.
+. Screenshot shows the Manage channel option under More options for Teams 2.1
+. Select Edit.
+. Search for Incoming Webhook and select Add.
+. Select Add.
+
+NOTE: If you’ve already added an Incoming Webhook, the Configure option appears. Select Configure to create an Incoming Webhook.
+
+[start=7]
+. Provide a name for the webhook and upload an image if necessary.
+. Select Create.
+. Screenshot shows the name and image fields to be filled to create the webhook.
+. Copy and save the unique webhook URL present in the dialog. The URL maps to the channel and you can use it to send information to Teams.
+. Select Done. The webhook is now available in the Teams channel.
+
+=== Intergrate the Teams webhook into RHACS
+
+.Procedure
+. Access the RHACS Console
+. Go to Platform Configurations -> Integrations
+. Click on Microsoft Teams
+. Click New integration
+. Give your webhook a name
+. Paste the Teams Webhook
+. Hit *Test* and hopefully recieve a "The test was successful" message.
+
+== Setup a Slack Integration
+
+=== Create a Slack Webhook
+
+.Procedure
+. In Slack, go to Tools and Settings -> Manage apps. You should get redirected
+. Hit *Build* in the top right corner of the page
+. Hit *Create New App*
+. Give it a name and select the workspace you'd like to send the alerts to
+. Click *Incoming Webhooks*
+. Click *Enable Incoming Webhooks*
+. Click *Add New Webhook to Workspace*
+. Select a channel and hit *Allow*
+. Copy the Webhook URL and head back to the RHACS dashboard.
+
+=== Intergrate the Slack webhook into RHACS
+.Procedure
+. Access the RHACS Console
+. Go to Platform Configurations -> Integrations
+. Click on the *Slack* integration
+. Click New integration
+. Give your webhook a name
+. Paste the Slack Webhook
+. Hit *Test* and hopefully recieve a "The test was successful" message.
+
+image::08-not-1.png[link=self, window=blank, width=100%]
+
+== Configure Notifications
+
+Balancing security alerting in a team is crucial to ensure that the team is responsive to genuine threats while minimizing alert fatigue. RHACS enables this by letting you configure your alert channels and attach them to the policies you car about. 
+
+Let's test this out. You will use the runtime enforcement policy that was used in the previous module. 
 
 
+.Procedure
+. On the left-hand side of the application, click the *Platform Configuration* tab and select *Policy Management*.
 
+image::acs-policy-00.png[link=self, window=blank, width=100%, Policy Management Dashboard]
 
+[start=2]
 
+. Filter through the policies to find *Ubuntu Package Manager Execution* or use the search bar to select *Policy*.
+
+image::acs-policy-01.png[link=self, window=blank, width=100%, Policy Management Search]
+
+[start=3]
+
+. Once you have found the policy *Ubuntu Package Manager Execution*, click on the runtime enforcement policy you created earlier 
+
+image::08-not-2.png[link=self, window=blank, width=100%]
+
+|====
+There should now be a notifier option on the right hand side of the screen. 
+|====
+
+[start=4]
+. Click your new webhook
+. Save the policy
+
+Next we are going to run the same runtime apt command as we did earlier.
+
+[start=6]
+. Run the following command in the terminal
+
+[source,sh,role=execute]
+----
+POD=$(oc get pod -l app=ctf-web-to-system -o jsonpath="{.items[0].metadata.name}")
+oc exec $POD -i --tty -- /bin/bash
+----
+
+*Sample output*
+[source,bash]
+----
+[demo-user@bastion ~]$ POD=$(oc get pod -l app=ctf-web-to-system -o jsonpath="{.items[0].metadata.name}")
+oc exec $POD -i --tty -- /bin/bash
+node@ctf-web-to-system-6db858448f-hz6j2:/app$
+----
+
+NOTE: If you see *node@ctf...* you've confirmed you have a shell and access to the Java application.
+
+[start=5]
+. Run the Ubuntu package manager in this shell:
+
+[source,sh,role=execute]
+----
+apt update
+----
+
+[start=6]
+. Examine the output and expect to see that the package manager attempts to perform an update operation:
+
+*Sample output*
+[source,texinfo,subs="attributes"]
+----
+node@ctf-web-to-system-6db858448f-stwhq:/$ apt update
+Reading package lists... Done
+E: List directory /var/lib/apt/lists/partial is missing. - Acquire (13: Permission denied)
+node@ctf-web-to-system-6db858448f-stwhq:/$ command terminated with exit code 137
+----
+
+[start=7]
+. Lastly, review your Slack or Teams channel for the alert. 
+
+image::08-not-3.png[link=self, window=blank, width=100%]
+
+*Congrats!* 
+
+== A task to complete on your own.
+
+*You know the drill*
+
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExenowdjBqdG9weG5jdXJ2NTZwdzhmbTF5dzBkcjIwZ2w4eDM2cTB0byZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/NCZYQW0wJlsCkMCH4j/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+Add the notifier to the *Build Policy* we created earlier. Enable enforcement of the policy and retrigger the OpenShift Pipeline run.
+
+Your mission is completed with a Notification to Slack or Teams.
 
 == Summary
+
+Amazing! 
+
+You integrations a webhook into RHACS and configured notifications based on previous policies.
+
+Let's go check out the *RHACS API*!

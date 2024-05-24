@@ -21,8 +21,7 @@ The example below demonstrates how security may want to block a package manager 
 
 IMPORTANT: For the Runtime stage, RHACS stops all pods that match the conditions of the policy. It does not, scale the deployment down to zero.
 
-*Procedure*
-
+.Procedure
 . On the left-hand side of the application, click the *Platform Configuration* tab and select *Policy Management*.
 
 image::acs-policy-00.png[link=self, window=blank, width=100%, Policy Management Dashboard]
@@ -85,7 +84,7 @@ Next, we will use tmux to watch OpenShift events while running the test so you c
 IMPORTANT: Make sure that you are signed into the bastion host with OpenShift access when running the following commands. 
 
 .Procedure
-. On your Bastion VM, ssh over to the *Bastion* host, and start tmux with two panes:
+. In the terminal,  start tmux with two panes:
 
 [source,sh,role=execute]
 ----

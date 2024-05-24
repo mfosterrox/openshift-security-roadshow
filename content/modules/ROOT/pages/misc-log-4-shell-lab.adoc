@@ -1,5 +1,7 @@
 = Find and Block Log4Shell
 
+IMPORTANT: This module has not been tested. Proceed with caution.
+
 == Module goals
 .Goals
 * Prevent the execution of vulnerable deployments

@@ -1,0 +1,83 @@
+= Network Segmentation
+
+== Module goals
+.Goals
+* Review the Network Dashboard
+* Create Network Policies that improve our CIS compliance.
+
+== Understanding the Network UI
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[start=3]
+. Run the following command to get all the non-control plane namespaces.
+
+[source,sh,subs="attributes",role=execute]
+----
+oc get  namespaces -o json | jq '[.items[] | select((.metadata.name | startswith("openshift") | not) and (.metadata.name | startswith("kube-") | not) and .metadata.name != "default") | .metadata.name ]'
+----
+
+*Sample Output*
+
+[source,sh]
+----
+[lab-user@bastion pipeline]$ oc get  namespaces -o json | jq '[.items[] | select((.metadata.name | startswith("openshift") | not) and (.metadata.name | startswith("kube-") | not) and .metadata.name != "default") | .metadata.name ]'
+[
+  "backend",
+...
+  "vault"
+]
+----
+
+[start=4]
+. Next, compare this list to the previous one. To get all the non-control plane namespaces with a NetworkPolicy, run the following command
+
+[source,sh,subs="attributes",role=execute]
+----
+oc get  namespaces -o json | jq '[.items[] | select((.metadata.name | startswith("openshift") | not) and (.metadata.name | startswith("kube-") | not) and .metadata.name != "default") | .metadata.name ]'
+----
+
+*Sample Output*
+
+[source,sh]
+----
+[lab-user@bastion pipeline]$ oc get --all-namespaces networkpolicies -o json | jq '[.items[] | select((.metadata.namespace | startswith("openshift") | not) and (.metadata.namespace | startswith("kube-") | not) and .metadata.namespace != "default") | .metadata.namespace] | unique'
+[
+  "medical",
+  "stackrox",
+  "vault"
+]
+----
