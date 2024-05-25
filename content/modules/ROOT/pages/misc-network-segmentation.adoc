@@ -9,14 +9,50 @@
 
 
 
+----
+oc get  namespaces -o json | jq '[.items[] | select((.metadata.name | startswith("openshift") | not) and (.metadata.name | startswith("kube-") | not) and .metadata.name != "default") | .metadata.name ]'
+----
+
+*Sample Output*
+
+[source,sh]
+----
+oc get --all-namespaces networkpolicies -o json | jq '[.items[] | select((.metadata.namespace | startswith("openshift") | not) and (.metadata.namespace | startswith("kube-") | not) and .metadata.namespace != "default") | .metadata.namespace] | unique'
+----
+
+export TUTORIAL_HOME="$(pwd)/demo-apps"
+cat $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
+
+roxctl netpol connectivity map $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
+
+roxctl netpol generate $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml > $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/nw-policy-backend.yml
+
+----
+networkpolicy.networking.k8s.io/api-server-netpol created
+networkpolicy.networking.k8s.io/backend-atlas-netpol created
+networkpolicy.networking.k8s.io/postgres-netpol created
+networkpolicy.networking.k8s.io/varnish-netpol created
+networkpolicy.networking.k8s.io/default-deny-in-namespace-backend created
+----
+
+ cat "TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/nw-policy-backend.yml" >> "TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml"
+
+cat "$TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/nw-policy-backend.yml" >> "$TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml"
 
 
-
-
-
-
-
-
+roxctl netpol connectivity map $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
+----
+INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: Secret
+INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: ServiceAccount
+INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: Role
+INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: RoleBinding
+INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: ServiceAccount
+INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: Role
+INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: RoleBinding
+INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: ClusterRole
+INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: ClusterRoleBinding
+backend/varnish[Deployment] => backend/api-server[Deployment] : TCP 9001
+----
 
 
 

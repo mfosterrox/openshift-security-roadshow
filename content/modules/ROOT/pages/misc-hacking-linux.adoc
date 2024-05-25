@@ -1,0 +1,28 @@
+= Network Segmentation
+
+== Module goals
+.Goals
+* A CTF challenge: Web hacking into the linux system and get R00T!
+* There are three flags found during the journey.
+
+== Getting access
+
+You've already done this in previous modules. Simply run
+
+[source,sh,role=execute]
+----
+POD=$(oc get pod -l app=ctf-web-to-system -o jsonpath="{.items[0].metadata.name}")
+oc exec $POD -i --tty -- /bin/bash
+----
+
+*Sample output*
+[source,bash]
+----
+[demo-user@bastion ~]$ POD=$(oc get pod -l app=ctf-web-to-system -o jsonpath="{.items[0].metadata.name}")
+oc exec $POD -i --tty -- /bin/bash
+node@ctf-web-to-system-6db858448f-hz6j2:/app$
+----
+
+== Monitor progress in RHACS
+
+As you run you commands, make sure to check RHACS to see waht it will flag. 
