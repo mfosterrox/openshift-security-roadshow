@@ -11,7 +11,7 @@ Red Hat Advanced Cluster Security (RHACS) for Kubernetes provides a robust API t
 
 === API Endpoints
 
-The RHACS API offers various endpoints for different functionalities such as policies, clusters, deployments, and compliance. Common endpoint categories include /v1/policies, /v1/clusters, /v1/deployments, and /v1/compliance. The API typically uses JSON for both requests and responses. Ensure that your API client is capable of handling JSON data.
+The RHACS API offers various endpoints for different functionalities such as policies, clusters, deployments, and compliance. Common endpoint categories include */v1/policies*, */v1/clusters*, */v1/deployments*, and */v1/compliance*. The API typically uses JSON for both requests and responses. Ensure that your API client is capable of handling JSON data.
 
 === Authentication
 
@@ -19,10 +19,10 @@ The API uses token-based authentication. You need to obtain an API token from th
 
 === Common Operations:
 
-GET: Retrieve information (e.g., list of policies, details of a specific deployment).
-POST: Create new resources (e.g., create a new policy).
-PUT: Update existing resources (e.g., modify an existing policy).
-DELETE: Remove resources (e.g., delete a policy).
+* GET: Retrieve information (e.g., list of policies, details of a specific deployment).
+* POST: Create new resources (e.g., create a new policy).
+* PUT: Update existing resources (e.g., modify an existing policy).
+* DELETE: Remove resources (e.g., delete a policy).
 
 == Interacting with the RHACS API
 
@@ -44,9 +44,16 @@ IMPORTANT:Be sure to put the AP token in the correct location.
 
 [source,sh,subs="attributes",role=execute]
 ----
-ACS_URL=$(oc -n stackrox get route central -o jsonpath='{.spec.host}')
-ACS_URL_PORT=$(echo "$ACS_URL" | sed 's/$/:443/')=$(oc -n stackrox get route central -o jsonpath='{.spec.host}')
+ACS_URL="$(oc -n stackrox get route central -o jsonpath='{.spec.host}')"
+ACS_URL_PORT=$"https://$ACS_URL"
 API_TOKEN=your_api_token
+----
+
+[source,bash]
+----
+echo $ACS_URL
+echo $ACS_URL_PORT
+echo $API_TOKEN
 ----
 
 === Make API Requests
@@ -56,8 +63,9 @@ Use a tool like curl, Postman, or a programming language with HTTP client librar
 *Example Using curl where you get a list of policies*
 
 [source,sh,subs="attributes",role=execute]
+
 ----
-curl -X GET "$ACS_URL/v1/policies" -H "Authorization: Bearer $API_TOKEN"
+curl -H -k "Authorization: Bearer $API_TOKEN" $ACS_URL_PORT/v1/clusters
 ----
 
 *Example Using curl where you create a new policy*
