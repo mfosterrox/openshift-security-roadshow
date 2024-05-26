@@ -45,14 +45,12 @@ IMPORTANT:Be sure to put the AP token in the correct location.
 [source,sh,subs="attributes",role=execute]
 ----
 ACS_URL="$(oc -n stackrox get route central -o jsonpath='{.spec.host}')"
-ACS_URL_PORT=$"https://$ACS_URL"
 API_TOKEN=your_api_token
 ----
 
 [source,bash]
 ----
 echo $ACS_URL
-echo $ACS_URL_PORT
 echo $API_TOKEN
 ----
 
@@ -65,7 +63,7 @@ Use a tool like curl, Postman, or a programming language with HTTP client librar
 [source,sh,subs="attributes",role=execute]
 
 ----
-curl -H -k "Authorization: Bearer $API_TOKEN" $ACS_URL_PORT/v1/clusters
+curl $ACS_URL/v1/clusters
 ----
 
 *Example Using curl where you create a new policy*
