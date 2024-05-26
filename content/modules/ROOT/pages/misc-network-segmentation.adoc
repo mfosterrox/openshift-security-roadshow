@@ -7,26 +7,185 @@
 
 == Understanding the Network UI
 
+The Network UI is broken into two tabs: the Network Graph & the Listening Endpoints tab.
 
+=== The Network Graph
 
+The Network Graph in RHACS provides a visual representation of the network traffic and relationships between different components within a Kubernetes cluster. This feature is crucial for understanding and managing the network security of Kubernetes clusters, as endpoint detection is not enough with containers. In Kubernetes and OpenShift, you need visibility on exposed services.
+
+RHACS Network Graph helps you visualize network traffic by displaying the flow of network traffic between different pods, services, and namespaces within a Kubernetes cluster. The Network Graph also helps identify unusual or unexpected network traffic patterns. If there are unexpected connections or traffic flows between components that should not be communicating, these anomalies can be quickly spotted and investigated. By understanding the actual network traffic, security teams can create more precise network policies to restrict unnecessary communication paths and reduce the attack surface. The Network Policies can be generated at deploy-time or runtime.
+
+=== The Exposed Ports dashboard
+
+The Exposed Ports Dashboard gives users a clear and organized view of all the services in their Kubernetes cluster that are exposed to external networks. 
+
+=== BONUS: The roxctl netpol CLI command
+
+The roxctl netpol command in Red Hat Advanced Cluster Security (RHACS) for Kubernetes offers several advantages that enhance network security management within Kubernetes environments. This command is part of the roxctl CLI tool, which is designed to interact with RHACS. The roxctl netpol command can automatically generate Kubernetes network policies based on the OpenShift and Kubernetes assets. This can be done in deploy-time by developers OR operators to help accerate network policy adoption.
+
+== Hands-on with the RHACS Network UI
+
+=== CIS compliance reminder
+
+In this module, we will focus on the *backend* namespace. Also, hopefully, you remember the complaint section where we were told how we could become CIS-compliant by applying network policies. 
+
+Run the following two commands to remember which namespaces are currently compliant.
+
+[source,sh,subs="attributes",role=execute]
 ----
-oc get  namespaces -o json | jq '[.items[] | select((.metadata.name | startswith("openshift") | not) and (.metadata.name | startswith("kube-") | not) and .metadata.name != "default") | .metadata.name ]'
-----
-
-*Sample Output*
-
-[source,sh]
-----
+cd ~/
+export TUTORIAL_HOME="$(pwd)/demo-apps"
 oc get --all-namespaces networkpolicies -o json | jq '[.items[] | select((.metadata.namespace | startswith("openshift") | not) and (.metadata.namespace | startswith("kube-") | not) and .metadata.namespace != "default") | .metadata.namespace] | unique'
 ----
 
+
+*Sample output*
+[source, bash]
+----
+[
+ "medical",
+ "stackrox",
+ "vault"
+]
+----
+
+Now, let's aim to get the *backend* namespace on that list.
+
+=== The Network Graph UI
+
+.Procedure
+
+. Start by heading to the Network -> Network Graph.
+
+image::ex-net-1.png[link=self, window=blank, width=100%]
+
+|====
+The graph does not display any results by default. This is a performance choice as large environments will become unweildly in a dashboard like this.
+|====
+
+[start=2]
+. Use the filters at the top to select ONLY the *backend* namespace.
+
+image::ex-net-2.png[link=self, window=blank, width=100%]
+
+[start=3]
+. Review the legend at the bottom left of the page.
+
+|====
+Notice how there is a namespace type labeled *Related namespace*. You should see two other namespaces related to the backend namespace. This is because there is network traffic between these three namespaces. 
+|====
+
+image::ex-net-3.png[link=self, window=blank, width=100%]
+image::ex-net-6.png[link=self, window=blank, width=100%]
+
+You can also filter by "Active flows" or "Inactive flows." 
+
+image::ex-net-4.png[link=self, window=blank, width=100%]
+
+[start=4]
+. Click on the *Network policy generator* on the top right of the dashboard.
+
+image::ex-net-5.png[link=self, window=blank, width=100%]
+
+[start=5]
+. Click the *View active YAMLS* tab.
+
+image::ex-net-7.png[link=self, window=blank, width=100%]
+
+|====
+You should see no active YAMLs in the namespace since we have not created any network policies in the backend namespace.
+|====
+
+[start=6]
+. Click the *Simulate network policies* and click *Generate and simulate network policies*
+
+image::ex-net-8.png[link=self, window=blank, width=100%]
+
+[start=7]
+. Click the *Compare* tab on the right side of the page. 
+
+image::ex-net-9.png[link=self, window=blank, width=100%]
+
+|====
+This view is useful for making any changes to network policies. You will be able to visualize the changes in the UI.
+|====
+
+We know the backend namespace needs some work. And while we can copy the simulated network policies from the UI, let's do it later from the roxctl UI.
+
+== Using the roxctl netpol CLI
+
+We're going to use the roxctl netpol command to generate network policies based on the *Backend* applications.
+
+First, let's take a look at the four applications and all of their associated services.
+
+. Run the following command. 
+
+[source,sh,subs="attributes",role=execute]
+----
 export TUTORIAL_HOME="$(pwd)/demo-apps"
 cat $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
+---- 
 
+*Sample output*
+[source, bash]
+----
+# Deployment named "varnish"
+# Listens on :8080
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: varnish
+.....
+----
+
+You can see the manifest contains EVERYTHING about the applications in the namespace.
+
+IMPORTANT: The netpol command only looks at the services and deployment manifests to generate network policies. This is why it is extremely important that the deployments and service are properly configured first. 
+
+[start=2]
+. Run the following command. 
+
+[source,sh,subs="attributes",role=execute]
+----
 roxctl netpol connectivity map $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
+----
 
-roxctl netpol generate $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml > $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/nw-policy-backend.yml
+*Sample output*
+[source,bash]
+----
+....
+backend/postgres[Deployment] => backend/api-server[Deployment] : All Connections
+backend/postgres[Deployment] => backend/backend-atlas[Deployment] : All Connections
+backend/postgres[Deployment] => backend/varnish[Deployment] : All Connections
+backend/varnish[Deployment] => 0.0.0.0-255.255.255.255 : All Connections
+backend/varnish[Deployment] => backend/api-server[Deployment] : All Connections
+backend/varnish[Deployment] => backend/backend-atlas[Deployment] : All Connections
+backend/varnish[Deployment] => backend/postgres[Deployment] : All Connections
+----
 
+This output is telling us that all connections are currently authorized into the backend namespace. The goal is to only allow the connections that are necessary for the applications to function. 
+
+[start=3]
+. Run the following command. This command will copy the network policy output to a "everything" file and will display what was added.
+
+[source,sh,subs="attributes",role=execute]
+----
+roxctl netpol generate $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml >> $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
+roxctl netpol generate $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
+----
+
+Now we have network policies! Time to put them to work
+
+[start=4]
+. Apply the network policies with the following command.
+
+[source,sh,subs="attributes",role=execute]
+----
+oc apply -f $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
+---- 
+
+*Sample output*
+[source,bash]
 ----
 networkpolicy.networking.k8s.io/api-server-netpol created
 networkpolicy.networking.k8s.io/backend-atlas-netpol created
@@ -35,85 +194,44 @@ networkpolicy.networking.k8s.io/varnish-netpol created
 networkpolicy.networking.k8s.io/default-deny-in-namespace-backend created
 ----
 
- cat "TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/nw-policy-backend.yml" >> "TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml"
+[start=5]
+. And go and verify that everything is green in the dashboard.
 
-cat "$TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/nw-policy-backend.yml" >> "$TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml"
+image::ex-net-20.png[link=self, window=blank, width=100%]
 
+[start=6]
+. Lastly let's check the netpol connecitons output AND our compliance command!
 
+[source,sh,subs="attributes",role=execute]
+----
 roxctl netpol connectivity map $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
+oc get --all-namespaces networkpolicies -o json | jq '[.items[] | select((.metadata.namespace | startswith("openshift") | not) and (.metadata.namespace | startswith("kube-") | not) and .metadata.namespace != "default") | .metadata.namespace] | unique'
+----
+
+*Sample output*
+[source,bash]
 ----
 INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: Secret
-INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: ServiceAccount
-INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: Role
-INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: RoleBinding
-INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: ServiceAccount
-INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: Role
-INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: RoleBinding
-INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: ClusterRole
-INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: ClusterRoleBinding
-backend/varnish[Deployment] => backend/api-server[Deployment] : TCP 9001
-----
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-[start=3]
-. Run the following command to get all the non-control plane namespaces.
-
-[source,sh,subs="attributes",role=execute]
-----
-oc get  namespaces -o json | jq '[.items[] | select((.metadata.name | startswith("openshift") | not) and (.metadata.name | startswith("kube-") | not) and .metadata.name != "default") | .metadata.name ]'
-----
-
-*Sample Output*
-
-[source,sh]
-----
-[lab-user@bastion pipeline]$ oc get  namespaces -o json | jq '[.items[] | select((.metadata.name | startswith("openshift") | not) and (.metadata.name | startswith("kube-") | not) and .metadata.name != "default") | .metadata.name ]'
-[
-  "backend",
 ...
-  "vault"
-]
-----
-
-[start=4]
-. Next, compare this list to the previous one. To get all the non-control plane namespaces with a NetworkPolicy, run the following command
-
-[source,sh,subs="attributes",role=execute]
-----
-oc get  namespaces -o json | jq '[.items[] | select((.metadata.name | startswith("openshift") | not) and (.metadata.name | startswith("kube-") | not) and .metadata.name != "default") | .metadata.name ]'
-----
-
-*Sample Output*
-
-[source,sh]
-----
-[lab-user@bastion pipeline]$ oc get --all-namespaces networkpolicies -o json | jq '[.items[] | select((.metadata.namespace | startswith("openshift") | not) and (.metadata.namespace | startswith("kube-") | not) and .metadata.namespace != "default") | .metadata.namespace] | unique'
+backend/varnish[Deployment] => backend/api-server[Deployment] : TCP 9001
+[lab-user@bastion ~]$ oc get --all-namespaces networkpolicies -o json | jq '[.items[] | select((.metadata.namespace | startswith("openshift") | not) and (.metadata.namespace | startswith("kube-") | not) and .metadata.namespace != "default") | .metadata.namespace] | unique'
 [
-  "medical",
-  "stackrox",
-  "vault"
+ "backend",
+ "medical",
+ "stackrox",
+ "vault"
 ]
 ----
+
+And we see that there is only ONE! External connection to the namespace. All other connections are shut down. 
+
+== Summary
+
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNxZGd5Zm5qMnlpOHhrbm1hY2pwcG5ydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p18ohAgD3H60LSoI1C/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+In this module you got hands-on in the Network graph UI and used the netpol generate command to create and apply network policies to the OpenShift cluster.
+
+Beautiful!
+
+
+
