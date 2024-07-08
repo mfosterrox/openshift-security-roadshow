@@ -1,5 +1,5 @@
 * xref:00-setup-install-navigation.adoc[Setup and Introduction]
-* xref:01-visability-and-navigation.adoc[Visability & Navigation]
+* xref:01-visibility-and-navigation.adoc[Visability & Navigation]
 * xref:02-vulnerability-management-lab.adoc[Vulnerability Management]
 * xref:03-configuration-management.adoc[Configuration Management]
 * xref:04-understanding-risk.adoc[Risk Management]
@@ -10,7 +10,8 @@
 * xref:09-API-walkthrough.adoc[API Walkthrough]
 * xref:misc-network-segmentation.adoc[Extra - Network Segmentation]
 * xref:misc-log-4-shell-lab.adoc[Extra - log4shell Example]
-* xref:misc-hacking-linux.adoc[Extra - log4shell Example]
+* xref:misc-hacking-linux.adoc[Hacking Linux]
+* xref:misc-paladin.adoc[Paladin Cloud Integration]
 
 
 

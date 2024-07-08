@@ -70,11 +70,10 @@ curl $ACS_URL/v1/clusters
 
 [source,sh,subs="attributes",role=execute]
 ----
-curl -X POST "$ACS_URL/v1/policies" -H "Authorization: Bearer $API_TOKEN" -H "Content-Type: application/json" -d '{
+curl -X POST "$ACS_URL/v1/policies" -k -H "Authorization: Bearer $API_TOKEN" -H "Content-Type: application/json" -d '{
   "name": "New Policy",
   "description": "Description of the new policy",
   "policyDefinition": {
-    // policy details
   }
 }'
 ---- 

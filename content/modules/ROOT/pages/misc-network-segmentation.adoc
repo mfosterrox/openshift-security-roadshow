@@ -214,6 +214,10 @@ oc get --all-namespaces networkpolicies -o json | jq '[.items[] | select((.metad
 INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: Secret
 ...
 backend/varnish[Deployment] => backend/api-server[Deployment] : TCP 9001
+----
+
+[source,bash]
+----
 [lab-user@bastion ~]$ oc get --all-namespaces networkpolicies -o json | jq '[.items[] | select((.metadata.namespace | startswith("openshift") | not) and (.metadata.namespace | startswith("kube-") | not) and .metadata.namespace != "default") | .metadata.namespace] | unique'
 [
  "backend",

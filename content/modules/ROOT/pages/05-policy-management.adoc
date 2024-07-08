@@ -19,7 +19,7 @@ RHACS observes container processes and collects this information to enable you t
 
 The example below demonstrates how security may want to block a package manager from downloading any packages to the container. This runtime enforcement option is the first in the process of shifting left. After runtime enforcement, you will want to stop the package manager from being used in the container altogether.
 
-IMPORTANT: For the Runtime stage, RHACS stops all pods that match the conditions of the policy. It does not, scale the deployment down to zero.
+IMPORTANT: For the Runtime stage, RHACS stops all pods that match the conditions of the policy. It does not scale the deployment down to zero.
 
 .Procedure
 . On the left-hand side of the application, click the *Platform Configuration* tab and select *Policy Management*.
@@ -167,7 +167,7 @@ CONTENT -> Worth talking about the differences in enforcement?
 
 == Introduction to deploy-time policy enforcement
 
-Deploy-time policy refers to enforcing configuration controls in the cluster and before deployment in the CI/CD process and the configuration of applications inside the cluster. Deploy-time policies can include all build-time policy criteria but they can also include data from your cluster configurations, such as running in privileged mode or mounting the Docker socket.
+Deploy-time policy refers to enforcing configuration controls in the cluster and before deployment in the CI/CD process and the configuration of applications inside the cluster. Deploy-time policies can include all build-time policy criteria, but they can also include data from your cluster configurations, such as running in privileged mode or mounting the Docker socket.
 
 There are two approaches to enforcing deploy-time policies in RHACS:
 
@@ -230,7 +230,7 @@ image::acs-deploy-05.png[link=self, window=blank, width=100%]
 
 . *Click Save*
 
-Now let's test it out! We're going to deploy a simple Ubuntu application to the cluster.
+Now, let's test it out! We're going to deploy a simple Ubuntu application to the cluster.
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -238,38 +238,38 @@ cat <<EOF > ubuntu-deployment.yml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ubuntu-deployment
-  labels:
-    app: ubuntu
+ name: ubuntu-deployment
+ labels:
+ app: ubuntu
 spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: ubuntu
-  template:
-    metadata:
-      labels:
-        app: ubuntu
-    spec:
-      containers:
-      - name: ubuntu
-        image: ubuntu:latest
-        command: ["/bin/bash", "-c", "--"]
-        args: ["while true; do echo hello world; sleep 10; done"]
-        ports:
-        - containerPort: 80
-        resources:
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
-          requests:
-            memory: "64Mi"
-            cpu: "250m"
+ replicas: 3
+ selector:
+ matchLabels:
+ app: ubuntu
+ template:
+ metadata:
+ labels:
+ app: ubuntu
+ spec:
+ containers:
+ - name: ubuntu
+ image: ubuntu:latest
+ command: ["/bin/bash", "-c", "--"]
+ args: ["while true; do echo hello world; sleep 10; done"]
+ ports:
+ - containerPort: 80
+ resources:
+ limits:
+ memory: "128Mi"
+ cpu: "500m"
+ requests:
+ memory: "64Mi"
+ cpu: "250m"
 EOF
 ----
 
 [start=13]
-. Next apply the deployment manifest
+. Next, apply the deployment manifest.
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -285,17 +285,17 @@ The attempted operation violated 1 enforced policy, described below:
 
 Policy: Ubuntu Package Manager in Image - Deploy
 - Description:
-    ↳ Alert on deployments with components of the Debian/Ubuntu package management
-      system in the image.
+ ↳ Alert on deployments with components of the Debian/Ubuntu package management
+ system in the image.
 - Rationale:
-    ↳ Package managers make it easier for attackers to use compromised containers,
-      since they can easily add software.
+ ↳ Package managers make it easier for attackers to use compromised containers,
+ since they can easily add software.
 - Remediation:
-    ↳ Run `dpkg -r --force-all apt apt-get && dpkg -r --force-all debconf dpkg` in the
-      image build for production containers.
+ ↳ Run `dpkg -r --force-all apt apt-get && dpkg -r --force-all debconf dpkg` in the
+ image build for production containers.
 - Violations:
-    - Container 'ubuntu' includes component 'apt' (version 2.7.14build2)
-    - Container 'ubuntu' includes component 'dpkg' (version 1.22.6ubuntu6)
+ - Container 'ubuntu' includes component 'apt' (version 2.7.14build2)
+ - Container 'ubuntu' includes component 'dpkg' (version 1.22.6ubuntu6)
 
 In case of emergency, add the annotation {"admission.stackrox.io/break-glass": "ticket-1234"} to your deployment with an updated ticket number
 ----
@@ -360,7 +360,7 @@ ERROR:  checking deployment failed after 3 retries: breaking policies found: fai
 ----
 
 |====
-You should see one of the policies you've create breaking the deploy process while the others are in inform only mode. 
+You should see one of the policies you've created breaking the deployment process while the others are in inform-only mode. 
 |====
 
 *Congrats!* 
@@ -385,7 +385,7 @@ In RHACS, build-time policies apply to image fields such as CVEs and Dockerfile 
 
 === Prevent the Ubuntu package manager in the ctf-web-to-system image from being pushed to Quay
 
-. Export the following variables to make our life easier
+. Export the following variables to make our lives easier
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -395,7 +395,7 @@ export ROX_CENTRAL_ADDRESS={acs_route}
 ----
 
 [start=2]
-. Verify that the variables are correct
+. Verify that the variables are correct.
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -415,23 +415,24 @@ podman login $QUAY_URL
 NOTE: Use the quay admin credentials, Username: *{quay_admin_username}* & password: *{quay_admin_password}*. You can create unique user and group credentials in Quay for proper segmentation.
 
 [start=4]
-. Download an the latest Ubuntu image.
+. Download the latest Ubuntu image.
 
 [source,sh,subs="attributes",role=execute]
 ----
 podman pull ubuntu:latest
+podman tag docker.io/library/ubuntu:latest $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
 ----
 
 |====
-The following command is designed to mimic and build pipeline where a container build is going through a commit/promotion step.
+The following command is designed to mimic and build a pipeline where a container build is going through a commit/promotion step.
 |====
 
 [start=5]
-. Check the image and push to the local Quay instance 
+. Check the image and push it to the local Quay instance. 
 
 [source,sh,subs="attributes",role=execute]
 ----
-roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image check --image=docker.io/library/ubuntu 
+roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image check --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 
 podman push $QUAY_URL/$QUAY_USER/ubuntu:latest --remove-signatures
 ----
 
@@ -440,17 +441,17 @@ IMPORTANT: We are using the *image check* CLI option, NOT the image scan.
 *Sample output*
 [source,bash]
 ----
-  },
-  "components": 968,
-  "cves": 82,
-  "fixableCves": 80,
-  "lastUpdated": "2024-05-22T21:32:48.735784107Z",
-  "riskScore": 10.8,
-  "topCvss": 10,
-  "notes": [
-    "MISSING_SIGNATURE",
-    "MISSING_SIGNATURE_VERIFICATION_DATA"
-  ]
+ },
+ "components": 968,
+ "cves": 82,
+ "fixableCves": 80,
+ "lastUpdated": "2024-05-22T21:32:48.735784107Z",
+ "riskScore": 10.8,
+ "topCvss": 10,
+ "notes": [
+ "MISSING_SIGNATURE",
+ "MISSING_SIGNATURE_VERIFICATION_DATA"
+ ]
 }
 Copying blob 03004fed5c90 skipped: already exists  
 ...
@@ -458,9 +459,9 @@ Copying config 1cbb2b7908 done
 Writing manifest to image destination
 ----
 
-NOTE: Now RHACS didn't break the command since there is no enforcement of any build policies currently. 
+NOTE: Now RHACS hasn't broken the command since there is no enforcement of any build policies. 
 
-Let's make a copy of the build & deploy-time policy and enforce during the build phase.
+Let's make a copy of the build & deploy-time policy and enforce it during the build phase.
 
 .Procedure
 . Navigate to Platform Configuration → Policy Management
@@ -487,14 +488,14 @@ image::05-build-2.png[link=self, window=blank, width=100%]
 image::05-build-3.png[link=self, window=blank, width=100%]
 
 [start=6]
-. At the policy scope tab make sure there are no exclusions or inclusions.
+. At the policy scope tab, make sure there are no exclusions or inclusions.
 . Lastly, go to the *Review Policy* tab
 . Review the changes.
 . Click *Save*
 
 Now let's test it out! 
 
-. Run the following in the terminal
+. Run the following in the terminal.
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -538,7 +539,7 @@ In this last section. We will resolve a few of the issues that we have created.
 *Procedure*
 
 . Navigate to the *Violations* page.
-. Filter by the policy violation *Ubuntu Package Manager Execution* OR by the most recent policy violations. You will see a build deploy and runtime policy violation that has been enforced 1 time.
+. Filter by the policy violation *Ubuntu Package Manager Execution* OR by the most recent policy violations. You will see a build, deploy and runtime policy violation that has been enforced one time.
 
 image::05-violation-1.png[link=self, window=blank, width=100%, Violations Menu]
 

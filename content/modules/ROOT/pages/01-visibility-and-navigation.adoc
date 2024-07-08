@@ -125,7 +125,9 @@ Here are some common search queries you can try in the RHACS search bar if youâ€
 |Exposure Level:<level>|Exposure Level:External|Finding deployments that have external network exposure
 |============
 
-IMPORTANT: RHACS, like Kubernetes works on a key:value system primarily due to their flexibility and power in organizing, selecting, and managing resources but also because of the ability to set-based selectors and match objects based on a set of values (e.g., "in", "not in", "exists", "does not exist").
+IMPORTANT: RHACS, like Kubernetes works on a key:value system primarily due to their flexibility and power in organizing, selecting, and managing resources but also because of the ability to set selectors and match objects based on a set of values (e.g., "in", "not in", "exists", "does not exist").
+
+// Fix the above text
 
 image::acs-search-cve.png[link=self, window=blank, width=100%, Search Syntax]
 

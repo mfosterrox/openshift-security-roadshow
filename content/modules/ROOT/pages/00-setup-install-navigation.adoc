@@ -378,9 +378,6 @@ Congratulations, you now know how to examine images in your registry for potenti
 
 [subs=attributes]
 
-IMPORTANT: Please ensure the deploy application are deployed to your cluster before moving onto the next module. 
-
-[[deploy-the-java-application]]
 
 == Deploy the workshop applications
 
@@ -470,6 +467,8 @@ operations   jump-host           1/1     1            1           6m48s
 payments     visa-processor      1/1     1            1           6m45s
 ```
 
+IMPORTANT: Please ensure the deploy application are deployed to your cluster before moving onto the next module. 
+
 [NOTE]
 The main focus needs to be that the *ctf-web-to-system* application deployed properly. 
 
@@ -481,4 +480,4 @@ Beautiful!
 
 In this module, you got access to all of the lab UI's and interfaces including the Showroom lab enviroment (Where you are reading this sentence). You downloaded and deployed some very insecure applications and setup the lab full of examples to dive into. 
 
-On to *Visability and Navigation*!!
+On to *Visibility and Navigation*!!
