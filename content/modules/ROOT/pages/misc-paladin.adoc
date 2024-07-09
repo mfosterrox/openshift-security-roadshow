@@ -2,7 +2,7 @@
 
 == Module goals
 .Goals
-* Review the Paladin Cloud Dashboard
+* Review the Paladin Cloud UI
 * Review the Paladin Cloud integration with Red Hat ACS
 
 == Understanding the Paladin Cloud Dashboard
@@ -35,5 +35,23 @@ image:../assets/images/misc-paladin-05.gif[]
 
 
 === The Asset Graph
+
+The Asset Graph shows the utilization of your environment. This information can be useful to understand, not only the cadance of your environment, but also anomolies within your environment. For example, a sudden, unexpected spike in utilization could be representative of a bad actor deploying unapproved workloads. 
+
+image::../assets/images/misc-paladin-06.png[]
+
+It is also possible to only look at specific assets by selecting the Asset Type.
+
+image::../assets/images/misc-paladin-07.gif[]
+
+=== Policy Compliance Overview
+
+Through the Policy Compliance Overview, you can easily track various policy violations. By default, the list is sorted by severity. You can list by number of violations by clicking on the Violations text. 
+
+image::../assets/images/misc-paladin-08.gif[]
+
+== Violations Page
+
+
 
 
