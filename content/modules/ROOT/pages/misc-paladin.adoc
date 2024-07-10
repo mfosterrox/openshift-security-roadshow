@@ -52,6 +52,15 @@ image::../assets/images/misc-paladin-08.gif[]
 
 == Violations Page
 
+The violations page shows the violations for the currently selected assets. By default, the list is displayed by Policy Risk Score (PRS). This can changed by clicking the value with which you want to order the list. 
 
+image::../assets/images/misc-paladin-09.gif[]
 
+Clicking a particular violation will take you to that violation's detail page. 
+
+=== Violation Details
+
+The Violation Details page displays information pertinent to the violation in question. It will show at the top, the Policy Risk Score, if it is open or not, the severity, if it is still in SLA or out of SLA, as well as the kind of asset. In the section below, it will show the Policy Violated, the Asset ID linked to the violation, the reason of the violation, as well as when it was created and the Age of the violation. A section for commenting as well as an audit log. 
+
+image:../assets/images/misc-paladin-10.png[]
 
