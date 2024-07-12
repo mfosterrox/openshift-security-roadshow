@@ -182,7 +182,7 @@ image::08-not-3.png[link=self, window=blank, width=100%]
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExenowdjBqdG9weG5jdXJ2NTZwdzhmbTF5dzBkcjIwZ2w4eDM2cTB0byZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/NCZYQW0wJlsCkMCH4j/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
-Add the notifier to the *Build Policy* we created earlier. Enable enforcement of the policy and retrigger the OpenShift Pipeline run.
+Add the notifier to the *Runtime Policy* 'Netcat Execution Detected'. Enable enforcement of the policy and watch the "visa-processor" container for a violation. This container runs an *nc* command every minute or so. 
 
 Your mission is completed with a Notification to Slack or Teams.
 

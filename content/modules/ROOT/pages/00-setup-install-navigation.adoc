@@ -1,4 +1,4 @@
-= Lab setup and overview
+= Lab setup and introduction
 
 == Module goals
 
@@ -265,7 +265,7 @@ image::01-quay-dashboard.png[quay console]
 
 === Browse the registry
 
-In the setup module we downloaded built and pushed a insecure java application called *ctf-web-to-system*. Now it's time to deploy it to the OpenShift Cluster. To do this we will need to make the registry that we created public. 
+So far in the setup module we downloaded built and pushed an insecure java application called *ctf-web-to-system*. Now it's time to deploy it to the OpenShift Cluster. To do this we will need to make the registry that we created public. 
 
 Let's take a look at our application in the registry.
 
@@ -277,15 +277,15 @@ image::quay-login.png[link=self, window=blank, width=100%]
 
 image::quay-repo.png[link=self, window=blank, width=100%]
 
-On the left hand side of the window you should see the following icons labelled in order from top to bottom,
-
-image::quay-sidebar.png[link=self, window=blank, width=100%]
+On the left hand side of the window you should see the following icons labeled in order from top to bottom,
 
 - Information
 - Tags
 - Tag History
 - Usage Logs
 - Settings
+
+image::quay-sidebar.png[link=self, window=blank, width=100%]
 
 The information tab shows you information such as;
 
@@ -305,11 +305,9 @@ This tab displays all of the images and tags that have been upladed, providing i
 image::quay-tags-security.png[link=self, window=blank, width=100%]
 
 [start=3]
-. Click on the *Tags History* icon. 
+. Click on the *Tags History* icon. This tab simply displays the container images history over time. 
 
 image::quay-tags-history.png[link=self, window=blank, width=100%]
-
-This tab simply displays the container images history over time. 
 
 [start=4]
 . Click on the *Usage Logs* icon. 
@@ -327,12 +325,10 @@ image::quay-settings.png[link=self, window=blank, width=100%]
 
 In this tab you can add/remove users and update permissions, alter the privacy of the repository, and even schedule alerts based on found vulnerabilities.
 
-image::quay-tags-security.png[link=self, window=blank, width=100%]
-
-IMPORTANT: Make sure to make the repository public. Otherwise we will not be able to deploy the application in the next step.
-
 [start=6]
 . Make your repository public before deploying our application in the next step by clicking the *Make Public* button under `Repository Visability`
+
+IMPORTANT: Make sure to make the repository public. Otherwise we will not be able to deploy the application in the next step.
 
 image::quay-make-public.png[link=self, window=blank, width=100%]
 

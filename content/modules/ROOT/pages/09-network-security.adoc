@@ -1,4 +1,4 @@
-= Network Segmentation
+= Network security
 
 == Module goals
 .Goals
@@ -229,6 +229,15 @@ backend/varnish[Deployment] => backend/api-server[Deployment] : TCP 9001
 
 And we see that there is only ONE! External connection to the namespace. All other connections are shut down. 
 
+== A task to complete on your own.
+
+*LAST ONE*
+
+Use the 'roxctl netpol generate' command on the rest of the Kubernetes manifests in the $TUTORIAL_HOME/kubernetes-manifests/ folder. Apply these changes and view the updates in the Network Graph UI. 
+
+image::https://media.giphy.com/media/3ZP7udDbKKDS0/giphy.gif?cid=790b7611ag8xf2i0ectfchcasx9mo9vcym9l5v8gm96q7ub4&ep=v1_gifs_search&rid=giphy.gif&ct=g[link=self, window=blank, width=100%, class="center"]
+
+What is the CIS compliance standard percentage at now? 
 == Summary
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNxZGd5Zm5qMnlpOHhrbm1hY2pwcG5ydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p18ohAgD3H60LSoI1C/giphy.gif[link=self, window=blank, width=100%, class="center"]

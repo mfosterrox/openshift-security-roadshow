@@ -1,0 +1,8 @@
+I have checked the environment and it is has both eks and openshift cluster. Both are accessible using cli only need to change the context by using following command:
+
+````bash
+oc config get-contexts
+oc config use-context admin
+oc config use-context eks-admin
+````
+Let us know if we can help anywhere else.

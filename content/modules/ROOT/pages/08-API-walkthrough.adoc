@@ -58,7 +58,7 @@ echo $API_TOKEN
 
 Use a tool like curl, Postman, or a programming language with HTTP client libraries (e.g., Python’s requests library) to interact with the API.
 
-*Example Using curl where you get a list of policies*
+*Example using curl where you get a list of policies*
 
 [source,sh,subs="attributes",role=execute]
 
@@ -100,8 +100,6 @@ curl -X DELETE "$ACS_URL/v1/policies/{policy_id}" -H "Authorization: Bearer $API
 The official RHACS API documentation provides detailed information on all available endpoints, request formats, and responses. This is available within the RHACS console.
 
 == A task to complete on your own.
-
-*LAST ONE*
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcTN6N2l3OXR0OXo4eGRkb3dpaHdocWRxZzQzN3A4OHQ3NTEycjFhaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/C1AaD43G6rMlZjT628/giphy.gif[link=self, window=blank, width=100%, class="center"]
 

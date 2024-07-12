@@ -1,10 +1,64 @@
-= Understanding Risk
+= Risk Profiling
 
 == Module goals
 
-* View risk justifications
-* Lock baselines to track deviations
-* Find vulnerabilities quickly with filters
+* Understand the extra configuration aspects of Kubernetes and OpenShift
+* Tie Vulnerability Management details together with configuration details and runtime events
+* Help you identify what "Risk" is in your clusters
+
+== The Configuration Management Tab
+
+Another configuration management tab has much information that directs you to other dashboards. It is currently undergoing an overhaul, so we are open to whatever you want to see in the configuration management dashboard. However, here are the four top use cases that we tend to see from people looking into security configuration management.
+
+- Policy Violations
+- CIS Kubernetes 1.5
+- Users with most cluster admin roles
+- Secrets most used across deployments
+
+image::03-cm-1.png[link=self, window=blank, width=100%]
+
+Let's break down each section. 
+
+=== The "Secrets most used across deployments" widget
+
+.Procedure
+. Click the *View all* button on the "Secrets most used across deployments" widget.
+
+image::03-cm-2.png[link=self, window=blank, width=100%]
+
+In this view, you will see all of your secrets across your clusters. You can filter the secrets and export all of the information to a CSV.
+
+[start=2]
+. Filter the secrets by *Cluster: production* & *Image Pull Secret Registry: quay.io*
+
+image::03-cm-3.png[link=self, window=blank, width=100%]
+
+[start=3]
+. Next, try filtering by "Secret Type."
+
+image::03-cm-4.png[link=self, window=blank, width=100%]
+
+IMPORTANT: Not all secrets are the same, and organizations should ensure secrets are properly managed through a [CSI driver](https://docs.openshift.com/container-platform/4.15/storage/container_storage_interface/persistent-storage-csi-secrets-store.html) or a secrets management tool.
+
+=== The "Policy violations by severity" widget
+
+Now, the policies entity list in the configuration management UI gives you a complete overview of all of the 
+policies in the cluster, the policy status, whether it's disabled, whether it's enabled, and whether it's enforced or not
+
+.Procedure
+. Click the *View all* button on the "Policy violations by severity" widget.
+
+image::03-cm-5.png[link=self, window=blank, width=100%]
+
+IMPORTANT: Notice in this tab that nothing should say enforced. This is because, by default, in ACS, there is no policy that is being enforced by default. This avoids the eviction of any workloads prematurely and allows you to ingest all of this security information at the beginning of your security journey.
+
+Now, as you add policies, this page will continue to fill up. It is useful to have the ability to export all of the policies and their status.
+
+=== The "All entities" tab
+
+The last section of this smaller module is  to review all of the configuration options on the right tab labeled "All Entities."
+
+All entities contain a massive amount of suggestions such as controls users and groups, service accounts, clusters namespaces, and more so by clicking the individual tabs, you can search deeper into the security posture of your OpenShift and Kubernetes.
 
 == Introduction to Risk
 
@@ -224,9 +278,16 @@ image::04-risk-20.png[link=self, window=blank, width=100%]
 
 The Risk Acceptance bar will show all pending approvals. This will be either false positives OR deferrals. While you can mute notifications or a CVE you can never hide them in RHACS. 
 
+== What would you do?
+
+- How does your organization manage security policies? 
+- How will you use this dashboard to review your security posture?
+- What types of security configuration controls are you putting in place in your OpenShift and Kubernetes Clusters?
+- How would you make changes to your clusters?
+
 == Summary
 
-image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdDF4aHd5Mm4ycWlqN3k0cnpjMWVlbWd1a2l5YTFlbWd6YnN1eWoxZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l3q2tzon8OCC7BqmY/giphy.gif[link=self, window=blank, width=100%, class="center"]
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDR4amFzZ2ZiNGNkaTVwM3lscmxycDMzMnB4bTdwYWd0emlsOHJiYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/qunFC4tNsyA8y9M36d/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
 Great job!! 
 

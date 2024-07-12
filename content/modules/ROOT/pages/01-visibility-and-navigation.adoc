@@ -25,17 +25,6 @@ Using Red Hat Advanced Cluster Security for Kubernetes, you can gain comprehensi
 
 === Accessing the RHACS console
 
-In this section, you will confirm that you can connect to the RHACS portal.
-
-The following information will be available on the main lab screen:
-
-- The RHACS Admin Credentials
-- The URL for the RHACS portal
-
-=== Logging into the RHACS console
-
-==== RHACS console access
-
 Your RHACS Console is available at: {acs_route}[window=blank]
 
 Administrator login is available with:
@@ -46,22 +35,7 @@ Administrator login is available with:
 *RHACS Console Password:* | {acs_portal_password} |
 |===
 
-NOTE: You will get a warning page that the webpage is not private. During setup, RHACS can integrate with your specific certification server to avoid these errors.
-
-.Procedure
-
-. Click *Advanced*
-
-image::acs-warning-00.png[]
-
-[start=2]
-. Click "Proceed to central-stackrox...."
-
-image::acs-warning-01.png[]
-
-IMPORTANT: Make sure to refresh the dashboard before moving on to the module
-
-[[acs-nav]]
+Please ensure that you have access before proceeding. 
 
 == Introduction to the RHACS console
 
