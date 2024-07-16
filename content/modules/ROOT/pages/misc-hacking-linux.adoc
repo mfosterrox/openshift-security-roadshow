@@ -1,28 +1,35 @@
-= Network Segmentation
+= Capture the Flag
 
 == Module goals
 .Goals
-* A CTF challenge: Web hacking into the linux system and get R00T!
+* A CTF challenge: Web hacking a running container on OpenShift
 * There are three flags found during the journey.
 
 == Getting access
 
-You've already done this in previous modules. Simply run
+Start by networking the running container so that you can access it. the following commands deployes our vulnerable container to EKS and creates a LoadBalancer service to make it publically accessable. 
 
 [source,sh,role=execute]
 ----
-POD=$(oc get pod -l app=ctf-web-to-system -o jsonpath="{.items[0].metadata.name}")
-oc exec $POD -i --tty -- /bin/bash
+oc config use-context eks-admin
+export TUTORIAL_HOME="$(pwd)/demo-apps"
+oc apply -f $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml
+oc get svc ctf-web-to-system-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
 ----
 
 *Sample output*
 [source,bash]
 ----
-[demo-user@bastion ~]$ POD=$(oc get pod -l app=ctf-web-to-system -o jsonpath="{.items[0].metadata.name}")
-oc exec $POD -i --tty -- /bin/bash
-node@ctf-web-to-system-6db858448f-hz6j2:/app$
+Switched to context "eks-admin".
+service/ctf-web-to-system-service unchanged
+deployment.apps/ctf-web-to-system configured
+acd92c6dbdc764acba141ee700c02bc7-1182151901.us-east-2.elb.amazonaws.com
 ----
+
+IMPORTANT: Use the amazonaws.com link to access the vulnerable container
 
 == Monitor progress in RHACS
 
-As you run you commands, make sure to check RHACS to see waht it will flag. 
+As you run you commands, make sure to check RHACS to see what it will flag. 
+
+

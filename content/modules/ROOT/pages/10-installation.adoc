@@ -1,3 +1,12 @@
+= Installation (WIP)
+
+== Module goals
+.Goals
+* Review the Network Dashboard
+* Create Network Policies that improve our CIS compliance.
+
+== Accessing the EKS cluster 
+
 I have checked the environment and it is has both eks and openshift cluster. Both are accessible using cli only need to change the context by using following command:
 
 ````bash

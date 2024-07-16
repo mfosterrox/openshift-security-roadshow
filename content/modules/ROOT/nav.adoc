@@ -1,4 +1,4 @@
-* xref:00-setup-install-navigation.adoc[Setup and Introduction]
+* xref:00-setup-install-navigation.adoc[0. Setup and Introduction]
 * xref:01-visibility-and-navigation.adoc[1. Visibility & Navigation]
 * xref:02-vulnerability-management-lab.adoc[2. Vulnerability Management]
 * xref:03-risk-profiling.adoc[3. Risk profiling]
@@ -8,11 +8,11 @@
 * xref:07-notifications.adoc[7. Notifications and Alerting]
 * xref:08-API-walkthrough.adoc[8. API Walkthrough]
 * xref:09-network-security.adoc[9. Network Security]
-* xref:10-installation.adoc[10. Installation]
+//* xref:10-installation.adoc[10. Installation]
 
-* xref:misc-log-4-shell-lab.adoc[Bonus - log4shell Example]
+//* xref:misc-log-4-shell-lab.adoc[Bonus - log4shell Example]
 * xref:misc-hacking-linux.adoc[Bonus - Hacking Linux]
-* xref:misc-paladin.adoc[Bonus - Paladin Cloud Integration]
+//* xref:misc-paladin.adoc[Bonus - Paladin Cloud Integration]
 
 
 

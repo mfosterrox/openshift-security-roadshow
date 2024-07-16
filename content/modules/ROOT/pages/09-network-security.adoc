@@ -244,7 +244,11 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNx
 
 In this module you got hands-on in the Network graph UI and used the netpol generate command to create and apply network policies to the OpenShift cluster.
 
-Beautiful!
+Congrats!!!
+
+You've made it through the Roadshow! There are a few extra modules for you to work through.
+
+Thank you for all of your hard work!
 
 
 

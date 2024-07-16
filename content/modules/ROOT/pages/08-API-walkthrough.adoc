@@ -44,8 +44,8 @@ IMPORTANT:Be sure to put the AP token in the correct location.
 
 [source,sh,subs="attributes",role=execute]
 ----
-ACS_URL="$(oc -n stackrox get route central -o jsonpath='{.spec.host}')"
-API_TOKEN=your_api_token
+export ACS_URL="$(oc -n stackrox get route central -o jsonpath='{.spec.host}')"
+export API_TOKEN=your_api_token
 ----
 
 [source,bash]
@@ -56,43 +56,133 @@ echo $API_TOKEN
 
 === Make API Requests
 
-Use a tool like curl, Postman, or a programming language with HTTP client libraries (e.g., Python’s requests library) to interact with the API.
+Use a tool like curl, Postman, or a programming language with HTTP client libraries (e.g., Python’s requests library) to interact with the API. Below are a few examples of what you can do with the API requests and RHACS.
 
 *Example using curl where you get a list of policies*
 
 [source,sh,subs="attributes",role=execute]
 
 ----
-curl $ACS_URL/v1/clusters
+curl -k -H "Authorization: Bearer $API_TOKEN" "https://$ACS_URL/v1/policies" | jq
 ----
 
-*Example Using curl where you create a new policy*
+*Sample output*
+[source,json]
+----
+...
+    {
+      "id": "ccd66f67-0b69-4081-9d01-da692f7db3b4",
+      "name": "Mount Container Runtime Socket",
+      "description": "Alert on deployments with a volume mount on the container runtime socket",
+      "severity": "MEDIUM_SEVERITY",
+      "disabled": false,
+      "lifecycleStages": [
+        "DEPLOY"
+      ],
+      "notifiers": [],
+      "lastUpdated": null,
+      "eventSource": "NOT_APPLICABLE",
+      "isDefault": true
+    },
+...
+----
+
+*Example using curl to get a list of alerts*
+
+[source,sh,subs="attributes",role=execute]
+
+----
+curl -k -H "Authorization: Bearer $API_TOKEN" "https://$ACS_URL:443/v1/alerts" | jq
+----
+
+*Sample output*
+[source,json]
+----
+...
+      },
+      "state": "ACTIVE",
+      "enforcementCount": 0,
+      "enforcementAction": "UNSET_ENFORCEMENT",
+      "commonEntityInfo": {
+        "clusterName": "production",
+        "namespace": "external-secrets",
+        "clusterId": "06b403e7-95f5-4389-8dce-b46505b0e6b4",
+        "namespaceId": "e08d8226-d38d-4985-9ff9-a5fed622b49f",
+        "resourceType": "DEPLOYMENT"
+      },
+      "deployment": {
+        "id": "3ba88ba5-46f3-4792-94de-30f735ee0e0a",
+        "name": "external-secrets",
+        "clusterName": "production",
+        "namespace": "external-secrets",
+        "clusterId": "06b403e7-95f5-4389-8dce-b46505b0e6b4",
+        "inactive": false,
+        "namespaceId": "e08d8226-d38d-4985-9ff9-a5fed622b49f"
+      }
+    }
+  ]
+}
+----
+
+*Let's cut down on that list of alerts into something more manageable*
 
 [source,sh,subs="attributes",role=execute]
 ----
-curl -X POST "$ACS_URL/v1/policies" -k -H "Authorization: Bearer $API_TOKEN" -H "Content-Type: application/json" -d '{
-  "name": "New Policy",
-  "description": "Description of the new policy",
-  "policyDefinition": {
-  }
-}'
----- 
+curl -k -H "Authorization: Bearer $API_TOKEN" https://$ACS_URL:443/v1/alerts?query="Namespace:vault" | jq
+----
 
-*Example using curl where you update a policy*
+*Sample output*
+[source,json]
+----
+{
+  "alerts": [
+    {
+      "id": "698801da-a6c5-43b6-9d74-a9eeda03241e",
+      "lifecycleStage": "RUNTIME",
+      "time": "2024-07-15T16:09:15.141729903Z",
+      "policy": {
+        "id": "8ab0f199-4904-4808-9461-3501da1d1b77",
+        "name": "Kubernetes Actions: Exec into Pod",
+        "severity": "HIGH_SEVERITY",
+        "description": "Alerts when Kubernetes API receives request to execute command in container",
+        "categories": [
+          "Kubernetes Events"
+        ],
+        "developerInternalFields": null
+......
+      "deployment": {
+        "id": "3cbac7a0-769e-4746-95ed-659d6bff4a28",
+        "name": "vault-agent-injector",
+        "clusterName": "production",
+        "namespace": "vault",
+        "clusterId": "06b403e7-95f5-4389-8dce-b46505b0e6b4",
+        "inactive": false,
+        "namespaceId": "85469adb-1094-4ebe-a415-a526c9c95e98"
+      }
+    }
+  ]
+}
+----
+
+A little bit more manageable this time. Next let's combine a few namespaces together
 
 [source,sh,subs="attributes",role=execute]
 ----
-curl -X PUT "$ACS_URL/v1/policies/{policy_id}" -H "Authorization: Bearer $API_TOKEN" -H "Content-Type: application/json" -d '{
-  "name": "Updated Policy Name",
-  "description": "Updated description"
-}'
+curl -k -H "Authorization: Bearer $API_TOKEN" https://$ACS_URL/v1/alerts?query="Cluster:production+Namespace:stackrox,kube-system" | jq -r '.'
 ----
 
-*Example using curl where you delete a policy*
+Combination search query with URL-safe encoding:  
 
 [source,sh,subs="attributes",role=execute]
 ----
-curl -X DELETE "$ACS_URL/v1/policies/{policy_id}" -H "Authorization: Bearer $API_TOKEN"
+curl -k -H "Authorization: Bearer $API_TOKEN" https://$ACS_URL/v1/alerts?query=Severity%3AHIGH_SEVERITY%2BNamespace%3Apayments | jq -r '.'
+----
+
+Search filter for time range:  
+
+[source,sh,subs="attributes",role=execute]
+----
+curl -k -H "Authorization: Bearer $API_TOKEN" https://$ACS_URL/v1/alerts?query==Violation%20Time%3A%3E1d | jq -r '.'
 ----
 
 == Documentation and Resources
@@ -111,6 +201,4 @@ We'll discuss after the module is done.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOWptdDZteGo5a3RheGc5ajc0bXh1bHNpYjN6NGJiY2NjajhsNDExayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/nbvFVPiEiJH6JOGIok/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
-You've made it through the Roadshow! There are a few extra modules for you to work through.
-
-Thank you for all of your hard work!
+Great work! On to the last module!

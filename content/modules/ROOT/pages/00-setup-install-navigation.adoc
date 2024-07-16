@@ -75,21 +75,88 @@ image::01-rhacs-console-dashboard.png[RHACS console]
 Congrats! Half way there.
 ====
 
-==== OpenShift admin access verification
+=== OpenShift admin access verification
+
+OpenShift admin access verification involves ensuring that users have the appropriate permissions and roles assigned to them for managing the OpenShift cluster. This can be done by checking the user roles and bindings within the cluster. You'll be verifying your permissions using the oc command-line tool.
+
+There are TWO clusters we need to verify access too.
+
+==== Verify access to the EKS cluster
 
 [source,sh,subs="attributes",role=execute]
 ----
-oc whoami
+oc config use-context eks-admin
+----
+
+*Sample output*
+[source,bash]
+----
+[lab-user@bastion ~]$oc config use-context eks-admin
+Switched to context "eks-admin".
+----
+
+[source,sh,subs="attributes",role=execute]
+----
+kubectl whoami
+kubectl get nodes -A
 ----
 
 *Sample output*
 [source,bash]
 ----
 [lab-user@bastion ~]$ oc whoami
-system:admin
+kubectl get nodes -A
+Error from server (NotFound): the server could not find the requested resource (get users.user.openshift.io ~)
+NAME                                            STATUS   ROLES    AGE    VERSION
+ip-<IP_ADDRESS>.us-east-2.compute.internal    Ready    <none>   163m   v1.28.8-eks-ae9a62a
+ip-<IP_ADDRESS>.us-east-2.compute.internal   Ready    <none>   163m   v1.28.8-eks-ae9a62a
+ip-<IP_ADDRESS>.us-east-2.compute.internal   Ready    <none>   163m   v1.28.8-eks-ae9a62a
 ----
 
-==== roxctl CLI verification 
+We should not have access with the *oc* command as it is an OpenShift command but you can see the EKS nodes and their information.
+
+==== Verify access to the OpenShift cluster
+
+[source,sh,subs="attributes",role=execute]
+----
+oc config use-context admin
+----
+
+*Sample output*
+[source,bash]
+----
+[lab-user@bastion ~]$oc config use-context eks-admin
+Switched to context "admin".
+----
+
+[source,sh,subs="attributes",role=execute]
+----
+oc whoami
+oc get nodes -A
+----
+
+*Sample output*
+[source,bash]
+----
+[lab-user@bastion ~]$ oc whoami
+oc get nodes -A
+system:admin
+NAME                                        STATUS   ROLES                  AGE    VERSION
+<OCP_IP>0.us-east-2.compute.internal   Ready    worker                 4h1m   v1.27.11+749fe1d
+<OCP_IP>.us-east-2.compute.internal    Ready    control-plane,master   4h7m   v1.27.11+749fe1d
+<OCP_IP>.us-east-2.compute.internal    Ready    control-plane,master   4h7m   v1.27.11+749fe1d
+<OCP_IP>.us-east-2.compute.internal     Ready    worker                 4h2m   v1.27.11+749fe1d
+<OCP_IP>.us-east-2.compute.internal   Ready    control-plane,master   4h7m   v1.27.11+749fe1d
+<OCP_IP>.us-east-2.compute.internal     Ready    worker                 4h2m   v1.27.11+749fe1d
+----
+
+And you will see the OCP role this time with the *oc* command since we are now working on the OpenShift cluster.
+
+IMPORTANT: We will be working with the OpenShift cluster in all modules unless otherwise specified. 
+
+=== roxctl CLI verification 
+
+Next, Let's verify that we have access ot the RHACS Central Service.
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -133,13 +200,17 @@ Access:
 	rw WorkflowAdministration
 ----
 
+This output is showing that you have unrestricted access to the RHACS product. these permissions can be seen in the RHACS Access Control tab that we will review later.
+
+image::01-rhacs-access-control.png[RHACS access control]
+
 == Setup our workshop applications
 
 === Build a container image
 
 In this section we will download the "Java app" application, give it a new tag and push the image to Quay. Later we will deploy the image to the OpenShift Cluster and use it in future modules.
 
-. Let's export a few variable to make our life easier
+. Let's export a few variable to make our life easier. These Variables will remain in the .bashrc file to be save incase you have to refresh the terminal.
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -381,14 +452,6 @@ IMPORTANT: You will need to ensure that the variables are set before running the
 
 [source,sh,subs="attributes",role=execute]
 ----
-export QUAY_USER={quay_admin_username}
-export QUAY_URL=$(oc -n quay-enterprise get route quay-quay -o jsonpath='{.spec.host}')
-----
-
-IMPORTANT: Verify that the variables are correct
-
-[source,sh,subs="attributes",role=execute]
-----
 echo $QUAY_USER
 echo $QUAY_URL
 ----
@@ -440,7 +503,7 @@ roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --ima
 ----
 
 [start=6]
-. Wait a few sceonds then run the following command to ensure that the applications are up and running
+. Wait a few seconds then run the following command to ensure that the applications are up and running
 
 [source,bash,role="execute"]
 ----
