@@ -15,3 +15,6 @@ oc config use-context admin
 oc config use-context eks-admin
 ````
 Let us know if we can help anywhere else.
+
+oc config use-context admin
+oc patch central.platform.stackrox.io stackrox-central-services -n stackrox --patch ‘{“spec”:{“scannerV4":{“scannerComponent”:“Default”}}}’ --type=merge

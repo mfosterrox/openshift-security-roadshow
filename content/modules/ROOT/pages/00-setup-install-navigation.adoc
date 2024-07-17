@@ -97,8 +97,8 @@ Switched to context "eks-admin".
 
 [source,sh,subs="attributes",role=execute]
 ----
-kubectl whoami
-kubectl get nodes -A
+oc whoami
+oc get nodes -A
 ----
 
 *Sample output*

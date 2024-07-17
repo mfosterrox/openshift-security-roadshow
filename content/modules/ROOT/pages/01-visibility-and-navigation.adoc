@@ -236,13 +236,17 @@ The Compliance 2.0 tab is in tech preview this was just released in ACS 4.4, and
 
 The Compliance 1.0 dashboard should be empty when you're in here for the first time. It's because you have not completed a scan.
 
-image::00-compliance-2.png[link=self, window=blank, width=100%]
+.Procedure
 
-We will go into this in a later module, but for now, hit the *Scan environment* button in the top right of the page to kick off your first scan. 
+. We will go into this in a later module, but for now, hit the *Scan environment* button in the top right of the page to kick off your first scan. 
+
+image::00-compliance-2.png[link=self, window=blank, width=100%]
 
 image::00-compliance-3.png[link=self, window=blank, width=100%]
 
-Ensure you see the bar graphs fill up with data before moving. We we will dissthesethis compliance results in a later module
+[start=2]
+
+. Ensure you see the bar graphs fill up with data before moving. We we will dissthesethis compliance results in a later module
 
 image::00-compliance-4.png[link=self, window=blank, width=100%]
 

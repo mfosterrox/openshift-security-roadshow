@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
+#
 
 echo "Starting build process..."
 echo "Removing old site..."
 rm -rf ./www/*
 echo "Building new site..."
 
-docker run --rm --name showroom-builder --platform linux/amd64 \
+podman run --rm --name showroom-builder --platform linux/amd64 \
   -v "./:/antora:z" \
   docker.io/antora/antora --stacktrace default-site.yml
 
