@@ -6,9 +6,7 @@ echo "Removing old site..."
 rm -rf ./www/*
 echo "Building new site..."
 
-podman run --rm --name showroom-builder --platform linux/amd64 \
-  -v "./:/antora:z" \
-  docker.io/antora/antora --stacktrace default-site.yml
+npx antora --fetch default-site.yml
 
 echo "Build process complete. Check the ./www folder for the generated site."
 echo "To view the site locally, run the following command: utilities/lab-serve"

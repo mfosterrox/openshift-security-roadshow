@@ -1,4 +1,5 @@
 = Lab setup and introduction
+:toclevels: 1
 
 == Module goals
 
@@ -88,9 +89,10 @@ There are TWO clusters we need to verify access too.
 oc config use-context eks-admin
 ----
 
-*Sample output*
-[source,bash]
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
 ----
+
 [lab-user@bastion ~]$oc config use-context eks-admin
 Switched to context "eks-admin".
 ----
@@ -98,11 +100,11 @@ Switched to context "eks-admin".
 [source,sh,subs="attributes",role=execute]
 ----
 oc whoami
-oc get nodes -A
+kubectl get nodes -A
 ----
 
-*Sample output*
-[source,bash]
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
 ----
 [lab-user@bastion ~]$ oc whoami
 kubectl get nodes -A
@@ -122,8 +124,8 @@ We should not have access with the *oc* command as it is an OpenShift command bu
 oc config use-context admin
 ----
 
-*Sample output*
-[source,bash]
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
 ----
 [lab-user@bastion ~]$oc config use-context eks-admin
 Switched to context "admin".
@@ -135,8 +137,8 @@ oc whoami
 oc get nodes -A
 ----
 
-*Sample output*
-[source,bash]
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
 ----
 [lab-user@bastion ~]$ oc whoami
 oc get nodes -A
@@ -164,8 +166,8 @@ export ROX_CENTRAL_ADDRESS={acs_route}
 roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" central whoami
 ----
 
-*Sample output*
-[source,bash]
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
 ----
 UserID:
 	auth-token:718744a9-9548-488b-a8b9-07b2c59ea5e6
@@ -244,8 +246,8 @@ podman login $QUAY_URL
 
 NOTE: Use the quay admin credentials, Username: *{quay_admin_username}* & password: *{quay_admin_password}*. You can create unique user and group credentials in Quay for proper segmentation. 
 
-*Sample output*
-[source,bash]
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
 ----
 Username: quayadmin
 Password:
@@ -260,8 +262,8 @@ Login Succeeded!
 podman pull quay.io/jechoisec/ctf-web-to-system-01
 ----
 
-*Sample output*
-[source,bash]
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
 ----
 Trying to pull quay.io/jechoisec/ctf-web-to-system-01:latest...
 Getting image source signatures
@@ -291,8 +293,8 @@ NOTE: Quay will automatically create a private registry to store our Java apppli
 podman push $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 --remove-signatures
 ----
 
-*Sample output*
-[source,bash]
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
 ----
 Copying blob 3113fb957b33 done 
 ...

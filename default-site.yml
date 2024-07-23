@@ -6,16 +6,8 @@ site:
 
 content:
   sources:
-    - url: ./
+    - url: .
       start_path: content
-
-# asciidoc:
-#   attributes:
-#     release-version: master
-#     page-pagination: true
-#   extensions:
-#     - ./content/supplemental-ui/lib/tab-block.js
-#     - ./content/supplemental-ui/lib/remote-include-processor.js
 
 ui:
   bundle:

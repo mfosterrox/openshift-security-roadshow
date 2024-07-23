@@ -14,16 +14,19 @@ Start by networking the running container so that you can access it. the followi
 oc config use-context eks-admin
 export TUTORIAL_HOME="$(pwd)/demo-apps"
 oc apply -f $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml
-oc get svc ctf-web-to-system-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
 ----
 
-*Sample output*
-[source,bash]
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
 ----
 Switched to context "eks-admin".
 service/ctf-web-to-system-service unchanged
 deployment.apps/ctf-web-to-system configured
-acd92c6dbdc764acba141ee700c02bc7-1182151901.us-east-2.elb.amazonaws.com
+----
+
+[source,sh,role=execute]
+----
+oc get svc ctf-web-to-system-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
 ----
 
 IMPORTANT: Use the amazonaws.com link to access the vulnerable container

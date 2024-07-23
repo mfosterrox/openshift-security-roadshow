@@ -11,50 +11,50 @@ The main dashboard shows a variety of information pertaining to your clusters in
 
 The dashboard also shows the Asset Coverage, Top 10 Risk Scores by either Policy or Assets, as well as an Asset Graph. 
 
-image::../assets/images/misc-paladin-01.png[]
+image::misc-paladin-01.png[]
 
 The information displayed on the dashboard is linked to the Asset Group selected. In the case of the screenshot above, the Asset Group is currently assigned as All Sources. 
 
 To change the Asset Group, click on Assets and select the asset you wish to see. 
 
-image::../assets/images/misc-paladin-02.gif[]
+image::misc-paladin-02.gif[]
 
 With the scope changed, we can see the information provided has changed to reflect that specific asset group. 
 
-image::../assets/images/misc-paladin-03.png[]
+image::misc-paladin-03.png[]
 
 === Out of SLA
 
 Another piece of useful information is the Out of SLA number. This shows the number of violations that are outside of the Service Level Agreement timeframe. To see the SLA's, click on the Paladin icon and select SLA Information.
 
-image:../assets/images/misc-paladin-04.gif[]
+image:misc-paladin-04.gif[]
 
 With the Out of SLA number, it becomes easy to find which violations should be adressed first. Clicking an Out of SLA number will take you to the violations page for open, out of SLA violagions of that severity. 
 
-image:../assets/images/misc-paladin-05.gif[]
+image:misc-paladin-05.gif[]
 
 
 === The Asset Graph
 
 The Asset Graph shows the utilization of your environment. This information can be useful to understand, not only the cadance of your environment, but also anomolies within your environment. For example, a sudden, unexpected spike in utilization could be representative of a bad actor deploying unapproved workloads. 
 
-image::../assets/images/misc-paladin-06.png[]
+image::misc-paladin-06.png[]
 
 It is also possible to only look at specific assets by selecting the Asset Type.
 
-image::../assets/images/misc-paladin-07.gif[]
+image::misc-paladin-07.gif[]
 
 === Policy Compliance Overview
 
 Through the Policy Compliance Overview, you can easily track various policy violations. By default, the list is sorted by severity. You can list by number of violations by clicking on the Violations text. 
 
-image::../assets/images/misc-paladin-08.gif[]
+image::misc-paladin-08.gif[]
 
 == Violations Page
 
 The violations page shows the violations for the currently selected assets. By default, the list is displayed by Policy Risk Score (PRS). This can changed by clicking the value with which you want to order the list. 
 
-image::../assets/images/misc-paladin-09.gif[]
+image::misc-paladin-09.gif[]
 
 Clicking a particular violation will take you to that violation's detail page. 
 
@@ -62,5 +62,5 @@ Clicking a particular violation will take you to that violation's detail page.
 
 The Violation Details page displays information pertinent to the violation in question. It will show at the top, the Policy Risk Score, if it is open or not, the severity, if it is still in SLA or out of SLA, as well as the kind of asset. In the section below, it will show the Policy Violated, the Asset ID linked to the violation, the reason of the violation, as well as when it was created and the Age of the violation. A section for commenting as well as an audit log. 
 
-image:../assets/images/misc-paladin-10.png[]
+image:misc-paladin-10.png[]
 

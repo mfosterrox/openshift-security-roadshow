@@ -16,5 +16,32 @@ oc config use-context eks-admin
 ````
 Let us know if we can help anywhere else.
 
-oc config use-context admin
-oc patch central.platform.stackrox.io stackrox-central-services -n stackrox --patch ‘{“spec”:{“scannerV4":{“scannerComponent”:“Default”}}}’ --type=merge
+kubectl set resources deployment sensor -c=sensor --requests=cpu=100m,memory=256Mi --limits=cpu=2,memory=2Gi -n stackrox
+
+
+Check that the pod is up and running:
+
+[.lines_space]
+[.console-input]
+[source,bash, subs="+macros,+attributes"]
+----
+kubectl get pods
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+NAME                        READY   STATUS    RESTARTS   AGE
+{podname}   1/1     Running   0          5s
+----
+
+Then let's go into the running pod to execute some commands:
+
+[.console-input]
+[source,bash, subs="+macros,+attributes"]
+----
+kubectl exec -ti {podname} /bin/bash
+----
+
+NOTE: Change the pod name with your pod name.
+

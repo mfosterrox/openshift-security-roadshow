@@ -48,7 +48,7 @@ export ACS_URL="$(oc -n stackrox get route central -o jsonpath='{.spec.host}')"
 export API_TOKEN=your_api_token
 ----
 
-[source,bash]
+[source,sh,subs="attributes",role=execute]
 ----
 echo $ACS_URL
 echo $API_TOKEN
@@ -67,6 +67,7 @@ curl -k -H "Authorization: Bearer $API_TOKEN" "https://$ACS_URL/v1/policies" | j
 ----
 
 *Sample output*
+[.console-output]
 [source,json]
 ----
 ...

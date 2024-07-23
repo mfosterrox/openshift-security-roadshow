@@ -111,8 +111,8 @@ POD=$(oc get pod -l app=ctf-web-to-system -o jsonpath="{.items[0].metadata.name}
 oc exec $POD -i --tty -- /bin/bash
 ----
 
-*Sample output*
-[source,bash]
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
 ----
 [demo-user@bastion ~]$ POD=$(oc get pod -l app=ctf-web-to-system -o jsonpath="{.items[0].metadata.name}")
 oc exec $POD -i --tty -- /bin/bash
@@ -276,8 +276,8 @@ EOF
 oc apply -f ubuntu-deployment.yml
 ----
 
-*Sample output*
-[source,bash]
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
 ----
 [lab-user@bastion ~]$ oc apply -f ubuntu-deployment.yml 
 Error from server (Failed currently enforced policies from StackRox): error when creating "ubuntu-deployment.yml": admission webhook "policyeval.stackrox.io" denied the request: 
@@ -320,8 +320,8 @@ export TUTORIAL_HOME="$(pwd)/demo-apps"
 roxctl -e $ROX_CENTRAL_ADDRESS:443 deployment check --file $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml --insecure-skip-tls-verify
 ----
 
-*Sample output*
-[source,bash]
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
 ----
 [demo-user@bastion ~]$ roxctl -e $ROX_CENTRAL_ADDRESS:443 deployment check --file $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml --insecure-skip-tls-verify
 Policy check results for deployments: [ctf-web-to-system]
@@ -438,8 +438,8 @@ podman push $QUAY_URL/$QUAY_USER/ubuntu:latest --remove-signatures
 
 IMPORTANT: We are using the *image check* CLI option, NOT the image scan. 
 
-*Sample output*
-[source,bash]
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
 ----
  },
  "components": 968,
@@ -503,8 +503,8 @@ roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image check --im
 podman push $QUAY_URL/$QUAY_USER/ubuntu:latest --remove-signatures
 ----
 
-*Sample output*
-[source,bash]
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
 ----
 ------+--------------------------------+
 |   Ubuntu Package Manager in    |   LOW    |      -       |      Alert on deployments      |   - Image includes component   |    Run `dpkg -r --force-all    |

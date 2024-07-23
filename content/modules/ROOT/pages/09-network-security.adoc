@@ -150,8 +150,8 @@ IMPORTANT: The netpol command only looks at the services and deployment manifest
 roxctl netpol connectivity map $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
 ----
 
-*Sample output*
-[source,bash]
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
 ----
 ....
 backend/postgres[Deployment] => backend/api-server[Deployment] : All Connections
@@ -184,8 +184,8 @@ Now we have network policies! Time to put them to work
 oc apply -f $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
 ---- 
 
-*Sample output*
-[source,bash]
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
 ----
 networkpolicy.networking.k8s.io/api-server-netpol created
 networkpolicy.networking.k8s.io/backend-atlas-netpol created
@@ -208,8 +208,8 @@ roxctl netpol connectivity map $TUTORIAL_HOME/kubernetes-manifests/medical-appli
 oc get --all-namespaces networkpolicies -o json | jq '[.items[] | select((.metadata.namespace | startswith("openshift") | not) and (.metadata.namespace | startswith("kube-") | not) and .metadata.namespace != "default") | .metadata.namespace] | unique'
 ----
 
-*Sample output*
-[source,bash]
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
 ----
 INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-application/backend/everything.yml, skipping object with type: Secret
 ...

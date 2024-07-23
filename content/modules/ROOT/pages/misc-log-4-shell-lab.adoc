@@ -127,8 +127,8 @@ oc create -f ./deploy.yaml
 . Examine the output and note that the Deployment failed to start:
 +
 
-.Sample Output
-[source,texinfo]
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
 ----
 Error from server (Failed currently enforced policies from StackRox): error when creating "./deploy.yaml": admission webhook "policyeval.stackrox.io" denied the request:
 The attempted operation violated 1 enforced policy, described below:
