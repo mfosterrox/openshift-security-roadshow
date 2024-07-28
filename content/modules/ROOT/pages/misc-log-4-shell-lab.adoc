@@ -1,21 +1,79 @@
-= Find and Block Log4Shell
+:labname: Black Hat - RHACS Log4Shell Vulnerability Demonstration
 
-IMPORTANT: This module has not been tested. Proceed with caution.
+:numbered:
 
-== Module goals
+== Introduction to {labname}
+
 .Goals
 * Prevent the execution of vulnerable deployments
 * Report and resolve the violation
 
+[[labexercises]]
+
+=== Access the Student VM via SSH
+
+The student VM host serves as an important access point into the environment, so you must ensure you can connect to it.
+
+*Requirements* 
+
+* *The ssh address for the bastion host:* 
+** For example, 'lab-user@bastion.4klh8.sandbox1150.opentlc.com' 
+* *The username and password for the Linux student VM (lab-user)*
+
+[NOTE]
+This information will be available in the services tab at link:https://demo.redhat.com/[demo.redhat.com^]. Or in the lab provisioning email.
+
+image::images/11_log4shell_01.png[]
+
+.Procedure
+
+.1. Connect to your student VM host using the command and password you received in the provisioning email:
+
+*Sample command*
+[source,bash,role="copypaste copypaste-warning"]
+----
+ssh lab-user@bastion.<$GUID>.<$BASEDOMAIN>
+----
+
+*Sample output*
+[source,bash]
+----
+The authenticity of host' bastion.4klh8.sandbox1150.opentlc.com (3.134.153.6)' cant be established.
+ED25519 key fingerprint is SHA256:g0H5C1vP1xNqhL7fp0HxMRDPgjgzuAdi3ZIyKQl1mPU.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+----
+.2. Verify that the GUID variable is set correctly for your environment:
+
+*Sample command*
+[source,bash,role="execute"]
+----
+echo $GUID
+----
+*Sample output*
+[source,bash]
+----
+c3po
+----
+
+[NOTE]
+Your GUID may be a 4- or 5-character alphanumeric string.
+
+
 == Test Log4Shell Policy
 
 In this lab, you demonstrate how to quickly stop workloads with `log4shell` vulnerabilities from deploying using Red Hat^(R)^ Advanced Cluster Security for Kubernetes (RHACS).
+You also learn how to locate workloads with `log4shell`.
 
-You also learn how to locate workloads with `log4shell`. The Log4Shell policy is a build- and deployment-time policy.It analyses the image file for vulnerable Java(TM) Log4J versions.
+The Log4Shell policy is a build- and deployment-time policy.
+It analyses the image file for vulnerable Java(TM) Log4J versions.
 
 === Deploy Vulnerable Image
 
+ADD COMMENTARY
+
 .Procedure
+
 . Let's start by creating a new project and deploying a vulnerable Log4Shell application. 
 
 [source,bash,role="execute"]
@@ -26,7 +84,7 @@ oc new-project log4shell
 .Sample Output
 [source,texinfo]
 ----
-Already on project "log4shell" on server "https://api.cluster-f82tm.f82tm.sandbox1350.opentlc.com:6443".
+Now using project "log4shell" on server "https://api.cluster-fdg9s.fdg9s.sandbox674.opentlc.com:6443".
 
 You can add applications to this project with the 'new-app' command. For example, try:
 
@@ -76,7 +134,7 @@ EOF
 
 [source,bash,role="execute"]
 ----
-oc create -f deploy.yaml
+oc create -f ./deploy.yaml
 ----
 
 Notice the application was deployed without issues. 
@@ -88,15 +146,20 @@ It is now possible to see the Log4Shell vulnerability in the ACS dashboard.
 .Procedure
 . In the ACS dashboard, navigate to *Violations*
 
+image::images/11_log4shell_02.png[]
+
 Notice `Log4Shell: log4j Remote Code Execution vulnerability` is now visible in the violations list. 
 
 . Click on the `Log4Shell: log4j Remote Code Execution vulnerability` to get more information on the violation. 
 
 . Click on the *Deployment* tab to view information about the vulnerable deployment. 
 
+// image::images/11_log4shell_03.png[]
+
 . Click on the *Policy* tab to view the current policy. 
 
 . Delete the log4shell deployment: 
+
 [source,bash,role="execute"]
 ----
 oc delete -f ./deploy.yaml
@@ -111,9 +174,17 @@ You must enable deploy-time enforcement for the `Log4Shell: log4j Remote Code Ex
 +
 TIP: To find the policy quickly, type `Policy` followed by `Log4Shell` into the filter bar on the *Policy Management* page.
 
+// image::images/11_log4shell_04.png[]
+
 . Select the policy by clicking the three dots to the right and select `Edit policy`.
+
+image::images/11_log4shell_05.png[]
+
 . Use the `Policy Behavior` tab and enable runtime enforcement by clicking the `inform and enforce button` under `Response Method`
 . Scroll down to `Configure enforcement behavior` and switch both the `Enforce on Build` and `DEnforce on Deploy` selectors to on. 
+
+image::images/11_log4shell_06.png[]
+
 . Click *Review Policy* on the left and *Save*.
 
 +
@@ -127,8 +198,8 @@ oc create -f ./deploy.yaml
 . Examine the output and note that the Deployment failed to start:
 +
 
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
+.Sample Output
+[source,texinfo]
 ----
 Error from server (Failed currently enforced policies from StackRox): error when creating "./deploy.yaml": admission webhook "policyeval.stackrox.io" denied the request:
 The attempted operation violated 1 enforced policy, described below:
