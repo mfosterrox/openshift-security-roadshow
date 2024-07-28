@@ -12,6 +12,7 @@ docs/
 gh-pages/
 dependency-reduced-pom.xml
 svm.jar
+utilities/openshift-security-roadshow.code-workspace
 
 ### STS ###
 .apt_generated
