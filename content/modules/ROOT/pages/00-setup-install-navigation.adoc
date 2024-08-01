@@ -501,7 +501,19 @@ And this command triggers a vulnerability scan by RHACS to updates the vulnerabi
 
 [source,sh,subs="attributes",role=execute]
 ----
-roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 --force
+roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 --force -o table
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 --force -o table
+Scan results for image: $YOUR_DOMAIN/quayadmin/ctf-web-to-system:1.0
+(TOTAL-COMPONENTS: 50, TOTAL-VULNERABILITIES: 84, LOW: 15, MODERATE: 25, IMPORTANT: 27, CRITICAL: 17)
+....
++----------------------+---------+---------------------+-----------+----------------------------------------------------------------------------------------+--------------------+
+|     yargs-parser     |  9.0.2  |    CVE-2020-7608    | MODERATE  |                     https://nvd.nist.gov/vuln/detail/CVE-2020-7608                     |       13.1.2       |
++----------------------+---------+---------------------+-----------+----------------------------------------------------------------------------------------+--------------------+
 ----
 
 [start=6]

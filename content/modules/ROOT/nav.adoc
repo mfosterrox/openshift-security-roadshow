@@ -10,7 +10,7 @@
 * xref:09-network-security.adoc[9. Network Security]
 * xref:10-installation.adoc[10. Installation]
 
-* xref:misc-log-4-shell-lab.adoc[Bonus - log4shell Example]
+* xref:misc-log-4-shell-lab.adoc[Black Hat - log4shell Example]
 * xref:misc-hacking-linux.adoc[Bonus - Hacking Linux]
 * xref:misc-paladin.adoc[Bonus - Paladin Cloud Integration]
 

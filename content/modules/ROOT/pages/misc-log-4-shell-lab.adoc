@@ -1,88 +1,35 @@
-:labname: Black Hat - RHACS Log4Shell Vulnerability Demonstration
+==  Black Hat - RHACS Log4Shell Vulnerability Demonstration 
 
-:numbered:
-
-== Introduction to {labname}
+In this lab, you demonstrate how to quickly stop workloads with `log4shell` vulnerabilities from deploying using Red Hat^(R)^ Advanced Cluster Security for Kubernetes (RHACS). You also learn how to locate workloads with `log4shell`.
 
 .Goals
 * Prevent the execution of vulnerable deployments
 * Report and resolve the violation
 
-[[labexercises]]
+== Ensure a clean environment
 
-=== Access the Student VM via SSH
+. Start by ensuring you have a clean lab environment. Run the following command to reset any changes others may have made.
 
-The student VM host serves as an important access point into the environment, so you must ensure you can connect to it.
-
-*Requirements* 
-
-* *The ssh address for the bastion host:* 
-** For example, 'lab-user@bastion.4klh8.sandbox1150.opentlc.com' 
-* *The username and password for the Linux student VM (lab-user)*
-
-[NOTE]
-This information will be available in the services tab at link:https://demo.redhat.com/[demo.redhat.com^]. Or in the lab provisioning email.
-
-image::images/11_log4shell_01.png[]
-
-.Procedure
-
-.1. Connect to your student VM host using the command and password you received in the provisioning email:
-
-*Sample command*
-[source,bash,role="copypaste copypaste-warning"]
+[source,sh,subs="attributes",role=execute]
 ----
-ssh lab-user@bastion.<$GUID>.<$BASEDOMAIN>
+oc delete project log4shell
+rm ~/deploy.yaml
 ----
 
-*Sample output*
-[source,bash]
-----
-The authenticity of host' bastion.4klh8.sandbox1150.opentlc.com (3.134.153.6)' cant be established.
-ED25519 key fingerprint is SHA256:g0H5C1vP1xNqhL7fp0HxMRDPgjgzuAdi3ZIyKQl1mPU.
-This key is not known by any other names.
-Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
-----
-.2. Verify that the GUID variable is set correctly for your environment:
+== Deploy the log4shell infected container image
 
-*Sample command*
-[source,bash,role="execute"]
-----
-echo $GUID
-----
-*Sample output*
-[source,bash]
-----
-c3po
-----
+The next step is to deploy the log4shell laden container image to the OpenShift cluster. 
 
-[NOTE]
-Your GUID may be a 4- or 5-character alphanumeric string.
+. Procedure
+. Start by creating a new project and deploying a vulnerable Log4Shell application. 
 
-
-== Test Log4Shell Policy
-
-In this lab, you demonstrate how to quickly stop workloads with `log4shell` vulnerabilities from deploying using Red Hat^(R)^ Advanced Cluster Security for Kubernetes (RHACS).
-You also learn how to locate workloads with `log4shell`.
-
-The Log4Shell policy is a build- and deployment-time policy.
-It analyses the image file for vulnerable Java(TM) Log4J versions.
-
-=== Deploy Vulnerable Image
-
-ADD COMMENTARY
-
-.Procedure
-
-. Let's start by creating a new project and deploying a vulnerable Log4Shell application. 
-
-[source,bash,role="execute"]
+[source,sh,subs="attributes",role=execute]
 ----
 oc new-project log4shell
 ----
 
-.Sample Output
-[source,texinfo]
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
 ----
 Now using project "log4shell" on server "https://api.cluster-fdg9s.fdg9s.sandbox674.opentlc.com:6443".
 
@@ -95,10 +42,10 @@ to build a new example application in Ruby. Or use kubectl to deploy a simple Ku
     kubectl create deployment hello-node --image=k8s.gcr.io/serve_hostname
 ----
 
-. Deploy the vulnerable application.
-.. Create a Deployment manifest file:
+[start=2]
+. Next, deploy the vulnerable application by creating and applying the following deployment YAML file:
 
-[source,bash,role="execute"]
+[source,sh,subs="attributes",role=execute]
 ----
 cat << EOF >deploy.yaml
 apiVersion: apps/v1
@@ -117,7 +64,7 @@ spec:
         deployment: log4shell
     spec:
       containers:
-      - image: quay.io/gpte-devops-automation/log4shell-vuln-app:v0.1.1
+      - image: quay.io/rhacs-misc/log4shell:1.0
         imagePullPolicy: IfNotPresent
         name: log4shell
         ports:
@@ -130,40 +77,118 @@ spec:
 EOF
 ----
 
-.. Create the Deployment based on the manifest file:
+[start=3]
+. Deploy the log4shell deployment into your new projecct by using the 'oc' CLI
 
 [source,bash,role="execute"]
 ----
 oc create -f ./deploy.yaml
 ----
 
-Notice the application was deployed without issues. 
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ oc create -f ./deploy.yaml
+deployment.apps/log4shell created
+----
 
-=== Check for vulnerability in ACS dashboard. 
-
-It is now possible to see the Log4Shell vulnerability in the ACS dashboard.
-
-.Procedure
-. In the ACS dashboard, navigate to *Violations*
-
-image::images/11_log4shell_02.png[]
-
-Notice `Log4Shell: log4j Remote Code Execution vulnerability` is now visible in the violations list. 
-
-. Click on the `Log4Shell: log4j Remote Code Execution vulnerability` to get more information on the violation. 
-
-. Click on the *Deployment* tab to view information about the vulnerable deployment. 
-
-// image::images/11_log4shell_03.png[]
-
-. Click on the *Policy* tab to view the current policy. 
-
-. Delete the log4shell deployment: 
+[start=4]
+. Ensure that the application was deployed without issues. 
 
 [source,bash,role="execute"]
 ----
-oc delete -f ./deploy.yaml
+oc get pods -l deployment=log4shell -A
 ----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ oc get pods -l deployment=log4shell -A
+NAMESPACE   NAME                         READY   STATUS    RESTARTS   AGE
+log4shell   log4shell-5d4b665947-grp8d   1/1     Running   0          63s
+----
+
+IMPORTANT: For the last part of this section, check to make sure that the log4shell vulnerability is in the container with a quick CLI scan using the roxctl CLI
+
+[start=5]
+. Execute the following command in the terminal to ensure the log4shell vulnerability is present.
+
+[source,bash,role="execute"]
+----
+roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=quay.io/rhacs-misc/log4shell:1.0 --force -o table --severity=CRITICAL
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+misc/log4shell:1.0 --force -o table --severity=CRITICAL
+Scan results for image: quay.io/rhacs-misc/log4shell:1.0
+(TOTAL-COMPONENTS: 4, TOTAL-VULNERABILITIES: 3, LOW: 0, MODERATE: 0, IMPORTANT: 0, CRITICAL: 3)
+
++-------------------------------------+---------+----------------+----------+-------------------------------------------------+---------------+
+|              COMPONENT              | VERSION |      CVE       | SEVERITY |                      LINK                       | FIXED VERSION |
++-------------------------------------+---------+----------------+----------+-------------------------------------------------+---------------+
+| org.apache.logging.log4j:log4j-core | 2.14.1  | CVE-2021-44228 | CRITICAL | https://nvd.nist.gov/vuln/detail/CVE-2021-44228 |    2.15.0     |
++                                     +         +----------------+----------+-------------------------------------------------+---------------+
+|                                     |         | CVE-2021-45046 | CRITICAL | https://nvd.nist.gov/vuln/detail/CVE-2021-45046 |    2.16.0     |
++-------------------------------------+---------+----------------+----------+-------------------------------------------------+---------------+
+|            spring-beans             | 5.3.10  | CVE-2022-22965 | CRITICAL | https://nvd.nist.gov/vuln/detail/CVE-2022-22965 |    5.3.18     |
++-------------------------------------+         +----------------+----------+-------------------------------------------------+---------------+
+|           spring-webflux            |         | CVE-2022-22965 | CRITICAL | https://nvd.nist.gov/vuln/detail/CVE-2022-22965 |    5.3.18     |
++-------------------------------------+         +----------------+----------+-------------------------------------------------+---------------+
+|            spring-webmvc            |         | CVE-2022-22965 | CRITICAL | https://nvd.nist.gov/vuln/detail/CVE-2022-22965 |    5.3.18     |
++-------------------------------------+---------+----------------+----------+-------------------------------------------------+---------------+
+WARN:   A total of 3 unique vulnerabilities were found in 4 components
+----
+
+NOTE: You can see that CVE-2021-44228 can be found in the  quay.io/rhacs-misc/log4shell:1.0 container image that your just deployed.
+
+Great job so far!
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNxZGd5Zm5qMnlpOHhrbm1hY2pwcG5ydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p18ohAgD3H60LSoI1C/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Red Hat^(R)^ Advanced Cluster Security (RHACS) web console 
+
+Red Hat Advanced Cluster Security for Kubernetes is a Kubernetes-native security platform that equips you to build, deploy, and run cloud-native applications with more security. The solution helps protect containerized Kubernetes workloads in all major clouds and hybrid platforms, including Red Hat OpenShift, Amazon Elastic Kubernetes Service (EKS), Microsoft Azure Kubernetes Service (AKS), and Google Kubernetes Engine (GKE).
+
+=== Access the RHACS web console.
+
+*Procedure*
+
+[start=1]
+. Log into the RHACS console at `{acs_route}`
+. Click the "Advanced" button in your browser
+
+image::01-rhacs-advanced.png[RHACS login not private] 
+
+[start=3]
+. Click "Proceed to {acs_route}"
+
+image::01-rhacs-proceed.png[RHACS login proceed]
+
+[start=4]
+. Enter the RHACS credentials 
+
+[cols="1,1"]
+|===
+*RHACS Console Username:* | {acs_portal_username} |
+*RHACS Console Password:* | {acs_portal_password} |
+|===
+
+image::01-rhacs-login.png[RHACS console]
+
+image::01-rhacs-console-dashboard.png[RHACS console]
+
+=== Find the log4shell vulnerability in RHACS dashboard. 
+
+The next step is to use the ACS dashboard to locate the Log4shell vulnerability. The following gif will showcase how to locate the vulnerability witht the exact steps outlines below. 
+
+NOTE: CVE-2021-44228 & CVE-2021-45046 can both be used to find the log4shell vulnerabiulity in the dashboard. 
+
+image:misc-log-1.gif[]
+
+. Procedure
+
+SEAN TO DO
 
 === Set Deploy Time Enforcement to On
 
