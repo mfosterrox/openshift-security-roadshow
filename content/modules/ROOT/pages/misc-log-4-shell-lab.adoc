@@ -158,12 +158,12 @@ Red Hat Advanced Cluster Security for Kubernetes is a Kubernetes-native security
 . Log into the RHACS console at `{acs_route}`
 . Click the "Advanced" button in your browser
 
-image::01-rhacs-advanced.png[RHACS login not private] 
+image::../assets/images/01-rhacs-advanced.png[RHACS login not private] 
 
 [start=3]
 . Click "Proceed to {acs_route}"
 
-image::01-rhacs-proceed.png[RHACS login proceed]
+image::../assets/images/01-rhacs-proceed.png[RHACS login proceed]
 
 [start=4]
 . Enter the RHACS credentials 
@@ -174,9 +174,9 @@ image::01-rhacs-proceed.png[RHACS login proceed]
 *RHACS Console Password:* | {acs_portal_password} |
 |===
 
-image::01-rhacs-login.png[RHACS console]
+image::../assets/images/01-rhacs-login.png[RHACS console]
 
-image::01-rhacs-console-dashboard.png[RHACS console]
+image::../assets/images/01-rhacs-console-dashboard.png[RHACS console]
 
 === Find the log4shell vulnerability in RHACS dashboard. 
 
@@ -184,11 +184,9 @@ The next step is to use the ACS dashboard to locate the Log4shell vulnerability.
 
 NOTE: CVE-2021-44228 & CVE-2021-45046 can both be used to find the log4shell vulnerabiulity in the dashboard. 
 
-image:misc-log-1.gif[]
+image:../assets/images/misc-log-1.gif[]
 
 . Procedure
-
-SEAN TO DO
 
 === Set Deploy Time Enforcement to On
 
@@ -199,18 +197,16 @@ You must enable deploy-time enforcement for the `Log4Shell: log4j Remote Code Ex
 +
 TIP: To find the policy quickly, type `Policy` followed by `Log4Shell` into the filter bar on the *Policy Management* page.
 
-// image::images/11_log4shell_04.png[]
-
 . Select the policy by clicking the three dots to the right and select `Edit policy`.
 
-image::images/11_log4shell_05.png[]
 
 . Use the `Policy Behavior` tab and enable runtime enforcement by clicking the `inform and enforce button` under `Response Method`
-. Scroll down to `Configure enforcement behavior` and switch both the `Enforce on Build` and `DEnforce on Deploy` selectors to on. 
+. Scroll down to `Configure enforcement behavior` and switch both the `Enforce on Build` and `Enforce on Deploy` selectors to on. 
 
-image::images/11_log4shell_06.png[]
 
 . Click *Review Policy* on the left and *Save*.
+
+image::../assets/images/policy-1.gif[]
 
 +
 . Redeploy the vulnerable image
