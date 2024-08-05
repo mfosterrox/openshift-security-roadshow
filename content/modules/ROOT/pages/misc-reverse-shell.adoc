@@ -1,5 +1,6 @@
 ==  Black Hat - RHACS Struts RCE Vulnerability Demonstration 
-
+////
+ ////
 In this lab, you demonstrate how to quickly stop shells being spawned from the `struts` vulnerabilities Red Hat^(R)^ Advanced Cluster Security for Kubernetes (RHACS). 
 
 .Goals
@@ -42,6 +43,13 @@ to build a new example application in Ruby. Or use kubectl to deploy a simple Ku
 ----
 
 [start=2]
+. Apply a policy to allow privileged containers: 
+[source,sh,subs="+macros,role=execute"]
+----
+oc adm policy add-scc-to-group anyuid system:authenticated
+----
+
+[start=3]
 . Next, deploy the vulnerable application by creating and applying the following deployment YAML file:
 
 [source,sh,subs="attributes",role=execute]
@@ -177,7 +185,7 @@ type: kubernetes.io/service-account-token
 EOF
 ----
 
-[start=3]
+[start=4]
 . Deploy the struts deployment into your new projecct by using the 'oc' CLI
 
 [source,bash,role="execute"]
@@ -192,7 +200,7 @@ oc create -f ./vuln-dep.yaml
 deployment.apps/web created
 ----
 
-[start=4]
+[start=5]
 . Ensure that the application was deployed without issues. 
 
 [source,bash,role="execute"]
@@ -210,7 +218,7 @@ web-95f4544df-9s9n5   1/1     Running   0          56s
 
 IMPORTANT: For the last part of this section, check to make sure that the struts vulnerability is in the container with a quick CLI scan using the roxctl CLI
 
-[start=5]
+[start=6]
 . Execute the following command in the terminal to ensure the struts vulnerability is present.
 
 [source,bash,role="execute"]
@@ -261,7 +269,7 @@ WARN:   A total of 14 unique vulnerabilities were found in 5 components
 NOTE: You can see that a number of CVE's, including CVE-2023-50164 and  can be found in the quay.io/rh_ee_srickerd/apache-struts2-cve-2017-5638:latest container image that your just deployed.
 
 === Leverage the remote code execution in the struts vulnerability
-[start=6]
+[start=7]
 Create the attack script: 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -292,7 +300,7 @@ def exploit(url, cmd):
 EOF
 ----
 
-[start=7]
+[start=8]
 And launch the attack! 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -448,3 +456,4 @@ A complete record of the event can be found on the *Violations* page.
 == Summary
 
 You enabled Log4Shell deploy-time policy enforcement, and verified that the policy prevented the `log4shell` container from running.
+////
