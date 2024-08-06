@@ -1,7 +1,7 @@
 ---
 site:
   title: OpenShift Security Roadshow
-  url: https://www.redhat.com/en/technologies/cloud-computing/openshift/platform-plus
+  url: https://www.redhat.com/en/events/openshift-roadshows/security
   start_page: modules::index.adoc
 
 content:
@@ -11,13 +11,8 @@ content:
 
 ui:
   bundle:
-    url: https://github.com/rhpds/showroom_theme_summit/releases/download/v0.0.1/ui-bundle.zip
+    url: https://github.com/rhpds/showroom_theme_summit/releases/download/summit-connect-2024/ui-bundle.zip
     snapshot: true
-  supplemental_files:
-    - path: ./content/supplemental-ui
-    - path: .nojekyll
-    - path: ui.yml
-      contents: "static_files: [ .nojekyll ]"
 
 runtime:
   cache_dir: ./.cache/antora

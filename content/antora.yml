@@ -9,11 +9,11 @@ asciidoc:
     lab_name: "OpenShift Security Roadshow"
     release-version: master
     page-pagination: true
-    my_var: "foo - this is an asciidoc attribute from `content/antora.yml`"
-    guid: my-guid
-    ssh_user: devops
-    ssh_password: devops
-    ssh_command: ssh devops@bastion.{guid}.example.opentlc.com
+    page-links:
+    - url: https://redhat.com
+      text: File a lab issue
+    - url: https://www.redhat.com/en/summit
+      text: Red Hat Summit
 
   extensions:
     - ./content/lib/tab-block.js

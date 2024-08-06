@@ -1,6 +1,5 @@
 ==  Black Hat - RHACS Struts RCE Vulnerability Demonstration 
-////
- ////
+
 In this lab, you demonstrate how to quickly stop shells being spawned from the `struts` vulnerabilities Red Hat^(R)^ Advanced Cluster Security for Kubernetes (RHACS). 
 
 .Goals
@@ -456,4 +455,4 @@ A complete record of the event can be found on the *Violations* page.
 == Summary
 
 You enabled Log4Shell deploy-time policy enforcement, and verified that the policy prevented the `log4shell` container from running.
-////
+
