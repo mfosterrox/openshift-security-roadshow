@@ -10,8 +10,6 @@ In this lab, you demonstrate how to quickly stop workloads with `log4shell` vuln
 
 . Start by ensuring you have a clean lab environment. Run the following command to reset any changes others may have made.
 
-[source,sh,subs="attributes",role=execute]
-----
 [source,bash,role="execute"]
 ----
 oc delete project log4shell
