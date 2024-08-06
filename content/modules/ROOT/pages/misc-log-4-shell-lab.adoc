@@ -213,7 +213,7 @@ image::policy-1.gif[]
 +
 [source,bash,role="execute"]
 ----
-oc create -f ./deploy.yaml
+oc create -f ~/deploy.yaml
 ----
 +
 . Examine the output and note that the Deployment failed to start:
