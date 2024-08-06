@@ -8,7 +8,9 @@ In this lab, you demonstrate how to quickly stop workloads with `log4shell` vuln
 
 == Ensure a clean environment
 
-. Start by ensuring you have a clean lab environment. Run the following command to reset any changes others may have made.
+Start by ensuring you have a clean lab environment. Run the following command to reset any changes others may have made.
+
+---
 
 [source,bash,role="execute"]
 ----
