@@ -10,10 +10,8 @@ asciidoc:
     release-version: master
     page-pagination: true
     page-links:
-    - url: https://redhat.com
+    - url: https://github.com/mfosterrox/openshift-security-roadshow/issues
       text: File a lab issue
-    - url: https://www.redhat.com/en/summit
-      text: Red Hat Summit
 
   extensions:
     - ./content/lib/tab-block.js

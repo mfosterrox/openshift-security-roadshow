@@ -115,7 +115,7 @@ ip-<IP_ADDRESS>.us-east-2.compute.internal   Ready    <none>   163m   v1.28.8-ek
 ip-<IP_ADDRESS>.us-east-2.compute.internal   Ready    <none>   163m   v1.28.8-eks-ae9a62a
 ----
 
-We should not have access with the *oc* command as it is an OpenShift command but you can see the EKS nodes and their information.
+IMPORTANT: We should not have access with the *oc* command as it is an OpenShift command but you can see the EKS nodes and their information.
 
 ==== Verify access to the OpenShift cluster
 
@@ -493,10 +493,10 @@ oc apply -f $TUTORIAL_HOME/openshift-pipelines/ --recursive
 ----
 
 [IMPORTANT]
-You should see warnings such as: Warning: would violate PodSecurity "restricted:latest": unrestricted capabilities (container "Java" must set securityContext.capabilities.drop=["ALL"]) this is because we are deploying flawed container configurations and vulnerable container applications into the OpenShift cluster.
+You should see warnings such as: *Warning: would violate PodSecurity "restricted:latest": unrestricted capabilities (container "Java" must set securityContext.capabilities.drop=["ALL"])*. This is because we are deploying flawed container configurations and vulnerable container applications into the OpenShift cluster.
 
 |====
-And this command triggers a vulnerability scan by RHACS to updates the vulnerability results. 
+The following command triggers a vulnerability scan by RHACS to updates the vulnerability results. 
 |====
 
 [source,sh,subs="attributes",role=execute]
@@ -507,38 +507,45 @@ roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --ima
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-[lab-user@bastion ~]$ roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 --force -o table
-Scan results for image: $YOUR_DOMAIN/quayadmin/ctf-web-to-system:1.0
-(TOTAL-COMPONENTS: 50, TOTAL-VULNERABILITIES: 84, LOW: 15, MODERATE: 25, IMPORTANT: 27, CRITICAL: 17)
-....
-+----------------------+---------+---------------------+-----------+----------------------------------------------------------------------------------------+--------------------+
-|     yargs-parser     |  9.0.2  |    CVE-2020-7608    | MODERATE  |                     https://nvd.nist.gov/vuln/detail/CVE-2020-7608                     |       13.1.2       |
-+----------------------+---------+---------------------+-----------+----------------------------------------------------------------------------------------+--------------------+
+[lab-user@bastion ~]$ roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 --force -o table --severity=CRITICAL
+Scan results for image: quay-8h2gf.apps.cluster-8h2gf.sandbox182.opentlc.com/quayadmin/ctf-web-to-system:1.0
+(TOTAL-COMPONENTS: 9, TOTAL-VULNERABILITIES: 17, LOW: 0, MODERATE: 0, IMPORTANT: 0, CRITICAL: 17)
+
++-------------+---------+------------------+----------+--------------------------------------------------------------------------------+---------------+
+|  COMPONENT  | VERSION |       CVE        | SEVERITY |                                      LINK                                      | FIXED VERSION |
++-------------+---------+------------------+----------+--------------------------------------------------------------------------------+---------------+
+|     ejs     |  2.7.4  |  CVE-2022-29078  | CRITICAL |                https://nvd.nist.gov/vuln/detail/CVE-2022-29078                 |     3.1.7     |
+...
+WARN:   A total of 17 unique vulnerabilities were found in 9 components
 ----
 
+IMPORTANT: The previous output can be configured using flags. You can configure different outputs (table, CSV, JSON, and sarif.) and filter for specific severities.
+
 [start=6]
-. Wait a few seconds then run the following command to ensure that the applications are up and running
+. For the last verification step. Run the following command to ensure that the applications are up and running.
 
 [source,bash,role="execute"]
 ----
 kubectl get deployments -l demo=roadshow -A
 ----
 
-*Output*
-```bash
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ kubectl get deployments -l demo=roadshow -A
 NAMESPACE    NAME                READY   UP-TO-DATE   AVAILABLE   AGE
-backend      api-server          1/1     1            1           7m11s
-default      api-server          1/1     1            1           6m38s
-default      ctf-web-to-system   1/1     1            1           7m17s
-default      frontend            1/1     1            1           6m32s
-default      juice-shop          1/1     1            1           7m14s
-default      rce                 1/1     1            1           6m35s
-default      reporting           1/1     1            1           6m41s
-frontend     asset-cache         1/1     1            1           7m3s
-medical      reporting           1/1     1            1           6m53s
-operations   jump-host           1/1     1            1           6m48s
-payments     visa-processor      1/1     1            1           6m45s
-```
+backend      api-server          1/1     1            1           4m54s
+default      api-server          1/1     1            1           4m19s
+default      ctf-web-to-system   1/1     1            1           5m
+default      frontend            1/1     1            1           4m13s
+default      juice-shop          1/1     1            1           4m57s
+default      rce                 1/1     1            1           4m16s
+default      reporting           1/1     1            1           4m22s
+frontend     asset-cache         1/1     1            1           4m47s
+medical      reporting           1/1     1            1           4m37s
+operations   jump-host           1/1     1            1           4m30s
+payments     visa-processor      1/1     1            1           4m26s
+----
 
 IMPORTANT: Please ensure the deploy application are deployed to your cluster before moving onto the next module. 
 
