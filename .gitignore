@@ -49,4 +49,4 @@ node_modules
 .firebase
 
 # annoying file
-content/modules/ROOT/pages/openshift-security-roadshow.code-workspace
+/.vscode/*.code-workspace
