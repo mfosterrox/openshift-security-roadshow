@@ -37,7 +37,8 @@ IMPORTANT: If you do not see the '{}' response, please flag a booth attendant.
 
 The next step is to deploy the log4shell laden container image to the OpenShift cluster. 
 
-. Procedure
+*Procedure*
+
 . Start by creating a new project and deploying a vulnerable Log4Shell application. 
 
 [source,sh,subs="attributes",role=execute]
@@ -206,7 +207,7 @@ NOTE: *CVE-2021-44228* & *CVE-2021-45046* can both be used to find the log4shell
 
 image:misc-log-1.gif[]
 
-.Procedure
+*Procedure*
 
 . Click the *Vulnerability Management Tab*, then click the *Workload CVE* tab
 . Use the filter dropdown options to ensure that *CVE* and *Name* are selected.
@@ -222,14 +223,14 @@ Many default policies ship with RHACS. These policies notify you of violations b
 
 First, copy the default policy. You can do this by copying the video actions or following the Procedure listed below. 
 
-video::l4s-policy1.mp4[width=640,start=60,opts=autoplay]
-
-.Procedure
+*Procedure*
 
 . Click on *Platform Configuration* -> *Policy Management*
 . Click the search dropdown and select *Policy*
 . Type in *Log4Shell* and hit *ENTER*
 . Clone the *Log4Shell: log4j Remote Code Execution vulnerability* policy by clicking the three dots to the right of the policy and selecting *Clone policy* OR by clicking the policy, selecting actions and clicking *Clone policy*
+
+video::l4s-policy1.mp4[width=640,start=60,opts=autoplay, class="center" ]
 
 ---
 
@@ -237,9 +238,7 @@ Great job!
 
 Now, let's give the policy a new name and enforce it during the build and deploy phases.
 
-video::l4s-policy2.mp4[width=640,start=60,opts=autoplay]
-
-.Procedure
+*Procedure*
 
 . Give the policy an additional identifier for easier searchability. You can also leave the *(COPY)* label at the end. 
 . Click Next
@@ -254,6 +253,8 @@ NOTE: This will break container builds AND not allow the deployment of the log4s
 . Click *Next*
 . Click next on the *Policy scope* page. This page allows you to exclude specific clusters, namespaces and deployments. However, we do not want to do this for the log4shell vulnerability.
 . Review the policy and *click Save*
+
+video::l4s-policy2.mp4[width=640,start=60,opts=autoplay]
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMGh0OWkxemNoNmF4dG9lNHE4bncwOWpkdzR6NHJ6dDNuOW0xYnMwaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7auaKlfmip8gE/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
@@ -307,7 +308,7 @@ A complete record of the event can be found on the *Violations* page. Click on i
 
 image::l4s-violations.png[]
 
-.Procedure
+*Procedure*
 . Navigate to the *Violation* page from the left navigation bar.
 . Use the Filter Bar to find the `Policy: Log4Shell: log4j Remote Code Execution vulnerability` and select the policy name.
 . Explore the list of the violation events.

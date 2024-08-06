@@ -11,9 +11,9 @@
 * xref:10-installation.adoc[10. Installation]
 
 * xref:misc-log-4-shell-lab.adoc[Black Hat - log4shell Example]
-* xref:misc-reverse-shell.adoc[Black Hat - reverse shell runtime Example]
-* xref:misc-hacking-linux.adoc[Bonus - CTF - hack a web application]
-* xref:misc-paladin.adoc[Bonus - Paladin Cloud & RHACS Integration]
+// * xref:misc-reverse-shell.adoc[Black Hat - reverse shell runtime Example]
+* xref:misc-hacking-linux.adoc[Black Hat - CTF - hack a web application]
+// * xref:misc-paladin.adoc[Bonus - Paladin Cloud & RHACS Integration]
 
 
 
