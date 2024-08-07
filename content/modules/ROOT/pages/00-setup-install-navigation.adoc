@@ -501,7 +501,7 @@ The following command triggers a vulnerability scan by RHACS to updates the vuln
 
 [source,sh,subs="attributes",role=execute]
 ----
-roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 --force -o table
+roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 --force -o table --severity=CRITICAL
 ----
 
 [.console-output]

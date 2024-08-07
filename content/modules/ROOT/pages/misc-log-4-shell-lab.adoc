@@ -21,20 +21,6 @@ POL_ID=$(curl -k -H  "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRA
 curl -k -X DELETE -H "Authorization: Bearer $ROX_API_TOKEN"  "https://$ROX_CENTRAL_ADDRESS/v1/policies/$POL_ID"
 ----
 
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-[lab-user@bastion ~]ROX_CENTRAL_ADDRESS=$(oc -n stackrox get route central -o jsonpath='{.spec.host}')')
-POL_ID=$(curl -k -H  "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS/v1/policies" | jq -r '.policies[] | select(.isDefault|not) | .id')
-curl -k -X DELETE -H "Authorization: Bearer $ROX_API_TOKEN"  "https://$ROX_CENTRAL_ADDRESS/v1/policies/$POL_ID"
- % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
- Dload  Upload   Total   Spent    Left  Speed
-100 31755    0 31755    0     0   284k      0 --:--:-- --:--:-- --:--:--  287k
-{}
-----
-
-IMPORTANT: If you do not see the '{}' response, please flag a booth attendant.
-
 == Deploy the log4shell infected container image
 
 The next step is to deploy the log4shell laden container image to the OpenShift cluster. 
@@ -71,29 +57,29 @@ cat << EOF >deploy.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
- name: log4shell
- namespace: log4shell
+  name: log4shell
+  namespace: log4shell
 spec:
- replicas: 1
- selector:
- matchLabels:
- deployment: log4shell
- template:
- metadata:
- labels:
- deployment: log4shell
- spec:
- containers:
- - image: quay.io/rhacs-misc/log4shell:1.0
- imagePullPolicy: IfNotPresent
- name: log4shell
- ports:
- - containerPort: 8080
- protocol: TCP
- resources: {}
- terminationMessagePath: /dev/termination-log
- terminationMessagePolicy: File
- restartPolicy: Always
+  replicas: 1
+  selector:
+    matchLabels:
+      deployment: log4shell
+  template:
+    metadata:
+      labels:
+        deployment: log4shell
+    spec:
+      containers:
+      - name: log4shell
+        image: quay.io/rhacs-misc/log4shell:1.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      restartPolicy: Always
 EOF
 ----
 
@@ -274,7 +260,7 @@ oc create -f ~/deploy.yaml
 IMPORTANT: Examine the output and note that the deployment failed to start
 
 [.console-output]
-[source,bash,subs="+macros,+attributes"]
+[source,bash]
 ----
 [lab-user@bastion ~]$ oc create -f ~/deploy.yaml
 Error from server (Failed currently enforced policies from StackRox): error when creating "/home/lab-user/deploy.yaml": admission webhook "policyeval.stackrox.io" denied the request: 
@@ -302,7 +288,7 @@ Policy: Log4Shell: log4j Remote Code Execution vulnerability - Enforcement
 In case of emergency, add the annotation {"admission.stackrox.io/break-glass": "ticket-1234"} to your deployment with an updated ticket number
 ----
 
-IMPORTANT: This includes the ability to bypass it in an emergency "In case of emergency, add the annotation {"admission.stackrox.io/break-glass": "ticket-1234"} to your deployment with an updated ticket number"
+IMPORTANT: This includes the ability to bypass it in an emergency *"In case of emergency, add the annotation {"admission.stackrox.io/break-glass": "ticket-1234"}* to your deployment with an updated ticket number"
 
 == Review the policy violations
 
@@ -339,12 +325,15 @@ curl -k -X DELETE -H "Authorization: Bearer $ROX_API_TOKEN"  "https://$ROX_CENTR
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-[lab-user@bastion ~]ROX_CENTRAL_ADDRESS=$(oc -n stackrox get route central -o jsonpath='{.spec.host}')')
+[lab-user@bastion ~]$ oc delete project log4shell
+rm ~/deploy.yaml
+ROX_CENTRAL_ADDRESS=$(oc -n stackrox get route central -o jsonpath='{.spec.host}')
 POL_ID=$(curl -k -H  "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS/v1/policies" | jq -r '.policies[] | select(.isDefault|not) | .id')
 curl -k -X DELETE -H "Authorization: Bearer $ROX_API_TOKEN"  "https://$ROX_CENTRAL_ADDRESS/v1/policies/$POL_ID"
- % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
- Dload  Upload   Total   Spent    Left  Speed
-100 31755    0 31755    0     0   284k      0 --:--:-- --:--:-- --:--:--  287k
+project.project.openshift.io "log4shell" deleted
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 31755    0 31755    0     0   258k      0 --:--:-- --:--:-- --:--:--  258k
 {}
 ----
 
