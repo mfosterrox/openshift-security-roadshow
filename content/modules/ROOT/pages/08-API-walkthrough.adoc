@@ -1,21 +1,70 @@
 = API Walkthrough
 
 == Module goals
-* Understanding how notification and alerting work in RHACS
-* Setup a notification alert to a Microsoft teams channel
-* Setup a notification alert to a Slack channel
+* Understand the basics of creating an API request in RHACS
+* Work througha few use cases
+* Come up with a few use cases of your own
+
+== Overview of an API request
+
+An API (Application Programming Interface) request is a way for a client (such as a web or mobile application) to communicate with a server to retrieve or send data. The request typically involves sending an HTTP method (GET, POST, PUT, DELETE) to a specified endpoint (URL) along with any necessary headers and body data.
+
+*Components of an API Request*
+
+* Endpoint: The URL where the API is located.
+* HTTP Method: Specifies the type of operation:
+** GET: Retrieve data.
+** POST: Send data to the server to create a new resource.
+** PUT: Update an existing resource.
+** DELETE: Remove a resource.
+* Headers: Provide metadata such as authentication tokens, content type, etc.
+* Body: Contains data to be sent to the server, usually in JSON format (for POST and PUT requests).
 
 == RHACS API Overview 
 
 Red Hat Advanced Cluster Security (RHACS) for Kubernetes provides a robust API that allows users to programmatically interact with the platform. This API enables automation, integration, and customization of various security operations within the Kubernetes environment.
 
-=== API Endpoints
+The API documentation can be found inside of the application after deployment. 
+
+=== RHACS Endpoint
+
+The RHACS API endpoint can be found using an 'oc' or 'kubectl' command to the URL of the central service. 
+
+For example,
+
+[source,bash,role="execute"]
+----
+oc -n stackrox get route central -o jsonpath='{.spec.host}'
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ oc -n stackrox get route central -o jsonpath='{.spec.host}'
+central-stackrox.apps.cluster-kftnc.sandbox866.opentlc.com
+----
 
 The RHACS API offers various endpoints for different functionalities such as policies, clusters, deployments, and compliance. Common endpoint categories include */v1/policies*, */v1/clusters*, */v1/deployments*, and */v1/compliance*. The API typically uses JSON for both requests and responses. Ensure that your API client is capable of handling JSON data.
 
-=== Authentication
+==== Best Practices for Token-Based Authentication in RHACS
 
-The API uses token-based authentication. You need to obtain an API token from the RHACS console to authenticate API requests.
+* Token Rotation: Regularly rotate signing keys to enhance security.
+* Least Privilege: Issue tokens with minimal required permissions to reduce the impact of token compromise.
+* Monitor and Audit: Continuously monitor and audit API requests for suspicious activities.
+* Token Revocation: Implement mechanisms to revoke tokens when necessary, such as upon user logout or suspicion of token compromise.
+
+=== Headers/Authentication
+
+Red Hat Advanced Cluster Security (RHACS) employs token-based authentication to secure its API requests, ensuring only authorized users and systems can interact with its resources. 
+
+We will demonstrate this workflow after but the typical RHACS token-based authentication process contains the following
+
+1. User Authentication: Users authenticate themselves through a login process, typically via the OpenShift login page or using an identity provider (IdP) integrated with OpenShift.
+2. Token Generation: Upon successful authentication, the user is issued a JSON Web Token (JWT) or a similar token type. This token encodes user identity and associated permissions.
+3. Authorization Header: The user, when making API requests to RHACS, the token is included in the HTTP Authorization header using the Bearer schema: Authorization: Bearer <token>.
+4. Token Verification: RHACS backend verifies the token by checking its signature, expiration time, and claims. Then, based on the token's claims, RHACS determines the API request's level of access and permissions. Only authorized or expired tokens are accepted.
+
+NOTE:  All API requests are made over HTTPS to ensure data encryption during transmission, preventing token interception and man-in-the-middle attacks.
 
 === Common Operations:
 
@@ -44,26 +93,33 @@ IMPORTANT:Be sure to put the AP token in the correct location.
 
 [source,sh,subs="attributes",role=execute]
 ----
-export ACS_URL="$(oc -n stackrox get route central -o jsonpath='{.spec.host}')"
-export API_TOKEN=your_api_token
+export ROX_CENTRAL_ADDRESS="$(oc -n stackrox get route central -o jsonpath='{.spec.host}')"
+export ROX_API_TOKEN=<your_api_token>
 ----
 
 [source,sh,subs="attributes",role=execute]
 ----
-echo $ACS_URL
-echo $API_TOKEN
+echo $ROX_CENTRAL_ADDRESS
+echo $ROX_API_TOKEN
 ----
 
-=== Make API Requests
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+central-stackrox.apps.cluster-kftnc.sandbox866.opentlc.com
+<a long API token>
+----
+
+=== View, create and update policies via API Requests
 
 Use a tool like curl, Postman, or a programming language with HTTP client libraries (e.g., Python’s requests library) to interact with the API. Below are a few examples of what you can do with the API requests and RHACS.
 
-*Example using curl where you get a list of policies*
+==== Example using curl where you get a list of policies
 
 [source,sh,subs="attributes",role=execute]
 
 ----
-curl -k -H "Authorization: Bearer $API_TOKEN" "https://$ACS_URL/v1/policies" | jq
+curl -k -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS/v1/policies" | jq
 ----
 
 *Sample output*
@@ -88,12 +144,12 @@ curl -k -H "Authorization: Bearer $API_TOKEN" "https://$ACS_URL/v1/policies" | j
 ...
 ----
 
-*Example using curl to get a list of alerts*
+==== Example using curl to get a list of alerts
 
 [source,sh,subs="attributes",role=execute]
 
 ----
-curl -k -H "Authorization: Bearer $API_TOKEN" "https://$ACS_URL:443/v1/alerts" | jq
+curl -k -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS:443/v1/alerts" | jq
 ----
 
 *Sample output*
@@ -127,9 +183,11 @@ curl -k -H "Authorization: Bearer $API_TOKEN" "https://$ACS_URL:443/v1/alerts" |
 
 *Let's cut down on that list of alerts into something more manageable*
 
+You can use queries as part of the URL to simplify the request to RHACS. You can also use a tool like 'jq' to filter through the output as you well see in the following step.
+
 [source,sh,subs="attributes",role=execute]
 ----
-curl -k -H "Authorization: Bearer $API_TOKEN" https://$ACS_URL:443/v1/alerts?query="Namespace:vault" | jq
+curl -k -H "Authorization: Bearer $ROX_API_TOKEN" https://$ROX_CENTRAL_ADDRESS:443/v1/alerts?query="Namespace:vault" | jq
 ----
 
 *Sample output*
@@ -165,25 +223,52 @@ curl -k -H "Authorization: Bearer $API_TOKEN" https://$ACS_URL:443/v1/alerts?que
 }
 ----
 
-A little bit more manageable this time. Next let's combine a few namespaces together
+As mentioned before, let's use the previous command without the added query and sort the output using 'jq'. This time let's find all of the *ACTIVE* alerts and pull the IDs of those alerts
+
+[source,sh,subs="attributes",role=execute]
+
+----
+curl -k -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS:443/v1/alerts" | jq -r '.alerts[] | select(.state=="ACTIVE") | .id'
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+10d4046e-08fc-4d55-b9c0-af84bc419a27
+e9f4ce99-145c-43c2-8cb4-ac1688794430
+abdfa6eb-bf06-4bcc-b988-2c8f95027075
+e831ed50-d2c3-482e-b033-e2e67e39c7cb
+f9ac92c8-8a53-40b2-92c5-7327af7fba9e
+....
+62cab1d9-2da4-477b-a758-b3a67528c52f
+680dafd2-aaa2-4cd2-820d-558578368335
+a6732fdc-f2b2-44e7-9857-a0c9af996d46
+b964c0c6-8b52-4928-a8eb-143e322c64f9
+----
+
+That output will allow you to loop through the IDs of the alerts if you'd like to make bulk changes.
+
+---
+
+Next let's combine a few namespaces together using the query feature from before. 
 
 [source,sh,subs="attributes",role=execute]
 ----
-curl -k -H "Authorization: Bearer $API_TOKEN" https://$ACS_URL/v1/alerts?query="Cluster:production+Namespace:stackrox,kube-system" | jq -r '.'
+curl -k -H "Authorization: Bearer $ROX_API_TOKEN" https://$ROX_CENTRAL_ADDRESS/v1/alerts?query="Cluster:production+Namespace:stackrox,kube-system" | jq -r '.'
 ----
 
 Combination search query with URL-safe encoding:  
 
 [source,sh,subs="attributes",role=execute]
 ----
-curl -k -H "Authorization: Bearer $API_TOKEN" https://$ACS_URL/v1/alerts?query=Severity%3AHIGH_SEVERITY%2BNamespace%3Apayments | jq -r '.'
+curl -k -H "Authorization: Bearer $ROX_API_TOKEN" https://$ROX_CENTRAL_ADDRESS/v1/alerts?query=Severity%3AHIGH_SEVERITY%2BNamespace%3Apayments | jq -r '.'
 ----
 
 Search filter for time range:  
 
 [source,sh,subs="attributes",role=execute]
 ----
-curl -k -H "Authorization: Bearer $API_TOKEN" https://$ACS_URL/v1/alerts?query==Violation%20Time%3A%3E1d | jq -r '.'
+curl -k -H "Authorization: Bearer $ROX_API_TOKEN" https://$ROX_CENTRAL_ADDRESS/v1/alerts?query==Violation%20Time%3A%3E1d | jq -r '.'
 ----
 
 == Documentation and Resources
