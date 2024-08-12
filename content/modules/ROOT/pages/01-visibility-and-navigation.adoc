@@ -43,9 +43,9 @@ The first section of this lab will focus on navigation and vulnerability managem
 
 === Navigating the RHACS console
 
-In this section, you familiarize yourself with the RHACS portal, including its tabs, search capabilities and dashboard functionality.
+In this section, you familiarize yourself with the RHACS console, including its tabs, search capabilities and dashboard functionality.
 
-The RHACS dashboard has four main sections:
+The "Dashboard" or RHACS home page has 3 sections:
 
 . Navigation bar
 . Navigation drawer
@@ -69,24 +69,36 @@ image::acs-top-bar.png[link=self, window=blank, width=100%, Navigation Bar]
 
 === 1. Global Search
 
-The ability to instantly find resources is essential to safeguard your cluster. Utilize the RHACS search feature to find relevant resources faster.
+The ability to instantly find resources is essential to safeguard your cluster. Utilize the RHACS search feature to find relevant resources faster. For example, you can use it to find deployments exposed to a newly published CVE or all deployments with external network exposure.
 
-For example, you can use it to find deployments exposed to a newly published CVE or all deployments with external network exposure.
+==== A search query
 
 A search query consists of two parts:
 
 - An attribute that identifies the resource type you want to search for.
 - A search term that finds the matching resource.
 
-For example, to find all violations in the *ctf-web-to-system* deployment, the search query is *Deployment:ctf-web-to-system*.
+For example, to find all violations in the *ctf-web-to-system* deployment, the search query is *Deployment* THEN *ctf-web-to-system*.
 
 In this search query, Deployment is the attribute, and ctf-web-to-system is the search term.
 
-NOTE: The search field in RHACS requires each attribute to be entered fully as a search term. Enter your first attribute, and hit the <tab> key to move along to the following attribute you would like to enter. Results will appear once they match the entered query.
+TIP: The search field in RHACS requires each attribute to be entered fully as a search term. Enter your first attribute, and hit the <tab> key to move along to the following attribute you would like to enter.
 
-image::acs-search-ctf-00.png[link=self, window=blank, width=100%, Search Syntax]
+---
+
+video::01-acs-search.mp4[width=640,opts=autoplay, class="center" ]
+
+---
 
 NOTE: RHACS maintains a library of searchable assets to help you search faster, they will appear in a drop-down list, and you can click on them to enter them as well. If a specific CVE or deployment cannot be found, please confirm the spelling of the asset name or that it is correctly deployed in the cluster. 
+
+You can also search using REGEX like capabilities. Add an *r/* before the search term to find all possibilities. For example if you search for *Namespace:r/st.*x*, the results include matches from namespace stackrox and stix.
+
+---
+
+video::01-acs-regex.mp4[width=640,opts=autoplay, class="center" ]
+
+---
 
 ==== Common search queries
 
@@ -99,9 +111,7 @@ Here are some common search queries you can try in the RHACS search bar if youâ€
 |Exposure Level:<level>|Exposure Level:External|Finding deployments that have external network exposure
 |============
 
-IMPORTANT: RHACS, like Kubernetes works on a key:value system primarily due to their flexibility and power in organizing, selecting, and managing resources but also because of the ability to set selectors and match objects based on a set of values (e.g., "in", "not in", "exists", "does not exist").
-
-// Fix the above text
+IMPORTANT: RHACS, like Kubernetes works on a *key:value system* primarily due to their flexibility and power in organizing, selecting, and managing resources but also because of the ability to set selectors and match objects based on a set of values (e.g., "in", "not in", "exists", "does not exist").
 
 image::acs-search-cve.png[link=self, window=blank, width=100%, Search Syntax]
 
@@ -111,19 +121,27 @@ NOTE: This is just a sample of the types of queries you can use to analyze your 
 
 You can use local page filtering from within all views in the RHACS portal. Local page filtering works similarly to the global search, but only relevant attributes are available. You can select the search bar to show all available attributes for a specific view.
 
+For example, filtering in the violations window by the default namespace. 
+
+---
+
+video::01-acs-local.mp4[width=640,opts=autoplay, class="center" ]
+
+---
+
+As you can see, the content is only relevant to the violations tab, but the search capabilities, including the use of *r/*, remain the same.
+
 === 2. Navigation menu
 
-image::acs-nav-01.png[link=self, window=blank, width=100%, Navigation Menu]
+image::01-acs-nav-01.png[link=self, window=blank, width=100%, Navigation Menu]
 
 The left-hand navigation menu provides access to each of the security use cases, as well as product configuration to integrate RHACS with your existing tooling. The navigation menu has the following items:
 
 - *Dashboard:* Summary view of your environment
 - *Network Graph:* Configured and actual network flows and the creation of Network Policies to implement network segmentation
 - *Violations:* Events that do not match the defined security policies
-- *Compliance (2.0):* Our new compliance dashboard update is in progress. With plans to make compliance reporting even easier with tailored compliance profiles and reporting by application, namespace and cluster. 
-- *Compliance (1.0):* Several industry and regulatory security standards, such as PCI DSS, our default dashboard.
-- *Vulnerability Management (2.0):* We are in the process of migrating our vulnerability management dashboard to focus on triaging by vulnerability. This is to help identify what layer contains vulnerability. Whether it be the node, cluster or application.
-- *Vulnerability Management (1.0):* Information about known vulnerabilities affecting your environment, including deployed workloads and infrastructure, risk acceptance and reporting.
+- *Compliance:* Our new compliance dashboard update is in progress. With plans to make compliance reporting even easier with tailored compliance profiles and reporting by application, namespace and cluster. 
+- *Vulnerability Management:* We are in the process of migrating our vulnerability management dashboard to focus on triaging by vulnerability. This is to help identify what layer contains vulnerability. Whether it be the node, cluster or application.
 - *Configuration Management:* Identification of potential misconfigurations that can lead to security issues
 - *Risk:* Risks affecting your environment, such as suspicious executions
 - *Platform Configuration:* RHACS configuration, policy management and integration details, including;

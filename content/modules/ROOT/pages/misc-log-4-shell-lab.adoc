@@ -21,6 +21,8 @@ POL_ID=$(curl -k -H  "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRA
 curl -k -X DELETE -H "Authorization: Bearer $ROX_API_TOKEN"  "https://$ROX_CENTRAL_ADDRESS/v1/policies/$POL_ID"
 ----
 
+---
+
 == Deploy the log4shell infected container image
 
 The next step is to deploy the log4shell laden container image to the OpenShift cluster. 
@@ -218,7 +220,7 @@ First, copy the default policy. You can do this by copying the video actions or 
 . Type in *Log4Shell* and hit *ENTER*
 . Clone the *Log4Shell: log4j Remote Code Execution vulnerability* policy by clicking the three dots to the right of the policy and selecting *Clone policy* OR by clicking the policy, selecting actions and clicking *Clone policy*
 
-video::l4s-policy1.mp4[width=640,start=60,opts=autoplay, class="center" ]
+video::l4s-policy1.mp4[width=640,opts=autoplay, class="center" ]
 
 ---
 

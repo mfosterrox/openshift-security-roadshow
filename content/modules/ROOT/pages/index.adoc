@@ -11,9 +11,15 @@ Red Hat OPP includes:
 
 == Lab homepage
 
-Most of the lab will take place in this *"Showroom" lab environment and between various Red Hat product user interfaces (UI). 
+Most of the lab will take place in this *Showroom* lab environment and between various Red Hat product user interfaces (UI). 
 
 Below, you can find all the URLs and passwords needed to complete the lab on the homepage. If you ever get lost simply click the home button at the top of the webpage to find the essentials.
+
+
+---
+IMPORTANT: This is the *HOME* page. The modules can be found by clicking the table of contents on the left side of the screen or by scrolling to the bottom of the page and clicking 'Next'
+
+---
 
 == All lab components
 
@@ -66,6 +72,8 @@ To complete all of the lab tasks.
 |=== 
 
 == Additional applications
+
+IMPORTANT: All of the applications below are not necessary during the workshop. However, they are available for you to explore on your own time.  
 
 === Red Hat^(R)^ Devspaces information
 [cols="1,1"]  
