@@ -15,10 +15,10 @@ RHACS provides the tools and capabilities to address the security needs of a clo
 Using Red Hat Advanced Cluster Security for Kubernetes, you can gain comprehensive Kubernetes security that includes the following use cases:
 
 - *Visibility:* See your entire landscape of images, registries, containers, deployments, and runtime behavior.
-- *Vulnerability* Management: Identify and remediate vulnerabilities in container images and Kubernetes across the entire software development life cycle.
+- *Vulnerability Management*: Identify and remediate vulnerabilities in container images and Kubernetes across the entire software development life cycle.
 - *Compliance:* Audit your systems against CIS Benchmarks, NIST, PCI, and HIPAA, with interactive dashboards and one-click audit reports.
-- *Network Segmentation:* Visualize existing connections and enforce tighter segmentation using Kubernetes-native controls to reduce your blast radius.
-- *Risk Profiling:* See all your deployments ranked by risk level, using context from Kubernetes' declarative data, to prioritize remediation.
+- *Network Security:* Visualize existing connections and enforce tighter segmentation using Kubernetes-native controls to reduce your blast radius.
+- *Security Policy Guardrails:* See all your deployments ranked by risk level, using context from Kubernetes' declarative data, to prioritize remediation.
 - *Configuration Management:* Apply best practices for Docker and Kubernetes to harden your environment for a more secure and stable application.
 - *Threat Detection:* Use rules, automated allow lists, and baselining to identify suspicious activity in your running applications accurately.
 - *Incident Response:* Take action, from failing builds and blocking deployments to killing pods and thwarting attacks, using Kubernetes for enforcement.
@@ -53,7 +53,7 @@ The "Dashboard" or RHACS home page has 3 sections:
 
 image::acs-numbered-dashboard.png[link=self, window=blank, width=100%, Numbered Dashboard]
 
-=== Navigation bar
+=== 1. Navigation bar
 
 The top bar contains the following functionality: 
 
@@ -67,7 +67,7 @@ The top bar contains the following functionality:
 
 image::acs-top-bar.png[link=self, window=blank, width=100%, Navigation Bar]
 
-=== 1. Global Search
+=== Global Search
 
 The ability to instantly find resources is essential to safeguard your cluster. Utilize the RHACS search feature to find relevant resources faster. For example, you can use it to find deployments exposed to a newly published CVE or all deployments with external network exposure.
 
@@ -140,10 +140,10 @@ The left-hand navigation menu provides access to each of the security use cases,
 - *Dashboard:* Summary view of your environment
 - *Network Graph:* Configured and actual network flows and the creation of Network Policies to implement network segmentation
 - *Violations:* Events that do not match the defined security policies
-- *Compliance:* Our new compliance dashboard update is in progress. With plans to make compliance reporting even easier with tailored compliance profiles and reporting by application, namespace and cluster. 
-- *Vulnerability Management:* We are in the process of migrating our vulnerability management dashboard to focus on triaging by vulnerability. This is to help identify what layer contains vulnerability. Whether it be the node, cluster or application.
-- *Configuration Management:* Identification of potential misconfigurations that can lead to security issues
-- *Risk:* Risks affecting your environment, such as suspicious executions
+- *Compliance:* Our new compliance dashboard (Next gen compliance) update is in progress. With plans to make compliance reporting even easier with tailored compliance profiles and reporting by application, namespace and cluster. 
+- *Vulnerability Management:* Over the past year, we've revamped our Vulnerability Management process, focusing on filtering important and critical issues. We've also introduced node, platform, and workload-specific vulnerability dashboards. This segmentation helps the operations team quickly identify where a vulnerability exists and determine which team to contact, making the process much more efficient. 
+- *Configuration Management:* The configuration management tab enables you to identify potential misconfigurations that can lead to security issues
+- *Risk:* The Risk tab points out major risky applications by using configuration, runtime, and vulnerability data, helping you focus on the "high-risk" workloads.
 - *Platform Configuration:* RHACS configuration, policy management and integration details, including;
 * Clusters
 * Policy Management
@@ -238,9 +238,9 @@ It contains:
 
 image::01-violations-1.png[link=self, window=blank, width=100%]
 
-Don't worry we'll go through this policy violation workflow in later modules.
+Don't worry, you'll go through this policy violation workflow in later modules.
 
-=== Compliance 2.0
+=== Compliance (Next Gen Dashboard)
 
 Red Hat Advanced Cluster Security for Kubernetes supports OpenShift Container Platform configuration compliance standards through an integration with the OpenShift Container Platform Compliance Operator. In addition, it allows you to measure and report on configuration security best practices for OpenShift and supported Kubernetes platforms.
 
