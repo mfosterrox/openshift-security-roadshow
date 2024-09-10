@@ -76,17 +76,13 @@ image::01-rhacs-login.png[RHACS console]
 
 image::01-rhacs-console-dashboard.png[RHACS console]
 
-====
-Congrats! Half way there.
-====
-
 === OpenShift admin access verification
 
 OpenShift admin access verification involves ensuring that users have the appropriate permissions and roles assigned to them for managing the OpenShift cluster. This can be done by checking the user roles and bindings within the cluster. You'll be verifying your permissions using the oc command-line tool.
 
 There are *TWO clusters* we need to verify access too.
 
-==== Verify access to the EKS cluster
+*Verify access to the EKS cluster*
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -121,7 +117,7 @@ ip-<IP_ADDRESS>.us-east-2.compute.internal   Ready    <none>   163m   v1.28.8-ek
 
 IMPORTANT: We should not have access with the *oc* command as it is an OpenShift command but you can see the EKS nodes and their information.
 
-==== Verify access to the OpenShift cluster
+*Verify access to the OpenShift cluster*
 
 Next, let's switch to the OpenShift cluster running and do our work (for now) in the OpenShift cluster
 
@@ -168,7 +164,7 @@ NAME                                        STATUS   ROLES                  AGE 
 
 You will now see the OCP role using the *oc* command, as we are currently working on the OpenShift cluster
 
-IMPORTANT: We will be working with the OpenShift cluster in all modules unless otherwise specified. 
+NOTE: We will be working with the OpenShift cluster in all modules unless otherwise specified. 
 
 === roxctl CLI verification 
 
@@ -224,7 +220,7 @@ Access:
 	rw WorkflowAdministration
 ----
 
-NOTE: This output is showing that you have unrestricted access to the RHACS product. these permissions can be seen in the RHACS Access Control tab that we will review later.
+NOTE: This output is showing that you have unrestricted access to the RHACS product. these permissions can be seen in the **RHACS Access Control** tab that we will review later.
 
 image::01-rhacs-access-control.png[RHACS access control]
 
@@ -238,7 +234,7 @@ You now have access to the core apps. Next, you'll deploy insecure apps into the
 
 === Build a container image
 
-In this section, we will download the "Java app," give it a new tag, and push the image to Quay. Later, we'll deploy the image to the OpenShift Cluster and use it in future modules.
+In this section, we will download the "*Java app*" give it a new tag, and push the image to Quay. Later, we'll deploy the image to the OpenShift Cluster and use it in future modules.
 
 Let's export a few variables to make things easier. These variables will stay in the .bashrc file so they're saved in case you need to refresh the terminal.
 
@@ -247,6 +243,7 @@ TIP: With the variables saved in the ~/.bashrc file you will not have to declare
 [source,sh,subs="attributes",role=execute]
 ----
 echo export QUAY_USER={quay_admin_username} >> ~/.bashrc
+QUAY_USER={quay_admin_username}
 ----
 
 [start=2]
@@ -256,6 +253,7 @@ echo export QUAY_USER={quay_admin_username} >> ~/.bashrc
 [source,sh,subs="attributes",role=execute]
 ----
 echo export QUAY_URL=$(oc -n quay-enterprise get route quay-quay -o jsonpath='{.spec.host}') >> ~/.bashrc
+QUAY_URL=$(oc -n quay-enterprise get route quay-quay -o jsonpath='{.spec.host}')
 ----
 
 IMPORTANT: Verify that the variables are correct
@@ -436,11 +434,11 @@ In this tab you can add/remove users and update permissions, alter the privacy o
 image::quay-settings.png[link=self, window=blank, width=100%]
 
 [start=6]
-. Make your repository public before deploying our application in the next step by clicking the *Make Public* button under `Repository Visability`
-
-IMPORTANT: Make sure to make the repository public. Otherwise we will not be able to deploy the application in the next step.
+. Make your repository public before deploying our application in the next step by clicking the *Make Public* button under `Repository Visibility`
 
 image::quay-make-public.png[link=self, window=blank, width=100%]
+
+IMPORTANT: Make sure to make the repository public. Otherwise we will not be able to deploy the application in the next step.
 
 [start=7]
 . Click OK
@@ -486,7 +484,7 @@ Congratulations, you now know how to examine images in your registry for potenti
 
 == Deploy the workshop applications
 
-n the final part of this module, you'll deploy several insecure applications to the OpenShift cluster. You'll scan a few of these containers using the *roxctl* CLI to understand what you're deploying and what to expect when you dive into RHACS.
+In the final part of this module, you'll deploy several insecure applications to the OpenShift cluster. You'll scan a few of these containers using the *roxctl* CLI to understand what you're deploying and what to expect when you dive into RHACS.
 
 IMPORTANT: Make sure the variables are set before running the following commands. If not, go back to the Quay section to redo the previous commands.
 
@@ -598,16 +596,41 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNnJoNHE2MXhocm52ZzFmeHVy
 
 Run roxctl against a few of your favorite container images. Try pulling from link:https://hub.docker.com/[docker hub] or link:https://quay.io/[quay.io]. Try modifying the command below to include your image of choice.
 
+For example:
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ MYIMAGE=docker.io/ubuntu             
+[lab-user@bastion ~]$ roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=$MYIMAGE --force -o table --severity=CRITICAL
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+Scan results for image: docker.io/ubuntu
+(TOTAL-COMPONENTS: 0, TOTAL-VULNERABILITIES: 0, LOW: 0, MODERATE: 0, IMPORTANT: 0, CRITICAL: 0)
+
++-----------+---------+-----+----------+------+---------------+
+| COMPONENT | VERSION | CVE | SEVERITY | LINK | FIXED VERSION |
++-----------+---------+-----+----------+------+---------------+
++-----------+---------+-----+----------+------+---------------+
+----
+Showing that the latest version of Ubuntu from Docker.io has 0 critical vulnerabilities.
+
+*Your turn*
+
 [source,sh,subs="attributes",role=execute]
 ----
-roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 --force -o table --severity=CRITICAL
+MYIMAGE=<Add the registry URL here>
+roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan $MYIMAGE --force -o table --severity=CRITICAL
 ----
 
 == Summary
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNxZGd5Zm5qMnlpOHhrbm1hY2pwcG5ydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p18ohAgD3H60LSoI1C/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
-Beautiful!
+*Beautiful!*
 
 In this module, you got access to all of the lab UI's and interfaces including the Showroom lab enviroment (Where you are reading this sentence). You downloaded and deployed some very insecure applications and setup the lab full of examples to dive into. 
 

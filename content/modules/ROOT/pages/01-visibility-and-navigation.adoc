@@ -133,15 +133,15 @@ As you can see, the content is only relevant to the violations tab, but the sear
 
 === 2. Navigation menu
 
-image::01-acs-nav-01.png[link=self, window=blank, width=100%, Navigation Menu]
+image::acs-nav-01.png[link=self, window=blank, width=100%, Navigation Menu]
 
 The left-hand navigation menu provides access to each of the security use cases, as well as product configuration to integrate RHACS with your existing tooling. The navigation menu has the following items:
 
 - *Dashboard:* Summary view of your environment
-- *Network Graph:* Configured and actual network flows and the creation of Network Policies to implement network segmentation
-- *Violations:* Events that do not match the defined security policies
-- *Compliance:* Our new compliance dashboard (Next gen compliance) update is in progress. With plans to make compliance reporting even easier with tailored compliance profiles and reporting by application, namespace and cluster. 
-- *Vulnerability Management:* Over the past year, we've revamped our Vulnerability Management process, focusing on filtering important and critical issues. We've also introduced node, platform, and workload-specific vulnerability dashboards. This segmentation helps the operations team quickly identify where a vulnerability exists and determine which team to contact, making the process much more efficient. 
+- *Network Graph:* Real time network flows and public ports that are available. Enables to automated creation of Network Policies to implement network segmentation
+- *Violations:* Events that are in violation of the default and your defined security policies
+- *Compliance:* Our new compliance dashboard (Self titled *NextGen Compliance*) update is in progress. With plans to make compliance reporting even easier with tailored compliance profiles and reporting by application, namespace and cluster. 
+- *Vulnerability Management:* Over the past year, we've revamped our Vulnerability Management workflows, focusing on filtering important and critical issues. We've also introduced node, platform, and workload-specific vulnerability dashboards. This segmentation helps the operations team quickly identify where a vulnerability exists and determine which team to contact, making the process much more efficient. 
 - *Configuration Management:* The configuration management tab enables you to identify potential misconfigurations that can lead to security issues
 - *Risk:* The Risk tab points out major risky applications by using configuration, runtime, and vulnerability data, helping you focus on the "high-risk" workloads.
 - *Platform Configuration:* RHACS configuration, policy management and integration details, including;
@@ -149,6 +149,7 @@ The left-hand navigation menu provides access to each of the security use cases,
 * Policy Management
 * Collections
 * Integrations
+* Exception Configuration
 * Access Control
 * System Configuration
 * Administration Events
@@ -215,7 +216,7 @@ The network graph tab allows you to visualize all the network connections in you
 
 image::00-network-2.png[link=self, window=blank, width=100%, Dashboard Filter]
 
-The listening endpoints tab allows you to see all of the deployments across all of your clusters and audit for any reported listening endpoints as you drill down through cluster namespace and into deployments, you will see the exact process ID Port protocol pod ID and container name and if they are exposed.
+With the *Listening Endpoints tab*, you can see all of the deployments across your clusters and audit for any reported listening endpoints. As you drill down through cluster namespace and into deployments, you will see the exact process ID, Port protocol pod ID, container name and whether they are exposed.
 
 image::00-network-3.png[link=self, window=blank, width=100%, Dashboard Filter]
 
@@ -240,64 +241,78 @@ image::01-violations-1.png[link=self, window=blank, width=100%]
 
 Don't worry, you'll go through this policy violation workflow in later modules.
 
-=== Compliance (Next Gen Dashboard)
+=== Compliance (Next-Gen Dashboard)
 
 Red Hat Advanced Cluster Security for Kubernetes supports OpenShift Container Platform configuration compliance standards through an integration with the OpenShift Container Platform Compliance Operator. In addition, it allows you to measure and report on configuration security best practices for OpenShift and supported Kubernetes platforms.
 
 The OpenShift Compliance Operator allows OpenShift Container Platform administrators to define the desired compliance state of a cluster and provides an overview of gaps and ways to remediate any non-compliant policy. We will be installing and managing the compliance operator in  later modules
 
-image::00-compliance-1.png[link=self, window=blank, width=100%]
+image::01-compliance-1.png[link=self, window=blank, width=100%]
 
-The Compliance 2.0 tab is in tech preview this was just released in ACS 4.4, and we are currently in the process of migrating The existing 1.0 dashboard into 2.0
+The Compliance dropdown has three tabs to choose from. 
 
-=== Compliance 1.0
+- Coverage
+- Schedules
+- Dashboard
 
-The Compliance 1.0 dashboard should be empty when you're in here for the first time. It's because you have not completed a scan.
+----
+Coverage
+----
+
+The *Coverage* tab will contain all of your scanned clusters and workloads after the *Compliance Operator* is setup. You will go through this in the Compliance section later in the roadshow.
+
+image::01-compliance-2.png[link=self, window=blank, width=100%]
+
+----
+Schedules
+----
+
+The schedules tab contains all of the created scan schedules that report on the various CIS, PCI-DSS and DISA-STIG compliance standards you wish to evaluate.
+
+image::01-compliance-3.png[link=self, window=blank, width=100%]
+
+----
+Compliance Dashboard (Previously Compliance 1.0)
+----
+
+The Compliance dashboard should be empty when you're in here for the first time. It's because you have not completed a scan.
 
 .Procedure
 
 . We will go into this in a later module, but for now, hit the *Scan environment* button in the top right of the page to kick off your first scan. 
 
-image::00-compliance-2.png[link=self, window=blank, width=100%]
+image::01-compliance-4.png[link=self, window=blank, width=100%]
 
-image::00-compliance-3.png[link=self, window=blank, width=100%]
+image::01-compliance-5.png[link=self, window=blank, width=100%]
 
 [start=2]
 
-. Ensure you see the bar graphs fill up with data before moving. We we will dissthesethis compliance results in a later module
+. Ensure you see the bar graphs fill up with data before moving. We we will review these compliance results in a later module.
 
-image::00-compliance-4.png[link=self, window=blank, width=100%]
+image::01-compliance-6.png[link=self, window=blank, width=100%]
 
-=== Vulnerability Management 2.0
+=== Vulnerability Management
 
-Next, we have the vulnerability management 2.0 tab, similar to the compliance 2.0 tab  vulnerability management is currently getting an overhaul.
+Next, we have the *Vulnerability Management* tab, which has been overhauled for greater visibility and efficient filtering.
 
 image::00-vuln-1.png[link=self, window=blank, width=100%]
 
-The vulnerability management 2.0 tab contains a workload cve Tab and a vulnerability reporting tab with the workload CV tab currently in Tech preview
+The Vulnerability Management tab contains *a lot* of information including 
 
-image::00-vuln-2.png[link=self, window=blank, width=100%]
+- Workload CVEs
+- Exception Management
+- Vulnerability Reporting
+- Platform CVEs
+- Node CVEs
+- Dashboard (Deprecated)
 
-Feel free to click around however we will be exploring the vulnerability management section in the upcoming module
-
-=== Vulnerability Management 1.0
-
-The Vulnerability Management 1.0 tab has the original vulnerability management dashboard and the risk acceptance workflow.
-
-image::00-vuln-3.png[link=self, window=blank, width=100%]
-
-The underlying vulnerability data is the same as how we display, categorize and show it to the user. It is essential to to manage vulnerabilities at scale and make them actionable, which is a high priority in ACS. This is why we're prioritizing the vulnerability management workflow and eventually moving all features and functionality into a single tab
-
-image::00-vuln-4.png[link=self, window=blank, width=100%]
-
-Again, feel free to click around however we will be exploring the vulnerability management section in the upcoming module.
+Feel free to click around, and get your questions ready as the upcoming module will be exploring the Vulnerability Management tab in detail. 
 
 === Configuration Management
 
 The Configuration Management tab contains a bunch of information about the security configuration across your OpenShift and Kubernetes clusters
 
 image::00-config-1.png[link=self, window=blank, width=100%]
-
 
 This information includes:
 
@@ -308,7 +323,7 @@ This information includes:
 
 === Risk
 
-Another risk tab is a combination of security configuration management Network detection run time and incident response and vulnerability management all coming together so that users can gain a greater context and prioritize security issues throughout OpenShift and Kubernetes clusters
+The *Risk tab* is a combination of security configuration management, Network detection, runtime information, incident response, and vulnerability management all coming together so that users can gain a greater context and prioritize security issues throughout OpenShift and Kubernetes clusters.
 
 image::00-risk-1.png[link=self, window=blank, width=100%]
 
@@ -349,27 +364,33 @@ The integration tab holds all of your options for:
 - Cloud Source Integrations 
 - and authentication tokens
 
-==== Access Control
+==== Exception Configuration
+
+Configure exception behavior for vulnerabilities
 
 image::00-pc-5.png[link=self, window=blank, width=100%]
+
+==== Access Control
+
+image::00-pc-6.png[link=self, window=blank, width=100%]
 
 The access control tab is where you set up your authentication providers and the roles that you would like to have an ACS, along with permission sets and access scopes.
 
 ==== System Configuration
 
-image::00-pc-6.png[link=self, window=blank, width=100%]
+image::00-pc-7.png[link=self, window=blank, width=100%]
 
 The system configuration tab manages things like private data retention configuration cluster deletion public configuration and all of these are settings are editable
 
 ==== Administration Events
 
-image::00-pc-7.png[link=self, window=blank, width=100%]
+image::00-pc-8.png[link=self, window=blank, width=100%]
 
 The administration events tab is handy for troubleshooting platform issues by reviewing event logs now, these logs are approached after four days by default, but you can change that in the system configuration tab. We will have a whole section on the administration events later, but it is beneficial for diagnosing issues and looking into domains such as authentication image scanning Integrations and more 
 
 ==== System Health
 
-image::00-pc-8.png[link=self, window=blank, width=100%]
+image::00-pc-9.png[link=self, window=blank, width=100%]
 
 And lastly, the system Health Tap will help you handle things like Administration usage, generate diagnostic bundles that you monitor cluster status sensor upgrades, credential expiration, and more.
 
@@ -379,4 +400,4 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcTYwZWZlazBoanhlcXV3Njkx
 
 Nice job!
 
-In this module, you learned how to navigate the ACS dashboard and perform basic search queries. You have the navigational basics to move through the ACI UI proficiently. On to *Vulnerability Management*!!
+In this module, you learned how to navigate the ACS dashboard and perform basic search queries. You have the navigational basics to move through the ACS UI proficiently. On to *Vulnerability Management*!!

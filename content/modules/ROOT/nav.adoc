@@ -2,7 +2,7 @@
 * xref:01-visibility-and-navigation.adoc[1. Visibility & Navigation]
 * xref:02-vulnerability-management-lab.adoc[2. Vulnerability Management]
 * xref:03-risk-profiling.adoc[3. Risk profiling]
-* xref:04-policy-management.adoc[4.Policy Management]
+* xref:04-policy-management.adoc[4. Policy Management]
 * xref:05-cicd-and-automation.adoc[5. CI/CD Automation and Integration]
 * xref:06-compliance.adoc[6. Compliance]
 * xref:07-notifications.adoc[7. Notifications and Alerting]
@@ -11,7 +11,6 @@
 * xref:10-installation.adoc[10. Installation]
 
 * xref:misc-log-4-shell-lab.adoc[Black Hat - log4shell Example]
-// * xref:misc-reverse-shell.adoc[Black Hat - reverse shell runtime Example]
 * xref:misc-hacking-linux.adoc[Black Hat - CTF - hack a web application]
 * xref:partner-paladin.adoc[Partner - Paladin Cloud & RHACS Integration]
 
