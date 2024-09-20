@@ -264,6 +264,15 @@ echo $QUAY_USER
 echo $QUAY_URL
 ----
 
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ echo $QUAY_USER
+echo $QUAY_URL
+quayadmin
+quay-bq65l.apps.cluster-bq65l.bq65l.sandbox209.opentlc.com
+----
+
 [start=3]
 . Using the terminal on the bastion host, login to quay using the Podman CLI as shown below:
 
@@ -422,9 +431,7 @@ This tab displays the usage over time along with details about who/how the image
 
 image::quay-usage-logs.png[link=self, window=blank, width=100%]
 
----
 NOTE: You can see that you (The "quayadmin") pushed an image tagged 1.0 to the repository today. 
----
  
 [start=5]
 . Lastly click on the *Settings* icon. 
@@ -623,7 +630,7 @@ Showing that the latest version of Ubuntu from Docker.io has 0 critical vulnerab
 [source,sh,subs="attributes",role=execute]
 ----
 MYIMAGE=<Add the registry URL here>
-roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan $MYIMAGE --force -o table --severity=CRITICAL
+roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image $MYIMAGE --force -o table --severity=CRITICAL
 ----
 
 == Summary

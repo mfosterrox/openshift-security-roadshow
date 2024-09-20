@@ -247,8 +247,6 @@ Red Hat Advanced Cluster Security for Kubernetes supports OpenShift Container Pl
 
 The OpenShift Compliance Operator allows OpenShift Container Platform administrators to define the desired compliance state of a cluster and provides an overview of gaps and ways to remediate any non-compliant policy. We will be installing and managing the compliance operator in  later modules
 
-image::01-compliance-1.png[link=self, window=blank, width=100%]
-
 The Compliance dropdown has three tabs to choose from. 
 
 - Coverage
@@ -261,7 +259,7 @@ Coverage
 
 The *Coverage* tab will contain all of your scanned clusters and workloads after the *Compliance Operator* is setup. You will go through this in the Compliance section later in the roadshow.
 
-image::01-compliance-2.png[link=self, window=blank, width=100%]
+image::00-compliance-1.png[link=self, window=blank, width=100%]
 
 ----
 Schedules
@@ -269,27 +267,23 @@ Schedules
 
 The schedules tab contains all of the created scan schedules that report on the various CIS, PCI-DSS and DISA-STIG compliance standards you wish to evaluate.
 
-image::01-compliance-3.png[link=self, window=blank, width=100%]
+image::00-compliance-2.png[link=self, window=blank, width=100%]
 
-----
-Compliance Dashboard (Previously Compliance 1.0)
-----
+
+==== Compliance Dashboard (Previously Compliance 1.0)
+
 
 The Compliance dashboard should be empty when you're in here for the first time. It's because you have not completed a scan.
 
 .Procedure
 
-. We will go into this in a later module, but for now, hit the *Scan environment* button in the top right of the page to kick off your first scan. 
+image::00-compliance-3.png[link=self, window=blank, width=100%]
 
-image::01-compliance-4.png[link=self, window=blank, width=100%]
-
-image::01-compliance-5.png[link=self, window=blank, width=100%]
-
-[start=2]
+. Hit the *Scan environment* button in the top right of the page to kick off your first scan. 
 
 . Ensure you see the bar graphs fill up with data before moving. We we will review these compliance results in a later module.
 
-image::01-compliance-6.png[link=self, window=blank, width=100%]
+image::01-compliance-4.png[link=self, window=blank, width=100%]
 
 === Vulnerability Management
 
