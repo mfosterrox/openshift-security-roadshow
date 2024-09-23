@@ -8,7 +8,7 @@
 
 == The Configuration Management Tab
 
-Another configuration management tab has much information that directs you to other dashboards. It is currently undergoing an overhaul, so we are open to whatever you want to see in the configuration management dashboard. However, here are the four top use cases that we tend to see from people looking into security configuration management.
+The configuration management tab contains a lot fo useful information that directs you to other dashboards. It is currently undergoing an overhaul, so we are open to whatever you want to see in the configuration management dashboard. However, here are the four top use cases that we tend to see from people looking into security configuration management.
 
 - Policy Violations
 - CIS Kubernetes 1.5
@@ -47,8 +47,6 @@ policies in the cluster, the policy status, whether it's disabled, whether it's 
 
 .Procedure
 . Click the *View all* button on the "Policy violations by severity" widget.
-
-image::03-cm-5.png[link=self, window=blank, width=100%]
 
 IMPORTANT: Notice in this tab that nothing should say enforced. This is because, by default, in ACS, there is no policy that is being enforced by default. This avoids the eviction of any workloads prematurely and allows you to ingest all of this security information at the beginning of your security journey.
 

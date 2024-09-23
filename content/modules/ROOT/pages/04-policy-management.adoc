@@ -7,7 +7,7 @@
 
 == RHACS Policy Management Basics
 
-RHACS has many built-in policies to detect activity related to attacker goals: gain a foothold, maintain a presence, move laterally, and exfiltrate data. The continuous runtime monitoring observes all container activity and will automatically respond to events with appropriate enforcement and notification. However, that would be missing out on an opportunity - RHACS wants to go one step further, to take advantage of containers' ephemeral, immutable nature, to improve security in a measurable way from now on.
+RHACS has many built-in policies to detect activity related to attacker goals: gain a foothold, maintain a presence, move laterally, and exfiltrate data. The continuous runtime monitoring observes all container activity and will automatically respond to events with appropriate enforcement and notification. However, that would be missing out on an opportunity - RHACS wants to go one step further, to take advantage of containers' ephemeral, immutable nature, to improve security in a measurable way.
 
 We want to use runtime incidents and vulnerabilities as a learning opportunity to improve security going forward by constraining how our containers can act. We achieve this by creating policies and implementing them early in the CI/CD process.
 
@@ -232,39 +232,39 @@ image::acs-deploy-05.png[link=self, window=blank, width=100%]
 
 Now, let's test it out! We're going to deploy a simple Ubuntu application to the cluster.
 
-[source,sh,subs="attributes",role=execute]
+[source,YAML,]
 ----
-cat <<EOF > ubuntu-deployment.yml
+cat << EOF > ubuntu-deployment.yml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
- name: ubuntu-deployment
- labels:
- app: ubuntu
+  name: ubuntu-deployment
+  labels:
+    app: ubuntu
 spec:
- replicas: 3
- selector:
- matchLabels:
- app: ubuntu
- template:
- metadata:
- labels:
- app: ubuntu
- spec:
- containers:
- - name: ubuntu
- image: ubuntu:latest
- command: ["/bin/bash", "-c", "--"]
- args: ["while true; do echo hello world; sleep 10; done"]
- ports:
- - containerPort: 80
- resources:
- limits:
- memory: "128Mi"
- cpu: "500m"
- requests:
- memory: "64Mi"
- cpu: "250m"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ubuntu
+  template:
+    metadata:
+      labels:
+        app: ubuntu
+    spec:
+      containers:
+      - name: ubuntu
+        image: ubuntu:latest
+        command: ["/bin/bash", "-c", "--"]
+        args: ["while true; do echo hello world; sleep 10; done"]
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
 EOF
 ----
 
