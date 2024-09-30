@@ -2,9 +2,10 @@
 
 == Module goals
 
-* Understand the various modules in RHACS
-* Comfortably navigate the UI
-* Set the basis for the rest of the modules that we will explore in the roadshow
+* Understand the various modules in RHACS.
+* Comfortably navigate the UI.
+* Set the foundation for exploring the rest of the modules in the roadshow.
+* Help you come up with questions for the RHACS team.
 
 == RHACS basics
 
@@ -78,11 +79,13 @@ A search query consists of two parts:
 - An attribute that identifies the resource type you want to search for.
 - A search term that finds the matching resource.
 
-For example, to find all violations in the *ctf-web-to-system* deployment, the search query is *Deployment* THEN *ctf-web-to-system*.
+====
+For example, to find all violations in the *ctf-web-to-system* deployment, the search query is Deployment *THEN* ctf-web-to-system.
+====
 
 In this search query, Deployment is the attribute, and ctf-web-to-system is the search term.
 
-TIP: The search field in RHACS requires each attribute to be entered fully as a search term. Enter your first attribute, and hit the <tab> key to move along to the following attribute you would like to enter.
+TIP: The search field in RHACS requires each attribute to be entered fully as a search term. Enter your first attribute, and hit the <tab> key to move along to the following attribute you would like to enter. Watch the video below for a demonstration.
 
 ---
 
@@ -90,9 +93,9 @@ video::01-acs-search.mp4[width=640,opts=autoplay, class="center" ]
 
 ---
 
-NOTE: RHACS maintains a library of searchable assets to help you search faster, they will appear in a drop-down list, and you can click on them to enter them as well. If a specific CVE or deployment cannot be found, please confirm the spelling of the asset name or that it is correctly deployed in the cluster. 
+NOTE: RHACS maintains a library of searchable assets to help you search faster. They will appear in a drop-down list, and you can click on them to enter them as well. If a specific CVE or deployment cannot be found, please confirm the spelling of the asset name or that it is correctly deployed in the cluster. 
 
-You can also search using REGEX like capabilities. Add an *r/* before the search term to find all possibilities. For example if you search for *Namespace:r/st.*x*, the results include matches from namespace stackrox and stix.
+You can also search using *REGEX like capabilities*. Add an *r/* before the search term to find all possibilities. For example if you search for *Namespace:r/st.*x*, the results include matches from namespace stackrox and stix.
 
 ---
 
@@ -111,7 +114,7 @@ Here are some common search queries you can try in the RHACS search bar if youâ€
 |Exposure Level:<level>|Exposure Level:External|Finding deployments that have external network exposure
 |============
 
-IMPORTANT: RHACS, like Kubernetes works on a *key:value system* primarily due to their flexibility and power in organizing, selecting, and managing resources but also because of the ability to set selectors and match objects based on a set of values (e.g., "in", "not in", "exists", "does not exist").
+IMPORTANT: RHACS, like Kubernetes, works on a *key:value* system primarily due to its flexibility and power in organizing, selecting, and managing resources, but also because of the ability to set selectors and match objects based on a set of values (e.g., 'in', 'not in', 'exists', 'does not exist')."
 
 image::acs-search-cve.png[link=self, window=blank, width=100%, Search Syntax]
 
@@ -129,7 +132,9 @@ video::01-acs-local.mp4[width=640,opts=autoplay, class="center" ]
 
 ---
 
+====
 As you can see, the content is only relevant to the violations tab, but the search capabilities, including the use of *r/*, remain the same.
+====
 
 === 2. Navigation menu
 
@@ -241,7 +246,7 @@ image::01-violations-1.png[link=self, window=blank, width=100%]
 
 Don't worry, you'll go through this policy violation workflow in later modules.
 
-=== Compliance (Next-Gen Dashboard)
+=== Compliance
 
 Red Hat Advanced Cluster Security for Kubernetes supports OpenShift Container Platform configuration compliance standards through an integration with the OpenShift Container Platform Compliance Operator. In addition, it allows you to measure and report on configuration security best practices for OpenShift and supported Kubernetes platforms.
 
@@ -253,37 +258,39 @@ The Compliance dropdown has three tabs to choose from.
 - Schedules
 - Dashboard
 
-----
-Coverage
-----
+*Coverage*
 
 The *Coverage* tab will contain all of your scanned clusters and workloads after the *Compliance Operator* is setup. You will go through this in the Compliance section later in the roadshow.
 
 image::00-compliance-1.png[link=self, window=blank, width=100%]
 
-----
-Schedules
-----
 
-The schedules tab contains all of the created scan schedules that report on the various CIS, PCI-DSS and DISA-STIG compliance standards you wish to evaluate.
+*Schedules*
+
+As you can see, the content is only relevant to the violations tab, but the search capabilities, including the use of r/, remain the same.reated scan schedules that report on the various CIS, PCI-DSS and DISA-STIG compliance standards you wish to evaluate.
 
 image::00-compliance-2.png[link=self, window=blank, width=100%]
 
 
-==== Compliance Dashboard (Previously Compliance 1.0)
+*Compliance Dashboard* (Previously Compliance 1.0)
 
-
-The Compliance dashboard should be empty when you're in here for the first time. It's because you have not completed a scan.
-
-.Procedure
+The Compliance dashboard will be empty when you're here for the first time. This is because you have not completed a scan yet. Let's go ahead and schedule our first scan.
 
 image::00-compliance-3.png[link=self, window=blank, width=100%]
 
+
+.Procedure
+
+[start=1]
 . Hit the *Scan environment* button in the top right of the page to kick off your first scan. 
 
 . Ensure you see the bar graphs fill up with data before moving. We we will review these compliance results in a later module.
 
 image::01-compliance-4.png[link=self, window=blank, width=100%]
+
+====
+We will dive deeper into this tab in later sections but feel free to explore and 
+====
 
 === Vulnerability Management
 

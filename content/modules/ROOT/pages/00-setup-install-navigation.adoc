@@ -1,5 +1,5 @@
 = Lab setup and introduction
-:toclevels: 1
+// :toclevels: 1
 
 == Module goals
 
@@ -110,7 +110,7 @@ oc get nodes -A
 oc get nodes -A
 Error from server (NotFound): the server could not find the requested resource (get users.user.openshift.io ~)
 NAME                                            STATUS   ROLES    AGE    VERSION
-ip-<IP_ADDRESS>.us-east-2.compute.internal    Ready    <none>   163m   v1.28.8-eks-ae9a62a
+ip-<IP_ADDRESS>.us-east-2.compute.internal   Ready    <none>   163m   v1.28.8-eks-ae9a62a
 ip-<IP_ADDRESS>.us-east-2.compute.internal   Ready    <none>   163m   v1.28.8-eks-ae9a62a
 ip-<IP_ADDRESS>.us-east-2.compute.internal   Ready    <none>   163m   v1.28.8-eks-ae9a62a
 ----
@@ -157,9 +157,9 @@ NAME                                        STATUS   ROLES                  AGE 
 <OCP_IP>0.us-east-2.compute.internal   Ready    worker                 4h1m   v1.27.11+749fe1d
 <OCP_IP>.us-east-2.compute.internal    Ready    control-plane,master   4h7m   v1.27.11+749fe1d
 <OCP_IP>.us-east-2.compute.internal    Ready    control-plane,master   4h7m   v1.27.11+749fe1d
-<OCP_IP>.us-east-2.compute.internal     Ready    worker                 4h2m   v1.27.11+749fe1d
-<OCP_IP>.us-east-2.compute.internal   Ready    control-plane,master   4h7m   v1.27.11+749fe1d
-<OCP_IP>.us-east-2.compute.internal     Ready    worker                 4h2m   v1.27.11+749fe1d
+<OCP_IP>.us-east-2.compute.internal    Ready    worker                 4h2m   v1.27.11+749fe1d
+<OCP_IP>.us-east-2.compute.internal    Ready    control-plane,master   4h7m   v1.27.11+749fe1d
+<OCP_IP>.us-east-2.compute.internal    Ready    worker                 4h2m   v1.27.11+749fe1d
 ----
 
 You will now see the OCP role using the *oc* command, as we are currently working on the OpenShift cluster
@@ -239,6 +239,11 @@ In this section, we will download the "*Java app*" give it a new tag, and push t
 Let's export a few variables to make things easier. These variables will stay in the .bashrc file so they're saved in case you need to refresh the terminal.
 
 TIP: With the variables saved in the ~/.bashrc file you will not have to declare them again in the future. 
+
+*Procedure*
+
+[start=1]
+. Run the following command.
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -382,7 +387,11 @@ image::01-quay-dashboard.png[quay console]
 So far in the setup module we downloaded built and pushed an insecure java application called *ctf-web-to-system*. Now it's time to deploy it to the OpenShift Cluster. To do this we will need to make the registry that we created public. 
 
 *Procedure*
-. First, Let's take a look at our application in the registry.
+
+Let's take a look at our application in the registry.
+
+[start=1]
+. First, ensure that the *ctf-web-to-system* repository is available. If there are no repositories available please redo the *Build a container image* section to ensure that the image was correctly pushed to the repository. 
 
 image::quay-login.png[link=self, window=blank, width=100%]
 
@@ -431,7 +440,7 @@ This tab displays the usage over time along with details about who/how the image
 
 image::quay-usage-logs.png[link=self, window=blank, width=100%]
 
-NOTE: You can see that you (The "quayadmin") pushed an image tagged 1.0 to the repository today. 
+NOTE: You can see that you, the "quayadmin", pushed an image tagged 1.0 to the repository today. 
  
 [start=5]
 . Lastly click on the *Settings* icon. 
@@ -451,6 +460,10 @@ IMPORTANT: Make sure to make the repository public. Otherwise we will not be abl
 . Click OK
 
 image::quay-make-public-ok.png[link=self, window=blank, width=100%]
+
+====
+You should be able to see the repository icon lose its red lock symbol now that it is public. This will allow you to deploy the image directly from the local Quay repository.
+====
 
 [[vulnerability-scanning-with-quay]]
 
@@ -494,6 +507,10 @@ Congratulations, you now know how to examine images in your registry for potenti
 In the final part of this module, you'll deploy several insecure applications to the OpenShift cluster. You'll scan a few of these containers using the *roxctl* CLI to understand what you're deploying and what to expect when you dive into RHACS.
 
 IMPORTANT: Make sure the variables are set before running the following commands. If not, go back to the Quay section to redo the previous commands.
+
+====
+Run the following in the terminal and ensure you get the corrrect outputs.
+====
 
 [source,sh,subs="attributes",role=execute]
 ----

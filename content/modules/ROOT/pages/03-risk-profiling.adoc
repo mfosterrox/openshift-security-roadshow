@@ -3,7 +3,7 @@
 == Module goals
 
 * Understand the extra configuration aspects of Kubernetes and OpenShift
-* Tie Vulnerability Management details together with configuration details and runtime events
+* Tie vulnerability management details together with configuration details and runtime events
 * Help you identify what "Risk" is in your clusters
 
 == The Configuration Management Tab

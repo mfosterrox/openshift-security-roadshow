@@ -10,8 +10,13 @@
 * xref:09-network-security.adoc[9. Network Security]
 * xref:10-installation.adoc[10. Installation]
 
-* xref:misc-log-4-shell-lab.adoc[Black Hat - log4shell Example]
+//Day 2 modules
+
+
+
+//Extra modules
 * xref:misc-hacking-linux.adoc[Black Hat - CTF - hack a web application]
+* xref:misc-log-4-shell-lab.adoc[Black Hat - log4shell example]
 * xref:partner-paladin.adoc[Partner - Paladin Cloud & RHACS Integration]
 
 

@@ -64,7 +64,7 @@ NOTE: If you’ve already added an Incoming Webhook, the Configure option appear
 . Access the RHACS Console
 . Go to Platform Configurations -> Integrations
 . Click on Microsoft Teams
-. Click New integration
+. Click New integraton
 . Give your webhook a name
 . Paste the Teams Webhook
 . Hit *Test* and hopefully recieve a "The test was successful" message.
@@ -74,34 +74,65 @@ NOTE: If you’ve already added an Incoming Webhook, the Configure option appear
 === Create a Slack Webhook
 
 .Procedure
-. In Slack, go to Tools and Settings -> Manage apps. You should get redirected
-. Hit *Build* in the top right corner of the page
-. Hit *Create New App*
-. Give it a name and select the workspace you'd like to send the alerts to
-. Click *Incoming Webhooks*
-. Click *Enable Incoming Webhooks*
-. Click *Add New Webhook to Workspace*
-. Select a channel and hit *Allow*
-. Copy the Webhook URL and head back to the RHACS dashboard.
+. Create a Slack App
+. Log in to Slack: Go to the link: https://api.slack.com/apps?new_app=1[Slack API site] and log in with your Slack credentials.
+. Create a New App: Click on "Add Apps" 
+. Click on "From scratch"
+.  
+
+====
+You will need to choose a name for the app and select the workspace where it will be used.
+====
+
+TIP: You can add features such as webhooks or bot users later, but for now, focus on setting up the Incoming Webhooks.
+
+[start=4]
+. Once your app is created, go to the app's settings and find the "Incoming Webhooks" feature.
+. Toggle Webhooks On: You will see an option to enable webhooks. Toggle it to “On” to allow incoming webhooks for your app.
+. After enabling Incoming Webhooks, scroll down to the "Webhook URLs for Your Workspace" section.
+. Add New Webhook to Workspace: Click the "Add New Webhook to Workspace" button.
+
+====
+A new window will open, allowing you to choose a Slack channel where messages sent by the webhook will appear. Authorize this action by clicking the "Allow" button after selecting the desired channel.
+==== 
+
+[start=10]
+. Copy the Webhook URL: Once the webhook is authorized, a unique Webhook URL will be generated. You will use this URL in the next step.
 
 === Intergrate the Slack webhook into RHACS
+
 .Procedure
 . Access the RHACS Console
-. Go to Platform Configurations -> Integrations
-. Click on the *Slack* integration
-. Click New integration
-. Give your webhook a name
-. Paste the Slack Webhook
-. Hit *Test* and hopefully recieve a "The test was successful" message.
+. Go to *Platform Configurations -> Integrations*
+. Select Notifier Integrations -> Slack
+. Click the *New integration* button to set up a new notification system.
+
+====
+A new window will appear where you can choose the type of integration. Select Slack from the list.
+====
+
+IMPORTANT: You will need to configure the Slack integration by providing the following information:
+
+*Integration Name:* Give your integration a name, like "Slack Webhook for Security Alerts."
+*Webhook URL*: Paste the Slack Webhook URL you generated earlier.
+*Default Channel:* This is typically auto-populated based on the webhook URL, but you can verify or specify the correct Slack channel.
+*Message Format: *Choose the format for your messages. This could be simple text, or you could customize it further using Block Kit if supported.
+
+
+[start=5]
+. Hit Test and hopefully recieve a "The test was successful" message.
 
 image::08-not-1.png[link=self, window=blank, width=100%]
+
+====
+Next we have to configure our policies to alert based on specific triggers.
+====
 
 == Configure Notifications
 
 Balancing security alerting in a team is crucial to ensure that the team is responsive to genuine threats while minimizing alert fatigue. RHACS enables this by letting you configure your alert channels and attach them to the policies you car about. 
 
 Let's test this out. You will use the runtime enforcement policy that was used in the previous module. 
-
 
 .Procedure
 . On the left-hand side of the application, click the *Platform Configuration* tab and select *Policy Management*.
@@ -120,9 +151,9 @@ image::acs-policy-01.png[link=self, window=blank, width=100%, Policy Management 
 
 image::08-not-2.png[link=self, window=blank, width=100%]
 
-|====
+====
 There should now be a notifier option on the right hand side of the screen. 
-|====
+====
 
 [start=4]
 . Click your new webhook
