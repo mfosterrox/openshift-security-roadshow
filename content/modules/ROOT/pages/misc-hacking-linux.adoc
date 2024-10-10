@@ -5,6 +5,12 @@
 * A CTF challenge: Web hacking a running container on OpenShift
 * There are three flags found during the journey.
 
+== The CTF challenge
+
+This vulnerable web application is intentionally designed with minimal interaction but contains flaws that can be exploited through SQL injection and cross-site scripting (XSS) attacks. There are three hidden flags to discover.
+
+Have fun exploring!
+
 == Getting access
 
 Start by networking the running container so that you can access it. the following commands deployes our vulnerable container to EKS and creates a LoadBalancer service to make it publically accessable. 

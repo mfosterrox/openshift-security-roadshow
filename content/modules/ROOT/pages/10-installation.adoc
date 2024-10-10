@@ -2,46 +2,104 @@
 
 == Module goals
 .Goals
-* Review the Network Dashboard
-* Create Network Policies that improve our CIS compliance.
 
-== Accessing the EKS cluster 
+== Ensure the EKS cluster 
 
-I have checked the environment and it is has both eks and openshift cluster. Both are accessible using cli only need to change the context by using following command:
+We are going to use Helm to install the ACS secured cluster services in Amazon's EKS. To do this we will need admin access to the cluster with Helm install. Verify that you have both before moving on. 
 
-````bash
-oc config get-contexts
-oc config use-context admin
-oc config use-context eks-admin
-````
-Let us know if we can help anywhere else.
-
-kubectl set resources deployment sensor -c=sensor --requests=cpu=100m,memory=256Mi --limits=cpu=2,memory=2Gi -n stackrox
-
-
-Check that the pod is up and running:
-
-[.lines_space]
-[.console-input]
-[source,bash, subs="+macros,+attributes"]
+====
+This command ensures you have access to the EKS Cluster
+====
+[source,sh,subs="attributes",role=execute]
 ----
-kubectl get pods
+oc config get-contexts
+oc config use-context eks-admin
 ----
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-NAME                        READY   STATUS    RESTARTS   AGE
-{podname}   1/1     Running   0          5s
+[lab-user@bastion ~]$ oc config get-contexts
+oc config use-context eks-admin
+CURRENT   NAME                                                                                        CLUSTER                                                        AUTHINFO                                                           NAMESPACE
+          admin                                                                                       cluster-qkskx                                                  admin                                                              
+*         eks-admin                                                                                   arn:aws:eks:us-east-2:327895892313:cluster/qkskx-eks-cluster   arn:aws:eks:us-east-2:327895892313:cluster/qkskx-eks-cluster       
+          trusted-profile-analyzer/api-cluster-qkskx-qkskx-sandbox361-opentlc-com:6443/system:admin   api-cluster-qkskx-qkskx-sandbox361-opentlc-com:6443            system:admin/api-cluster-qkskx-qkskx-sandbox361-opentlc-com:6443   trusted-profile-analyzer
+
+*Switched to context "eks-admin".*
+[lab-user@bastion ~]$ 
 ----
 
-Then let's go into the running pod to execute some commands:
-
-[.console-input]
-[source,bash, subs="+macros,+attributes"]
+====
+And This command ensures you Helm installed 
+====
+[source,sh,subs="attributes",role=execute]
 ----
-kubectl exec -ti {podname} /bin/bash
+helm
 ----
 
-NOTE: Change the pod name with your pod name.
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+...
+      --qps float32                     queries per second used when communicating with the Kubernetes API, not including bursting
+      --registry-config string          path to the registry config file (default "/home/lab-user/.config/helm/registry/config.json")
+      --repository-cache string         path to the directory containing cached repository indexes (default "/home/lab-user/.cache/helm/repository")
+      --repository-config string        path to the file containing repository names and URLs (default "/home/lab-user/.config/helm/repositories.yaml")
 
+Use "helm [command] --help" for more information about a command.
+----
+
+
+## Setting Up Red Hat Account and Creating Central Instance on ACS
+
+*Procedure*
+. Head on over to https://www.redhat.com/en/technologies/cloud-computing/openshift/advanced-cluster-security-kubernetes/cloud-service/trial
+. Click on the Start Your Trial button.
+. Sign up for a Red Hat account if you don't have one.
+. Once you are in "Getting Started" tab select "Create Instance".
+
+NOTE: You will be redirected to the *ACS Instances* page where you can view all of the central services that have been deployed.
+
+[start=5]
+. Select *Create ACS instance*  
+. Fill in your name, AWS account number, and select your cloud region (US East or Europe).
+. Wait for the creation process to complete. Typically it is 7-10 minutes.
+
+IMPORTANT: You need ACS Central Services to be available to deploy ACS Secured Cluster Services into the EKS Cluster.
+ 
+## Checking and Accessing the Central Instance
+
+helm install stackrox-secured-cluster-services stackrox/stackrox-secured-cluster-services -n stackrox -f init-bundle.yml --set clusterName=eks-production-cluster --set centralEndpoint=acs-data-cs3a2gnasu0g1ivkgbhg.acs.rhcloud.com:443 --set imagePullSecrets.username=mfoster@redhat.com --set imagePullSecrets.password='rfm1kjm0qym6awq!BVN' --create-namespace
+
+
+## Simplifying the Loom Transcript: Setting Up EKS Production Cluster
+
+1. **Accessing ACS Console**
+
+   - Deploy and open the central instance.
+   - Click on "Open ACS Console" to access the setup page.
+
+2. **Creating an Init Bundle**
+
+   - Click on "Create Init Bundle" and select EKS.
+   - Name the bundle (e.g., EKS production cluster) and download the init bundle YAML.
+   - Open the YAML file in the showroom instance.
+
+3. **Adding Certificate Information**
+
+   - Copy the certificate information from the YAML file.
+   - Create a new file (e.g., init-bundle.yaml) in a text editor.
+   - Paste the certificate information, save the file.
+
+4. **Setting Up EKS Cluster**
+
+   - Go to the getting started page and follow the EKS and Helm install instructions.
+   - Copy the Helm install command and run Helm repo add and Helm repo update commands.
+   - Run the Helm install command with the necessary parameters (e.g., unique ClusterName).
+
+5. **Configuring Cluster Services**
+
+   - Find the API endpoint for the cluster in the ACS instance.
+   - Save the API endpoint and add your Red Hat username and password.
+   - Use a generic account if setting up in ArgoCD or similar tools.

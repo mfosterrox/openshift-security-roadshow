@@ -15,9 +15,9 @@
 
 
 //Extra modules
-* xref:misc-hacking-linux.adoc[Black Hat - CTF - hack a web application]
-* xref:misc-log-4-shell-lab.adoc[Black Hat - log4shell example]
-* xref:partner-paladin.adoc[Partner - Paladin Cloud & RHACS Integration]
+* xref:misc-hacking-linux.adoc[CTF - hack a web application]
+* xref:misc-log-4-shell-lab.adoc[log4shell example]
+// * xref:partner-paladin.adoc[Partner - Paladin Cloud & RHACS Integration]
 
 
 
