@@ -59,9 +59,9 @@ Now, let's aim to get the *backend* namespace on that list.
 
 image::ex-net-1.png[link=self, window=blank, width=100%]
 
-|====
+====
 The graph does not display any results by default. This is a performance choice as large environments will become unweildly in a dashboard like this.
-|====
+====
 
 [start=2]
 . Use the filters at the top to select ONLY the *backend* namespace.
@@ -71,9 +71,9 @@ image::ex-net-2.png[link=self, window=blank, width=100%]
 [start=3]
 . Review the legend at the bottom left of the page.
 
-|====
+====
 Notice how there is a namespace type labeled *Related namespace*. You should see two other namespaces related to the backend namespace. This is because there is network traffic between these three namespaces. 
-|====
+====
 
 image::ex-net-3.png[link=self, window=blank, width=100%]
 image::ex-net-6.png[link=self, window=blank, width=100%]
@@ -92,9 +92,9 @@ image::ex-net-5.png[link=self, window=blank, width=100%]
 
 image::ex-net-7.png[link=self, window=blank, width=100%]
 
-|====
+====
 You should see no active YAMLs in the namespace since we have not created any network policies in the backend namespace.
-|====
+====
 
 [start=6]
 . Click the *Simulate network policies* and click *Generate and simulate network policies*
@@ -106,9 +106,9 @@ image::ex-net-8.png[link=self, window=blank, width=100%]
 
 image::ex-net-9.png[link=self, window=blank, width=100%]
 
-|====
+====
 This view is useful for making any changes to network policies. You will be able to visualize the changes in the UI.
-|====
+====
 
 We know the backend namespace needs some work. And while we can copy the simulated network policies from the UI, let's do it later from the roxctl UI.
 
