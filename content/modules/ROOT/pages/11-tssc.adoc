@@ -1,0 +1,84 @@
+== Module 11: Trusted Software Supply Chain
+
+=== Goal of Module 11
+
+The goal of this lab is to learn about the features from the Trusted Software Supply Chain suite of products from Red Hat. 
+
+=== Trusted Profile Analyzer 
+The Trusted Profile Analyzer brings Software Bill of Materials (SBOM) to OpenShift. What is an SBOM? https://www.cisa.gov[CISA.gov] defines an SBOM as "a nested inventory, a list of ingredients that make up software components." https://www.cisa.gov/sbom[¹] 
+
+Using SBOMs, you can have a clear vision of everything that goes into your application. This enables platform engineers to more easily enforce operational controls and compliance across hybrid multi-cloud environments. 
+
+==== Installing the Trusted Profile Analyzer 
+
+* Log into your Bastion
++
+[source]
+----
+ ssh lab-user@bastion.GUID.sandbox####.opentlc.com
+----
+* Install Homebrew
++
+[source]
+----
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+----
++
+* Once installed, run the following commands to add Homebrew to your PATH: 
++
+[source]
++
+----
+echo >> ~/.bashrc
+echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+----
+
+* Install Homebrew's dependencies
++
+[source]
++
+----
+sudo yum groupinstall 'Development Tools'
+----
+
+* Now that Homebrew is installed, use it to install gcc
++
+[source]
++
+----
+brew install gcc
+----
+
+* Once gcc is installed successfully with Homebrew, install Syft
++
+[source]
+----
+brew install syft
+----
+
+==== Generating an SBOM
+
+Now that we have Syft installed, we will pull an Openjdk11 image with flaws. 
+
+*Using podman, pull the image
++
+[source]
+----
+podman pull registry.access.redhat.com/ubi8/openjdk-11:1.20-2.1723644093
+----
+
+* Retag the image to more easily recognize it
++
+[source]
+----
+podman tag registry.access.redhat.com/ubi8/openjdk-11:1.20-2.1723644093 openjdk11-bad:latest
+----
+
+* Use Syft to create an SBOM from a local image
++
+[source]
+----
+syft openjdk-11-bad:latest -o spdx-json | jq . -r > openjdk-11-flawed.spdx
+----
+
