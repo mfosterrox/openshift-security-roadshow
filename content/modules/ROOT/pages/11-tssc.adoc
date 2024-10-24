@@ -5,7 +5,7 @@
 The goal of this lab is to learn about the features from the Trusted Software Supply Chain suite of products from Red Hat. 
 
 === Trusted Profile Analyzer 
-The Trusted Profile Analyzer brings Software Bill of Materials (SBOM) to OpenShift. What is an SBOM? https://www.cisa.gov[CISA.gov] defines an SBOM as "a nested inventory, a list of ingredients that make up software components." https://www.cisa.gov/sbom[¹] 
+The Trusted Profile Analyzer (based on Syft) brings Software Bill of Materials (SBOM) to OpenShift. What is an SBOM? https://www.cisa.gov[CISA.gov] defines an SBOM as "a nested inventory, a list of ingredients that make up software components." https://www.cisa.gov/sbom[¹] 
 
 Using SBOMs, you can have a clear vision of everything that goes into your application. This enables platform engineers to more easily enforce operational controls and compliance across hybrid multi-cloud environments. 
 
