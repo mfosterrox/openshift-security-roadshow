@@ -109,4 +109,19 @@ syft openjdk-11-bad:latest -o spdx-json | jq . -r > openjdk-11-flawed.spdx
 more openjdk-11-flawed.spdx
 ----
 
-=== Using the Trusted Profile Analyzer UI
+==== Using the Trusted Profile Analyzer UI
+
+A Red Hat Trusted Profile Analyzer has been created for you to use. The proctor will make the URL available to you once you've completed the previous section. 
+
+When you are given the URL, log into the RHTPA UI using the username and password provided.
+
+image::lab1.1-tpa.png[]
+
+Upload the SBOM. 
+
+* NOTE: The SBOM may have already been uploaded by your proctor. If that is the case, you may skip this step.
+
+image::lab11.1-sbom.gif[]
+
+
+
