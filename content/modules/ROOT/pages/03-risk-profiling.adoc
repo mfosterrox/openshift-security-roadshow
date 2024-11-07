@@ -222,7 +222,7 @@ The event timeline shows for each pod the process activity that has occurred ove
 image::04-risk-7.png[link=self, window=blank, width=100%]
 image::04-risk-8.png[link=self, window=blank, width=100%]
 
-While ACS monitored the baseline activity it picked up a feew policy violations from the container. as you click the blew dot you will see what is being flagged.
+While ACS monitored baseline activity, it detected a few policy violations from the container. Click the blue dot to view the flagged issues.
 
 NOTE: You can take advantage of the constrained lifecycle of containers for better runtime incident detection and response. Containers are not general-purpose virtual machines and therefore, generally have a simple lifecycle. They typically have a startup period, with some initialization, and then settle down to a small number of processes running continuously and making or receiving connections. Deviations from the baseline can be used to take enforcement action and alert team members. Runtime activity rules can be combined with other activity.
 

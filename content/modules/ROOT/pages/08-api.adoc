@@ -89,7 +89,7 @@ image::06-cd-10.png[link=self, window=blank, width=100%]
 . Click *Generate*
 . Now it's time to export the API token as a variable for the roxctl CLI. 
 
-IMPORTANT:Be sure to put the AP token in the correct location.
+IMPORTANT:Be sure to put the API token in the correct location.
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -268,7 +268,7 @@ Search filter for time range:
 
 [source,sh,subs="attributes",role=execute]
 ----
-curl -k -H "Authorization: Bearer $ROX_API_TOKEN" https://$ROX_CENTRAL_ADDRESS/v1/alerts?query==Violation%20Time%3A%3E1d | jq -r '.'
+curl -k -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS/v1/alerts?query=Violation%20Time%3A%3E1d" | jq -r '.'
 ----
 
 == Documentation and Resources

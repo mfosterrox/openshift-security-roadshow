@@ -50,7 +50,6 @@ helm
 Use "helm [command] --help" for more information about a command.
 ----
 
-
 ## Setting Up Red Hat Account and Creating Central Instance on ACS
 
 *Procedure*
@@ -70,10 +69,11 @@ IMPORTANT: You need ACS Central Services to be available to deploy ACS Secured C
  
 ## Checking and Accessing the Central Instance
 
+*Procedure*
+
 helm install stackrox-secured-cluster-services stackrox/stackrox-secured-cluster-services -n stackrox -f init-bundle.yml --set clusterName=eks-production-cluster --set centralEndpoint=acs-data-cs3a2gnasu0g1ivkgbhg.acs.rhcloud.com:443 --set imagePullSecrets.username=mfoster@redhat.com --set imagePullSecrets.password='rfm1kjm0qym6awq!BVN' --create-namespace
 
-
-## Simplifying the Loom Transcript: Setting Up EKS Production Cluster
+## Setting Up EKS Production Cluster
 
 1. **Accessing ACS Console**
 

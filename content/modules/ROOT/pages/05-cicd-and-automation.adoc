@@ -127,7 +127,7 @@ chmod: cannot access './roxctl': No such file or directory
 /tekton/scripts/script-0-ftdft: line 5: ./roxctl: No such file or directory
 ----
 
-This snippet is talling us that that are variable that are incorrect. With RHACS you will need API access to query central for results. 
+This snippet indicates that there are incorrect variables. With RHACS, API access is required to query Central for results.
 
 Let's take a look at the secret file necessary for *OpenShift Pipelines*.
 

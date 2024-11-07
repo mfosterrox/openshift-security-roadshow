@@ -215,7 +215,7 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExenowdjBqdG9weG5jdXJ2NTZw
 
 Add the notifier to the *Runtime Policy* 'Netcat Execution Detected'. Enable enforcement of the policy and watch the "visa-processor" container for a violation. This container runs an *nc* command every minute or so. 
 
-Your mission is completed with a Notification to Slack or Teams.
+Your mission is completed with a notification to Slack or Teams.
 
 == Summary
 
@@ -225,4 +225,4 @@ Nice!
 
 You integrations a webhook into RHACS and configured notifications based on previous policies.
 
-Let's go check out the *RHACS API*!
+Time to review the *RHACS API*!

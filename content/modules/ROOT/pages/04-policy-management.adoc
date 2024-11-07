@@ -15,7 +15,8 @@ As we move into this next section, let's focus on identifying and enforcing a ru
 
 == RHACS Runtime Policy Basics
 
-RHACS observes container processes and collects this information to enable you to craft policies to prevent behavior that you don’t like. This information can also create baseline policy configurations that the user can update. Runtime policies can include all build-time and deploy-time policy criteria but they can also include data about process executions during runtime.
+RHACS observes container processes and collects this information to enable you to craft policies to prevent behavior that you don’t like. This information can also create baseline policy configurations that the user can update. Runtime policies can include build-time and deploy-time policy criteria but they can also include data about process executions during runtime. However, runtime policies that use “audit logs” event source cannot use build and deploy criteria at all as they are Kubernetes specific events.
+
 
 The example below demonstrates how security may want to block a package manager from downloading any packages to the container. This runtime enforcement option is the first in the process of shifting left. After runtime enforcement, you will want to stop the package manager from being used in the container altogether.
 
@@ -232,7 +233,7 @@ image::acs-deploy-05.png[link=self, window=blank, width=100%]
 
 Now, let's test it out! We're going to deploy a simple Ubuntu application to the cluster.
 
-[source,YAML,]
+[source,sh,subs="attributes",role=execute]
 ----
 cat << EOF > ubuntu-deployment.yml
 apiVersion: apps/v1
@@ -359,9 +360,9 @@ ERROR:  Policy "Ubuntu Package Manager in Image - Default namespace" within Depl
 ERROR:  checking deployment failed after 3 retries: breaking policies found: failed policies found: 1 policies violated that are failing the check
 ----
 
-|====
-You should see one of the policies you've created breaking the deployment process while the others are in inform-only mode. 
-|====
+
+> You should see one of the policies you've created breaking the deployment process while the others are in inform-only mode. 
+
 
 *Congrats!* 
 

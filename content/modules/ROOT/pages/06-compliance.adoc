@@ -43,7 +43,7 @@ image::07-comp-2.png[link=self, window=blank, width=100%]
 Since RHACS was installed prior to the Compliance Operator, we’ll need to restart the ACS sensor in the OpenShift cluster to see these results.
 
 [start=8]
-. Run till following command to restart the RHACS scanner pod. This will speed up the process for the profiles to appear in RHACS Central.
+. Run the following command to restart the RHACS scanner pod. This will speed up the process for the profiles to appear in RHACS Central.
 
 
 [source,sh,subs="attributes",role=execute]
@@ -152,6 +152,10 @@ image::07-comp-8.png[link=self, window=blank, width=100%]
 And you should end up with a dashboard that looks like this
 
 image::07-comp-9.png[link=self, window=blank, width=100%]
+
+Focusing on the standards that matter most to you is essential for reducing unnecessary noise in the UI.
+
+IMPORTANT: add all the standards back before progressing to the next section
 
 *Click the "Manage standards button"*
 
@@ -323,7 +327,7 @@ oc get  namespaces -o json | jq '[.items[] | select((.metadata.name | startswith
 
 [source,sh,subs="attributes",role=execute]
 ----
-oc get  namespaces -o json | jq '[.items[] | select((.metadata.name | startswith("openshift") | not) and (.metadata.name | startswith("kube-") | not) and .metadata.name != "default") | .metadata.name ]'
+oc get networkpolicies -A -o json | jq '[.items[] | select((.metadata.namespace | startswith("openshift") | not) and (.metadata.namespace | startswith("kube-") | not) and .metadata.namespace != "default") | .metadata.namespace] | unique'
 ----
 
 *Sample Output*
@@ -332,13 +336,16 @@ oc get  namespaces -o json | jq '[.items[] | select((.metadata.name | startswith
 ----
 [lab-user@bastion pipeline]$ oc get --all-namespaces networkpolicies -o json | jq '[.items[] | select((.metadata.namespace | startswith("openshift") | not) and (.metadata.namespace | startswith("kube-") | not) and .metadata.namespace != "default") | .metadata.namespace] | unique'
 [
+  "janus-argocd",
   "medical",
+  "sonataflow-infra",
   "stackrox",
+  "trusted-profile-analyzer",
   "vault"
 ]
 ----
 
-It's great to know that StackRox (RHACS) is covered!
+> It's great to know that StackRox (RHACS) is covered!
 
 It the Networking section we will go about fixing this issue through the generation and application of network policy. For now I offer you a challenge.
 

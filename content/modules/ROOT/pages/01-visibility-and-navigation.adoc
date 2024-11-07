@@ -209,21 +209,23 @@ With these widgets, you can customize the information displayed on the dashboard
 
 == Navigating the main use cases
 
+We are going to work from the top down throughout the ACS dashboard to give you an overview of all of the use cases that ACS will cover, starting with the network UI.
+
 === Network 
 
-We are going to work from the top down throughout the ACS dashboard to give you an overview of all of the use cases that ACS will cover, starting with the network UI.
+The network user interface contains two drop-downs: the *Network Graph* tab and the *Listening Endpoints* tab. 
+
+> *Click on the Network Graph tab*
 
 image::00-network-1.png[link=self, window=blank, width=100%, Dashboard Filter]
 
-The network user interface contains two drop-downs: the network graph tab and the listening endpoints tab. 
-
 The network graph tab allows you to visualize all the network connections in your cluster look at Baseline flows simulate Network policies manage CIDR blocks and more
+
+> *Click on the Listening Endpoints tab*
 
 image::00-network-2.png[link=self, window=blank, width=100%, Dashboard Filter]
 
 With the *Listening Endpoints tab*, you can see all of the deployments across your clusters and audit for any reported listening endpoints. As you drill down through cluster namespace and into deployments, you will see the exact process ID, Port protocol pod ID, container name and whether they are exposed.
-
-image::00-network-3.png[link=self, window=blank, width=100%, Dashboard Filter]
 
 === Violations 
 
@@ -284,12 +286,12 @@ image::00-compliance-3.png[link=self, window=blank, width=100%]
 [start=1]
 . Hit the *Scan environment* button in the top right of the page to kick off your first scan. 
 
-. Ensure you see the bar graphs fill up with data before moving. We we will review these compliance results in a later module.
-
 image::01-compliance-4.png[link=self, window=blank, width=100%]
 
+. Ensure you see the bar graphs fill up with data before moving. We we will review these compliance results in a later module.
+
 ====
-We will dive deeper into this tab in later sections but feel free to explore and 
+We will dive deeper into this tab in later sections but feel free to explore the compliance dashboard and it's various graphs.
 ====
 
 === Vulnerability Management
