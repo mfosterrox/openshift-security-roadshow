@@ -12,11 +12,9 @@
 
 //Day 2 modules
 
-
-
 //Extra modules
-* xref:misc-hacking-linux.adoc[CTF - hack a web application]
-* xref:misc-log-4-shell-lab.adoc[log4shell example]
+* xref:misc-hacking-linux.adoc[MISC: CTF - hack a web application]
+* xref:misc-log-4-shell-lab.adoc[MISC: log4shell example]
 // * xref:partner-paladin.adoc[Partner - Paladin Cloud & RHACS Integration]
 
 

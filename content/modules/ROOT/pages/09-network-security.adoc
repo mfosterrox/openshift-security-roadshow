@@ -238,6 +238,7 @@ Use the 'roxctl netpol generate' command on the rest of the Kubernetes manifests
 image::https://media.giphy.com/media/3ZP7udDbKKDS0/giphy.gif?cid=790b7611ag8xf2i0ectfchcasx9mo9vcym9l5v8gm96q7ub4&ep=v1_gifs_search&rid=giphy.gif&ct=g[link=self, window=blank, width=100%, class="center"]
 
 What is the CIS compliance standard percentage at now? 
+
 == Summary
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNxZGd5Zm5qMnlpOHhrbm1hY2pwcG5ydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p18ohAgD3H60LSoI1C/giphy.gif[link=self, window=blank, width=100%, class="center"]
