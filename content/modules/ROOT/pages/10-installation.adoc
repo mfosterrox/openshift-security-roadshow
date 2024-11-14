@@ -34,7 +34,7 @@ CURRENT   NAME                                                                  
 ----
 
 ====
-And This command ensures you Helm installed 
+And this command ensures you Helm installed 
 ====
 [source,sh,subs="attributes",role=execute]
 ----
@@ -139,9 +139,10 @@ image::10-install-02.png[link=self, window=blank, width=100%]
 
 [start=3]
 . Run the following command helm command to update the charts
+
 [source,sh,subs="attributes",role=execute]
 ----
-helm repo add rhacs https://mirror.openshift.com/pub/stackrox/charts/
+helm repo add rhacs https://mirror.openshift.com/pub/rhacs/charts/
 ----
 
 [.console-output]
@@ -207,8 +208,8 @@ This is a simple step in which you either head back to the RHACS dashboard and c
 
 [source,sh,subs="attributes",role=execute]
 ----
-echo export ACS_URL=<YOUR URL HERE> ~/.bashrc
-ACS_URL=<YOUR URL HERE>
+echo export ACS_URL= YOUR_URL_HERE ~/.bashrc
+ACS_URL= YOUR_URL_HERE
 ----
 
 [start=4]
@@ -245,13 +246,13 @@ IMPORTANT: Make sure to add your cluster name to the command.
 helm install -n stackrox --create-namespace \
    stackrox-secured-cluster-services rhacs/secured-cluster-services \
    -f init.yml \
-   --set clusterName=<CLUSTER_NAME> \
+   --set clusterName=eks-production-cluster \
    --set centralEndpoint=$ACS_URL \
-   --set imagePullSecrets.username=<USERNAME \
-   --set imagePullSecrets.password=<PASSWORD>
+   --set imagePullSecrets.username=USERNAME \
+   --set imagePullSecrets.password=PASSWORD
 ----
 
-IMPORTANT: The imagePullSecrets.username is the USERNAME for your account and NOT your email.
+IMPORTANT: The imagePullSecrets.username is the *username* for your account and *not* your email.
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
@@ -363,3 +364,45 @@ helm upgrade stackrox-secured-cluster-services rhacs/stackrox-secured-cluster-se
 ----
 
 Make sure to replace the placeholders with actual values specific to your RHACS environment before deploying.
+
+== Deploy the workshop applications (AGAIN...)
+
+In the final part of this module, you'll deploy several insecure applications to the OpenShift cluster. You'll scan a few of these containers using the *roxctl* CLI to understand what you're deploying and what to expect when you dive into RHACS.
+
+IMPORTANT: Make sure the variables are set before running the following commands. If not, go back to the Quay section to redo the previous commands.
+
+====
+Run the following in the terminal and ensure you get the corrrect outputs.
+====
+
+[source,sh,subs="attributes",role=execute]
+----
+echo $QUAY_USER
+echo $QUAY_URL
+----
+
+Our insecure demo applications come from a variety of public GitHub repositories and sources. Including the Java application that you just pushed to Quay. Let's deploy them into our cluster.
+
+*Procedure*
+
+[start=1]
+. Run the following commands in the terminal, one after the other.
+
+[source,sh,subs="attributes",role=execute]
+----
+oc config use-context admin
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$oc config use-context eks-admin
+Switched to context "admin".
+----
+
+[source,sh,subs="attributes",role=execute]
+----
+oc apply -f $TUTORIAL_HOME/kubernetes-manifests/ --recursive
+----
+
+Now it's time to review the results!
