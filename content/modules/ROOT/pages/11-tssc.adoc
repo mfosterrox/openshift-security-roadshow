@@ -4,11 +4,18 @@
 
 The goal of this lab is to learn about the features from the Trusted Software Supply Chain suite of products from Red Hat. 
 
+
+=== Trusted Artifact Signer
+Red Hat Trusted Artifact Signer(TAS) enhances software supply chain security by simplifying cryptographic signing and verification of software artifacts, such as container images, binaries, and documents. Trusted Artifact Signer provides a production-ready deployment of the Sigstore project in Red Hat Trusted Software Supply Chain.
+
+
+
 === Trusted Profile Analyzer 
 The Trusted Profile Analyzer (based on Syft) brings Software Bill of Materials (SBOM) to OpenShift. What is an SBOM? https://www.cisa.gov[CISA.gov] defines an SBOM as "a nested inventory, a list of ingredients that make up software components." https://www.cisa.gov/sbom[¹] 
 
 Using SBOMs, you can have a clear vision of everything that goes into your application. This enables platform engineers to more easily enforce operational controls and compliance across hybrid multi-cloud environments. 
 
+////
 ==== Installing the Trusted Profile Analyzer 
 
 * Log into your Bastion
@@ -108,7 +115,7 @@ syft openjdk-11-bad:latest -o spdx-json | jq . -r > openjdk-11-flawed.spdx
 ----
 more openjdk-11-flawed.spdx
 ----
-
+////
 ==== Using the Trusted Profile Analyzer UI
 
 A Red Hat Trusted Profile Analyzer has been created for you to use. The proctor will make the URL available to you once you've completed the previous section. 
@@ -117,11 +124,50 @@ When you are given the URL, log into the RHTPA UI using the username and passwor
 
 image::lab1.1-tpa.png[]
 
-Upload the SBOM. 
+You can search for an SBOM, advisory, or CVE directly from the home page, or you can click on Search in the left menu for further options. 
 
-* NOTE: The SBOM may have already been uploaded by your proctor. If that is the case, you may skip this step.
+image::lab1.2-tpa.gif[]
+
+From the Search page, you can choose to browse SBOMs, Packages, CVEs, and Advisories from the Tabs, and further filter using the filter menu on the left. 
+
+Let's take a look at some packages. 
+
+Click the Packages tab, then check the Red Hat box under supplier. 
+
+The list now shows packages that are supplied by Red Hat. 
+
+You may click on a package to get information like related vulnerabilities, if any exist, and related products. 
+
+==== Uploading an SBOM
+
+An SBOM has been made available for you to download https://github.com/SeanRickerd/sbom/blob/main/home-banking-bom.json[here].
+
+Upload the SBOM. 
 
 image::lab11.1-sbom.gif[]
 
+It will take a few minutes for the SBOM to be processed by TPA, so click in the Search bar and type "home". Once you see home-banking, click on it. 
 
+image::lab11.2-sbom.gif[] 
 
+This will open the page for the home-banking SBOM you've uploaded. 
+
+The Info tab will give you standard information about the SBOM itself, including the version, the CycloneDX version, and the serial number. 
+
+Click on the Packages tab. 
+
+image::lab11.3-sbom.png[]
+
+The Packages tab will list all the packages found in this SBOM. 
+
+Click on Dependency Analytics Report. 
+
+The Dependency Analytics Report tab will list the security issues found in this SBOM. As you can see, there are a number of violations found. 3 of them are Critical, 3 High, and 2 Medium. 
+
+Scroll down the page to find the osv tab. 
+
+Here you will find further information about the detected vulnerabilities. Clicking on the Direct Vulnerabilities to the right of the log4j entry will expand the entry to show more information about he vulnerabilities, including Remediation. 
+
+The same can be done with the Transitive Vulnerabilites next to the struts2-core entry. 
+
+image::lab11.4-sbom.gif[]
