@@ -1,5 +1,4 @@
 = Lab setup and introduction
-// :toclevels: 1
 
 == Module goals
 
@@ -96,26 +95,6 @@ oc config use-context eks-admin
 [lab-user@bastion ~]$oc config use-context eks-admin
 Switched to context "eks-admin".
 ----
-
-[source,sh,subs="attributes",role=execute]
-----
-oc whoami
-oc get nodes -A
-----
-
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-[lab-user@bastion ~]$ oc whoami
-oc get nodes -A
-Error from server (NotFound): the server could not find the requested resource (get users.user.openshift.io ~)
-NAME                                            STATUS   ROLES    AGE    VERSION
-ip-<IP_ADDRESS>.us-east-2.compute.internal   Ready    <none>   163m   v1.28.8-eks-ae9a62a
-ip-<IP_ADDRESS>.us-east-2.compute.internal   Ready    <none>   163m   v1.28.8-eks-ae9a62a
-ip-<IP_ADDRESS>.us-east-2.compute.internal   Ready    <none>   163m   v1.28.8-eks-ae9a62a
-----
-
-IMPORTANT: We should not have access with the *oc* command as it is an OpenShift command but you can see the EKS nodes and their information.
 
 *Verify access to the OpenShift cluster*
 
@@ -220,7 +199,7 @@ Access:
 	rw WorkflowAdministration
 ----
 
-NOTE: This output is showing that you have unrestricted access to the RHACS product. these permissions can be seen in the **RHACS Access Control** tab that we will review later.
+NOTE: This output is showing that you have unrestricted access to the RHACS product. These permissions can be seen in the **RHACS Access Control** tab that we will review later.
 
 image::01-rhacs-access-control.png[RHACS access control]
 
@@ -582,7 +561,7 @@ Scan results for image: quay-8h2gf.apps.cluster-8h2gf.sandbox182.opentlc.com/qua
 WARN:   A total of 17 unique vulnerabilities were found in 9 components
 ----
 
-[start=6]
+[start=2]
 . For the last verification step. Run the following command to ensure that the applications are up and running.
 
 [source,bash,role="execute"]

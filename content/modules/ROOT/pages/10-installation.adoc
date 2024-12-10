@@ -1,9 +1,12 @@
-= Installation (WIP)
+= Installation and RHACS Cloud Service
 
 == Module goals
 .Goals
+- Deploy RHACS Cloud Service Central Instance
+- Install Secured Cluster Services in your EKS cluster
+- Understands the secured cluster bundle and certification
 
-== Ensure the EKS cluster 
+== Access the EKS cluster 
 
 We are going to use Helm to install the ACS secured cluster services in Amazon's EKS. To do this we will need admin access to the cluster with Helm install. Verify that you have both before moving on. 
 
@@ -50,56 +53,313 @@ helm
 Use "helm [command] --help" for more information about a command.
 ----
 
-
-## Setting Up Red Hat Account and Creating Central Instance on ACS
+== Setting Up Red Hat Account and Creating Central Instance on ACS
 
 *Procedure*
+
 . Head on over to https://www.redhat.com/en/technologies/cloud-computing/openshift/advanced-cluster-security-kubernetes/cloud-service/trial
-. Click on the Start Your Trial button.
-. Sign up for a Red Hat account if you don't have one.
+. Click on the *Start Your Trial* button.
+. Sign up for a Red Hat account if you don't have one. (Make sure to remember your username and password!)
 . Once you are in "Getting Started" tab select "Create Instance".
+
+image::10-setup-01.png[link=self, window=blank, width=100%]
 
 NOTE: You will be redirected to the *ACS Instances* page where you can view all of the central services that have been deployed.
 
+image::10-setup-02.png[link=self, window=blank, width=100%]
+
 [start=5]
-. Select *Create ACS instance*  
-. Fill in your name, AWS account number, and select your cloud region (US East or Europe).
+. Click on *Create ACS instance*.
+
+image::10-setup-03.png[link=self, window=blank, width=100%]
+
+[start=6]
+. Fill in your name, and select your cloud region (US East or Europe).
 . Wait for the creation process to complete. Typically it is 7-10 minutes.
 
-IMPORTANT: You need ACS Central Services to be available to deploy ACS Secured Cluster Services into the EKS Cluster.
+IMPORTANT: You need ACS Central Services to be available to deploy ACS Secured Cluster Services into the EKS Cluster. Time to stretch your legs a bit.
  
 ## Checking and Accessing the Central Instance
 
-helm install stackrox-secured-cluster-services stackrox/stackrox-secured-cluster-services -n stackrox -f init-bundle.yml --set clusterName=eks-production-cluster --set centralEndpoint=acs-data-cs3a2gnasu0g1ivkgbhg.acs.rhcloud.com:443 --set imagePullSecrets.username=mfoster@redhat.com --set imagePullSecrets.password='rfm1kjm0qym6awq!BVN' --create-namespace
+Once the RHACS Central instance is available, we will check on it's status.
+
+*Procedure*
+
+. Ensure the *Ready* status is showing
+
+image::10-setup-04.png[link=self, window=blank, width=100%]
+
+[start=2]
+. Click on the *Name* of your Central Service instance. You will be redirected to a page with all of the Central Services details and a few extra resources.
+
+IMPORTANT: Take note of the API and roxctl URL's. It will be useful for connecting to the service later.
+
+image::10-setup-04.png[link=self, window=blank, width=100%]
+
+[start=3]
+. Click on the *Name* of your Central Service instance. You will be redirected to a page with all of the Central Services details and a few extra resources.
+
+image::10-setup-05.png[link=self, window=blank, width=100%]
+
+[start=4]
+. Click on *Open ACS Console* and login to your account.
+
+image::10-setup-06.png[link=self, window=blank, width=100%]
+
+IMPORTANT: You should be redirected to your ACS instance at a page that looks like the one above. Ask for help if you have not reached this step. 
+
+== Install the Secured Cluster Services Bundle 
+
+Red Hat Advanced Cluster Security for Kubernetes (RHACS) provides security services for self-managed RHACS on platforms such as Amazon Elastic Kubernetes Service (Amazon EKS), Google Kubernetes Engine (Google GKE), and Microsoft Azure Kubernetes Service (Microsoft AKS).
+
+If you want to learn more abou the installation methods before proceeding you can review the resources below:
+
+- Understand the https://docs.openshift.com/acs/4.5/installing/acs-high-level-overview.html#install-platforms-methods_acs-high-level-overview[installation methods for different platforms].
+- Understand https://docs.openshift.com/acs/4.5/architecture/acs-architecture.html#acs-architecture_acs-architecture[Red Hat Advanced Cluster Security for Kubernetes architecture].
+- Check the https://docs.openshift.com/acs/4.5/installing/acs-default-requirements.html#acs-default-requirements[default resource requirements page].
+
+The following list provides a high-level overview of installation steps:
+
+- Install link: https://docs.openshift.com/acs/4.5/installing/installing_other/install-central-other.html[Central services] on a cluster using Helm charts or the `roxctl` CLI.
+- Generate and apply an https://docs.openshift.com/acs/4.5/installing/installing_other/init-bundle-other.html#init-bundle-other[init bundle].
+- Install https://docs.openshift.com/acs/4.5/installing/installing_other/install-secured-cluster-other.html#install-secured-cluster-other[secured cluster resources] on each of your secured clusters.
+
+=== Setup the helm chart command
+
+*Procedure*
+
+. Click on the *View installation methods" button
+
+image::10-install-01.png[link=self, window=blank, width=100%]
+
+[start=2]
+. Click on the *Helm chart* option
+
+image::10-install-02.png[link=self, window=blank, width=100%]
+
+[start=3]
+. Run the following command helm command to update the charts
+[source,sh,subs="attributes",role=execute]
+----
+helm repo add rhacs https://mirror.openshift.com/pub/stackrox/charts/
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ helm repo add rhacs https://mirror.openshift.com/pub/rhacs/charts/
+"rhacs" has been added to your repositories
+----
+
+IMPORTANT: Review what is necessary for a successful Helm Chart deployment.
+
+* You must download the YAML file for a cluster init bundle. One bundle can be used to secure multiple clusters.
+* Ensure you have access to the Red Hat Container Registry and a pull secret for authentication.
+* Obtain the address and port number on which you are exposing the Central service.
 
 
-## Simplifying the Loom Transcript: Setting Up EKS Production Cluster
+We are going to make this easier by using variables in our setup.
 
-1. **Accessing ACS Console**
+==== Create the init bundle
 
-   - Deploy and open the central instance.
-   - Click on "Open ACS Console" to access the setup page.
+*Procedure*
 
-2. **Creating an Init Bundle**
+. In the ACS Console Click on *Platform Configuration* -> *Integrations* -> *Cluster Init Bundle*
+. Click on the *Create bundle* button.
 
-   - Click on "Create Init Bundle" and select EKS.
-   - Name the bundle (e.g., EKS production cluster) and download the init bundle YAML.
-   - Open the YAML file in the showroom instance.
+image::10-install-03.png[link=self, window=blank, width=100%]
 
-3. **Adding Certificate Information**
+[start=3]
+. Give the bundle a name, click *EKS cluster*, and click ok.
+. Run the following command command to create a file name init.yml
 
-   - Copy the certificate information from the YAML file.
-   - Create a new file (e.g., init-bundle.yaml) in a text editor.
-   - Paste the certificate information, save the file.
+[source,sh,subs="attributes",role=execute]
+----
+touch init.yml
+----
 
-4. **Setting Up EKS Cluster**
+[start=5]
+. Next, use Vi or nano to edit the file and copy the credentials into the init.yml folder.
+. Confirm the file is setup properly with a cat command.
 
-   - Go to the getting started page and follow the EKS and Helm install instructions.
-   - Copy the Helm install command and run Helm repo add and Helm repo update commands.
-   - Run the Helm install command with the necessary parameters (e.g., unique ClusterName).
+[source,sh,subs="attributes",role=execute]
+----
+cat init.yml
+----
 
-5. **Configuring Cluster Services**
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+            AwEHoUQDQgAEQA7LyLvQHSjVldF02jvQ5vE9NfO3KHOE3ZJEFTYlzKnAEC7AHCyG
+            slzX6eYlj0R3AnHokWPgNX/DqyPN2pFDGw==
+            -----END EC PRIVATE KEY-----
+----
 
-   - Find the API endpoint for the cluster in the ACS instance.
-   - Save the API endpoint and add your Red Hat username and password.
-   - Use a generic account if setting up in ArgoCD or similar tools.
+==== Obtain the address and port number on which you are exposing the Central service
+
+This is a simple step in which you either head back to the RHACS dashboard and copy the URLs from before. Or simply copy the URL from the top of the dashboad and add port 443.
+
+*Procedure*
+
+. Copy the URL from the address bar. 
+. add a semicolon and 443 to the end of .com while removing the rest of the the URL including the "https:". The Address should look something like this -> acs-xxxxxxxxxx.acs.rhcloud.com:443
+. Run the following command with your URL to save as a shell variable.
+
+[source,sh,subs="attributes",role=execute]
+----
+echo export ACS_URL=<YOUR URL HERE> ~/.bashrc
+ACS_URL=<YOUR URL HERE>
+----
+
+[start=4]
+.Verify the output
+
+[source,sh,subs="attributes",role=execute]
+----
+echo $ACS_URL
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ echo $ACS_URL
+https://acs-cs3a2gnasu0g1ivkgbhg.acs.rhcloud.com:443
+----
+
+==== Ensure you have access to the Red Hat Container Registry and a pull secret for authentication.
+
+Lastly, you need to add your credentials as variables and ensure you have access to Red Hat services. We won't save these but you will need them in the following step.
+
+=== Run the helm chart command
+
+Now it's time to run the helm chart command!
+
+*Procedure*
+
+.Run the following Helm command and ensure that your credentials are added.
+
+IMPORTANT: Make sure to add your cluster name to the command.
+
+[source,sh,subs="attributes",role=execute]
+----
+helm install -n stackrox --create-namespace \
+   stackrox-secured-cluster-services rhacs/secured-cluster-services \
+   -f init.yml \
+   --set clusterName=<CLUSTER_NAME> \
+   --set centralEndpoint=$ACS_URL \
+   --set imagePullSecrets.username=<USERNAME \
+   --set imagePullSecrets.password=<PASSWORD>
+----
+
+IMPORTANT: The imagePullSecrets.username is the USERNAME for your account and NOT your email.
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+  OpenShift Cluster:                           false 
+  Admission Control Webhooks deployed:         
+  Admission Control Creates/Updates enforced:  false
+  Scanner V4:                                  disabled
+
+Please take note of the following:
+
+- PodSecurityPolicies are disabled, since your environment does not support them according to API
+  server properties.
+
+Thank you for using StackRox!
+----
+
+[start=2]
+. Verify that everything is up and running with the following command.
+
+[source,sh,subs="attributes",role=execute]
+----
+kubectl get pods -n stackrox -w
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+NAME                                READY   STATUS    RESTARTS      AGE
+admission-control-574df56d8-4dj9x   0/1     Running   0             52s
+admission-control-574df56d8-gfsm9   0/1     Running   0             52s
+admission-control-574df56d8-xdgrl   0/1     Running   0             52s
+collector-jc9qg                     2/2     Running   1 (17s ago)   52s
+collector-q4lzk                     2/2     Running   1 (16s ago)   52s
+collector-sdmpg                     2/2     Running   1 (8s ago)    52s
+sensor-64d5f886f7-g97nr             0/1     Pending   0             52s
+----
+
+image::10-install-02.png[link=self, window=blank, width=100%]
+
+=== Update the Helm deploy via the value file
+
+This file allows you to specify configurations for your Helm deployment.
+
+[source,yaml]
+----
+# General settings
+clusterName: "eks-production-cluster" # Replace with your cluster name
+
+# Central Endpoint - specify the URL for the central server
+centralEndpoint: "acs-cs3a2gnasu0g1ivkgbhg.acs.rhcloud.com" # Replace with your actual ACS central endpoint URL
+
+# Image Pull Secrets - credentials to pull secured images
+imagePullSecrets:
+  username: ""   # Replace with your username
+  password: ""   # Replace with your password
+
+# Additional configuration
+# Set any other options specific to your environment or requirements
+
+# Namespace - specify the namespace to install the chart if not specified in CLI
+namespace: "stackrox"
+
+# Security Contexts (optional) - example settings
+admissionControl:
+  dynamic:
+    disableBypass: false
+    enforceOnCreates: true
+    enforceOnUpdates: true
+    scanInline: true
+    timeout: 3
+  listenOnCreates: true
+  listenOnEvents: true
+  listenOnUpdates: true
+
+collector:
+  collectionMethod: CORE_BPF
+  disableTaintTolerations: false
+  slimMode: false
+
+  # Collector resource limits and requests
+  resources:
+    limits:
+      cpu: "250m"     # Set the CPU limit for the collector
+      memory: "512Mi" # Set the memory limit for the collector
+    requests:
+      cpu: "100m"     # Set the CPU request for the collector
+      memory: "256Mi" # Set the memory request for the collector
+
+sensor:
+  # Sensor resource limits and requests
+  resources:
+    limits:
+      cpu: "250m"        # Set the CPU limit for the sensor
+      memory: "1Gi"   # Set the memory limit for the sensor
+    requests:
+      cpu: "100m"     # Set the CPU request for the sensor
+      memory: "512Mi" # Set the memory request for the sensor
+
+# Other customizable options depending on your RHACS version
+----
+
+To install the Helm chart using this values file, run the following command:
+
+[source,bash]
+----
+helm upgrade stackrox-secured-cluster-services rhacs/stackrox-secured-cluster-services \
+   -n stackrox -f values.yml
+----
+
+Make sure to replace the placeholders with actual values specific to your RHACS environment before deploying.
