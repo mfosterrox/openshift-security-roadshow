@@ -11,9 +11,103 @@ Red Hat Trusted Artifact Signer(TAS) enhances software supply chain security by 
 
 
 === Trusted Profile Analyzer 
-The Trusted Profile Analyzer (based on Syft) brings Software Bill of Materials (SBOM) to OpenShift. What is an SBOM? https://www.cisa.gov[CISA.gov] defines an SBOM as "a nested inventory, a list of ingredients that make up software components." https://www.cisa.gov/sbom[¹] 
+The Trusted Profile Analyzer adds management capabilities for *Software Bills of Materials (SBOMs)* to OpenShift. 
 
-Using SBOMs, you can have a clear vision of everything that goes into your application. This enables platform engineers to more easily enforce operational controls and compliance across hybrid multi-cloud environments. 
+==== *What is an SBOM?* 
+https://www.cisa.gov[CISA.gov] defines an SBOM as "a nested inventory, a list of ingredients that make up software components." https://www.cisa.gov/sbom[¹] 
+
+Using SBOMs, you can have a clear vision of everything that goes into your application or what you may have received from vendors, such as Red Hat. This enables platform engineers to more easily enforce operational controls and compliance across hybrid multi-cloud environments. 
+
+In addition, several regulatory requirements and frameworks either *mandate* or *recommend* the use of *Software Bills of Materials (SBOMs)* to enhance software supply chain transparency and security. Here are some key examples, but the list is continually growing:
+
+
+==== *1. U.S. Executive Order 14028 (Improving the Nation’s Cybersecurity)*
+
+* *Mandate*: In May 2021, this Executive Order directed the U.S.
+government to take actions to secure the software supply chain.
+* *SBOM Requirement*:
+** The *National Telecommunications and Information Administration
+(NTIA)* was tasked with defining minimum elements for SBOMs.
+** Vendors providing software to federal agencies must provide SBOMs as
+part of their cybersecurity practices.
+** Goal: Increase transparency about software components to mitigate
+risks from vulnerabilities.
+
+
+
+==== *2. EU Cyber Resilience Act*
+
+* *Proposed Mandate*: Expected to become law in the near future, this
+act will apply to products with digital elements in the EU.
+* *SBOM Requirement*: It encourages or requires organizations to
+maintain transparency about their software dependencies, including
+SBOMs, for compliance with security standards.
+
+
+
+==== *3. U.S. Food and Drug Administration (FDA) Guidance*
+
+* *Recommendation*: The FDA issued guidance for medical device
+manufacturers to include SBOMs.
+* *Context*: As part of the *Pre-market Cybersecurity Guidance* for
+medical devices, manufacturers are encouraged to provide SBOMs to
+identify vulnerabilities in device software and support risk management.
+* *Goal*: Protect healthcare systems and patient safety.
+
+
+==== *4. OWASP Software Component Verification Standard (SCVS)*
+
+* *Recommendation*: OWASP promotes SBOMs as part of software composition
+analysis (SCA) to track components and identify vulnerabilities.
+* *Context*: Although not a regulatory requirement, it is widely
+recognized in cybersecurity best practices.
+
+
+
+==== *5. CISA Binding Operational Directive (BOD) 23-01*
+
+* *Mandate*: U.S. government agencies are required to track and mitigate
+known vulnerabilities in software they use.
+* *SBOM Role*: Although the directive doesn’t explicitly mandate SBOMs,
+managing them is critical to identifying and addressing vulnerabilities
+efficiently.
+
+
+
+==== *6. ISO/IEC 5962 (SBOM Standard)*
+
+* *Recommendation*: This international standard formalizes SBOM
+structure, ensuring consistent implementation across industries. It
+supports compliance with regulatory and industry standards requiring
+software transparency.
+
+
+
+==== *7. Proposed SEC Cybersecurity Rules*
+
+* *Recommendation*: Companies under U.S. Securities and Exchange
+Commission (SEC) regulations must report cybersecurity risks, including
+supply chain vulnerabilities. SBOMs can help meet these transparency
+requirements.
+
+
+
+==== *Why SBOMs are Becoming Standard in Regulations*
+
+* *Transparency*: Knowing what’s in your software reduces the risk of
+vulnerabilities.
+* *Risk Management*: SBOMs help identify, track, and remediate issues in
+the software supply chain.
+* *Compliance*: They demonstrate adherence to evolving cybersecurity and
+data privacy laws.
+
+*As cybersecurity frameworks continue to evolve, the use of SBOMs is increasingly seen as foundational for compliance and risk mitigation.*
+
+'''''
+
+
+
+
 
 ////
 ==== Installing the Trusted Profile Analyzer 
@@ -116,7 +210,8 @@ syft openjdk-11-bad:latest -o spdx-json | jq . -r > openjdk-11-flawed.spdx
 more openjdk-11-flawed.spdx
 ----
 ////
-==== Using the Trusted Profile Analyzer UI
+
+==== *Using the Trusted Profile Analyzer UI*
 
 A Red Hat Trusted Profile Analyzer has been created for you to use. The proctor will make the URL available to you once you've completed the previous section. 
 
