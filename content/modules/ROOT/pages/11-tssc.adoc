@@ -5,15 +5,278 @@
 The goal of this lab is to learn about the features from the Trusted Software Supply Chain suite of products from Red Hat. 
 
 
-=== Trusted Artifact Signer
-Red Hat Trusted Artifact Signer(TAS) enhances software supply chain security by simplifying cryptographic signing and verification of software artifacts, such as container images, binaries, and documents. Trusted Artifact Signer provides a production-ready deployment of the Sigstore project in Red Hat Trusted Software Supply Chain.
+== Trusted Artifact Signer
+Red Hat Trusted Artifact Signer(TAS) enhances software supply chain security by simplifying cryptographic signing and verification of software artifacts, such as container images, binaries, and documents. 
+
+Trusted Artifact Signer provides a production-ready deployment of the https://www.sigstore.dev/[Sigstore project] as a core component of the Red Hat Trusted Software Supply Chain product family.
+
+Signing and verification, e.g. using GPG has been around a long time - why would someone found a new Open Source project to address signing and verification, you might ask.
+
+=== *Why Sigstore / Trusted Artifact Signer?*
+
+. *Supply Chain Security*: Modern software development requires robust
+mechanisms to secure dependencies and artifacts, which GPG struggles to
+address effectively.
+. *Usability*: Developers need simpler, more intuitive signing solutions
+without the burden of manual key management.
+. *Transparency*: A centralized, tamper-evident log system ensures
+accountability and traceability of signatures, enhancing trust.
+. *Modern Identity Integration*: Sigstore aligns with contemporary
+authentication mechanisms (e.g., OAuth, OpenID Connect), making it
+easier to tie signatures to identities.
+. *Automation*: Sigstore fits seamlessly into automated CI/CD workflows,
+which are critical in modern software development pipelines.
+
+
+These are bold statements, so let's quickly compare the two to better understand the advantages that Trusted Artifact Signer brings to the table:
+
+==== *1. Key Management*
+
+* *GPG*:
+** Users must generate and manage long-term public/private key pairs
+themselves.
+** Keys are often stored locally, and their security is tied to the
+user’s system.
+** If a private key is lost or compromised, recovery or revocation can
+be complex.
+* *Sigstore / Trusted Artifact Signer*:
+** Utilizes short-lived (ephemeral) keys generated on-demand for
+signing.
+** No need for long-term private key management; keys are automatically
+discarded after use.
+** Simplifies key management for developers, reducing the risk of key
+compromise.
+
+'''''
+
+==== *2. Trust Model*
+
+* *GPG*:
+** Relies on a *Web of Trust* where individuals sign each other’s keys
+to establish authenticity.
+** Trust depends on manual verification and key-signing parties, which
+can be cumbersome and error-prone.
+** Requires a high degree of trust in individual users and their ability
+to manage their keys properly.
+* *Sigstore / Trusted Artifact Signer*:
+** Leverages OpenID Connect (OIDC) for authentication, binding artifacts
+to an identity (e.g., an SSO system such as Keycloak, a GitHub or GitLab account, email, etc.).
+** Trust is rooted in central transparency logs (e.g., Rekor), ensuring
+all signatures are centrally (or publicly, if desired) auditable.
+** Encourages a more automated and modern trust model, simplifying
+verification.
+
+'''''
+
+==== *3. Transparency and Verifiability*
+
+* *GPG*:
+** Signed artifacts and their signatures must be manually shared and
+verified.
+** No central or automatic system for transparency or revocation
+tracking.
+** Difficult to audit or trace all signatures and the associated public
+keys at scale.
+* *Sigstore / Trusted Artifact Signer*:
+** Every signing action is logged in a central, optionally public, tamper-evident
+transparency log (Rekor).
+** Anyone can independently verify the signing event and its associated
+identity.
+** Provides a centralized and automated system for transparency and
+auditability.
+
+'''''
+
+==== *4. Ease of Use*
+
+* *GPG*:
+** Comparatively complex for users, requiring manual key generation, management,
+and sharing.
+** CLI tools have a steep learning curve and are not always
+user-friendly.
+** Widespread adoption hindered by usability challenges.
+* *Sigstore / Trusted Artifact Signer*:
+** Streamlined experience designed for developers and modern workflows.
+** No need to manually manage keys or trust chains; authentication is
+identity-based.
+** Easily integrates into CI/CD pipelines and modern development
+practices.
+
+'''''
+
+==== *5. Security*
+
+* *GPG*:
+** Vulnerable to long-term key compromise if private keys are not
+properly secured.
+** Trust in signatures is tightly coupled to key security and revocation
+is challenging.
+* *Sigstore / Trusted Artifact Signer*:
+** Ephemeral keys reduce the risk of long-term compromise.
+** Transparency logs provide tamper-evident evidence of signing,
+reducing the risk of undetected forgery.
+** Designed with supply chain security in mind, reducing risks from
+malicious dependencies or compromised keys.
+
+'''''
+
+==== *Advantages of Sigstore / Trusted Artifact Signer over GPG*
+
+In summary, Sigstore is designed to address the pain points and
+limitations of GPG in the context of modern software development,
+focusing on ease of use, transparency, and security for signing and
+verifying software artifacts.
+
+* Eliminates manual key management.
+* Provides automated, identity-based signing.
+* Ensures transparency with central (optionally public) logs.
+* Simplifies adoption with developer-friendly tools.
+* Reduces risks from long-term private key compromises.
+* Aligns with modern software practices and supply chain security
+requirements.
+
+
+=== Setup 
+For this exercise, we'll be using the container image in Quay that we created during our Lab setup xref:00-setup-install-navigation.adoc#build-a-container-image[Build a container image]
+
+NOTE: Make sure you still have the variables set. If not, please go through the xref:00-setup-install-navigation.adoc#build-a-container-image[Build a container image] section again to setup your environment and make sure you have pushed the image to Quay.
+
+[source,sh,subs="attributes",role=execute]
+----
+echo $QUAY_USER
+echo $QUAY_URL
+----
+
+For signing and verification of container images, we'll be using the `cosign` CLI binary, which has already been installed in your bastion host (and can also be downloaded from the OpenShift Console).
+
+`cosign` can as easily be used in any CI/CD toolchain as we use it here and handles all the communication with the Sigstore / Trusted Artifact Signer services that request certificates, handle the OIDC authentication, store info in the transparency log (Rekor), etc.
+
+[source,sh,subs="attributes",role=execute]
+----
+cosign version
+----
+
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ cosign version
+  ______   ______        _______. __    _______ .__   __.
+ /      | /  __  \      /       ||  |  /  _____||  \ |  |
+|  ,----'|  |  |  |    |   (----`|  | |  |  __  |   \|  |
+|  |     |  |  |  |     \   \    |  | |  | |_ | |  . `  |
+|  `----.|  `--'  | .----)   |   |  | |  |__| | |  |\   |
+ \______| \______/  |_______/    |__|  \______| |__| \__|
+cosign: A tool for Container Signing, Verification and Storage in an OCI registry.
+
+GitVersion:    v2.0.0
+GitCommit:     d6b9001f8e6ed745fb845849d623274c897d55f2
+GitTreeState:  clean
+BuildDate:     2023-02-23T19:26:35Z
+GoVersion:     go1.20.1
+Compiler:      gc
+Platform:      linux/amd64
+----
+
+`cosign` needs to be initialized with all the required endpoints that it communicates with. Additionally, during initialization, it will download the public trust root certificate in a local cache.
+
+This initialization can be done via command line parameters or by setting environment variables that are read when no commandline parameters are present.
+
+NOTE: Cosign itself doesn't need access to OpenShift, but since we have Trusted Artifact Signer installed on OpenShift (a RHEL installation is another deployment option), we will be using some `oc` commands to get the required endpoints.
+Before proceeding, please verify you are still logged in to OpenShift via `oc whoami`
+
+To setup the environment variables, execute this script:
+
+[source,sh,subs="attributes",role=execute]
+----
+export TUF_URL=$(oc get tuf -o jsonpath='{.items[0].status.url}' -n trusted-artifact-signer)
+export OIDC_ISSUER_URL=https://$(oc get route keycloak -n rhsso | tail -n 1 | awk '{print $2}')/auth/realms/openshift
+export COSIGN_FULCIO_URL=$(oc get fulcio -o jsonpath='{.items[0].status.url}' -n trusted-artifact-signer)
+export COSIGN_REKOR_URL=$(oc get rekor -o jsonpath='{.items[0].status.url}' -n trusted-artifact-signer)
+export COSIGN_MIRROR=$TUF_URL
+export COSIGN_ROOT=$TUF_URL/root.json
+export COSIGN_OIDC_CLIENT_ID="trusted-artifact-signer"
+export COSIGN_OIDC_ISSUER=$OIDC_ISSUER_URL
+export COSIGN_CERTIFICATE_OIDC_ISSUER=$OIDC_ISSUER_URL
+export COSIGN_YES="true"
+# to verify URL endpoints have been set
+env | grep URL
+----
+
+As the last step, initialize `cosign`, so it knows who to talk to:
+
+[source,sh,subs="attributes",role=execute]
+----
+cosign initialize
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ cosign initialize
+Root status: 
+ {
+        "local": "/home/lab-user/.sigstore/root",
+        "remote": "https://tuf-trusted-artifact-signer.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com",
+        "metadata": {
+                "root.json": {
+                        "version": 1,
+                        "len": 2178,
+                        "expiration": "13 Jun 25 16:39 UTC",
+                        "error": ""
+                },
+                "snapshot.json": {
+                        "version": 1,
+                        "len": 618,
+                        "expiration": "13 Jun 25 16:39 UTC",
+                        "error": ""
+                },
+                "targets.json": {
+                        "version": 1,
+                        "len": 1372,
+                        "expiration": "13 Jun 25 16:39 UTC",
+                        "error": ""
+                },
+                "timestamp.json": {
+                        "version": 1,
+                        "len": 619,
+                        "expiration": "13 Jun 25 16:39 UTC",
+                        "error": ""
+                }
+        },
+        "targets": [
+                "ctfe.pub",
+                "fulcio_v1.crt.pem",
+                "rekor.pub"
+        ]
+}
+----
+
+=== Signing and verifying a container image
+
+We'll be interacting with the image in our private registry, therefore we need to login to Quay:
+
+[source,sh,subs="attributes",role=execute]
+----
+cosign login $QUAY_URL
+----
 
 
 
-=== Trusted Profile Analyzer 
+
+
+
+
+=== Signing and verifying git commits
+
+
+
+
+
+== Trusted Profile Analyzer 
 The Trusted Profile Analyzer adds management capabilities for *Software Bills of Materials (SBOMs)* to OpenShift. 
 
-==== *What is an SBOM?* 
+=== *What is an SBOM?* 
 https://www.cisa.gov[CISA.gov] defines an SBOM as "a nested inventory, a list of ingredients that make up software components." https://www.cisa.gov/sbom[¹] 
 
 Using SBOMs, you can have a clear vision of everything that goes into your application or what you may have received from vendors, such as Red Hat. This enables platform engineers to more easily enforce operational controls and compliance across hybrid multi-cloud environments. 
@@ -92,7 +355,7 @@ requirements.
 
 
 
-==== *Why SBOMs are Becoming Standard in Regulations*
+=== *Why SBOMs are Becoming Standard in Regulations*
 
 * *Transparency*: Knowing what’s in your software reduces the risk of
 vulnerabilities.
@@ -211,7 +474,7 @@ more openjdk-11-flawed.spdx
 ----
 ////
 
-==== *Using the Trusted Profile Analyzer UI*
+=== *Using the Trusted Profile Analyzer UI*
 
 A Red Hat Trusted Profile Analyzer has been created for you to use. The proctor will make the URL available to you once you've completed the previous section. 
 
