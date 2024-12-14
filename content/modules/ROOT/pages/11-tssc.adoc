@@ -254,15 +254,126 @@ Root status:
 
 === Signing and verifying a container image
 
-We'll be interacting with the image in our private registry, therefore we need to login to Quay:
+`cosign` will be interacting with the image in our private registry, therefore we need to login to Quay:
 
 [source,sh,subs="attributes",role=execute]
 ----
-cosign login $QUAY_URL
+cosign login $QUAY_URL -u $QUAY_USER -p {quay_admin_password}
 ----
 
 
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ cosign login $QUAY_URL -u $QUAY_USER -p MzI2OTI0
+auth.go:203: logged in via /home/lab-user/.docker/config.json
+----
 
+TIP: To verify that the image we created xref:00-setup-install-navigation.adoc#build-a-container-image[here] is still available and cosign can access the image, we can use the `cosign tree` command that checks for signatures, SBOMs (Software Bills of Materials) and attestations (e.g. build provenance attestation): 
+
+[source,sh,subs="attributes",role=execute]
+----
+cosign tree $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ cosign tree $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+📦 Supply Chain Security Related artifacts for an image: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:1.0
+No Supply Chain Security Related Artifacts artifacts found for image quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:1.0
+, start creating one with simply running$ COSIGN_EXPERIMENTAL=1 cosign sign <img>
+----
+
+As `cosign` suggests, signing this image is as simple as
+
+[source,sh,subs="attributes",role=execute]
+----
+cosign sign $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+----
+
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ cosign sign $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+Generating ephemeral keys...
+Retrieving signed certificate...
+
+        Note that there may be personally identifiable information associated with this signed artifact.
+        This may include the email address associated with the account with which you authenticate.
+        This information will be used for signing this artifact and will be stored in public transparency logs and cannot be removed later.
+
+By typing 'y', you attest that you grant (or have permission to grant) and agree to have this information stored permanently in transparency logs.
+error opening browser: exec: "xdg-open": executable file not found in $PATH
+Go to the following link in a browser:
+
+         https://keycloak-rhsso.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/auth/realms/openshift/protocol/openid-connect/auth?access_type=online&client_id=trusted-artifact-signer&code_challenge=JHFlN4cLdRCGJWjkGf1S1nKYO9Nc-bnC6bhwkZXoS3M&code_challenge_method=S256&nonce=2qDckQCVBACjnviJ8bdxIWwPh1r&redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob&response_type=code&scope=openid+email&state=2qDckRnXkzmspwUHxF3f6K3NX67
+Enter verification code:
+
+----
+
+NOTE: As mentioned above, the signing process ties an identity (an OIDC identity, to be specific) to the signature. The signing certificate is issued on demand, but *only issued if an OIDC identity proof can be established*. 
+
+In this example, the "OAuth2 browser based flow" is used. In other words, you will authenticate to the OIDC system by user and password via a browser login. We are running `cosign` in a `ssh` session with no connection to your system, therefore the check for a browser to open the login page fails: `error opening browser: exec: "xdg-open": executable file not found in $PATH` 
+
+Copy the URL and paste it in a new browser window or tab and login - use the following credentials: 
+
+[cols="2,2"]
+|===
+*Username:* | *jdoe@redhat.com* |
+*Password:* | *secure* |
+|===
+
+image::11-signing-sso-login.png[keycloak login]
+
+image::11-signing-successcode.png[copy the success code]
+
+IMPORTANT: Make sure to copy the whole code, as it is longer than the text box.
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+Enter verification code: 3cc0c9fc-db2e-4920-ba2e-7adac8c685cb.6309e23d-facd-4bca-8855-0443a3c4ddf5.d8370879-39c7-41ec-99ab-669101e99f91
+
+
+Successfully verified SCT...
+WARNING: Image reference quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:1.0 uses a tag, not a digest, to identify the image to sign.
+    This can lead you to sign a different image than the intended one. Please use a
+    digest (example.com/ubuntu@sha256:abc123...) rather than tag
+    (example.com/ubuntu:latest) for the input to cosign. The ability to refer to
+    images by tag will be removed in a future release.
+
+tlog entry created with index: 1
+Pushing signature to: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system
+----
+
+*SUCCESS!* 
+
+With one command, you have signed the container image and pushed the container image to the registry. Furthermore, the signing event and its metadata have been recorded in the *Rekor* transparency log: `tlog entry created with index: 1` 
+
+To check, we can again use `cosign tree`:
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ cosign tree $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+📦 Supply Chain Security Related artifacts for an image: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:1.0
+└── 🔐 Signatures for an image tag: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:sha256-4530d5e1556631804ce21d37271b0d3f173c350956f2312421db0840fd103c82.sig
+   └── 🍒 sha256:f638a989546b998409719e3eb78c0843d880e0bbb5237afa831da685fee48880
+----
+
+We can also login to Quay at {quay_console_url} using the Quay credentials
+
+[cols="2,2"]
+|===
+*Quay Console Username:* | {quay_admin_username} |
+*Quay Console Password:* | {quay_admin_password} |
+|===
+
+Quay recognizes the `cosign` image signature, too!
+
+image::11-quay-signed-image.png[link=self, window=blank, width=100%]
 
 
 
