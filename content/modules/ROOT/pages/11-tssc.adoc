@@ -321,7 +321,7 @@ Copy the URL and paste it in a new browser window or tab and login - use the fol
 
 [cols="2,2"]
 |===
-*Username:* | *jdoe@redhat.com* |
+|*Username:* | *jdoe@redhat.com* |
 *Password:* | *secure* |
 |===
 
@@ -335,7 +335,6 @@ IMPORTANT: Make sure to copy the whole code, as it is longer than the text box.
 [source,bash,subs="+macros,+attributes"]
 ----
 Enter verification code: 3cc0c9fc-db2e-4920-ba2e-7adac8c685cb.6309e23d-facd-4bca-8855-0443a3c4ddf5.d8370879-39c7-41ec-99ab-669101e99f91
-
 
 Successfully verified SCT...
 WARNING: Image reference quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:1.0 uses a tag, not a digest, to identify the image to sign.
@@ -367,7 +366,7 @@ We can also login to Quay at {quay_console_url} using the Quay credentials
 
 [cols="2,2"]
 |===
-*Quay Console Username:* | {quay_admin_username} |
+|*Quay Console Username:* | {quay_admin_username} |
 *Quay Console Password:* | {quay_admin_password} |
 |===
 
@@ -375,7 +374,168 @@ Quay recognizes the `cosign` image signature, too!
 
 image::11-quay-signed-image.png[link=self, window=blank, width=100%]
 
+NOTE: You might ask yourselves - ok, but how would a pipeline task authenticate itself? A pipeline task can't open a browser to login... 
+*Trusted Artifact Signer / Sigstore* (and the `cosign` tool as part of it) doesn't authenticate the user itself, but instead asks the *OIDC system* configured to authenticate the request before issuing a signing certificate. Therefore, all the flexibility of OIDC systems for authentication is available.
 
+For example, *GitHub Actions* and *GitLab CI/CD* can pass the OIDC identity of the pipeline runner via OIDC tokens into the pipeline. 
+
+In general, continuous integration (CI) systems focus on providing the identity of the build or deployment environment rather than the personal identity of a triggering user, to maintain least privilege and ensure reproducibility. 
+
+But, depending on your CI setup and requirements, you can leverage the flexibility of OIDC to meet your needs.
+
+**EXAMPLE**
+
+In our workshop environment, we are using Keycloak as SSO / OIDC system. We can request a short-lived OIDC token from Keycloak and use this for authentication (and therefore, *signing* of the image).
+
+1) First, we need to get the OIDC token issuer endpoint from Keycloak:
+
+[source,sh,subs="attributes",role=execute]
+----
+export OIDC_TOKEN_SERVICE=$(curl -s $OIDC_ISSUER_URL | jq -r '.["token-service"]')/token
+echo $OIDC_TOKEN_SERVICE
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ export OIDC_TOKEN_SERVICE=$(curl -s $OIDC_ISSUER_URL | jq -r '.["token-service"]')/token
+echo $OIDC_TOKEN_SERVICE
+https://keycloak-rhsso.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/auth/realms/openshift/protocol/openid-connect/token
+----
+
+2) Now, we are requesting a token from that endpoint for our signing user.
+
+[source,sh,subs="attributes",role=execute]
+----
+export OIDC_TOKEN=$(curl -s --request POST --url $OIDC_TOKEN_SERVICE --header 'content-type: application/x-www-form-urlencoded' --data 'grant_type=password' --data 'client_id=trusted-artifact-signer' --data 'username=jdoe@redhat.com'  --data 'password=secure' --data 'scope=openid' | jq -r '.["access_token"]')
+echo $OIDC_TOKEN
+---- 
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ export OIDC_TOKEN=$(curl -s --request POST --url $OIDC_TOKEN_SERVICE --header 'content-type: application/x-www-form-urlencoded' --data 'grant_type=password' --data 'client_id=trusted-artifact-signer' --data 'username=jdoe@redhat.com'  --data 'password=secure' --data 'scope=openid' | jq -r '.["access_token"]')
+echo $OIDC_TOKEN
+eyJhbGciOiJSUzI1NiIsInR5cC...
+...IgOiAiSldUIiwia2lkIiA6ICJl
+----
+
+WARNING: This is just an example - naturally, in your own CI system, you would not use username and password of the signing user in clear text. Rather, you would store them in a Kubernetes Secret or in a Vault. Or, depending on your setup, you already have the pipeline user's OIDC token as environment variable during your pipeline run. Additionally, you wouldn't echo the token so it doesn't show in logs - even though it might only be short-lived, this is not a good practice. 
+
+3) Now that we have the token, we can pass that to `cosign` for authentication:
+
+[source,sh,subs="attributes",role=execute]
+----
+cosign sign -y --identity-token=$OIDC_TOKEN $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+---- 
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ cosign sign -y --identity-token=$OIDC_TOKEN $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+Generating ephemeral keys...
+Retrieving signed certificate...
+Successfully verified SCT...
+WARNING: Image reference quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:1.0 uses a tag, not a digest, to identify the image to sign.
+    This can lead you to sign a different image than the intended one. Please use a
+    digest (example.com/ubuntu@sha256:abc123...) rather than tag
+    (example.com/ubuntu:latest) for the input to cosign. The ability to refer to
+    images by tag will be removed in a future release.
+
+
+        Note that there may be personally identifiable information associated with this signed artifact.
+        This may include the email address associated with the account with which you authenticate.
+        This information will be used for signing this artifact and will be stored in public transparency logs and cannot be removed later.
+
+By typing 'y', you attest that you grant (or have permission to grant) and agree to have this information stored permanently in transparency logs.
+tlog entry created with index: 2
+Pushing signature to: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system
+---- 
+
+NOTE: You might have seen the `cosign` warning about using a tag rather than a `sha256` digest. Yes, tags can be reassigned and can be considered inappropriate for signing (and verification) purposes. We have left this out for sake of simplicity, but if you'd like, you can obtain the image's `sha256` digest via the Quay console or by using `podman inspect`, for example.
+
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ cosign sign --identity-token=$OIDC_TOKEN $QUAY_URL/$QUAY_USER/ctf-web-to-system@sha256:4530d5e1556631804ce21d37271b0d3f173c350956f2312421db0840fd103c82
+Generating ephemeral keys...
+Retrieving signed certificate...
+Successfully verified SCT...
+
+        Note that there may be personally identifiable information associated with this signed artifact.
+        This may include the email address associated with the account with which you authenticate.
+        This information will be used for signing this artifact and will be stored in public transparency logs and cannot be removed later.
+
+By typing 'y', you attest that you grant (or have permission to grant) and agree to have this information stored permanently in transparency logs.
+tlog entry created with index: 4
+Pushing signature to: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system
+----
+
+==== *Verifying Signatures*
+
+Verifying an image signature is even easier than signing: 
+
+[source,sh,subs="attributes",role=execute]
+----
+cosign verify --certificate-identity jdoe@redhat.com $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 | jq
+----
+
+In this case, we are asking `cosign` (and therefore *Trusted Artifact Signer*) to verify if `jdoe@redhat.com` has signed this image. We can also use regular expressions, to check if anyone from Red Hat has signed this image, using `--certificate-identity-regexp`:
+
+[source,sh,subs="attributes",role=execute]
+----
+cosign verify --certificate-identity-regexp ^[a-zA-Z0-9._%+-]+@redhat\.com$ $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 | jq
+----
+
+We can also verify that the person (to be correct, the OIDC identity) who signed the image was authenticated against a specific OIDC Issuer (using the `--certificate-oidc-issuer` flag) or against an OIDC Issuer somewhere in our domain:
+
+[source,sh,subs="attributes",role=execute]
+----
+cosign verify --certificate-identity jdoe@redhat.com --certificate-oidc-issuer-regexp \.opentlc\.com $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 | jq
+----
+
+NOTE: We are using `jq` for readability in these examples, it is not required.
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ cosign verify --certificate-identity jdoe@redhat.com --certificate-oidc-issuer-regexp \.opentlc\.com $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 | jq
+
+Verification for quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:1.0 --
+The following checks were performed on each of these signatures:
+  - The cosign claims were validated
+  - Existence of the claims in the transparency log was verified offline
+  - The code-signing certificate was verified using trusted certificate authority certificates
+[
+  {
+    "critical": {
+      "identity": {
+        "docker-reference": "quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system"
+      },
+      "image": {
+        "docker-manifest-digest": "sha256:4530d5e1556631804ce21d37271b0d3f173c350956f2312421db0840fd103c82"
+      },
+      "type": "cosign container image signature"
+    },
+    "optional": {
+      "1.3.6.1.4.1.57264.1.1": "https://keycloak-rhsso.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/auth/realms/openshift",
+      "Bundle": {
+        "SignedEntryTimestamp": "MGQCMBDDEiVjHtj0Hho7EkfCOps0N/RxbcJDgh+VDQ8LGvpKmoBImzHSTkv0sKOtbl8z6AIwHeIi1tqLjuagYak/zMuorqiBKjAKAvzfUyXAWHCdfMEozBj/BIhrtpSRZgkfUgSM",
+        "Payload": {
+          "body": "eyJhcGlWZ
+          ...
+          0TFMwdExRbz0ifX19fQ==",
+          "integratedTime": 1734200825,
+          "logIndex": 0,
+          "logID": "abeb9ddb0d7a346d990d9eb7692ec74bef081f9a0ad203444fb9606c5cbc7644"
+        }
+      },
+      "Issuer": "https://keycloak-rhsso.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/auth/realms/openshift",
+      "Subject": "jdoe@redhat.com"
+    }
+  }
+----
 
 
 === Signing and verifying git commits
