@@ -210,7 +210,7 @@ image::01-rhacs-access-control.png[RHACS access control]
 Great job!
 
 You now have access to the core apps. Next, you'll deploy insecure apps into the OpenShift cluster, including Quay. These apps will be the main use cases we look at during the workshop.
-
+[[build-a-container-image]]
 === Build a container image
 
 In this section, we will download the "*Java app*" give it a new tag, and push the image to Quay. Later, we'll deploy the image to the OpenShift Cluster and use it in future modules.
