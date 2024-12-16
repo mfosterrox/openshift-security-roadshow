@@ -2,5 +2,5 @@
 #
 
 echo "Stopping serve process..."
-docker kill showroom-httpd
+podman stop showroom-httpd
 echo "Stopped serve process."

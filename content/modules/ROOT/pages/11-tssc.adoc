@@ -1,0 +1,802 @@
+== Module 11: Trusted Software Supply Chain
+
+=== Goal of Module 11
+
+The goal of this lab is to learn about the features from the Trusted Software Supply Chain suite of products from Red Hat. 
+
+
+== Trusted Artifact Signer
+Red Hat Trusted Artifact Signer(TAS) enhances software supply chain security by simplifying cryptographic signing and verification of software artifacts, such as container images, binaries, and documents. 
+
+Trusted Artifact Signer provides a production-ready deployment of the https://www.sigstore.dev/[Sigstore project] as a core component of the Red Hat Trusted Software Supply Chain product family.
+
+Signing and verification, e.g. using GPG has been around a long time - why would someone found a new Open Source project to address signing and verification, you might ask.
+
+=== *Why Sigstore / Trusted Artifact Signer?*
+
+. *Supply Chain Security*: Modern software development requires robust
+mechanisms to secure dependencies and artifacts, which GPG struggles to
+address effectively.
+. *Usability*: Developers need simpler, more intuitive signing solutions
+without the burden of manual key management.
+. *Transparency*: A centralized, tamper-evident log system ensures
+accountability and traceability of signatures, enhancing trust.
+. *Modern Identity Integration*: Sigstore aligns with contemporary
+authentication mechanisms (e.g., OAuth, OpenID Connect), making it
+easier to tie signatures to identities.
+. *Automation*: Sigstore fits seamlessly into automated CI/CD workflows,
+which are critical in modern software development pipelines.
+
+
+These are bold statements, so let's quickly compare the two to better understand the advantages that Trusted Artifact Signer brings to the table:
+
+==== *1. Key Management*
+
+* *GPG*:
+** Users must generate and manage long-term public/private key pairs
+themselves.
+** Keys are often stored locally, and their security is tied to the
+user’s system.
+** If a private key is lost or compromised, recovery or revocation can
+be complex.
+* *Sigstore / Trusted Artifact Signer*:
+** Utilizes short-lived (ephemeral) keys generated on-demand for
+signing.
+** No need for long-term private key management; keys are automatically
+discarded after use.
+** Simplifies key management for developers, reducing the risk of key
+compromise.
+
+'''''
+
+==== *2. Trust Model*
+
+* *GPG*:
+** Relies on a *Web of Trust* where individuals sign each other’s keys
+to establish authenticity.
+** Trust depends on manual verification and key-signing parties, which
+can be cumbersome and error-prone.
+** Requires a high degree of trust in individual users and their ability
+to manage their keys properly.
+* *Sigstore / Trusted Artifact Signer*:
+** Leverages OpenID Connect (OIDC) for authentication, binding artifacts
+to an identity (e.g., an SSO system such as Keycloak, a GitHub or GitLab account, email, etc.).
+** Trust is rooted in central transparency logs (e.g., Rekor), ensuring
+all signatures are centrally (or publicly, if desired) auditable.
+** Encourages a more automated and modern trust model, simplifying
+verification.
+
+'''''
+
+==== *3. Transparency and Verifiability*
+
+* *GPG*:
+** Signed artifacts and their signatures must be manually shared and
+verified.
+** No central or automatic system for transparency or revocation
+tracking.
+** Difficult to audit or trace all signatures and the associated public
+keys at scale.
+* *Sigstore / Trusted Artifact Signer*:
+** Every signing action is logged in a central, optionally public, tamper-evident
+transparency log (Rekor).
+** Anyone can independently verify the signing event and its associated
+identity.
+** Provides a centralized and automated system for transparency and
+auditability.
+
+'''''
+
+==== *4. Ease of Use*
+
+* *GPG*:
+** Comparatively complex for users, requiring manual key generation, management,
+and sharing.
+** CLI tools have a steep learning curve and are not always
+user-friendly.
+** Widespread adoption hindered by usability challenges.
+* *Sigstore / Trusted Artifact Signer*:
+** Streamlined experience designed for developers and modern workflows.
+** No need to manually manage keys or trust chains; authentication is
+identity-based.
+** Easily integrates into CI/CD pipelines and modern development
+practices.
+
+'''''
+
+==== *5. Security*
+
+* *GPG*:
+** Vulnerable to long-term key compromise if private keys are not
+properly secured.
+** Trust in signatures is tightly coupled to key security and revocation
+is challenging.
+* *Sigstore / Trusted Artifact Signer*:
+** Ephemeral keys reduce the risk of long-term compromise.
+** Transparency logs provide tamper-evident evidence of signing,
+reducing the risk of undetected forgery.
+** Designed with supply chain security in mind, reducing risks from
+malicious dependencies or compromised keys.
+
+'''''
+
+==== *Advantages of Sigstore / Trusted Artifact Signer over GPG*
+
+In summary, Sigstore is designed to address the pain points and
+limitations of GPG in the context of modern software development,
+focusing on ease of use, transparency, and security for signing and
+verifying software artifacts.
+
+* Eliminates manual key management.
+* Provides automated, identity-based signing.
+* Ensures transparency with central (optionally public) logs.
+* Simplifies adoption with developer-friendly tools.
+* Reduces risks from long-term private key compromises.
+* Aligns with modern software practices and supply chain security
+requirements.
+
+
+=== Setup 
+For this exercise, we'll be using the container image in Quay that we created during our Lab setup xref:00-setup-install-navigation.adoc#build-a-container-image[Build a container image]
+
+NOTE: Make sure you still have the variables set. If not, please go through the xref:00-setup-install-navigation.adoc#build-a-container-image[Build a container image] section again to setup your environment and make sure you have pushed the image to Quay.
+
+[source,sh,subs="attributes",role=execute]
+----
+echo $QUAY_USER
+echo $QUAY_URL
+----
+
+For signing and verification of container images, we'll be using the `cosign` CLI binary, which has already been installed in your bastion host (and can also be downloaded from the OpenShift Console).
+
+`cosign` can as easily be used in any CI/CD toolchain as we use it here and handles all the communication with the Sigstore / Trusted Artifact Signer services that request certificates, handle the OIDC authentication, store info in the transparency log (Rekor), etc.
+
+[source,sh,subs="attributes",role=execute]
+----
+cosign version
+----
+
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ cosign version
+  ______   ______        _______. __    _______ .__   __.
+ /      | /  __  \      /       ||  |  /  _____||  \ |  |
+|  ,----'|  |  |  |    |   (----`|  | |  |  __  |   \|  |
+|  |     |  |  |  |     \   \    |  | |  | |_ | |  . `  |
+|  `----.|  `--'  | .----)   |   |  | |  |__| | |  |\   |
+ \______| \______/  |_______/    |__|  \______| |__| \__|
+cosign: A tool for Container Signing, Verification and Storage in an OCI registry.
+
+GitVersion:    v2.0.0
+GitCommit:     d6b9001f8e6ed745fb845849d623274c897d55f2
+GitTreeState:  clean
+BuildDate:     2023-02-23T19:26:35Z
+GoVersion:     go1.20.1
+Compiler:      gc
+Platform:      linux/amd64
+----
+
+`cosign` needs to be initialized with all the required endpoints that it communicates with. Additionally, during initialization, it will download the public trust root certificate in a local cache.
+
+This initialization can be done via command line parameters or by setting environment variables that are read when no commandline parameters are present.
+
+NOTE: Cosign itself doesn't need access to OpenShift, but since we have Trusted Artifact Signer installed on OpenShift (a RHEL installation is another deployment option), we will be using some `oc` commands to get the required endpoints.
+Before proceeding, please verify you are still logged in to OpenShift via `oc whoami`
+
+To setup the environment variables, execute this script:
+
+[source,sh,subs="attributes",role=execute]
+----
+export TUF_URL=$(oc get tuf -o jsonpath='{.items[0].status.url}' -n trusted-artifact-signer)
+export OIDC_ISSUER_URL=https://$(oc get route keycloak -n rhsso | tail -n 1 | awk '{print $2}')/auth/realms/openshift
+export COSIGN_FULCIO_URL=$(oc get fulcio -o jsonpath='{.items[0].status.url}' -n trusted-artifact-signer)
+export COSIGN_REKOR_URL=$(oc get rekor -o jsonpath='{.items[0].status.url}' -n trusted-artifact-signer)
+export COSIGN_MIRROR=$TUF_URL
+export COSIGN_ROOT=$TUF_URL/root.json
+export COSIGN_OIDC_CLIENT_ID="trusted-artifact-signer"
+export COSIGN_OIDC_ISSUER=$OIDC_ISSUER_URL
+export COSIGN_CERTIFICATE_OIDC_ISSUER=$OIDC_ISSUER_URL
+export COSIGN_YES="true"
+# to verify URL endpoints have been set
+env | grep URL
+----
+
+As the last step, initialize `cosign`, so it knows who to talk to:
+
+[source,sh,subs="attributes",role=execute]
+----
+cosign initialize
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ cosign initialize
+Root status: 
+ {
+        "local": "/home/lab-user/.sigstore/root",
+        "remote": "https://tuf-trusted-artifact-signer.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com",
+        "metadata": {
+                "root.json": {
+                        "version": 1,
+                        "len": 2178,
+                        "expiration": "13 Jun 25 16:39 UTC",
+                        "error": ""
+                },
+                "snapshot.json": {
+                        "version": 1,
+                        "len": 618,
+                        "expiration": "13 Jun 25 16:39 UTC",
+                        "error": ""
+                },
+                "targets.json": {
+                        "version": 1,
+                        "len": 1372,
+                        "expiration": "13 Jun 25 16:39 UTC",
+                        "error": ""
+                },
+                "timestamp.json": {
+                        "version": 1,
+                        "len": 619,
+                        "expiration": "13 Jun 25 16:39 UTC",
+                        "error": ""
+                }
+        },
+        "targets": [
+                "ctfe.pub",
+                "fulcio_v1.crt.pem",
+                "rekor.pub"
+        ]
+}
+----
+
+=== Signing and verifying a container image
+
+`cosign` will be interacting with the image in our private registry, therefore we need to login to Quay:
+
+[source,sh,subs="attributes",role=execute]
+----
+cosign login $QUAY_URL -u $QUAY_USER -p {quay_admin_password}
+----
+
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ cosign login $QUAY_URL -u $QUAY_USER -p MzI2OTI0
+auth.go:203: logged in via /home/lab-user/.docker/config.json
+----
+
+TIP: To verify that the image we created xref:00-setup-install-navigation.adoc#build-a-container-image[here] is still available and cosign can access the image, we can use the `cosign tree` command that checks for signatures, SBOMs (Software Bills of Materials) and attestations (e.g. build provenance attestation): 
+
+[source,sh,subs="attributes",role=execute]
+----
+cosign tree $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ cosign tree $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+📦 Supply Chain Security Related artifacts for an image: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:1.0
+No Supply Chain Security Related Artifacts artifacts found for image quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:1.0
+, start creating one with simply running$ COSIGN_EXPERIMENTAL=1 cosign sign <img>
+----
+
+As `cosign` suggests, signing this image is as simple as
+
+[source,sh,subs="attributes",role=execute]
+----
+cosign sign $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+----
+
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ cosign sign $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+Generating ephemeral keys...
+Retrieving signed certificate...
+
+        Note that there may be personally identifiable information associated with this signed artifact.
+        This may include the email address associated with the account with which you authenticate.
+        This information will be used for signing this artifact and will be stored in public transparency logs and cannot be removed later.
+
+By typing 'y', you attest that you grant (or have permission to grant) and agree to have this information stored permanently in transparency logs.
+error opening browser: exec: "xdg-open": executable file not found in $PATH
+Go to the following link in a browser:
+
+         https://keycloak-rhsso.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/auth/realms/openshift/protocol/openid-connect/auth?access_type=online&client_id=trusted-artifact-signer&code_challenge=JHFlN4cLdRCGJWjkGf1S1nKYO9Nc-bnC6bhwkZXoS3M&code_challenge_method=S256&nonce=2qDckQCVBACjnviJ8bdxIWwPh1r&redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob&response_type=code&scope=openid+email&state=2qDckRnXkzmspwUHxF3f6K3NX67
+Enter verification code:
+
+----
+
+NOTE: As mentioned above, the signing process ties an identity (an OIDC identity, to be specific) to the signature. The signing certificate is issued on demand, but *only issued if an OIDC identity proof can be established*. 
+
+In this example, the "OAuth2 browser based flow" is used. In other words, you will authenticate to the OIDC system by user and password via a browser login. We are running `cosign` in a `ssh` session with no connection to your system, therefore the check for a browser to open the login page fails: `error opening browser: exec: "xdg-open": executable file not found in $PATH` 
+
+Copy the URL and paste it in a new browser window or tab and login - use the following credentials: 
+
+[cols="2,2"]
+|===
+|*Username:* | *jdoe@redhat.com* |
+*Password:* | *secure* |
+|===
+
+image::11-signing-sso-login.png[keycloak login]
+
+image::11-signing-successcode.png[copy the success code]
+
+IMPORTANT: Make sure to copy the whole code, as it is longer than the text box.
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+Enter verification code: 3cc0c9fc-db2e-4920-ba2e-7adac8c685cb.6309e23d-facd-4bca-8855-0443a3c4ddf5.d8370879-39c7-41ec-99ab-669101e99f91
+
+Successfully verified SCT...
+WARNING: Image reference quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:1.0 uses a tag, not a digest, to identify the image to sign.
+    This can lead you to sign a different image than the intended one. Please use a
+    digest (example.com/ubuntu@sha256:abc123...) rather than tag
+    (example.com/ubuntu:latest) for the input to cosign. The ability to refer to
+    images by tag will be removed in a future release.
+
+tlog entry created with index: 1
+Pushing signature to: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system
+----
+
+*SUCCESS!* 
+
+With one command, you have signed the container image and pushed the container image to the registry. Furthermore, the signing event and its metadata have been recorded in the *Rekor* transparency log: `tlog entry created with index: 1` 
+
+To check, we can again use `cosign tree`:
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ cosign tree $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+📦 Supply Chain Security Related artifacts for an image: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:1.0
+└── 🔐 Signatures for an image tag: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:sha256-4530d5e1556631804ce21d37271b0d3f173c350956f2312421db0840fd103c82.sig
+   └── 🍒 sha256:f638a989546b998409719e3eb78c0843d880e0bbb5237afa831da685fee48880
+----
+
+We can also login to Quay at {quay_console_url} using the Quay credentials
+
+[cols="2,2"]
+|===
+|*Quay Console Username:* | {quay_admin_username} |
+*Quay Console Password:* | {quay_admin_password} |
+|===
+
+Quay recognizes the `cosign` image signature, too!
+
+image::11-quay-signed-image.png[link=self, window=blank, width=100%]
+
+NOTE: You might ask yourselves - ok, but how would a pipeline task authenticate itself? A pipeline task can't open a browser to login... 
+*Trusted Artifact Signer / Sigstore* (and the `cosign` tool as part of it) doesn't authenticate the user itself, but instead asks the *OIDC system* configured to authenticate the request before issuing a signing certificate. Therefore, all the flexibility of OIDC systems for authentication is available.
+
+For example, *GitHub Actions* and *GitLab CI/CD* can pass the OIDC identity of the pipeline runner via OIDC tokens into the pipeline. 
+
+In general, continuous integration (CI) systems focus on providing the identity of the build or deployment environment rather than the personal identity of a triggering user, to maintain least privilege and ensure reproducibility. 
+
+But, depending on your CI setup and requirements, you can leverage the flexibility of OIDC to meet your needs.
+
+**EXAMPLE**
+
+In our workshop environment, we are using Keycloak as SSO / OIDC system. We can request a short-lived OIDC token from Keycloak and use this for authentication (and therefore, *signing* of the image).
+
+1) First, we need to get the OIDC token issuer endpoint from Keycloak:
+
+[source,sh,subs="attributes",role=execute]
+----
+export OIDC_TOKEN_SERVICE=$(curl -s $OIDC_ISSUER_URL | jq -r '.["token-service"]')/token
+echo $OIDC_TOKEN_SERVICE
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ export OIDC_TOKEN_SERVICE=$(curl -s $OIDC_ISSUER_URL | jq -r '.["token-service"]')/token
+echo $OIDC_TOKEN_SERVICE
+https://keycloak-rhsso.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/auth/realms/openshift/protocol/openid-connect/token
+----
+
+2) Now, we are requesting a token from that endpoint for our signing user.
+
+[source,sh,subs="attributes",role=execute]
+----
+export OIDC_TOKEN=$(curl -s --request POST --url $OIDC_TOKEN_SERVICE --header 'content-type: application/x-www-form-urlencoded' --data 'grant_type=password' --data 'client_id=trusted-artifact-signer' --data 'username=jdoe@redhat.com'  --data 'password=secure' --data 'scope=openid' | jq -r '.["access_token"]')
+echo $OIDC_TOKEN
+---- 
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ export OIDC_TOKEN=$(curl -s --request POST --url $OIDC_TOKEN_SERVICE --header 'content-type: application/x-www-form-urlencoded' --data 'grant_type=password' --data 'client_id=trusted-artifact-signer' --data 'username=jdoe@redhat.com'  --data 'password=secure' --data 'scope=openid' | jq -r '.["access_token"]')
+echo $OIDC_TOKEN
+eyJhbGciOiJSUzI1NiIsInR5cC...
+...IgOiAiSldUIiwia2lkIiA6ICJl
+----
+
+WARNING: This is just an example - naturally, in your own CI system, you would not use username and password of the signing user in clear text. Rather, you would store them in a Kubernetes Secret or in a Vault. Or, depending on your setup, you already have the pipeline user's OIDC token as environment variable during your pipeline run. Additionally, you wouldn't echo the token so it doesn't show in logs - even though it might only be short-lived, this is not a good practice. 
+
+3) Now that we have the token, we can pass that to `cosign` for authentication:
+
+[source,sh,subs="attributes",role=execute]
+----
+cosign sign -y --identity-token=$OIDC_TOKEN $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+---- 
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ cosign sign -y --identity-token=$OIDC_TOKEN $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+Generating ephemeral keys...
+Retrieving signed certificate...
+Successfully verified SCT...
+WARNING: Image reference quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:1.0 uses a tag, not a digest, to identify the image to sign.
+    This can lead you to sign a different image than the intended one. Please use a
+    digest (example.com/ubuntu@sha256:abc123...) rather than tag
+    (example.com/ubuntu:latest) for the input to cosign. The ability to refer to
+    images by tag will be removed in a future release.
+
+
+        Note that there may be personally identifiable information associated with this signed artifact.
+        This may include the email address associated with the account with which you authenticate.
+        This information will be used for signing this artifact and will be stored in public transparency logs and cannot be removed later.
+
+By typing 'y', you attest that you grant (or have permission to grant) and agree to have this information stored permanently in transparency logs.
+tlog entry created with index: 2
+Pushing signature to: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system
+---- 
+
+NOTE: You might have seen the `cosign` warning about using a tag rather than a `sha256` digest. Yes, tags can be reassigned and can be considered inappropriate for signing (and verification) purposes. We have left this out for sake of simplicity, but if you'd like, you can obtain the image's `sha256` digest via the Quay console or by using `podman inspect`, for example.
+
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ cosign sign --identity-token=$OIDC_TOKEN $QUAY_URL/$QUAY_USER/ctf-web-to-system@sha256:4530d5e1556631804ce21d37271b0d3f173c350956f2312421db0840fd103c82
+Generating ephemeral keys...
+Retrieving signed certificate...
+Successfully verified SCT...
+
+        Note that there may be personally identifiable information associated with this signed artifact.
+        This may include the email address associated with the account with which you authenticate.
+        This information will be used for signing this artifact and will be stored in public transparency logs and cannot be removed later.
+
+By typing 'y', you attest that you grant (or have permission to grant) and agree to have this information stored permanently in transparency logs.
+tlog entry created with index: 4
+Pushing signature to: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system
+----
+
+==== *Verifying Signatures*
+
+Verifying an image signature is even easier than signing: 
+
+[source,sh,subs="attributes",role=execute]
+----
+cosign verify --certificate-identity jdoe@redhat.com $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 | jq
+----
+
+In this case, we are asking `cosign` (and therefore *Trusted Artifact Signer*) to verify if `jdoe@redhat.com` has signed this image. We can also use regular expressions, to check if anyone from Red Hat has signed this image, using `--certificate-identity-regexp`:
+
+[source,sh,subs="attributes",role=execute]
+----
+cosign verify --certificate-identity-regexp ^[a-zA-Z0-9._%+-]+@redhat\.com$ $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 | jq
+----
+
+We can also verify that the person (to be correct, the OIDC identity) who signed the image was authenticated against a specific OIDC Issuer (using the `--certificate-oidc-issuer` flag) or against an OIDC Issuer somewhere in our domain:
+
+[source,sh,subs="attributes",role=execute]
+----
+cosign verify --certificate-identity jdoe@redhat.com --certificate-oidc-issuer-regexp \.opentlc\.com $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 | jq
+----
+
+NOTE: We are using `jq` for readability in these examples, it is not required.
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ cosign verify --certificate-identity jdoe@redhat.com --certificate-oidc-issuer-regexp \.opentlc\.com $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 | jq
+
+Verification for quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:1.0 --
+The following checks were performed on each of these signatures:
+  - The cosign claims were validated
+  - Existence of the claims in the transparency log was verified offline
+  - The code-signing certificate was verified using trusted certificate authority certificates
+[
+  {
+    "critical": {
+      "identity": {
+        "docker-reference": "quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system"
+      },
+      "image": {
+        "docker-manifest-digest": "sha256:4530d5e1556631804ce21d37271b0d3f173c350956f2312421db0840fd103c82"
+      },
+      "type": "cosign container image signature"
+    },
+    "optional": {
+      "1.3.6.1.4.1.57264.1.1": "https://keycloak-rhsso.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/auth/realms/openshift",
+      "Bundle": {
+        "SignedEntryTimestamp": "MGQCMBDDEiVjHtj0Hho7EkfCOps0N/RxbcJDgh+VDQ8LGvpKmoBImzHSTkv0sKOtbl8z6AIwHeIi1tqLjuagYak/zMuorqiBKjAKAvzfUyXAWHCdfMEozBj/BIhrtpSRZgkfUgSM",
+        "Payload": {
+          "body": "eyJhcGlWZ
+          ...
+          0TFMwdExRbz0ifX19fQ==",
+          "integratedTime": 1734200825,
+          "logIndex": 0,
+          "logID": "abeb9ddb0d7a346d990d9eb7692ec74bef081f9a0ad203444fb9606c5cbc7644"
+        }
+      },
+      "Issuer": "https://keycloak-rhsso.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/auth/realms/openshift",
+      "Subject": "jdoe@redhat.com"
+    }
+  }
+----
+
+
+=== Signing and verifying git commits
+
+
+
+
+
+== Trusted Profile Analyzer 
+The Trusted Profile Analyzer adds management capabilities for *Software Bills of Materials (SBOMs)* to OpenShift. 
+
+=== *What is an SBOM?* 
+https://www.cisa.gov[CISA.gov] defines an SBOM as "a nested inventory, a list of ingredients that make up software components." https://www.cisa.gov/sbom[¹] 
+
+Using SBOMs, you can have a clear vision of everything that goes into your application or what you may have received from vendors, such as Red Hat. This enables platform engineers to more easily enforce operational controls and compliance across hybrid multi-cloud environments. 
+
+In addition, several regulatory requirements and frameworks either *mandate* or *recommend* the use of *Software Bills of Materials (SBOMs)* to enhance software supply chain transparency and security. Here are some key examples, but the list is continually growing:
+
+
+==== *1. U.S. Executive Order 14028 (Improving the Nation’s Cybersecurity)*
+
+* *Mandate*: In May 2021, this Executive Order directed the U.S.
+government to take actions to secure the software supply chain.
+* *SBOM Requirement*:
+** The *National Telecommunications and Information Administration
+(NTIA)* was tasked with defining minimum elements for SBOMs.
+** Vendors providing software to federal agencies must provide SBOMs as
+part of their cybersecurity practices.
+** Goal: Increase transparency about software components to mitigate
+risks from vulnerabilities.
+
+
+
+==== *2. EU Cyber Resilience Act*
+
+* *Proposed Mandate*: Expected to become law in the near future, this
+act will apply to products with digital elements in the EU.
+* *SBOM Requirement*: It encourages or requires organizations to
+maintain transparency about their software dependencies, including
+SBOMs, for compliance with security standards.
+
+
+
+==== *3. U.S. Food and Drug Administration (FDA) Guidance*
+
+* *Recommendation*: The FDA issued guidance for medical device
+manufacturers to include SBOMs.
+* *Context*: As part of the *Pre-market Cybersecurity Guidance* for
+medical devices, manufacturers are encouraged to provide SBOMs to
+identify vulnerabilities in device software and support risk management.
+* *Goal*: Protect healthcare systems and patient safety.
+
+
+==== *4. OWASP Software Component Verification Standard (SCVS)*
+
+* *Recommendation*: OWASP promotes SBOMs as part of software composition
+analysis (SCA) to track components and identify vulnerabilities.
+* *Context*: Although not a regulatory requirement, it is widely
+recognized in cybersecurity best practices.
+
+
+
+==== *5. CISA Binding Operational Directive (BOD) 23-01*
+
+* *Mandate*: U.S. government agencies are required to track and mitigate
+known vulnerabilities in software they use.
+* *SBOM Role*: Although the directive doesn’t explicitly mandate SBOMs,
+managing them is critical to identifying and addressing vulnerabilities
+efficiently.
+
+
+
+==== *6. ISO/IEC 5962 (SBOM Standard)*
+
+* *Recommendation*: This international standard formalizes SBOM
+structure, ensuring consistent implementation across industries. It
+supports compliance with regulatory and industry standards requiring
+software transparency.
+
+
+
+==== *7. Proposed SEC Cybersecurity Rules*
+
+* *Recommendation*: Companies under U.S. Securities and Exchange
+Commission (SEC) regulations must report cybersecurity risks, including
+supply chain vulnerabilities. SBOMs can help meet these transparency
+requirements.
+
+
+
+=== *Why SBOMs are Becoming Standard in Regulations*
+
+* *Transparency*: Knowing what’s in your software reduces the risk of
+vulnerabilities.
+* *Risk Management*: SBOMs help identify, track, and remediate issues in
+the software supply chain.
+* *Compliance*: They demonstrate adherence to evolving cybersecurity and
+data privacy laws.
+
+*As cybersecurity frameworks continue to evolve, the use of SBOMs is increasingly seen as foundational for compliance and risk mitigation.*
+
+'''''
+
+
+
+
+
+////
+==== Installing the Trusted Profile Analyzer 
+
+* Log into your Bastion
++
+[source]
+----
+ ssh lab-user@bastion.GUID.sandbox####.opentlc.com
+----
+* Install Homebrew
++
+[source]
+----
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+----
++
+* Once installed, run the following commands to add Homebrew to your PATH: 
++
+[source]
++
+----
+echo >> ~/.bashrc
+echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+----
+
+* Install Homebrew's dependencies
++
+[source]
++
+----
+sudo yum groupinstall 'Development Tools'
+----
+
+* Now that Homebrew is installed, use it to install gcc
++
+[source]
++
+----
+brew install gcc
+----
+
+* Once gcc is installed successfully with Homebrew, install Syft
++
+[source]
+----
+brew install syft
+----
+
+==== Generating an SBOM
+
+Now that we have Syft installed, we will pull an Openjdk11 image with flaws. 
+
+*First, ensure the podman socket and API services are running
++
+[source]
+----
+systemctl --user start podman.socket
+systemctl --user enable podman.socket
+----
+
+*Using podman, pull the image
++
+[source]
+----
+podman pull registry.access.redhat.com/ubi8/openjdk-11:1.20-2.1723644093
+----
+
+* Retag the image to more easily recognize it
++
+[source]
+----
+podman tag registry.access.redhat.com/ubi8/openjdk-11:1.20-2.1723644093 openjdk11-bad:latest
+----
+
+* Use Syft to create an SBOM from a local image
++
+[source]
+----
+syft openjdk-11-bad:latest -o spdx-json | jq . -r > openjdk-11-flawed.spdx
+----
+* You should get an output similar to the following: 
++
+[source]
+----
+ ✔ Loaded image                                                                                                                                                        localhost/openjdk11-bad:latest
+ ✔ Parsed image                                                                                                               sha256:301ac9507bf73f0ce3ec27d508bcfc08a35e80610f693de94b544101db3d504a
+ ✔ Cataloged contents                                                                                                                93edc204a637e42c53dcdb4313de9be0c8c62b5652aba786aae0042abe4b54dc
+   ├── ✔ Packages                        [268 packages]  
+   ├── ✔ File digests                    [5,599 files]  
+   ├── ✔ File metadata                   [5,599 locations]  
+   └── ✔ Executables                     [513 executables]  
+----
+
+* You can have a closer look at the contents of the SBOM by using the following command: 
++
+[source]
+----
+more openjdk-11-flawed.spdx
+----
+////
+
+=== *Using the Trusted Profile Analyzer UI*
+
+A Red Hat Trusted Profile Analyzer has been created for you to use. The proctor will make the URL available to you once you've completed the previous section. 
+
+When you are given the URL, log into the RHTPA UI using the username and password provided.
+
+image::lab1.1-tpa.png[]
+
+You can search for an SBOM, advisory, or CVE directly from the home page, or you can click on Search in the left menu for further options. 
+
+image::lab1.2-tpa.gif[]
+
+From the Search page, you can choose to browse SBOMs, Packages, CVEs, and Advisories from the Tabs, and further filter using the filter menu on the left. 
+
+Let's take a look at some packages. 
+
+Click the Packages tab, then check the Red Hat box under supplier. 
+
+The list now shows packages that are supplied by Red Hat. 
+
+You may click on a package to get information like related vulnerabilities, if any exist, and related products. 
+
+==== Uploading an SBOM
+
+An SBOM has been made available for you to download https://github.com/SeanRickerd/sbom/blob/main/home-banking-bom.json[here].
+
+Upload the SBOM. 
+
+image::lab11.1-sbom.gif[]
+
+It will take a few minutes for the SBOM to be processed by TPA, so click in the Search bar and type "home". Once you see home-banking, click on it. 
+
+image::lab11.2-sbom.gif[] 
+
+This will open the page for the home-banking SBOM you've uploaded. 
+
+The Info tab will give you standard information about the SBOM itself, including the version, the CycloneDX version, and the serial number. 
+
+Click on the Packages tab. 
+
+image::lab11.3-sbom.png[]
+
+The Packages tab will list all the packages found in this SBOM. 
+
+Click on Dependency Analytics Report. 
+
+The Dependency Analytics Report tab will list the security issues found in this SBOM. As you can see, there are a number of violations found. 3 of them are Critical, 3 High, and 2 Medium. 
+
+Scroll down the page to find the osv tab. 
+
+Here you will find further information about the detected vulnerabilities. Clicking on the Direct Vulnerabilities to the right of the log4j entry will expand the entry to show more information about he vulnerabilities, including Remediation. 
+
+The same can be done with the Transitive Vulnerabilites next to the struts2-core entry. 
+
+image::lab11.4-sbom.gif[]
