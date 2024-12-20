@@ -540,8 +540,35 @@ The following checks were performed on each of these signatures:
 
 === Signing and verifying git commits
 
+Installed gitsign. Doc https://docs.google.com/document/d/1td5x-h33MXHH113Mbq5NF5IbfLfsc1fFmRxtHbvWkIA/edit?tab=t.0 
 
+Next: Git cloned 
+  255  git clone https://github.com/mfosterrox/demo-apps.git demo-apps
+  256  export TUTORIAL_HOME="$(pwd)/demo-apps"
+  257  echo $QUAY_URL 
+  258  sed -i "s|CHANGEME|$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0|g" $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml
+  259  cd $TUTORIAL_HOME
+  260  git status
 
+  263  git config --local --list
+  264  git config --local commit.gpgsign true
+  265  git config --local tag.gpgsign true
+  266  git config --local gpg.x509.program gitsign
+  267  git config --local gpg.format x509
+  268  git config --local gitsign.fulcio $SIGSTORE_FULCIO_URL
+  269  git config --local gitsign.rekor $SIGSTORE_REKOR_URL
+  270  git config --local gitsign.issuer $SIGSTORE_OIDC_ISSUER
+  271  git config --local gitsign.clientID trusted-artifact-signer
+  272  git config --global --list
+  273  git config --local --list
+
+Next 
+- new origin
+- test with user1 (signing); missing email?
+- which realm is git linked to?
+- image with signing realm/domain and git domain (or e.g. gitlab, etc)
+- git commit sign history
+- git commit verification
 
 
 == Trusted Profile Analyzer 
