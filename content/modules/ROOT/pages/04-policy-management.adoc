@@ -13,10 +13,9 @@ We want to use runtime incidents and vulnerabilities as a learning opportunity t
 
 As we move into this next section, let's focus on identifying and enforcing a runtime policy in the cluster. For the upcoming example, we will focus on stopping the Ubuntu package manager from being run on pods in our cluster. Our example container *ctf-web-to-system* has this package manager in the container. Let's ensure that it never calls for updates while present in our clusters.
 
-== RHACS Runtime Policy Basics
+== Introduction to Runtime Policy Creation and Enforcement
 
 RHACS observes container processes and collects this information to enable you to craft policies to prevent behavior that you don’t like. This information can also create baseline policy configurations that the user can update. Runtime policies can include build-time and deploy-time policy criteria but they can also include data about process executions during runtime. However, runtime policies that use “audit logs” event source cannot use build and deploy criteria at all as they are Kubernetes specific events.
-
 
 The example below demonstrates how security may want to block a package manager from downloading any packages to the container. This runtime enforcement option is the first in the process of shifting left. After runtime enforcement, you will want to stop the package manager from being used in the container altogether.
 
@@ -103,7 +102,7 @@ oc get events -w
 
 [start=3]
 
-. Press *Ctrl+b THEN o* to switch to the next pane. (Ctrl+b THEN o)
+. Press Ctrl+b *THEN* o to switch to the next pane. (Hold ctrl+b then press o)
 . Exec into our Java application by getting the pod details and adding them to the following command.
 
 [source,sh,role=execute]
@@ -372,15 +371,15 @@ You're now enforcing against the Ubuntu package manager at runtime and deploy ti
 
 Build time policies for container images are guidelines that define how container images should be constructed. These policies aim to achieve several goals, including:
 
-* Security: Minimizing vulnerabilities and ensuring images are built with secure practices.
-* Efficiency: Reducing image size and build times for faster deployments.
-* Consistency: Maintaining a uniform structure and content across all images.
+* *Security:* Minimizing vulnerabilities and ensuring images are built with secure practices.
+* *Efficiency:* Reducing image size and build times for faster deployments.
+* *Consistency:* Maintaining a uniform structure and content across all images.
 Here are some key areas covered by build time policies:
-* Base Image: Specifying a minimal base image that only contains essential components.
-* Package Management: Encouraging the use of package managers for dependency installation and updates.
-* File Copying: Limiting what gets copied into the image to only required files and avoiding unnecessary bloat.
-* User Management: Defining a non-root user for the application process to run as.
-* Environment Variables: Storing sensitive information in environment variables outside the image.
+* *Base Image:* Specifying a minimal base image that only contains essential components.
+* *Package Management:* Encouraging the use of package managers for dependency installation and updates.
+* *File Copying:* Limiting what gets copied into the image to only required files and avoiding unnecessary bloat.
+* *User Management:* Defining a non-root user for the application process to run as.
+* *Environment Variables:* Storing sensitive information in environment variables outside the image.
 
 In RHACS, build-time policies apply to image fields such as CVEs and Dockerfile instructions.
 
@@ -521,6 +520,108 @@ ERROR:  checking image failed after 3 retries: failed policies found: 1 policies
 ----
 
 IMPORTANT: You should see the same violations from the previous command EXCEPT now you have a failed policy check. This woruld send an exit 0 command if this was run in any pipeline. 
+
+---
+
+## Hands-On Walk-Through: Managing Policies as Code in RHACS
+
+This guide provides a step-by-step walk-through to help you explore and demo managing policies as code in Red Hat Advanced Cluster Security (RHACS). This hands-on approach will give you a practical understanding of configuring and managing policies using Kubernetes-native tools like Argo CD.
+
+### What is Policy as Code?
+
+Policy as code enables you to define and manage security policies as Kubernetes custom resources (CRs). These policies can be applied to clusters using continuous delivery (CD) tools such as Argo CD. This approach allows Kubernetes security architects to define policies in YAML or JSON, providing an alternative to using the RHACS portal.
+
+### Key Features
+- **Create custom policies locally**: Author policies in YAML or JSON files and use GitOps workflows to manage them.
+- **Use continuous delivery tools**: Leverage Argo CD or other GitOps tools to deploy and manage policies across clusters.
+- **Monitor policy drift**: Understand and resolve discrepancies between policies stored in Kubernetes and RHACS.
+
+#### Configure Argo CD for Policy as Code
+1. **Install the RHACS Configuration Controller**: This is automatically installed in the `stackrox` namespace when RHACS is deployed.
+2. **Set Up Argo CD Communication**:
+   - Configure Argo CD to interact with the RHACS controller via the Kubernetes API.
+   - Ensure Argo CD monitors the namespace where RHACS Central is installed.
+
+#### **3. Enable GitOps Integration (Optional)**
+For workflows that do not use Argo CD:
+- Use the RHACS API to connect your GitOps repository (e.g., GitHub) directly to Central.
+- Manage policies as CRs stored in your repository.
+
+---
+
+### **Creating Policies as Code**
+
+#### **Option 1: Using the RHACS Portal**
+
+1. **Create or Clone a Policy**:
+   - Navigate to the Policy Management page.
+   - Create a new policy or clone an existing default policy.
+2. **Save as a Custom Resource (CR)**:
+   - Click the kebab (overflow menu) next to the policy.
+   - Select **Save as Custom Resource**.
+   - For bulk saving, use **Bulk Actions** > **Save as Custom Resources**.
+3. **Apply the Policy CR**:
+   - Use `kubectl apply` or `oc apply` to deploy the CR to the namespace where Central is installed:
+
+     ```bash
+     $ kubectl apply -f your-policy.yaml
+     ```
+   - Alternatively, push the CR to the namespace using Argo CD or another GitOps tool.
+
+#### **Option 2: Manually Authoring a Policy CR**
+
+1. **Construct the CR**:
+   - Use a text editor to define the policy as a Kubernetes CR with the following attributes:
+
+     ```yaml
+     kind: SecurityPolicy
+     apiVersion: config.stackrox.io/v1alpha1
+     metadata:
+       name: short-name
+     spec:
+       policyName: A longer form name
+       # ...
+     ```
+   - Use `kubectl explain securitypolicy.spec` for field definitions.
+2. **Apply the Policy CR**:
+   - Use `kubectl apply` or `oc apply`:
+
+     ```bash
+     $ kubectl apply -f your-policy.yaml
+     ```
+   - Or push the CR to the namespace via Argo CD or GitOps.
+
+---
+
+### **Understanding Policy Drift**
+
+Policy drift occurs when the version of a policy in RHACS Central does not match the version in Kubernetes. Drift can happen when changes are made directly in the RHACS portal or API rather than updating the CR.
+
+> **Note:** Drift is resolved automatically within 10 hours. To avoid drift, always modify policies through their corresponding CRs.
+
+---
+
+### **Disabling the Policy as Code Feature**
+The policy as code feature is enabled by default but can be disabled if needed.
+
+#### **Procedure**
+- **Operator Method**: Set the `spec.configAsCode.configAsCodeComponent` field to `Enabled`.
+- **Helm Method**: Set `configAsCode.enabled` in the `values.yaml` file to `true`.
+- **Manifest Method**:
+
+  Delete the configuration controller deployment:
+
+  ```bash
+  $ kubectl -n stackrox delete deployment config-controller
+  ```
+
+  Replace `kubectl` with `oc` if using OpenShift.
+
+---
+
+### **Wrap-Up and Next Steps**
+
+This hands-on demo provides an overview of managing policies as code in RHACS. Practice creating, managing, and resolving policy configurations using both the RHACS portal and manual methods. For additional details, consult the [official RHACS documentation](https://docs.openshift.com/acs/4.6/operating/manage_security_policies/custom-security-policies.html#policy-as-code-about_custom-security-policies).
 
 == Understand Violations in RHACS
 
