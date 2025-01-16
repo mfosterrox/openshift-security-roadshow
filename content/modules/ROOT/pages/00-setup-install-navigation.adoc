@@ -481,6 +481,7 @@ TIP: Toggling for fixable/unfixable vulnerabilities is an excellent way for deve
 
 Congratulations, you now know how to examine images in your registry for potential vulnerabilities before deploying into your environment.
 
+[[deploy-the-workshop-apps]]
 == Deploy the workshop applications
 
 In the final part of this module, you'll deploy several insecure applications to the OpenShift cluster. You'll scan a few of these containers using the *roxctl* CLI to understand what you're deploying and what to expect when you dive into RHACS.
