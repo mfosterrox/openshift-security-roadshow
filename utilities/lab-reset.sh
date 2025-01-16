@@ -3,7 +3,7 @@
 
 echo "Killing pod..."
 
-podman kill showroom-httpd
+docker kill showroom-httpd
 
 echo "Removing old site..."
 rm -rf ./www/*
@@ -14,7 +14,7 @@ npx antora --fetch default-site.yml
 
 echo "Starting serve process..."
 
-podman run -d --rm --name showroom-httpd -p 8080:8080 \
+docker run -d --rm --name showroom-httpd -p 8080:8080 \
   -v "./www:/var/www/html/:z" \
   registry.access.redhat.com/ubi9/httpd-24:1-301
 

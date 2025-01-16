@@ -14,8 +14,8 @@
 
 //Extra modules
 
-* xref:11-tssc.adoc[11. Trusted Software Supply Chain]
-* xref:misc-hacking-linux.adoc[CTF - hack a web application]
+* xref:11-tssc.adoc[MISC: Trusted Software Supply Chain]
+* xref:misc-hacking-linux.adoc[MISC: CTF - hack a web application]
 * xref:misc-log-4-shell-lab.adoc[MISC: log4shell example]
 // * xref:partner-paladin.adoc[Partner - Paladin Cloud & RHACS Integration]
 

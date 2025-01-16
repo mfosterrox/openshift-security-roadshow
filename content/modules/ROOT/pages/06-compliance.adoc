@@ -3,7 +3,7 @@
 == Module goals
 * Setup the Compliance Operator
 * Understand the Compliance 1.0 and 2.0 dashboard
-* Schedule a scan in the Compliance 2.0 dashboard
+* Schedule a scan in the Compliance Coverage dashboard
 
 == Compliance Operator and Compliance in ACS
 
@@ -55,7 +55,7 @@ With the Sensor restarted, kick off a compliance scan in ACS to see the updated 
 
 == Configuring the ScanSettingBinding object
 
-Now, before the Compliance 2.0 dashboard and ACS users would have had to set up a ScanSettingBinding object to schedule their compliance operator schedules this can be done in RHACS.
+Now, before the Compliance Coverage dashboard and ACS users would have had to set up a ScanSettingBinding object to schedule their compliance operator schedules this can be done in RHACS.
 
 But you still have to set your compliance profiles. 
 
@@ -115,7 +115,7 @@ So we have profiles. Now it's time to create a scan.
 When installing RHACS you need to kick off a complaince scan to ensure that the Compliance results are available. So let’s execute our first compliance scan.
 
 .Procedure
-. Head to the Compliance 1.0 dashboard
+. Head to the Compliance -> Dashboard
 . Click the "Scan environment" button on the top left.
 
 image::07-comp-3.png[link=self, window=blank, width=100%]
@@ -170,12 +170,12 @@ image::07-comp-5.png[link=self, window=blank, width=100%]
 
 For example, PCI-DSS has controls that refer to firewalls and DMZ - not exactly cloud-native
 
-In OpenShift, that requirement, and other isolation requirements, is met by Network Policies, and the 4% compliance score here indicates that very few deployments have correctly defined policies.
+In OpenShift, that requirement, and other isolation requirements, is met by Network Policies, and the 6% compliance score here indicates that very few deployments have correctly defined policies.
 
 === Evidence Export
 Last thing about compliance - you’re only as compliant as you can prove!
 
-. Click on the Export button in the upper right to show the “Evidence as CSV” option
+. Click on the Export button in the upper right to show the “Download evidence as CSV” option
 
 This is the evidence export that your auditors will want to see for proof that the security controls mandated are actually in place.
 
@@ -183,18 +183,18 @@ This is the evidence export that your auditors will want to see for proof that t
 How would you bring this standard up to 100%?
 |====
 
-== Managing the compliance 2.0 feature (Technology Preview)
+== Managing the Compliance Coverage feature (Technology Preview)
 
-You can view the compliance results associated with your cluster by using the compliance 2.0 feature in the Red Hat Advanced Cluster Security for Kubernetes (RHACS) portal. The feature collects compliance information gathered by the Compliance Operator into a single interface.
+You can view the compliance results associated with your cluster by using the Compliance Coverage feature in the Red Hat Advanced Cluster Security for Kubernetes (RHACS) portal. The feature collects compliance information gathered by the Compliance Operator into a single interface.
 
-Currently, the compliance 2.0 feature and the Compliance Operator evaluate only infrastructure and platform compliance.
+Currently, the Compliance Coverage feature and the Compliance Operator evaluate only infrastructure and platform compliance.
 
 === Viewing the cluster compliance page
 
 By viewing the cluster compliance page, you can get a comprehensive overview of the compliance status of your clusters.
 
 .Procedure
-. In the RHACS portal, go to the Compliance (2.0) → Cluster Compliance → Coverage tab.
+. In the RHACS portal, go to the Compliance → Coverage tab.
 
 image::07-comp-10.png[link=self, window=blank, width=100%]
 
@@ -206,6 +206,10 @@ The cluster compliance page organizes information in the following groups:
 
 *3. Compliance:* Shows the percentage of checks that have been passed for the scanned profiles.
 
+====
+There is currently nothing in the coverage dashboard since no schedule has been created yet!
+====
+
 image::07-comp-11.png[link=self, window=blank, width=100%]
 
 === Creating a compliance scan schedule
@@ -213,10 +217,10 @@ image::07-comp-11.png[link=self, window=blank, width=100%]
 By creating a compliance scan schedule, you can customize and automate your compliance scans to align with your operational requirements.
 
 .Procedure
-. In the RHACS portal, go to the Compliance (2.0) → Cluster Compliance → Schedules tab.
+. In the RHACS portal, go to the Compliance → Schedules tab.
 . Click Create scan schedule. 
 
-IMPORTANT: We recommen picking a schedule that is Daily and a few minutes from now. As you will want to see the results soon after creation and not wait a day for results.
+IMPORTANT: Pick a schedule that is daily and a few minutes from now. As you will want to see the results soon after creation and not wait a day for results!
 
 In the Configuration options page, provide the following information:
 
@@ -253,7 +257,7 @@ Wait until the Compliance Operator returns the scan results. It might take a few
 By viewing the status of a compliance scan, you can efficiently monitor and analyze the health of your clusters. Let's take a look!
 
 .Procedure
-. In the RHACS portal, go to the Compliance (2.0) → Cluster Compliance → *Coverage* tab.
+. In the RHACS portal, go to the *Compliance* → *Coverage* tab.
 . Select the compliance scan you have created.
 
 image::07-comp-13.png[link=self, window=blank, width=100%]
