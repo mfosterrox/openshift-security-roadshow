@@ -624,9 +624,16 @@ Showing that the latest version of Ubuntu from Docker.io has 0 critical vulnerab
 
 *Your turn*
 
+IMPORTANT: Make sure to set the image in the MYIMAGE variable, or put the image into the command.
+
+
 [source,sh,subs="attributes",role=execute]
 ----
 MYIMAGE=<Add the registry URL here>
+----
+
+[source,sh,subs="attributes",role=execute]
+----
 roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image $MYIMAGE --force -o table --severity=CRITICAL
 ----
 

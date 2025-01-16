@@ -217,6 +217,10 @@ The network user interface contains two drop-downs: the *Network Graph* tab and 
 
 > *Click on the Network Graph tab*
 
+image::00-network-0.png[link=self, window=blank, width=100%]
+
+> *To see results, sort by Cluster -> Namespace -> Deployment. Try Production + Backend*
+
 image::00-network-1.png[link=self, window=blank, width=100%, Dashboard Filter]
 
 The network graph tab allows you to visualize all the network connections in your cluster look at Baseline flows simulate Network policies manage CIDR blocks and more

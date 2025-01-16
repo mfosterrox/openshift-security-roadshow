@@ -288,19 +288,19 @@ image::05-policy-1.png[link=self, window=blank, width=100%]
 [start=4]
 . Give the policy all of the necessary information and complete the required fields then hit next.
 
-* *Name*: `No bash allowed`
+* *Name*: `No apt-get allowed`
 * *Severity*: `High`
 * *Categories*: `Anomalous Activity`
-* *Description*: `No bash allowed`
-* *Rationale*: `Too many known vulns`
-* *Guidance*: `Use ZSH`
-* *MITRE ATT&CK*: `The policy can be mapped to a MITRE ATT&CK technique.`
+* *Description*: `No package managers allowed`
+* *Rationale*: `Privilege escalation technique`
+* *Guidance*: `Uninstall during container build`
+* *MITRE ATT&CK*: `(Optional) The policy can be mapped to a MITRE ATT&CK technique.`
 * *Lifecycle stages*: `Runtime`
 * *Event sources*; `Deployment`
+* *Rules*: Process activity -> Process Name -> apt-get
+* *Activation state*: Enable 
 * *Response method*: `Inform`
 * *Inform and enforce*: `Enform on Runtime`
-
-* *Policy Crieria*: `On the right there is a *drag out policy fields* bar.Find *Process Activity* and select *Unexpected process executed*. Drag into into the policy section.`
 
 Make sure to preview the policy before accepting it. 
 

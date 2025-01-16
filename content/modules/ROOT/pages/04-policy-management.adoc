@@ -13,10 +13,9 @@ We want to use runtime incidents and vulnerabilities as a learning opportunity t
 
 As we move into this next section, let's focus on identifying and enforcing a runtime policy in the cluster. For the upcoming example, we will focus on stopping the Ubuntu package manager from being run on pods in our cluster. Our example container *ctf-web-to-system* has this package manager in the container. Let's ensure that it never calls for updates while present in our clusters.
 
-== RHACS Runtime Policy Basics
+== Introduction to Runtime Policy Creation and Enforcement
 
 RHACS observes container processes and collects this information to enable you to craft policies to prevent behavior that you don’t like. This information can also create baseline policy configurations that the user can update. Runtime policies can include build-time and deploy-time policy criteria but they can also include data about process executions during runtime. However, runtime policies that use “audit logs” event source cannot use build and deploy criteria at all as they are Kubernetes specific events.
-
 
 The example below demonstrates how security may want to block a package manager from downloading any packages to the container. This runtime enforcement option is the first in the process of shifting left. After runtime enforcement, you will want to stop the package manager from being used in the container altogether.
 
@@ -59,7 +58,7 @@ image::acs-runtime-01.png[link=self, window=blank, width=100%]
 
 [start=5]
 
-. Select the *Policy Behavior* tab by hitting next or clicking the tab.
+. Select *Policy Behavior -> Actions*
 
 image::acs-runtime-02.png[link=self, window=blank, width=100%]
 
@@ -72,7 +71,7 @@ image::acs-runtime-03.png[link=self, window=blank, width=100%, Enforce Runtime P
 
 [start=8]
 
-. Go to the *Review Policy* tab
+. Go to the *Review* tab
 . Review the changes
 . Click save
 
@@ -103,7 +102,7 @@ oc get events -w
 
 [start=3]
 
-. Press *Ctrl+b THEN o* to switch to the next pane. (Ctrl+b THEN o)
+. Press Ctrl+b *THEN* o to switch to the next pane. (Hold ctrl+b then press o)
 . Exec into our Java application by getting the pod details and adding them to the following command.
 
 [source,sh,role=execute]
@@ -200,19 +199,23 @@ image::acs-deploy-01.png[link=self, window=blank, width=100%]
 
 [start=5]
 
-. Next, update the policy to *inform and enforce* while clicking on the deploy stage only.
-
-IMPORTANT: Make sure to unselect the *Build* lifecycle before moving forward.
+. Next, update the policy by clicking on the *Build* stage so that only the Deploy stage is selected.
 
 image::acs-deploy-02.png[link=self, window=blank, width=100%]
+
+IMPORTANT: Make sure to unselect the *Build* lifecycle before moving forward. This will trigger an alert!
+
+image::acs-deploy-021.png[link=self, window=blank, width=100%]
+
+We will have to add the policy criteria back. This is because certain actions can only be done in the build, deploy, or runtime stages.
 
 Now, we want to target our specific deployment with an image label.
 
 [start=6]
-. Click on the *Policy criteria* tab.
-. Click on the *Deployment metadata* dropdown on the right side of the browser.
-. Find the *Namespace* label and drag it to the default policy criteria.
-. Type *default* under the namespace criteria
+. Click on the *Rules* tab.
+. Click on the *Image contents* dropdown on the right side of the browser.
+. Find the *Image component* label and drag it to the default policy criteria.
+. Type *apt-get* under the criteria
 
 Your policy should look like this,
 
@@ -220,6 +223,11 @@ image::acs-deploy-04.png[link=self, window=blank, width=100%]
 
 [start=10]
 
+. In Policy behavior -> Actions, click *Inform and enforce*.
+
+image::acs-deploy-044.png[link=self, window=blank, width=100%]
+
+[start=11]
 . Lastly, go to the *Review Policy* tab
 . Review the changes
 
@@ -372,15 +380,15 @@ You're now enforcing against the Ubuntu package manager at runtime and deploy ti
 
 Build time policies for container images are guidelines that define how container images should be constructed. These policies aim to achieve several goals, including:
 
-* Security: Minimizing vulnerabilities and ensuring images are built with secure practices.
-* Efficiency: Reducing image size and build times for faster deployments.
-* Consistency: Maintaining a uniform structure and content across all images.
+* *Security:* Minimizing vulnerabilities and ensuring images are built with secure practices.
+* *Efficiency:* Reducing image size and build times for faster deployments.
+* *Consistency:* Maintaining a uniform structure and content across all images.
 Here are some key areas covered by build time policies:
-* Base Image: Specifying a minimal base image that only contains essential components.
-* Package Management: Encouraging the use of package managers for dependency installation and updates.
-* File Copying: Limiting what gets copied into the image to only required files and avoiding unnecessary bloat.
-* User Management: Defining a non-root user for the application process to run as.
-* Environment Variables: Storing sensitive information in environment variables outside the image.
+* *Base Image:* Specifying a minimal base image that only contains essential components.
+* *Package Management:* Encouraging the use of package managers for dependency installation and updates.
+* *File Copying:* Limiting what gets copied into the image to only required files and avoiding unnecessary bloat.
+* *User Management:* Defining a non-root user for the application process to run as.
+* *Environment Variables:* Storing sensitive information in environment variables outside the image.
 
 In RHACS, build-time policies apply to image fields such as CVEs and Dockerfile instructions.
 
@@ -420,8 +428,8 @@ NOTE: Use the quay admin credentials, Username: *{quay_admin_username}* & passwo
 
 [source,sh,subs="attributes",role=execute]
 ----
-podman pull ubuntu:latest
-podman tag docker.io/library/ubuntu:latest $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+podman pull $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+podman tag docker.io/library/ubuntu:latest $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.1
 ----
 
 |====
@@ -434,7 +442,7 @@ The following command is designed to mimic and build a pipeline where a containe
 [source,sh,subs="attributes",role=execute]
 ----
 roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image check --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 
-podman push $QUAY_URL/$QUAY_USER/ubuntu:latest --remove-signatures
+podman push $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.1 --remove-signatures
 ----
 
 IMPORTANT: We are using the *image check* CLI option, NOT the image scan. 
@@ -483,9 +491,6 @@ image::05-build-1.png[link=self, window=blank, width=100%]
 
 . Next, update the policy to *inform and enforce* while ensuring the Build stage checkbox is selected And select Enforce on Build at the bottom of the page.
 
-IMPORTANT: Make sure to unselect the *DEPLOY* lifecycle before moving forward.
-
-image::05-build-2.png[link=self, window=blank, width=100%]
 image::05-build-3.png[link=self, window=blank, width=100%]
 
 [start=6]
@@ -500,8 +505,10 @@ Now let's test it out!
 
 [source,sh,subs="attributes",role=execute]
 ----
-roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image check --image=docker.io/library/ubuntu 
-podman push $QUAY_URL/$QUAY_USER/ubuntu:latest --remove-signatures
+podman pull $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.1
+podman tag docker.io/library/ubuntu:latest $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.2
+roxctl image check --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443"  --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.2 
+podman push  $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.2 --remove-signatures
 ----
 
 [.console-output]
@@ -522,42 +529,6 @@ ERROR:  checking image failed after 3 retries: failed policies found: 1 policies
 
 IMPORTANT: You should see the same violations from the previous command EXCEPT now you have a failed policy check. This woruld send an exit 0 command if this was run in any pipeline. 
 
-== Understand Violations in RHACS
-
-Violations taken together determine _risk_, which you covered in previous labs. In this lab, you explore how to determine the details of those violations to plan and implement their remediation.
-
-The *Violations* view allows you to see these details.
-
-Using RHACS, you can view policy violations, drill down to the actual cause of the violation, and take corrective actions.
-
-The built-in policies identify a variety of security findings, including vulnerabilities (CVEs), violations of DevOps best practices, high-risk build and deployment practices, and suspicious runtime behaviors.
-You can use the default out-of-the-box security policies or your own custom policies.
-
-== Report and Resolve Violations
-
-In this last section. We will resolve a few of the issues that we have created.
-
-*Procedure*
-
-. Navigate to the *Violations* page.
-. Filter by the policy violation *Ubuntu Package Manager Execution* OR by the most recent policy violations. You will see a build, deploy and runtime policy violation that has been enforced one time.
-
-image::05-violation-1.png[link=self, window=blank, width=100%, Violations Menu]
-
-[start=3]
-. Click the most recent violation and explore the list of the violation events:
-
-If configured, each violation record is pushed to a Security Information and Event Management (SIEM) integration and is available to be retrieved via the API. The forensic data shown in the UI is recorded, including the timestamp, process user IDs, process arguments, process ancestors, and enforcement action.
-
-After this issue is addressed, in this case by the RHACS product using the runtime enforcement action, you can remove it from the list by marking it as *Resolved*.
-
-[start=4]
-
-. Lastly, hover over the violation in the list to see the resolution options and resolve this issue.
-
-image::acs-violations-01.png[link=self, window=blank, width=100%, Resolve Violations]
-
-For more information about integration with SIEM tools, see the RHACS help documentation on external tools.
 
 == Summary
 
