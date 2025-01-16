@@ -505,12 +505,21 @@ Our insecure demo applications come from a variety of public GitHub repositories
 . Run the following commands in the terminal, one after the other.
 
 ====
-This command downloads a bunch of Kubernetes manifests to deploy to OpenShift.  
+This command downloads a repository container dockerfiles, attack scripts, and Kubernetes manifests that you will use to deploy the containerized applications to OpenShift.  
 ====
 
 [source,sh,subs="attributes",role=execute]
 ----
 git clone https://github.com/mfosterrox/demo-apps.git demo-apps
+----
+
+====
+This command sets the variable TUTORIAL_HOME to equal the working directory, allowing you to make references to various files easily.
+====
+
+[source,sh,subs="attributes",role=execute]
+----
+echo export TUTORIAL_HOME="$(pwd)/demo-apps" >> ~/.bashrc
 export TUTORIAL_HOME="$(pwd)/demo-apps"
 ----
 
@@ -524,7 +533,7 @@ sed -i "s|CHANGEME|$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0|g" $TUTORIAL_HOME/
 ----
 
 ====
-This command applies the manifests to OpenShift. It includes both OpenShift Pipelines manifests and typical application manifests.|
+This command applies the manifests to OpenShift. It includes both OpenShift Pipelines manifests and typical application manifests.
 ====
 
 [source,sh,subs="attributes",role=execute]
