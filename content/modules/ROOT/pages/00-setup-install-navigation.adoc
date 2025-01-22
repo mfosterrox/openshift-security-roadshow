@@ -529,16 +529,17 @@ This command updates the ctf-w2s.yml file with your local Quay repository inform
 
 [source,sh,subs="attributes",role=execute]
 ----
-sed -i "s|CHANGEME|$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0|g" $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml
+sed -i 's|quay\.io/jechoisec/ctf-web-to-system-01|'"$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0"'|g' $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml
 ----
 
 ====
-This command applies the manifests to OpenShift. It includes both OpenShift Pipelines manifests and typical application manifests.
+This command applies the manifests to OpenShift. It includes both OpenShift Pipelines manifests and typical application manifests with a skupper example.
 ====
 
 [source,sh,subs="attributes",role=execute]
 ----
 oc apply -f $TUTORIAL_HOME/kubernetes-manifests/ --recursive
+oc apply -f $TUTORIAL_HOME/skupper-demo/ --recursive
 oc apply -f $TUTORIAL_HOME/openshift-pipelines/ --recursive
 ----
 
