@@ -67,14 +67,14 @@ image::03-cm-3.png[link=self, window=blank, width=100%]
 [start=4]
 . Next, try filtering by "Secret Type."
 
-image::03-cm-4.png[link=self, window=blank, width=100%]
-
 IMPORTANT: Not all secrets are the same, and organizations should ensure secrets are properly managed through a [CSI driver](https://docs.openshift.com/container-platform/4.15/storage/container_storage_interface/persistent-storage-csi-secrets-store.html) or a secrets management tool.
 
 === The "Policy violations by severity" widget
 
 Now, the policies entity list in the configuration management UI gives you a complete overview of all of the 
 policies in the cluster, the policy status, whether it's disabled, whether it's enabled, and whether it's enforced or not
+
+image::03-cm-4.png[link=self, window=blank, width=100%]
 
 *Procedure*
 
