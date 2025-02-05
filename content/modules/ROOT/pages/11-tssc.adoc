@@ -1051,11 +1051,11 @@ An SBOM has been made available for you to download https://github.com/SeanRicke
 
 Upload the SBOM. 
 
-image::lab11.1-sbom.gif[]
+image::lab11.1-sbom.gif[lab11.1]
 
 It will take a few minutes for the SBOM to be processed by TPA, so click in the Search bar and type "home". Once you see home-banking, click on it. 
 
-image::lab11.2-sbom.gif[] 
+image::lab11.2-sbom.gif[lab11.2] 
 
 This will open the page for the home-banking SBOM you've uploaded. 
 
@@ -1063,7 +1063,7 @@ The Info tab will give you standard information about the SBOM itself, including
 
 Click on the Packages tab. 
 
-image::lab11.3-sbom.png[]
+image::lab11.3-sbom.png[lab11.3]
 
 The Packages tab will list all the packages found in this SBOM. 
 
@@ -1077,4 +1077,4 @@ Here you will find further information about the detected vulnerabilities. Click
 
 The same can be done with the Transitive Vulnerabilites next to the struts2-core entry. 
 
-image::lab11.4-sbom.gif[]
+image::lab11.4-sbom.gif[lab11.4]
