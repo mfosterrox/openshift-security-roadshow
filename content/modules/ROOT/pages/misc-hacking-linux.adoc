@@ -37,8 +37,5 @@ oc get svc ctf-web-to-system-service -o jsonpath='{.status.loadBalancer.ingress[
 
 IMPORTANT: Use the amazonaws.com link to access the vulnerable container
 
-== Monitor progress in RHACS
-
-As you run you commands, make sure to check RHACS to see what it will flag. 
 
 

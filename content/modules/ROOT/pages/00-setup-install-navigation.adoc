@@ -473,7 +473,7 @@ image::quay-scan-hover.png[link=self, window=blank, width=100%]
 image::quay-security-detailed.png[link=self, window=blank, width=100%, Image Security Details] 
 
 [start=4]
-. Click on a vulnerabile package on the left menu to get more information about the vulnerability and see what you have to do to fix the issue.
+. Click on a vulnerable package on the left menu to get more information about the vulnerability and see what you have to do to fix the issue.
 
 image::quay-vuln-detailed.png[link=self, window=blank, width=100%]
 
@@ -583,18 +583,23 @@ oc get deployments -l demo=roadshow -A
 [source,bash,subs="+macros,+attributes"]
 ----
 [lab-user@bastion ~]$ oc get deployments -l demo=roadshow -A
-NAMESPACE    NAME                READY   UP-TO-DATE   AVAILABLE   AGE
-backend      api-server          1/1     1            1           4m54s
-default      api-server          1/1     1            1           4m19s
-default      ctf-web-to-system   1/1     1            1           5m
-default      frontend            1/1     1            1           4m13s
-default      juice-shop          1/1     1            1           4m57s
-default      rce                 1/1     1            1           4m16s
-default      reporting           1/1     1            1           4m22s
-frontend     asset-cache         1/1     1            1           4m47s
-medical      reporting           1/1     1            1           4m37s
-operations   jump-host           1/1     1            1           4m30s
-payments     visa-processor      1/1     1            1           4m26s
+NAMESPACE        NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+backend          api-server            1/1     1            1           3m10s
+default          ctf-web-to-system     1/1     1            1           3m23s
+default          dvma                  1/1     1            1           3m20s
+default          juice-shop            1/1     1            1           3m17s
+default          log4shell             1/1     1            1           3m14s
+default          open-api-server       1/1     1            1           2m30s
+default          reporting             1/1     1            1           2m36s
+default          vulnerable-node-app   1/1     1            1           2m27s
+default          webgoat               1/1     1            1           2m24s
+frontend         asset-cache           1/1     1            1           3m3s
+medical          reporting             1/1     1            1           2m53s
+operations       jump-host             1/1     1            1           2m44s
+patient-portal   database              1/1     1            1           2m20s
+patient-portal   frontend              3/3     3            3           2m16s
+patient-portal   payment-processor     3/3     3            3           2m13s
+payments         visa-processor        1/1     1            1           2m40s
 ----
 
 IMPORTANT: Please ensure the deploy application are deployed to your cluster before moving onto the next module especially the *ctf-web-to-system* application. 
