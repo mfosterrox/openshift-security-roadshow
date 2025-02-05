@@ -227,7 +227,7 @@ Just like the title says.
 image::06-cd-10.png[link=self, window=blank, width=100%]
 
 [start=2]
-. Click on *API Token.
+. Click on *API Token*
 . Click on *Generate token*
 . Give your token a name, select *Continuous Integration* as the Role and set an expiration date and hit *Generate*
 

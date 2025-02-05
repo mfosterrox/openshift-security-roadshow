@@ -162,9 +162,6 @@ You have successfully stopped yourself from downloading malicious packages! Howe
 
 NOTE: Type *exit* in the terminal, use *ctrl+c* to stop the 'watch' command, and type exit one more time to get back to the default terminal.
 
-CONTENT -> Worth talking about the differences in enforcement?
-
-
 == Introduction to deploy-time policy enforcement
 
 Deploy-time policy refers to enforcing configuration controls in the cluster and before deployment in the CI/CD process and the configuration of applications inside the cluster. Deploy-time policies can include all build-time policy criteria, but they can also include data from your cluster configurations, such as running in privileged mode or mounting the Docker socket.
@@ -178,10 +175,18 @@ In the next example, we are going to configure a *Deploy-Time* policy to block a
 
 === Prevent the Ubuntu Package Manager in the ctf-web-to-system image from being deployed
 
+[start=1]
+. First, delete the deployment from the cluster, we will redeploy the application after creating the policy.
+
+[source,sh,subs="attributes",role=execute]
+----
+oc delete -f $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml
+----
+
 . Navigate to Platform Configuration → Policy Management
 . On the *Policy Management* page, type *Policy* then *Ubuntu* into the filter bar at the top.
 
-NOTE: This time we are going to edit a different policy. Specifically related to the *Build & Deploy* phases.
+IMPORTANT: This time you are going to edit a different policy for the Ubuntu package manager, specifically related to the *Build & Deploy* phases.
 
 [start=3]
 
@@ -193,13 +198,11 @@ image::acs-deploy-00.png[link=self, window=blank, width=100%]
 
 [start=4]
 
-. Give the policy a new name. Something you will remember. The best practice would be to add a description for future policy enforcers as well. For example;
-
-image::acs-deploy-01.png[link=self, window=blank, width=100%]
+. Give the policy a new name, such as Ubuntu Package Manager in Image - Enforce Deploy. The best practice would be to add a description for future policy enforcers as well. 
 
 [start=5]
 
-. Next, update the policy by clicking on the *Build* stage so that only the Deploy stage is selected.
+. Next, ensure the policy by clicking on the *Build* stage so that only the Deploy stage is selected.
 
 image::acs-deploy-02.png[link=self, window=blank, width=100%]
 
@@ -223,7 +226,7 @@ image::acs-deploy-04.png[link=self, window=blank, width=100%]
 
 [start=10]
 
-. In Policy behavior -> Actions, click *Inform and enforce*.
+. In Policy behavior -> Actions, click *Inform and enforce* + *Enforce on Deploy*
 
 image::acs-deploy-044.png[link=self, window=blank, width=100%]
 
@@ -239,72 +242,83 @@ image::acs-deploy-05.png[link=self, window=blank, width=100%]
 
 . *Click Save*
 
-Now, let's test it out! We're going to deploy a simple Ubuntu application to the cluster.
+Now, let's test it out! We're going to redeploy the CTF-web-to-system application from earlier.
 
 [source,sh,subs="attributes",role=execute]
 ----
-cat << EOF > ubuntu-deployment.yml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ubuntu-deployment
-  labels:
-    app: ubuntu
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: ubuntu
-  template:
-    metadata:
-      labels:
-        app: ubuntu
-    spec:
-      containers:
-      - name: ubuntu
-        image: ubuntu:latest
-        command: ["/bin/bash", "-c", "--"]
-        args: ["while true; do echo hello world; sleep 10; done"]
-        ports:
-        - containerPort: 80
-        resources:
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
-          requests:
-            memory: "64Mi"
-            cpu: "250m"
-EOF
-----
-
-[start=13]
-. Next, apply the deployment manifest.
-
-[source,sh,subs="attributes",role=execute]
-----
-oc apply -f ubuntu-deployment.yml
+cat $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml
 ----
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-[lab-user@bastion ~]$ oc apply -f ubuntu-deployment.yml 
-Error from server (Failed currently enforced policies from StackRox): error when creating "ubuntu-deployment.yml": admission webhook "policyeval.stackrox.io" denied the request: 
+apiVersion: v1
+kind: Service
+metadata:
+  name: ctf-web-to-system-service
+spec:
+  selector:
+    app: ctf-web-to-system
+  ports:
+    - protocol: TCP
+      port: 80 
+      targetPort: 9090  
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ctf-web-to-system
+  labels:
+    app: ctf-web-to-system
+    demo: roadshow
+  annotation:
+    app: ctf-web-to-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ctf-web-to-system
+  template:
+    metadata:
+      labels:
+        app: ctf-web-to-system
+    spec:
+      containers:
+      - name: ctf-web-container
+        image: quay-jlchp.apps.cluster-jlchp.jlchp.sandbox2037.opentlc.com/quayadmin/ctf-web-to-system:1.0
+        ports:
+        - containerPort: 9090
+----
+
+[start=13]
+. Now, apply the manifests to the cluster.
+
+[source,sh,subs="attributes",role=execute]
+----
+oc apply -f $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ oc apply -f $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml
+Error from server (Failed currently enforced policies from StackRox): error when creating "/home/lab-user/demo-apps/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml": admission webhook "policyeval.stackrox.io" denied the request: 
 The attempted operation violated 1 enforced policy, described below:
 
-Policy: Ubuntu Package Manager in Image - Deploy
+Policy: Ubuntu Package Manager in Image (COPY)
 - Description:
- ↳ Alert on deployments with components of the Debian/Ubuntu package management
- system in the image.
+    ↳ Alert on deployments with components of the Debian/Ubuntu package management
+      system in the image.
 - Rationale:
- ↳ Package managers make it easier for attackers to use compromised containers,
- since they can easily add software.
+    ↳ Package managers make it easier for attackers to use compromised containers,
+      since they can easily add software.
 - Remediation:
- ↳ Run `dpkg -r --force-all apt apt-get && dpkg -r --force-all debconf dpkg` in the
- image build for production containers.
+    ↳ Run `dpkg -r --force-all apt apt-get && dpkg -r --force-all debconf dpkg` in the
+      image build for production containers.
 - Violations:
- - Container 'ubuntu' includes component 'apt' (version 2.7.14build2)
- - Container 'ubuntu' includes component 'dpkg' (version 1.22.6ubuntu6)
+    - Container 'ctf-web-container' includes component 'apt' (version 1.4.9)
+    - Container 'ctf-web-container' includes component 'dpkg' (version 1.18.25)
 
 In case of emergency, add the annotation {"admission.stackrox.io/break-glass": "ticket-1234"} to your deployment with an updated ticket number
 ----
@@ -312,17 +326,7 @@ In case of emergency, add the annotation {"admission.stackrox.io/break-glass": "
 Another option for enforcement is to use the "deployment check" CLI command.
 
 [start=14]
-. Set variables to connect to RHACS Central.
-
-[source,sh,subs="attributes",role=execute]
-----
-export ROX_CENTRAL_ADDRESS={acs_route}
-cd ~/
-export TUTORIAL_HOME="$(pwd)/demo-apps"
-----
-
-[start=15]
-. Verify the ctf-web-to-system application against the policies you've created.
+. Verify the ubuntu application against the policies you've created.
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -332,15 +336,15 @@ roxctl -e $ROX_CENTRAL_ADDRESS:443 deployment check --file $TUTORIAL_HOME/kubern
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-[demo-user@bastion ~]$ roxctl -e $ROX_CENTRAL_ADDRESS:443 deployment check --file $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml --insecure-skip-tls-verify
+[lab-user@bastion ~]$ roxctl -e $ROX_CENTRAL_ADDRESS:443 deployment check --file $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml --insecure-skip-tls-verify
 Policy check results for deployments: [ctf-web-to-system]
-(TOTAL: 7, LOW: 4, MEDIUM: 2, HIGH: 1, CRITICAL: 0)
+(TOTAL: 6, LOW: 3, MEDIUM: 2, HIGH: 1, CRITICAL: 0)
 
 +--------------------------------+----------+---------------+-------------------+--------------------------------+--------------------------------+--------------------------------+
 |             POLICY             | SEVERITY | BREAKS DEPLOY |    DEPLOYMENT     |          DESCRIPTION           |           VIOLATION            |          REMEDIATION           |
 +--------------------------------+----------+---------------+-------------------+--------------------------------+--------------------------------+--------------------------------+
 +--------------------------------+----------+---------------+-------------------+--------------------------------+--------------------------------+--------------------------------+
-|   Ubuntu Package Manager in    |   LOW    |       -       | ctf-web-to-system |      Alert on deployments      |          - Container           |    Run `dpkg -r --force-all    |
+|   Ubuntu Package Manager in    |   LOW    |       -       | ubuntu-deployment |      Alert on deployments      |          - Container           |    Run `dpkg -r --force-all    |
 |             Image              |          |               |                   |     with components of the     |  'ctf-web-container' includes  |     apt apt-get && dpkg -r     |
 |                                |          |               |                   |     Debian/Ubuntu package      |    component 'apt' (version    |  --force-all debconf dpkg` in  |
 |                                |          |               |                   |    management system in the    |             1.4.9)             | the image build for production |
@@ -362,15 +366,14 @@ Policy check results for deployments: [ctf-web-to-system]
 |                                |          |               |                   |                                |                                |                                |
 |                                |          |               |                   |                                | - Namespace has name 'default' |                                |
 +--------------------------------+----------+---------------+-------------------+--------------------------------+--------------------------------+--------------------------------+
-WARN:   A total of 7 policies have been violated
+WARN:   A total of 6 policies have been violated
 ERROR:  failed policies found: 1 policies violated that are failing the check
-ERROR:  Policy "Ubuntu Package Manager in Image - Default namespace" within Deployment "ctf-web-to-system" - Possible remediation: "Run `dpkg -r --force-all apt apt-get && dpkg -r --force-all debconf dpkg` in the image build for production containers."
-ERROR:  checking deployment failed after 3 retries: breaking policies found: failed policies found: 1 policies violated that are failing the check
+ERROR:  Policy "Ubuntu Package Manager in Image (COPY)" within Deployment "ctf-web-to-system" - Possible remediation: "Run `dpkg -r --force-all apt apt-get && dpkg -r --force-all debconf dpkg` in the image build for production containers."
+ERROR:  checking deployment failed: breaking policies found: failed policies found: 1 policies violated that are failing the check
 ----
 
 
 > You should see one of the policies you've created breaking the deployment process while the others are in inform-only mode. 
-
 
 *Congrats!* 
 
@@ -424,47 +427,53 @@ podman login $QUAY_URL
 NOTE: Use the quay admin credentials, Username: *{quay_admin_username}* & password: *{quay_admin_password}*. You can create unique user and group credentials in Quay for proper segmentation.
 
 [start=4]
-. Download the latest Ubuntu image.
+. Let's pretend as if the developers are pushing an update to the ctf-web-to-system application. First, pull and scan the related image.
+
+|====
+The following command is designed to mimic and build a pipeline where a container build is going through a commit/promotion step. You download the image, scan for vulnerabilities, tag a newer version and upload to Quay.
+|====
 
 [source,sh,subs="attributes",role=execute]
 ----
 podman pull $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
-podman tag docker.io/library/ubuntu:latest $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.1
+roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
 ----
-
-|====
-The following command is designed to mimic and build a pipeline where a container build is going through a commit/promotion step.
-|====
-
-[start=5]
-. Check the image and push it to the local Quay instance. 
 
 [source,sh,subs="attributes",role=execute]
 ----
-roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image check --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 
+podman tag $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.1
 podman push $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.1 --remove-signatures
 ----
 
-IMPORTANT: We are using the *image check* CLI option, NOT the image scan. 
+IMPORTANT: We are using the *image check* CLI option, NOT the image scan. This is because we are checking for a policy violation and not grabbing a vulnerability scan output. 
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
  },
- "components": 968,
- "cves": 82,
- "fixableCves": 80,
- "lastUpdated": "2024-05-22T21:32:48.735784107Z",
- "riskScore": 10.8,
- "topCvss": 10,
- "notes": [
- "MISSING_SIGNATURE",
- "MISSING_SIGNATURE_VERIFICATION_DATA"
- ]
+    "notes": [
+      "OS_CVES_UNAVAILABLE",
+      "PARTIAL_SCAN_DATA"
+    ],
+    "hash": "4109274308829192377"
+  },
+  "components": 968,
+  "cves": 92,
+  "fixableCves": 89,
+  "lastUpdated": "2025-01-16T23:02:11.049699566Z",
+  "riskScore": 10.8,
+  "topCvss": 10,
+  "notes": [
+    "MISSING_SIGNATURE",
+    "MISSING_SIGNATURE_VERIFICATION_DATA"
+  ]
 }
-Copying blob 03004fed5c90 skipped: already exists  
-...
-Copying config 1cbb2b7908 done  
+[lab-user@bastion ~]$ podman tag $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.1
+podman push $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.1 --remove-signatures
+Copying blob 308102f44919 skipped: already exists  
+Copying blob b8d9a96d44df skipped: already exists  
+....
+Copying config 1cbb2b7908 done   | 
 Writing manifest to image destination
 ----
 
@@ -483,13 +492,11 @@ image::acs-deploy-00.png[link=self, window=blank, width=100%]
 
 [start=4]
 
-. Give the policy a new name. Something you will remember. The best practice would be to add a description for future policy enforcers as well. For example;
-
-image::05-build-1.png[link=self, window=blank, width=100%]
+. Give the policy a new name, such as Ubuntu Package Manager in Image - Enforce Build. The best practice would be to add a description for future policy enforcers as well. 
 
 [start=5]
 
-. Next, update the policy to *inform and enforce* while ensuring the Build stage checkbox is selected And select Enforce on Build at the bottom of the page.
+. Next, update the policy to *inform and enforce* while ensuring the Build stage checkbox is selected And select *Enforce on Build* at the bottom of the page.
 
 image::05-build-3.png[link=self, window=blank, width=100%]
 
@@ -506,28 +513,26 @@ Now let's test it out!
 [source,sh,subs="attributes",role=execute]
 ----
 podman pull $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.1
-podman tag docker.io/library/ubuntu:latest $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.2
-roxctl image check --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443"  --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.2 
-podman push  $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.2 --remove-signatures
+roxctl image check --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443"  --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.1 
 ----
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
 ------+--------------------------------+
-|   Ubuntu Package Manager in    |   LOW    |      -       |      Alert on deployments      |   - Image includes component   |    Run `dpkg -r --force-all    |
-|             Image              |          |              |     with components of the     |  'apt' (version 2.7.14build2)  |     apt apt-get && dpkg -r     |
+|   Ubuntu Package Manager in    |   LOW    |      X       |      Alert on deployments      |   - Image includes component   |    Run `dpkg -r --force-all    |
+|     Image - Enforce Build      |          |              |     with components of the     |     'apt' (version 1.4.9)      |     apt apt-get && dpkg -r     |
 |                                |          |              |     Debian/Ubuntu package      |                                |  --force-all debconf dpkg` in  |
 |                                |          |              |    management system in the    |   - Image includes component   | the image build for production |
-|                                |          |              |             image.             | 'dpkg' (version 1.22.6ubuntu6) |          containers.           |
+|                                |          |              |             image.             |    'dpkg' (version 1.18.25)    |          containers.           |
 +--------------------------------+----------+--------------+--------------------------------+--------------------------------+--------------------------------+
 WARN:   A total of 4 policies have been violated
 ERROR:  failed policies found: 1 policies violated that are failing the check
-ERROR:  Policy "Ubuntu Package Manager in Image - Build-time" - Possible remediation: "Run `dpkg -r --force-all apt apt-get && dpkg -r --force-all debconf dpkg` in the image build for production containers."
-ERROR:  checking image failed after 3 retries: failed policies found: 1 policies violated that are failing the check
+ERROR:  Policy "Ubuntu Package Manager in Image - Enforce Build" - Possible remediation: "Run `dpkg -r --force-all apt apt-get && dpkg -r --force-all debconf dpkg` in the image build for production containers."
+ERROR:  checking image failed: failed policies found: 1 policies violated that are failing the check
 ----
 
-IMPORTANT: You should see the same violations from the previous command EXCEPT now you have a failed policy check. This woruld send an exit 0 command if this was run in any pipeline. 
+IMPORTANT: You should see the same violations from the previous command EXCEPT now you have a failed policy check. This would send an exit 0 command if this was run in any pipeline. 
 
 
 == Summary
