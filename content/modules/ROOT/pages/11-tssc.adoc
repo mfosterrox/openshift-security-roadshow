@@ -185,6 +185,7 @@ This initialization can be done via command line parameters or by setting enviro
 NOTE: Cosign itself doesn't need access to OpenShift, but since we have Trusted Artifact Signer installed on OpenShift (a RHEL installation is another deployment option), we will be using some `oc` commands to get the required endpoints.
 Before proceeding, please verify you are still logged in to OpenShift via `oc whoami`
 
+[[setting-up-the-environment-variables]]
 To setup the environment variables, execute this script:
 
 [source,sh,subs="attributes",role=execute]
@@ -199,9 +200,15 @@ export COSIGN_OIDC_CLIENT_ID="trusted-artifact-signer"
 export COSIGN_OIDC_ISSUER=$OIDC_ISSUER_URL
 export COSIGN_CERTIFICATE_OIDC_ISSUER=$OIDC_ISSUER_URL
 export COSIGN_YES="true"
+export SIGSTORE_FULCIO_URL=$COSIGN_FULCIO_URL
+export SIGSTORE_OIDC_ISSUER=$COSIGN_OIDC_ISSUER
+export SIGSTORE_REKOR_URL=$COSIGN_REKOR_URL
+export REKOR_REKOR_SERVER=$COSIGN_REKOR_URL
 # to verify URL endpoints have been set
 env | grep URL
 ----
+
+NOTE: In case you're wondering why we define multiple variables with the same values: The upstream https://www.sigstore.dev/[Sigstore project^] has a long history, and some tools (like `cosign` and `gitsign`) use different environment variables for the same purpose. For various reasons (Open Source principles as well as compatibility), we are not branching off a specialized Red Hat version with simplified environment parameters. While these are maintained in the upstream project, they will be maintained in the Red Hat enterprise-ready version as well. 
 
 As the last step, initialize `cosign`, so it knows who to talk to:
 
@@ -540,7 +547,278 @@ The following checks were performed on each of these signatures:
 
 === Signing and verifying git commits
 
+TIP: Using traditional commit signing and verification methods required management and distribution of private/public key pairs to developers - a task that can become quite cumbersome for a large number of developers in your organisation. With *Red Hat Trusted Artifact Signer*, there is no need to issue/distribute/re-issue keys due to lost passwords/maintain a key revocation list etc. 
 
+
+NOTE: If you haven't already done so, please execute the following steps from previous exercises:
+
+1. We need a git repository for git signing, therefore please make sure you have cloned the workshop apps repository as shown here: xref:00-setup-install-navigation.adoc#deploy-the-workshop-apps[Deploy the Workshop Applications]
+
+2. We won't go through setting up the environment for signing and verification (the Trusted Artifact Signer endpoints) again. If you have followed this chapter from the beginning, you have everything configured already. If not, please set the environment variables as shown xref:#setting-up-the-environment-variables[here], followed by a `cosign initialize`
+
+==== *Setting up gitsign*
+
+While you *could* use the `gitsign` CLI binary directly for signing your commits, it is much easier to configure your local (or global, if you want) `git` configuration, so that commits will be signed every time you issue a `git commit` or `git tag`, for example. This also applies to using your `git` installation from e.g. VSCode or other IDEs leveraging the local git installation.
+
+Go to the `demo-apps` local repository you created earlier:
+
+[source,sh,subs="attributes",role=execute]
+----
+cd /home/lab-user/demo-apps
+git status
+git remote -v
+----
+
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion demo-apps]$ cd /home/lab-user/demo-apps
+git status
+git remote -v
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+origin  https://github.com/mfosterrox/demo-apps.git (fetch)
+origin  https://github.com/mfosterrox/demo-apps.git (push)
+---- 
+
+Since we don't want to push our commits to the original source, we will use a GitLab instance on this cluster: 
+
+
+You can access the => {gitlab_url}[GitLab instance UI^] on the cluster using
+
+[cols="2,2"]
+|===
+|*GitLab Username:* | {gitlab_user} |
+*GitLab Password:* | {gitlab_user_password} |
+|===
+
+TIP: You can also create an empty repository in GitLab with just a README and clone this to your console - but since we already have a repo, we'll use that. However, for our signing and verification exercise, the actual content isn't really important, so an arbitrary repo will do.
+
+Your GitLab instance, logged in as user1:
+
+image::11-gitlab-projects.png[gitlab ui]
+
+So, before we proceed, let's quickly push our local git repo to GitLab:
+
+[start=1]
+. In our local repository, let's replace the origin with the a new one on GitLab:
+
+[source,sh,subs="attributes",role=execute]
+----
+export GITLAB_REPO_URL=https://$(oc get route gitlab -n gitlab | tail -n 1 | awk '{print $2}')/user1/demo-apps.git
+git remote remove origin
+git remote add origin $GITLAB_REPO_URL
+git remote -v
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion demo-apps]$ export GITLAB_REPO_URL=https://$(oc get route gitlab -n gitlab | tail -n 1 | awk '{print $2}')/user1/demo-apps.git
+[lab-user@bastion demo-apps]$ git remote remove origin
+[lab-user@bastion demo-apps]$ git remote add origin $GITLAB_REPO_URL
+[lab-user@bastion demo-apps]$ git remote -v
+origin  https://gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com/user1/demo-apps.git (fetch)
+origin  https://gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com/user1/demo-apps.git (push)
+---- 
+
+[start=2]
+. Now let's push it to GitLab
+
+[source,sh,subs="attributes",role=execute]
+----
+git push --set-upstream origin main
+----
+
+Use the GitLab *username* and *password* from above.
+
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion demo-apps]$ git push --set-upstream origin main
+Username for 'https://gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com': user1
+Password for 'https://user1@gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com': 
+Enumerating objects: 2907, done.
+Counting objects: 100% (2907/2907), done.
+Delta compression using up to 32 threads
+Compressing objects: 100% (2240/2240), done.
+Writing objects: 100% (2907/2907), 73.15 MiB | 137.19 MiB/s, done.
+Total 2907 (delta 499), reused 2907 (delta 499), pack-reused 0
+remote: Resolving deltas: 100% (499/499), done.
+remote: 
+remote: 
+remote: The private project user1/demo-apps was successfully created.
+remote: 
+remote: To configure the remote, run:
+remote:   git remote add origin https://gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com/user1/demo-apps.git
+remote: 
+remote: To view the project, visit:
+remote:   https://gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com/user1/demo-apps
+remote: 
+remote: 
+remote: 
+To https://gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com/user1/demo-apps.git
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+----
+
+[start=3]
+. (optional) If you'd like to double check on GitLab, go to {gitlab_url}/user1/demo-apps[the app repo^]
+
+image::11-gitlab-project.png[gitlab ui]
+
+[start=4]
+. Configure `git`
+
+As stated above, we could use the `gitsign` command directly - but it is much easier to configure your `git` environment to use gitsign:
+
+[source,sh,subs="attributes",role=execute]
+----
+git config --local commit.gpgsign true
+git config --local tag.gpgsign true
+git config --local gpg.x509.program gitsign
+git config --local gpg.format x509
+git config --local gitsign.fulcio $SIGSTORE_FULCIO_URL
+git config --local gitsign.rekor $SIGSTORE_REKOR_URL
+git config --local gitsign.issuer $SIGSTORE_OIDC_ISSUER
+git config --local gitsign.clientID trusted-artifact-signer
+git config --local --list
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion demo-apps]$ git config --local commit.gpgsign true
+git config --local tag.gpgsign true
+git config --local gpg.x509.program gitsign
+git config --local gpg.format x509
+git config --local gitsign.fulcio $SIGSTORE_FULCIO_URL
+git config --local gitsign.rekor $SIGSTORE_REKOR_URL
+git config --local gitsign.issuer $SIGSTORE_OIDC_ISSUER
+git config --local gitsign.clientID trusted-artifact-signer
+git config --local --list
+core.repositoryformatversion=0
+core.filemode=true
+core.bare=false
+core.logallrefupdates=true
+remote.origin.url=https://gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com/user1/demo-apps.git
+remote.origin.fetch=+refs/heads/*:refs/remotes/origin/*
+branch.main.remote=origin
+branch.main.merge=refs/heads/main
+commit.gpgsign=true
+tag.gpgsign=true
+gpg.x509.program=gitsign
+gpg.format=x509
+gitsign.fulcio=https://fulcio-server-trusted-artifact-signer.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com
+gitsign.rekor=https://rekor-server-trusted-artifact-signer.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com
+gitsign.issuer=https://keycloak-rhsso.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com/auth/realms/openshift
+gitsign.clientid=trusted-artifact-signer
+----
+
+==== *Signing a commit*
+
+Now, let's quickly modify our repo and commit the changes (you can of course make any modification you like, we'll simply add an empty file)
+
+[source,sh,subs="attributes",role=execute]
+----
+touch make-a-commit.txt
+git add .
+git status
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion demo-apps]$ touch make-a-commit.txt
+git add .
+git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        new file:   make-a-commit.txt
+----
+
+[source,sh,subs="attributes",role=execute]
+----
+git commit -m "added an empty file"
+----
+
+NOTE: Similarly to signing an image, you will be asked to open your browser to the OIDC System (in our case Keycloak) to authenticate. This is because you are working in an SSH session with no connection to your local computer, so it can't automatically open your browser. 
+
+Please use the "signing user" *`jdoe@redhat.com`* with password *`secure`* again.
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion demo-apps]$ git commit -m "added an empty file"
+error opening browser: exec: "xdg-open": executable file not found in $PATH
+Go to the following link in a browser:
+
+         https://keycloak-rhsso.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com/auth/realms/openshift/protocol/openid-connect/auth?access_type=online&client_id=trusted-artifact-signer&code_challenge=QzAAVp3Bo82vhdN0DFX1nUBHA3iSzrvD1-GFxj58xCI&code_challenge_method=S256&nonce=2raUg4ukP7RtOKQCOJiVfYyCQp2&redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob&response_type=code&scope=openid+email&state=2raUg74ynB8w1azNM8rV5va2Ypr
+Enter verification code: 
+tlog entry created with index: 2
+[main 390aeb4] added an empty file
+ Committer: Red Hat Demo Platform Student <lab-user@bastion.47fg6.internal>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ create mode 100644 make-a-commit.txt
+----
+
+TIP: `gitsign` doesn't echo the output of the verification code, so don't worry if you don't see it when pasting from your browser. 
+
+image::11-signing-sso-login.png[keycloak login]
+
+image::11-signing-successcode.png[copy the success code]
+
+IMPORTANT: If you look closer at the `git` console output, you will notice that you have commited your code change as "Red Hat Demo Platform Student". That is because your git environment hasn't been configured with an explicit user. It is important to understand that we have two user types here - and depending on your requirements, these can be the same or different users: Firstly, the *committer*. This is what `git` is storing as the user metadata. However, this is not secure, as it can be changed easily, just by configuring your local `git` environment. Secondly, the *signer* - in our case, "jdoe@redhat.com". Since that user just authenticated against the "Company SSO" (Keycloak), this signature is safe - and furthermore, the signing event in the transparency log cannot be altered. This also gives a user the option to work in different git systems with different committer IDs - but all commits would be signed with the same identifiable OIDC identity. 
+
+Now we can push the signed commit to our remote GitLab repository:
+
+[source,sh,subs="attributes",role=execute]
+----
+git push
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion demo-apps]$ git push 
+Username for 'https://gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com': user1
+Password for 'https://user1@gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com': 
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Delta compression using up to 32 threads
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 1.41 KiB | 1.41 MiB/s, done.
+Total 3 (delta 1), reused 1 (delta 0), pack-reused 0
+To https://gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com/user1/demo-apps.git
+   cc456d6..390aeb4  main -> main
+----
+
+NOTE: If you check the GitLab repository after you pushed the commit, you might have noticed the "unverified" badge. It means that GitLab recognizes that the commit has been signed, but currently GitLab cannot verify "keyless" signatures - however, given the demand and ease of use of Sigstore / Trusted Artifact Signer, many vendors (including the GitLab community and company backing it) are working on it: https://gitlab.com/gitlab-org/gitlab/-/issues/364428[GitLab issue^]
+
+image::11-gitlab-signature.png[unverified badge]
+
+==== *Verifying a commit signature*
+
+//TODO
 
 
 
@@ -639,112 +917,6 @@ data privacy laws.
 
 '''''
 
-
-
-
-
-////
-==== Installing the Trusted Profile Analyzer 
-
-* Log into your Bastion
-+
-[source]
-----
- ssh lab-user@bastion.GUID.sandbox####.opentlc.com
-----
-* Install Homebrew
-+
-[source]
-----
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-----
-+
-* Once installed, run the following commands to add Homebrew to your PATH: 
-+
-[source]
-+
-----
-echo >> ~/.bashrc
-echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-----
-
-* Install Homebrew's dependencies
-+
-[source]
-+
-----
-sudo yum groupinstall 'Development Tools'
-----
-
-* Now that Homebrew is installed, use it to install gcc
-+
-[source]
-+
-----
-brew install gcc
-----
-
-* Once gcc is installed successfully with Homebrew, install Syft
-+
-[source]
-----
-brew install syft
-----
-
-==== Generating an SBOM
-
-Now that we have Syft installed, we will pull an Openjdk11 image with flaws. 
-
-*First, ensure the podman socket and API services are running
-+
-[source]
-----
-systemctl --user start podman.socket
-systemctl --user enable podman.socket
-----
-
-*Using podman, pull the image
-+
-[source]
-----
-podman pull registry.access.redhat.com/ubi8/openjdk-11:1.20-2.1723644093
-----
-
-* Retag the image to more easily recognize it
-+
-[source]
-----
-podman tag registry.access.redhat.com/ubi8/openjdk-11:1.20-2.1723644093 openjdk11-bad:latest
-----
-
-* Use Syft to create an SBOM from a local image
-+
-[source]
-----
-syft openjdk-11-bad:latest -o spdx-json | jq . -r > openjdk-11-flawed.spdx
-----
-* You should get an output similar to the following: 
-+
-[source]
-----
- ✔ Loaded image                                                                                                                                                        localhost/openjdk11-bad:latest
- ✔ Parsed image                                                                                                               sha256:301ac9507bf73f0ce3ec27d508bcfc08a35e80610f693de94b544101db3d504a
- ✔ Cataloged contents                                                                                                                93edc204a637e42c53dcdb4313de9be0c8c62b5652aba786aae0042abe4b54dc
-   ├── ✔ Packages                        [268 packages]  
-   ├── ✔ File digests                    [5,599 files]  
-   ├── ✔ File metadata                   [5,599 locations]  
-   └── ✔ Executables                     [513 executables]  
-----
-
-* You can have a closer look at the contents of the SBOM by using the following command: 
-+
-[source]
-----
-more openjdk-11-flawed.spdx
-----
-////
-
 === *Using the Trusted Profile Analyzer UI*
 
 A Red Hat Trusted Profile Analyzer has been created for you to use. The proctor will make the URL available to you once you've completed the previous section. 
@@ -773,11 +945,11 @@ An SBOM has been made available for you to download https://github.com/SeanRicke
 
 Upload the SBOM. 
 
-image::lab11.1-sbom.gif[]
+image::lab11.1-sbom.gif[lab11.1]
 
 It will take a few minutes for the SBOM to be processed by TPA, so click in the Search bar and type "home". Once you see home-banking, click on it. 
 
-image::lab11.2-sbom.gif[] 
+image::lab11.2-sbom.gif[lab11.2] 
 
 This will open the page for the home-banking SBOM you've uploaded. 
 
@@ -785,7 +957,7 @@ The Info tab will give you standard information about the SBOM itself, including
 
 Click on the Packages tab. 
 
-image::lab11.3-sbom.png[]
+image::lab11.3-sbom.png[lab11.3]
 
 The Packages tab will list all the packages found in this SBOM. 
 
@@ -799,4 +971,4 @@ Here you will find further information about the detected vulnerabilities. Click
 
 The same can be done with the Transitive Vulnerabilites next to the struts2-core entry. 
 
-image::lab11.4-sbom.gif[]
+image::lab11.4-sbom.gif[lab11.4]
