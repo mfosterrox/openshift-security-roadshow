@@ -923,11 +923,11 @@ A Red Hat Trusted Profile Analyzer has been created for you to use. The proctor 
 
 When you are given the URL, log into the RHTPA UI using the username and password provided.
 
-image::lab1.1-tpa.png[]
+image::lab11.1-tpa.png[]
 
 You can search for an SBOM, advisory, or CVE directly from the home page, or you can click on Search in the left menu for further options. 
 
-image::lab1.2-tpa.gif[]
+image::lab11.2-tpa.gif[]
 
 From the Search page, you can choose to browse SBOMs, Packages, CVEs, and Advisories from the Tabs, and further filter using the filter menu on the left. 
 
