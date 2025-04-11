@@ -6,15 +6,15 @@
 * Deploy our default insecure applications
 * Ensuring OpenShift pipelines are properly setup
 
-== Accessing the workshop
+== Accessing the workshop components
 
 Let's start by ensuring you have access to all the necessary resources to complete this lab. 
 
 TIP: Always open the URL by opening in a new tab. For example on a Mac *<cmd> click*
 
-=== Access the Red Hat^(R)^ OpenShift Container Platform (OCP) web console 
+=== Access the Red Hat^(R)^ OpenShift Container Platform (OCP) user interface 
 
-First, make sure you can access the Red Hat^(R)^ OCP console web console.
+First, make sure you can access the Red Hat^(R)^ OCP console user interface.
 
 *Procedure*
 
@@ -41,13 +41,13 @@ image::01-ocp-login-admin.png[OpenShift console]
 
 image::01-ocp-login-password.png[OpenShift console login]
 
-=== Access the Red Hat^(R)^ Advanced Cluster Security (RHACS) web console 
+=== Access the Red Hat^(R)^ Advanced Cluster Security (RHACS) user interface 
 
 Red Hat Advanced Cluster Security for Kubernetes is a Kubernetes-native security platform that equips you to build, deploy, and run cloud-native applications with more security. The solution helps protect containerized Kubernetes workloads in all major clouds and hybrid platforms, including Red Hat OpenShift, Amazon Elastic Kubernetes Service (EKS), Microsoft Azure Kubernetes Service (AKS), and Google Kubernetes Engine (GKE).
 
 ---
 
-Let's ensure that you have access to the RHACS web console.
+Let's ensure that you have access to the RHACS User Interface.
 
 *Procedure*
 
@@ -75,26 +75,24 @@ image::01-rhacs-login.png[RHACS console]
 
 image::01-rhacs-console-dashboard.png[RHACS console]
 
+=== Access the Red Hat^(R)^ Quay user interface 
+
+Your Red Hat Quay console is available at: {quay_console_url}[window=blank]
+
+Administrator login is available with:
+
+[source,sh,subs="attributes",role=execute]
+
+[cols="1,1"]
+|===
+*Quay Console Username:* | {quay_admin_username} |
+*Quay Console Password:* | {quay_admin_password} |
+|===
+
+
 === OpenShift admin access verification
 
 OpenShift admin access verification involves ensuring that users have the appropriate permissions and roles assigned to them for managing the OpenShift cluster. This can be done by checking the user roles and bindings within the cluster. You'll be verifying your permissions using the oc command-line tool.
-
-There are *TWO clusters* we need to verify access too.
-
-*Verify access to the EKS cluster*
-
-[source,sh,subs="attributes",role=execute]
-----
-oc config use-context eks-admin
-----
-
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-
-[lab-user@bastion ~]$oc config use-context eks-admin
-Switched to context "eks-admin".
-----
 
 *Verify access to the OpenShift cluster*
 
@@ -141,11 +139,9 @@ NAME                                        STATUS   ROLES                  AGE 
 <OCP_IP>.us-east-2.compute.internal    Ready    worker                 4h2m   v1.27.11+749fe1d
 ----
 
-You will now see the OCP role using the *oc* command, as we are currently working on the OpenShift cluster
+You will now see the OCP role using the *oc* command, as we are currently working in the OpenShift cluster
 
-NOTE: We will be working with the OpenShift cluster in all modules unless otherwise specified. 
-
-=== roxctl CLI verification 
+=== Verify the roxctl CLI and access to RHACS Central Services  
 
 Next, verify that we have access to the RHACS Central Service.
 
@@ -199,30 +195,140 @@ Access:
 	rw WorkflowAdministration
 ----
 
-NOTE: This output is showing that you have unrestricted access to the RHACS product. These permissions can be seen in the **RHACS Access Control** tab that we will review later.
+IMPORTANT: This output is showing that you have unrestricted access to the RHACS product. These permissions can be seen in the **RHACS Access Control** tab that we will review later.
 
 image::01-rhacs-access-control.png[RHACS access control]
 
+*Great job!*
 
-== Setup our workshop applications
+== Deploy the vulnerable workshop applications
 
+You now have access to the core OpenShift applications. Next, you'll deploy several insecure apps into the OpenShift cluster. Our insecure demo applications come from a variety of public GitHub repositories and sources. These apps will serve as the main use cases you examine during the workshop, ranging from well-known Capture the Flag (CTF) applications to vulnerabilities like Log4Shell and Apache Struts.
 
-Great job!
+After deploying the applications, you'll scan some of these containers using the roxctl CLI to get a feel for what you'll be dealing with when you get to the security section with Red Hat Advanced Cluster Security
 
-You now have access to the core apps. Next, you'll deploy insecure apps into the OpenShift cluster, including Quay. These apps will be the main use cases we look at during the workshop.
+=== Time to deploy
+
+*Procedure*
+
+[start=1]
+. Run the following commands in the terminal, one after the other.
+
+====
+This command downloads a repository container dockerfiles, attack scripts, and Kubernetes manifests that you will use to deploy the containerized applications to OpenShift.  
+====
+
+[source,sh,subs="attributes",role=execute]
+----
+git clone https://github.com/mfosterrox/demo-apps.git demo-apps
+----
+
+====
+This command sets the variable TUTORIAL_HOME to equal the working directory, allowing you to make references to various files easily.
+====
+
+[source,sh,subs="attributes",role=execute]
+----
+echo export TUTORIAL_HOME="$(pwd)/demo-apps" >> ~/.bashrc
+export TUTORIAL_HOME="$(pwd)/demo-apps"
+----
+
+====
+This command applies the manifests into the OpenShift environment.
+====
+
+[source,sh,subs="attributes",role=execute]
+----
+oc apply -f $TUTORIAL_HOME/kubernetes-manifests/ --recursive
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[demo-user@bastion ~]$ oc apply -f $TUTORIAL_HOME/kubernetes-manifests/ --recursive
+namespace/operations created
+namespace/backend created
+....
+route.route.openshift.io/webgoat created
+configmap/webgoat-config created
+----
+
+NOTE: You should see warnings such as: *Warning: would violate PodSecurity "baseline:latest": privileged (container "proxy" must not set securityContext.privileged=true)*. This is because you are deploying flawed container configurations and vulnerable container applications into the OpenShift cluster.
+
+====
+The following command will watch all of the applications as they are successfully deployed into the Openshift cluster. You can press ctrl+c to terminate the command.
+====
+
+[source,bash,role="execute"]
+----
+oc get deployments -l demo=roadshow -A
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[demo-user@bastion ~]$ oc get deployments -l demo=roadshow -A
+NAMESPACE    NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+backend      api-server            1/1     1            1           18s
+default      dvma                  1/1     1            1           76s
+default      juice-shop            1/1     1            1           73s
+default      log4shell             1/1     1            1           70s
+default      open-api-server       1/1     1            1           39s
+default      reporting             1/1     1            1           42s
+default      vulnerable-node-app   1/1     1            1           36s
+default      webgoat               1/1     1            1           33s
+frontend     asset-cache           1/1     1            1           66s
+medical      reporting             1/1     1            1           58s
+operations   jump-host             1/1     1            1           54s
+payments     visa-processor        1/1     1            1           52s
+----
+
+IMPORTANT: Please ensure the deploy application are deployed and available before moving onto the next module. 
+
+[start=2]
+. Run the following roxctl commands to check on the vulnerability status of the applications you deployed.
+
+====
+The following command triggers a vulnerability scan by RHACS, roxctl filters the results into a table. The severity flag means only the critical vulnerabilities will be shown. This image is known as the "Damn Vulnerable Wed Application" and it contains A LOT of vulnerabilities.
+====
+
+[source,sh,subs="attributes",role=execute]
+----
+roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=quay.io/mfoster/dvwa --force -o table
+----
+
+TIP: The following output can be configured using flags. You can configure different outputs (table, CSV, JSON, and sarif.) and filter for specific severities.
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[demo-user@bastion ~]$ roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=quay.io/mfoster/dvwa --force -o table 
+Scan results for image: quay.io/mfoster/dvwa
+
+---------------------------------+------------------+
+|          zlib1g           |     1:1.2.13.dfsg-1     |   CVE-2023-45853    | CRITICAL  |         https://nvd.nist.gov/vuln/detail/CVE-2023-45853         |       -       |
++---------------------------+                         +---------------------+-----------+-----------------------------------------------------------------+---------------+
+|        zlib1g-dev         |                         |   CVE-2023-45853    | CRITICAL  |         https://nvd.nist.gov/vuln/detail/CVE-2023-45853         |       -       |
++---------------------------+-------------------------+---------------------+-----------+-----------------------------------------------------------------+---------------+
+WARN:  A total of 1172 unique vulnerabilities were found in 106 components
+----
+
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNxZGd5Zm5qMnlpOHhrbm1hY2pwcG5ydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p18ohAgD3H60LSoI1C/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
 [[build-a-container-image]]
-=== Build a container image
 
-In this section, we will download the "*Java app*" give it a new tag, and push the image to Quay. Later, we'll deploy the image to the OpenShift Cluster and use it in future modules.
+== Build the main workshop application
 
-Let's export a few variables to make things easier. These variables will stay in the .bashrc file so they're saved in case you need to refresh the terminal.
-
-TIP: With the variables saved in the ~/.bashrc file you will not have to declare them again in the future. 
+=== Login to Quay from the CLI
 
 *Procedure*
 
 [start=1]
 . Run the following command.
+
+====
+Let's export a few variables to make things easier. These variables will stay in the .bashrc file so they're saved in case you need to refresh the terminal.
+====
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -232,12 +338,12 @@ QUAY_USER={quay_admin_username}
 
 [start=2]
 
-. Set the Quay URL variable 
+. Run the following command to set the Quay URL variable 
 
 [source,sh,subs="attributes",role=execute]
 ----
-echo export QUAY_URL=$(oc -n quay-enterprise get route quay-quay -o jsonpath='{.spec.host}') >> ~/.bashrc
-QUAY_URL=$(oc -n quay-enterprise get route quay-quay -o jsonpath='{.spec.host}')
+echo export QUAY_URL=$(oc -n quay get route quay-quay -o jsonpath='{.spec.host}') >> ~/.bashrc
+QUAY_URL=$(oc -n quay get route quay-quay -o jsonpath='{.spec.host}')
 ----
 
 IMPORTANT: Verify that the variables are correct
@@ -269,8 +375,8 @@ NOTE: Use the quay admin credentials to sign in.
 
 [cols="2,2"]
 |===
-*Quay Console Username:* | *{quay_admin_username}* |
-*Quay Console Password:* | *{quay_admin_password}* |
+| *Quay Username:* | *{quay_admin_username}* 
+| *Quay Password:* | *{quay_admin_password}* 
 |===
 
 [.console-output]
@@ -281,114 +387,260 @@ Password:
 Login Succeeded!
 ----
 
-[start=4]
-. Pull the Java container image with the following CLI command:
+Beautiful! We're logged in. Now you can download build and push images directly to your quay repository.
+
+[[golden-image]]
+
+=== Create our developer golden image
+
+Imagine a base image as a blank canvas, providing a reliable foundation like a minimal operating system or runtime environment. Developers add the essential configurations, libraries, and tools needed to fit their application's unique demands. By tagging this customized creation as a golden image, developers ensure every deployment uses the same standardized, consistent setup, simplifying workflows and avoiding unexpected surprises.
+
+*Procedure*
+
+. Run the following commands in succession
 
 [source,sh,subs="attributes",role=execute]
 ----
-podman pull quay.io/jechoisec/ctf-web-to-system-01
+podman pull python:3.12-alpine
 ----
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-Trying to pull quay.io/jechoisec/ctf-web-to-system-01:latest...
+[demo-user@bastion ~]$ podman pull python:3.12-alpine
+Trying to pull docker.io/library/python:3.12-alpine...
 Getting image source signatures
-Copying blob 37aaf24cf781 done 
-...
-...
-Copying config 1cbb2b7908 done  
+Copying blob e846654b130a skipped: already exists  
+Copying blob 00bb69fc5235 skipped: already exists  
+Copying blob 1f3e46996e29 skipped: already exists  
+Copying blob 7b104e645578 skipped: already exists  
+Copying config 451fdb03e1 done   | 
 Writing manifest to image destination
-1cbb2b79086961e34d06f301b2fa15d2a7e359e49cfe67c06b6227f6f0005149
+451fdb03e17285d3263d88f0f3bed692c82556935490d233096974386cd0381b
+----
+
+====
+This command tags the python:3.12-alpine image with your Quay repository and username allowing you to accurately push the image in a later step.
+====
+
+[source,sh,subs="attributes",role=execute]
+----
+podman tag docker.io/library/python:3.12-alpine $QUAY_URL/$QUAY_USER/python-alpine-golden:0.1
+----
+
+====
+This command shows you the local images available
+====
+
+[source,sh,subs="attributes",role=execute]
+----
+podman images
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[demo-user@bastion ~]$ podman images
+REPOSITORY                                                                                  TAG          IMAGE ID      CREATED      SIZE
+quay-w2t4c.apps.cluster-w2t4c.w2t4c.sandbox1647.opentlc.com/quayadmin/python-alpine-golden  0.1          451fdb03e172  5 weeks ago  50.6 MB
+docker.io/library/python                                                                    3.12-alpine  451fdb03e172  5 weeks ago  50.6 MB
+----
+
+====
+This command pushes the golden image to your repository
+====
+
+[source,sh,subs="attributes",role=execute]
+----
+podman push $QUAY_URL/$QUAY_USER/python-alpine-golden:0.1
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[demo-user@bastion ~]$ podman push $QUAY_URL/$QUAY_USER/python-alpine-golden:0.1
+Getting image source signatures
+Copying blob c6121fb0c7de done   | 
+Copying blob a0904247e36a done   | 
+Copying blob 5b6d0b88dd08 done   | 
+Copying blob 375bee7d34e2 done   | 
+Copying config 451fdb03e1 done   | 
+Writing manifest to image destination
+----
+
+Perfect! 
+
+[[dev-app]]
+
+=== Create the frontend application, and upload it to Quay
+
+In this section, you will add the application code to the image, build, tag and push the new image to Quay. Later, we'll use that image to deploy an application to the OpenShift Cluster.
+
+TIP: With the variables saved in the ~/.bashrc file you will not have to declare them again in the future. 
+
+*Procedure*
+
+. List the contents of the `frontend` directory inside the `app-images` folder to see the files available for the project.
+
+[source,sh,subs="attributes",role=execute]
+----
+ls $TUTORIAL_HOME/app-images/frontend/
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[demo-user@bastion ~]$ ls $TUTORIAL_HOME/app-images/frontend/
+Dockerfile  main.py  static
+----
+
+[start=2]
+. Display the contents of the `Dockerfile` to understand how the image is built, including installed dependencies and the copied files.
+
+[source,sh,subs="attributes",role=execute]
+----
+cat $TUTORIAL_HOME/app-images/frontend/Dockerfile
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[demo-user@bastion ~]$ cat $TUTORIAL_HOME/app-images/frontend/Dockerfile
+FROM python:3.12-alpine AS build
+
+RUN pip install --no-cache-dir httpx psycopg psycopg_binary psycopg_pool starlette sse_starlette uvicorn
+
+#vulnerable packages
+RUN pip install --no-cache-dir setuptools==39.1.0
+RUN pip install --no-cache-dir Flask==0.5
+RUN pip install --no-cache-dir Django==1.11.29
+RUN pip install --no-cache-dir requests==2.19.0
+RUN pip install --no-cache-dir PyYAML==3.12
+
+FROM python:3.12-alpine AS run
+
+RUN adduser -S fritz -G root
+USER fritz
+
+COPY --from=build /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --chown=fritz:root static /home/fritz/static
+COPY --chown=fritz:root main.py /home/fritz/main.py
+
+EXPOSE 8080
+WORKDIR /home/fritz
+ENTRYPOINT ["python", "main.py"]
+----
+
+
+[start=3]
+. Update the `FROM` statement in the Dockerfile to reference a custom base image hosted in a private registry, using `sed` to modify the line.
+
+[source,sh,subs="attributes",role=execute]
+----
+sed -i "s|^FROM python:3\.12-alpine AS \(\w\+\)|FROM $QUAY_URL/$QUAY_USER/python-alpine-golden:0.1 AS \1|" $TUTORIAL_HOME/app-images/frontend/Dockerfile
+----
+
+[start=4]
+. Check the Dockerfile again to verify that the `FROM` statement has been updated correctly.
+
+[source,sh,subs="attributes",role=execute]
+----
+cat $TUTORIAL_HOME/app-images/frontend/Dockerfile
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[demo-user@bastion ~]$ cat $TUTORIAL_HOME/app-images/frontend/Dockerfile
+FROM quay-w2t4c.apps.cluster-w2t4c.w2t4c.sandbox1647.opentlc.com/quayadmin/python-alpine-golden:0.1 AS build
+
+RUN pip install --no-cache-dir 
+
+....
 ----
 
 [start=5]
-. Now that you have a copy of the Java container image locally. You must tag the image before pushing it to Quay. 
+. Build the Docker image using `podman` from the `frontend` directory. The `-t` flag tags the image with a version (`0.1`) and a registry URL.
 
 [source,sh,subs="attributes",role=execute]
 ----
-podman tag quay.io/jechoisec/ctf-web-to-system-01 $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
-----
-
-NOTE: Quay will automatically create a private registry to store our Java application since we have admin access. To deploy the app, you'll need to make the repository public so you can pull the image without credentials.
-
-[start=6]
-. The last step is to push the image to Quay.
-
-[source,sh,subs="attributes",role=execute]
-----
-podman push $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 --remove-signatures
+cd $TUTORIAL_HOME/app-images/frontend/
+podman build -t $QUAY_URL/$QUAY_USER/frontend:0.1 .
 ----
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-Copying blob 3113fb957b33 done 
-...
-...
-Copying config 1cbb2b7908 done  
-Writing manifest to image destination
+[demo-user@bastion frontend]$ podman build -t $QUAY_URL/$QUAY_USER/frontend:0.1 .
+[1/2] STEP 1/2: FROM quay-w2t4c.apps.cluster-w2t4c.w2t4c.sandbox1647.opentlc.com/quayadmin/python-alpine-golden:0.1 AS build
+.
+.
+.
+Successfully tagged quay-w2t4c.apps.cluster-w2t4c.w2t4c.sandbox1647.opentlc.com/quayadmin/frontend:0.1
+46ea42cba3f17c366b0c534164ae088719266df9ab4122532b0bffd1bbefaec9
 ----
 
 [start=6]
+. Upload the built image to a remote registry using `podman push`. The `--remove-signatures` flag ensures that image signatures are not included in the pushed image.
 
-Perfect! 
+[source,sh,subs="attributes",role=execute]
+----
+podman push $QUAY_URL/$QUAY_USER/frontend:0.1 
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[demo-user@bastion frontend]$ podman push $QUAY_URL/$QUAY_USER/frontend:0.1 --remove-signatures
+Copying blob e2adcecab318 done   | 
+Copying blob 9944062081bf done   | 
+Copying blob 83e98ac5789e skipped: already exists  
+Copying blob 32fd82e104c5 skipped: already exists  
+Copying blob 453d5d1264c7 done   | 
+Copying blob 3c37dc31320d done   | 
+Copying blob 210a2ae1a75e skipped: already exists  
+Copying blob 57a6ec527341 skipped: already exists  
+Copying config 46ea42cba3 done   | 
+Writing manifest to image destination
+----
+
+NOTE: Quay will automatically create a private registry to store the application image because of your admin access. To deploy the application, make sure the repository is set to public so that you can pull the image without needing authentication.
+
+The frontend application is finally built! The next step is to review it in Quay and deploy it to OpenShift using ACM and OpenShift GitOps.
+
+[[quay]]
 
 == Red Hat Quay
 
 Red Hat Quay is an enterprise-quality registry for building, securing and serving container images. It provides secure storage, distribution, governance of containers and cloud-native artifacts on any infrastructure.
 
-To get started, make sure that you are logged in to Red Hat Quay and have access to the newly created *quayadmin/ctf-web-to-system* repository
+=== Accessing Quay 
 
-=== Red Hat^(R)^ Quay web console 
+Your Red Hat Quay console is available at: {quay_console_url}[window=blank]
 
-In the next steps, you'll go through a basic overview of Quay, review the Java app, and make the container image repository public. This way, you can successfully deploy the container image into the OpenShift cluster.
+Administrator login is available with:
 
-*Procedure*
+[source,sh,subs="attributes",role=execute]
 
-[start=1]
-. Log into the Quay console at {quay_console_url}
-
-. Enter the Quay credentials.
-
-[cols="2,2"]
+[cols="1,1"]
 |===
 *Quay Console Username:* | {quay_admin_username} |
 *Quay Console Password:* | {quay_admin_password} |
 |===
 
-image::01-quay-login.png[quay login]
-
-image::01-quay-dashboard.png[quay console]
+[[navigating-the-registry]]
 
 === Browse the registry
 
-So far in the setup module we downloaded built and pushed an insecure java application called *ctf-web-to-system*. Now it's time to deploy it to the OpenShift Cluster. To do this we will need to make the registry that we created public. 
-
-*Procedure*
+In the setup module you downloaded built and pushed a insecure java application called *frontend*. Now it's time to deploy it to the OpenShift Cluster. To do this you will need to make the registry that you created public. 
 
 Let's take a look at our application in the registry.
 
-[start=1]
-. First, ensure that the *ctf-web-to-system* repository is available. If there are no repositories available please redo the *Build a container image* section to ensure that the image was correctly pushed to the repository. 
+*Procedure*
 
-image::quay-login.png[link=self, window=blank, width=100%]
+. First, click on the *frontend* repository. 
 
-[start=2]
-
-. Next click on the *ctf-web-to-system* repository. 
-
-image::quay-repo.png[link=self, window=blank, width=100%]
-
-On the left hand side of the window you should see the following icons labeled in order from top to bottom,
-
-- Information
-- Tags
-- Tag History
-- Usage Logs
-- Settings
-
-image::quay-sidebar.png[link=self, window=blank, width=100%]
+image::00-quay-login.png[link=self, window=blank, width=100%]
 
 The information tab shows you information such as;
 
@@ -396,59 +648,85 @@ The information tab shows you information such as;
 - Repository activity
 - The repository description. 
 
-image::quay-information.png[link=self, window=blank, width=100%]
+image::00-frontend-repo.png[link=self, window=blank, width=100%]
+
+====
+On the left hand side of the window you should see the following icons labelled in order from top to bottom,
+====
+
+image::00-quay-sidebar.png[link=self, window=blank, width=100%]
+
+- Information
+- Tags
+- Tag History
+- Usage Logs
+- Settings
+
 
 [start=2]
 . Click on the *Tags* icon. 
 
-image::quay-tags.png[link=self, window=blank, width=100%]
+image::00-quay-tags.png[link=self, window=blank, width=100%]
 
 This tab displays all of the images and tags that have been upladed, providing information such as fixable vulnerabilities, the image size and allows for bulk changes to images based on the security posture. 
 
-image::quay-tags-security.png[link=self, window=blank, width=100%]
+We will explore this tab a little later in this module.
 
 [start=3]
-. Click on the *Tags History* icon. This tab simply displays the container images history over time. 
+. Click on the *Tags History* icon. 
 
-image::quay-tags-history.png[link=self, window=blank, width=100%]
+image::00-quay-history.png[link=self, window=blank, width=100%]
+
+This tab simply displays the container images history over time. 
 
 [start=4]
-. Click on the *Usage Logs* icon. 
+. Click into the SHA256 hash number. 
+
+image::00-image-details.png[link=self, window=blank, width=100%]
+
+From this dashboard you will be able to see the image manifest of that container image.
+
+image::00-image-manifest.png[link=self, window=blank, width=100%]
+
+[start=5]
+. Click the *BACK* icon in the top left of the dashboard then click on the *Usage Logs* icon. 
+
+image::00-quay-back.png[link=self, window=blank, width=100%]
+image::00-quay-usage.png[link=self, window=blank, width=100%]
+
 
 This tab displays the usage over time along with details about who/how the images were pushed to the cluster. 
 
-image::quay-usage-logs.png[link=self, window=blank, width=100%]
+====
+You should see that you (The "quayadmin") pushed an image tagged 0.1 to the repository today. 
+====
 
-NOTE: You can see that you, the "quayadmin", pushed an image tagged 1.0 to the repository today. 
- 
-[start=5]
+[start=6]
 . Lastly click on the *Settings* icon. 
+
+image::00-quay-settings.png[link=self, window=blank, width=100%]
 
 In this tab you can add/remove users and update permissions, alter the privacy of the repository, and even schedule alerts based on found vulnerabilities.
 
-image::quay-settings.png[link=self, window=blank, width=100%]
-
 [start=6]
-. Make your repository public before deploying our application in the next step by clicking the *Make Public* button under `Repository Visibility`
+. Make your repository public before deploying our application in the next step by clicking the *Make Public* button under *Repository Visibility*
 
-image::quay-make-public.png[link=self, window=blank, width=100%]
+image::00-quay-public.png[link=self, window=blank, width=100%]
 
-IMPORTANT: Make sure to make the repository public. Otherwise we will not be able to deploy the application in the next step.
+IMPORTANT: Make sure to make the repository public. Otherwise you will not get vulnerability scan results in RHACS
 
 [start=7]
 . Click OK
 
-image::quay-make-public-ok.png[link=self, window=blank, width=100%]
+image::00-quay-public-yes.png[link=self, window=blank, width=100%]
 
-====
-You should be able to see the repository icon lose its red lock symbol now that it is public. This will allow you to deploy the image directly from the local Quay repository.
-====
+Great! The frontend application can now be deployed with ACM without using pull secrets. 
 
 [[vulnerability-scanning-with-quay]]
 
 === Vulnerability Scanning with Quay
 
-Red Hat Quay can also help with securing our environments by performing a security scan on any images added to our registry, and advise which ones are potentially fixable.
+Red Hat Quay can also help with securing our environments by performing a container vulnerability scan on any images added to our registry, and advise which ones are potentially fixable. This feature is also known as vulnerability scanning at rest.
 
 Use the following procedure to check the security scan results for our Java container image you have uploaded.
 
@@ -456,103 +734,115 @@ Use the following procedure to check the security scan results for our Java cont
 
 . Click on the *Tags* icon on the left side of the screen like before.
 
-NOTE: You may need to click the checkbox near the image you would would like more information on, but the column for *Security Scan* should populate.
+image::00-quay-tags.png[link=self, window=blank, width=100%]
 
-image::quay-tags.png[link=self, window=blank, width=100%]
+NOTE: You may need to click the checkbox near the image you would would like more information on, but the column for *Security Scan* should populate.
 
 [start=2]
 . By default, the security scan color codes the vulnerabilities, you can hover over the security scan for more information.
 
-NOTE: The Java container image we are using in this lab shows 21 vulnerabilities, with 5! critical vulnerabilities. This number will change with time and will be different between container scanners for a variety of reasons such as reporting mechanisms, vulnerability feeds and operating system support. 
+image::00-quay-scan-hover.png[link=self, window=blank, width=100%]
 
-image::quay-scan-hover.png[link=self, window=blank, width=100%]
+NOTE: The alpine container image you are using in this lab shows 34 vulnerabilities, with 2 cirtical vulnerabilities. This number will change with time and will be different between container scanners for a variety of reasons such as reporting mechanisms, vulnerability feeds and operating system support. 
 
 [start=3]
 . Click on the list of vulnerabilities to see a more detailed view.
 
-image::quay-security-detailed.png[link=self, window=blank, width=100%, Image Security Details] 
+image::00-quay-security.png[link=self, window=blank, width=100%] 
+
+image::00-quay-vuln-overview.png[link=self, window=blank, width=100%]
 
 [start=4]
 . Click on a vulnerable package on the left menu to get more information about the vulnerability and see what you have to do to fix the issue.
 
-image::quay-vuln-detailed.png[link=self, window=blank, width=100%]
+image::00-quay-vuln-detailed.png[link=self, window=blank, width=100%]
 
-TIP: Toggling for fixable/unfixable vulnerabilities is an excellent way for developers to understand what is within their responsibility for fixing. For example, since we are using an older version of Java, many fixes are available for these common issues. 
+NOTE: Toggling for fixable/unfixable vulnerabilities is an excellent way for developers to understand what is within their responsibility for fixing. For example, since you are using an older version of Java, many fixes are available for these common issues. 
 
-Congratulations, you now know how to examine images in your registry for potential vulnerabilities before deploying into your environment.
+=== Ensure ACS can pull the image manifest from your Quay instance
 
-[[deploy-the-workshop-apps]]
-== Deploy the workshop applications
-
-In the final part of this module, you'll deploy several insecure applications to the OpenShift cluster. You'll scan a few of these containers using the *roxctl* CLI to understand what you're deploying and what to expect when you dive into RHACS.
-
-IMPORTANT: Make sure the variables are set before running the following commands. If not, go back to the Quay section to redo the previous commands.
-
-====
-Run the following in the terminal and ensure you get the corrrect outputs.
-====
-
-[source,sh,subs="attributes",role=execute]
-----
-echo $QUAY_USER
-echo $QUAY_URL
-----
-
-Our insecure demo applications come from a variety of public GitHub repositories and sources. Including the Java application that you just pushed to Quay. Let's deploy them into our cluster.
+There is currently no integration with the Quay repository which means ACS cannot view the manifest layers. You can verify this by running a similar roxctl scan that you ran before.
 
 *Procedure*
 
-[start=1]
-. Run the following commands in the terminal, one after the other.
-
-====
-This command downloads a repository container dockerfiles, attack scripts, and Kubernetes manifests that you will use to deploy the containerized applications to OpenShift.  
-====
+. Run the following command to test the RHACS/Quay integration
 
 [source,sh,subs="attributes",role=execute]
 ----
-git clone https://github.com/mfosterrox/demo-apps.git demo-apps
+roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=$QUAY_URL/$QUAY_USER/frontend:0.1 --force -o table
 ----
 
-====
-This command sets the variable TUTORIAL_HOME to equal the working directory, allowing you to make references to various files easily.
-====
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+ERROR:  Scanning image failed: retrieving image scan result: could not scan image: "quay-nhxdx.apps.cluster-nhxdx.nhxdx.sandbox4561.opentlc.com/quayadmin/frontend:0.1": rpc error: code = Internal desc = image enrichment error: error getting metadata for image: quay-nhxdx.apps.cluster-nhxdx.nhxdx.sandbox4561.opentlc.com/quayadmin/frontend:0.1 error: no matching image registries found: please add an image integration for quay-nhxdx.apps.cluster-nhxdx.nhxdx.sandbox4561.opentlc.com. Retrying after 3 seconds...
+----
+
+[start=2]
+. Next, run the following command in the terminal to add the Quay integration to RHACS via an API call.
 
 [source,sh,subs="attributes",role=execute]
 ----
-echo export TUTORIAL_HOME="$(pwd)/demo-apps" >> ~/.bashrc
-export TUTORIAL_HOME="$(pwd)/demo-apps"
+# ACS API endpoint used to create the Quay repo integration
+POST_ENDPOINT="https://${ROX_CENTRAL_ADDRESS}/v1/imageintegrations"
+
+# Quay repository payload
+read -r -d '' PAYLOAD << EOM
+{
+  "name": "my-quay-repo",
+  "type": "quay",
+  "categories": [
+    "REGISTRY"
+  ],
+  "quay": {
+    "endpoint": "http://$QUAY_URL",
+    "insecure": true
+  },
+  "autogenerated": false,
+  "skipTestIntegration": false
+}
+EOM
+
+# Make API request to create Quay repository
+curl -k -X POST "${POST_ENDPOINT}" \
+     -H "Authorization: Bearer ${ROX_API_TOKEN}" \
+     -H "Content-Type: application/json" \
+     -d "${PAYLOAD}" \
+     | jq
 ----
 
-====
-This command updates the ctf-w2s.yml file with your local Quay repository information. The updated Quay URL means OpenShift will pull from your local Quay instance instead of the previous Quay.io location.
-====
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   605  100   339  100   266   3459   2714 --:--:-- --:--:-- --:--:--  6237
+{
+  "id": "ad83bd29-864b-4343-a23d-3b606a24210b",
+  "name": "my-quay-repo",
+  "type": "quay",
+  "categories": [
+    "REGISTRY"
+  ],
+  "quay": {
+    "endpoint": "http://quay-nhxdx.apps.cluster-nhxdx.nhxdx.sandbox4561.opentlc.com/quayadmin",
+    "oauthToken": "",
+    "insecure": true,
+    "registryRobotCredentials": null
+  },
+  "autogenerated": false,
+  "clusterId": "",
+  "skipTestIntegration": false,
+  "source": null
+}
+----
+
+[start=3]
+. Lastly, run the following command and to scan the frontend:0.1 container that you built.
 
 [source,sh,subs="attributes",role=execute]
 ----
-sed -i 's|quay\.io/jechoisec/ctf-web-to-system-01|'"$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0"'|g' $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml
-----
-
-====
-This command applies the manifests to OpenShift. It includes both OpenShift Pipelines manifests and typical application manifests with a skupper example.
-====
-
-[source,sh,subs="attributes",role=execute]
-----
-oc apply -f $TUTORIAL_HOME/kubernetes-manifests/ --recursive
-oc apply -f $TUTORIAL_HOME/skupper-demo/ --recursive
-oc apply -f $TUTORIAL_HOME/openshift-pipelines/ --recursive
-----
-
-NOTE: You should see warnings such as: *Warning: would violate PodSecurity "restricted:latest": unrestricted capabilities (container "Java" must set securityContext.capabilities.drop=["ALL"])*. This is because we are deploying flawed container configurations and vulnerable container applications into the OpenShift cluster.
-
-====
-The following command triggers a vulnerability scan by RHACS, updates the vulnerability results, and filters them into a table showing only the critical vulnerabilities.
-====
-
-[source,sh,subs="attributes",role=execute]
-----
-roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 --force -o table --severity=CRITICAL
+roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=$QUAY_URL/$QUAY_USER/frontend:0.1 --force -o table
 ----
 
 TIP: The following output can be configured using flags. You can configure different outputs (table, CSV, JSON, and sarif.) and filter for specific severities.
@@ -560,96 +850,12 @@ TIP: The following output can be configured using flags. You can configure diffe
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-[lab-user@bastion ~]$ roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 --force -o table --severity=CRITICAL
-Scan results for image: quay-8h2gf.apps.cluster-8h2gf.sandbox182.opentlc.com/quayadmin/ctf-web-to-system:1.0
-(TOTAL-COMPONENTS: 9, TOTAL-VULNERABILITIES: 17, LOW: 0, MODERATE: 0, IMPORTANT: 0, CRITICAL: 17)
-
-+-------------+---------+------------------+----------+--------------------------------------------------------------------------------+---------------+
-|  COMPONENT  | VERSION |       CVE        | SEVERITY |                                      LINK                                      | FIXED VERSION |
-+-------------+---------+------------------+----------+--------------------------------------------------------------------------------+---------------+
-|     ejs     |  2.7.4  |  CVE-2022-29078  | CRITICAL |                https://nvd.nist.gov/vuln/detail/CVE-2022-29078                 |     3.1.7     |
-...
-WARN:   A total of 17 unique vulnerabilities were found in 9 components
-----
-
-[start=2]
-. For the last verification step. Run the following command to ensure that the applications are up and running.
-
-[source,bash,role="execute"]
-----
-oc get deployments -l demo=roadshow -A
-----
-
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-[lab-user@bastion ~]$ oc get deployments -l demo=roadshow -A
-NAMESPACE        NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
-backend          api-server            1/1     1            1           3m10s
-default          ctf-web-to-system     1/1     1            1           3m23s
-default          dvma                  1/1     1            1           3m20s
-default          juice-shop            1/1     1            1           3m17s
-default          log4shell             1/1     1            1           3m14s
-default          open-api-server       1/1     1            1           2m30s
-default          reporting             1/1     1            1           2m36s
-default          vulnerable-node-app   1/1     1            1           2m27s
-default          webgoat               1/1     1            1           2m24s
-frontend         asset-cache           1/1     1            1           3m3s
-medical          reporting             1/1     1            1           2m53s
-operations       jump-host             1/1     1            1           2m44s
-patient-portal   database              1/1     1            1           2m20s
-patient-portal   frontend              3/3     3            3           2m16s
-patient-portal   payment-processor     3/3     3            3           2m13s
-payments         visa-processor        1/1     1            1           2m40s
-----
-
-IMPORTANT: Please ensure the deploy application are deployed to your cluster before moving onto the next module especially the *ctf-web-to-system* application. 
-
-== A task to complete on your own.
-
-*Here is your mission*
-
-image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNnJoNHE2MXhocm52ZzFmeHVyY3JiN3F5cGFjYW00dGsycXF2bnNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohs4lNKssQD2wewyQ/giphy.gif[link=self, window=blank, width=100%, class="center"]
-
-*Should you choose to accept it*
-
-Run roxctl against a few of your favorite container images. Try pulling from link:https://hub.docker.com/[docker hub] or link:https://quay.io/[quay.io]. Try modifying the command below to include your image of choice.
-
-For example:
-
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-[lab-user@bastion ~]$ MYIMAGE=docker.io/ubuntu             
-[lab-user@bastion ~]$ roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=$MYIMAGE --force -o table --severity=CRITICAL
-----
-
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-Scan results for image: docker.io/ubuntu
-(TOTAL-COMPONENTS: 0, TOTAL-VULNERABILITIES: 0, LOW: 0, MODERATE: 0, IMPORTANT: 0, CRITICAL: 0)
-
-+-----------+---------+-----+----------+------+---------------+
-| COMPONENT | VERSION | CVE | SEVERITY | LINK | FIXED VERSION |
-+-----------+---------+-----+----------+------+---------------+
-+-----------+---------+-----+----------+------+---------------+
-----
-Showing that the latest version of Ubuntu from Docker.io has 0 critical vulnerabilities.
-
-*Your turn*
-
-IMPORTANT: Make sure to set the image in the MYIMAGE variable, or put the image into the command.
-
-
-[source,sh,subs="attributes",role=execute]
-----
-MYIMAGE=<Add the registry URL here>
-----
-
-[source,sh,subs="attributes",role=execute]
-----
-roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image $MYIMAGE --force -o table --severity=CRITICAL
+.
+.
+.
+|            |         | GHSA-r64q-w8jr-g9qp |    LOW    |             https://github.com/urllib3/urllib3/issues/1553              |    1.24.3     |
++------------+---------+---------------------+-----------+-------------------------------------------------------------------------+---------------+
+WARN:   A total of 33 unique vulnerabilities were found in 7 components
 ----
 
 == Summary
