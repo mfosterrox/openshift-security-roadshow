@@ -1,13 +1,6 @@
 = {lab_name}
 
-This course offers you hands-on experience working with the essential security use cases of Red Hat^(R)^ OpenShift Container Platform (OCP) with Red Hat OpenShift^(R)^ Container Platform Platform Plus (OPP).
-
-Red Hat OPP includes:
-
-* Red Hat^(R)^ Advanced Cluster Security (RHACS)
-* Red Hat^(R)^ Advanced Cluster Management (RHACM)
-* Red Hat^(R)^ Quay
-* Red Hat^(R)^ OpenShift Data Foundation (RHODF)
+This course offers you hands-on experience working with the essential security use cases of Red Hat^(R)^ OpenShift Container Platform (OCP) with Red Hat Trusted Software Supply Chain (TSSC).
 
 == Lab homepage
 
@@ -15,27 +8,19 @@ Most of the lab will take place in this *Showroom* lab environment and between v
 
 Below, you can find all the URLs and passwords needed to complete the lab on the homepage. If you ever get lost simply click the home button at the top of the webpage to find the essentials.
 
-
 ---
 IMPORTANT: This is the *HOME* page. The modules can be found by clicking the table of contents on the left side of the screen or by scrolling to the bottom of the page and clicking 'Next'
-
 ---
 
 == All lab components
 
-*The Core Lab components* section will highlight all of the applications used in the OpenShift Security Roadshow.
+During the roadshow, you will utilize the following applications:
 
-*The Additional applications* section will contain other optional applications for you to test out and play around with on your own time. 
-
-IMPORTANT: If any of the *mandatory* values are cannot be found below please contact your administrator. 
-
-== Core Lab components
-
-In this section, you will utilize the following applications:
-
-* Red Hat^(R)^ OpenShift Container Platform (OCP) console
+* Red Hat^(R)^ OpenShift Container Platform (RHOCP) console
+* Red Hat^(R)^ Advanced Cluster Management (RHACM) console with OpenShift GitOps (ArgoCD)
 * Red Hat^(R)^ Advanced Cluster Security (RHACS) console
 * Red Hat^(R)^ Quay console
+* Red Hat^(R)^ Trusted Application Signer (RHTAS)
 * Red Hat^(R)^ Enterprise Linux (RHEL) bastion host ("Showroom" lab environment) 
 
 To complete all of the lab tasks.
@@ -64,36 +49,6 @@ To complete all of the lab tasks.
 |Password| {quay_admin_password}
 |=== 
 
-=== Red Hat^(R)^ Enterprise Linux (RHEL) bastion host information
-[cols="1,1"]  
-|=== 
-|Username@host| {bastion_ssh_user_name}@{bastion_public_hostname}
-|Password| {bastion_ssh_password}
-|=== 
-
-== Additional applications
-
-IMPORTANT: All of the applications below are not necessary during the workshop. However, they are available for you to explore on your own time.  
-
-=== Red Hat^(R)^ Devspaces information
-[cols="1,1"]  
-|=== 
-|Console URL|{devspaces_url}
-|Username| {devspaces_user}
-|Password| {devspaces_user_password}
-|=== 
-
-=== Red Hat^(R)^ Developer Hub (RHDP) information
-[cols="1,1"]  
-|=== 
-|Console URL| {rhdh_url}
-|Username| {rhdh_user}
-|Password| {rhdh_user_password}
-|RH ID Provider| {rhdh_id_provider}
-|=== 
-
-
-
 === Red Hat^(R)^ Trusted Profile Analyzer (RHTAP) information
 [cols="1,1"]  
 |=== 
@@ -102,26 +57,9 @@ IMPORTANT: All of the applications below are not necessary during the workshop. 
 |Password| {tpa_password}
 |=== 
 
-=== GitLab
+=== Red Hat^(R)^ Enterprise Linux (RHEL) bastion host information
 [cols="1,1"]  
 |=== 
-|Console URL| {gitlab_url}
-|Username| {gitlab_user}
-|Password| {gitlab_user_password}
-|=== 
-
-=== ArgoCD information
-[cols="1,1"]  
-|=== 
-|Console URL| {argocd_url}
-|Username| {argocd_user}
-|Password| {argocd_user_password}
-|=== 
-
-=== Sonarcube
-[cols="1,1"]  
-|=== 
-|Console URL| {sonarqube_url} 
-|Username| {sonarqube_username}
-|Password| {sonarqube_password}
+|Username@host| {bastion_ssh_user_name}@{bastion_public_hostname}
+|Password| {bastion_ssh_password}
 |=== 

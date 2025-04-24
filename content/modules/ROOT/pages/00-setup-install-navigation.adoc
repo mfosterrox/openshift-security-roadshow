@@ -53,16 +53,10 @@ Let's ensure that you have access to the RHACS User Interface.
 
 [start=1]
 . Log into the RHACS console at `{acs_route}`
-. Click the "Advanced" button in your browser
 
-image::01-rhacs-advanced.png[RHACS login not private] 
+image::01-rhacs-login.png[RHACS console]
 
-[start=3]
-. Click "Proceed to {acs_route}"
-
-image::01-rhacs-proceed.png[RHACS login proceed]
-
-[start=4]
+[start=2]
 . Enter the RHACS credentials 
 
 [cols="1,1"]
@@ -71,15 +65,26 @@ image::01-rhacs-proceed.png[RHACS login proceed]
 *RHACS Console Password:* | {acs_portal_password} |
 |===
 
-image::01-rhacs-login.png[RHACS console]
 
 image::01-rhacs-console-dashboard.png[RHACS console]
 
 === Access the Red Hat^(R)^ Quay user interface 
 
-Your Red Hat Quay console is available at: {quay_console_url}[window=blank]
+Red Hat Quay is an enterprise-grade container registry that provides a secure, scalable, and highly available solution for storing and managing container images. It offers integrated security scanning, access controls, and image signing to help ensure the integrity and security of containerized applications across hybrid and multi-cloud environments, including Red Hat OpenShift, AWS, Azure, and Google Cloud.
 
-Administrator login is available with:
+---
+
+Let's ensure that you have access to the RHACS User Interface.
+
+*Procedure*
+
+[start=1]
+. Log into the Quay console at {quay_console_url}
+
+image::01-quay-login.png[link=self, window=blank, width=100%]
+
+[start=2]
+. Enter the Quay credentials 
 
 [source,sh,subs="attributes",role=execute]
 
@@ -89,6 +94,7 @@ Administrator login is available with:
 *Quay Console Password:* | {quay_admin_password} |
 |===
 
+image::01-quay-success.png[link=self, window=blank, width=100%]
 
 === OpenShift admin access verification
 
@@ -310,7 +316,7 @@ Scan results for image: quay.io/mfoster/dvwa
 +---------------------------+                         +---------------------+-----------+-----------------------------------------------------------------+---------------+
 |        zlib1g-dev         |                         |   CVE-2023-45853    | CRITICAL  |         https://nvd.nist.gov/vuln/detail/CVE-2023-45853         |       -       |
 +---------------------------+-------------------------+---------------------+-----------+-----------------------------------------------------------------+---------------+
-WARN:   A total of 1249 unique vulnerabilities were found in 106 components
+WARN:   A total of 1265 unique vulnerabilities were found in 106 components
 ----
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNxZGd5Zm5qMnlpOHhrbm1hY2pwcG5ydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p18ohAgD3H60LSoI1C/giphy.gif[link=self, window=blank, width=100%, class="center"]
@@ -759,7 +765,7 @@ NOTE: Toggling for fixable/unfixable vulnerabilities is an excellent way for dev
 
 *Procedure*
 
-. Run the following command to test the RHACS/Quay integration
+Run the following command to test the RHACS/Quay integration
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -779,12 +785,143 @@ TIP: The following output can be configured using flags. You can configure diffe
 WARN:   A total of 38 unique vulnerabilities were found in 8 components
 ----
 
+=== Deploy you're newly built application
+
+The last step is to deploy the skupper application with your specific frontend container. You will do this buy altering an existing manifest.
+
+*Procedure*
+
+. Run the following commands in the terminal, one after the other.
+
+====
+This commands set's new variables for the skupper example and clones the manifests
+====
+
+[source,sh,subs="attributes",role=execute]
+----
+git clone https://github.com/mfosterrox/skupper-security-demo.git skupper-app
+echo export APP_HOME="$(pwd)/skupper-app" >> ~/.bashrc
+export APP_HOME="$(pwd)/skupper-app"
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+Cloning into 'skupper-app'...
+remote: Enumerating objects: 41, done.
+remote: Counting objects: 100% (41/41), done.
+remote: Compressing objects: 100% (29/29), done.
+remote: Total 41 (delta 17), reused 31 (delta 11), pack-reused 0 (from 0)
+Receiving objects: 100% (41/41), 10.93 KiB | 10.93 MiB/s, done.
+Resolving deltas: 100% (17/17), done.
+----
+
+====
+Next, swap the default image repo for the local Quay one container the frontend app you built
+====
+
+[source,sh,subs="attributes",role=execute]
+----
+sed -i "s|quay.io/mfoster/frontend:latest|$QUAY_URL/$QUAY_USER/frontend:0.1|g" $APP_HOME/skupper-demo/frontend.yml
+----
+
+[.console-output]
+[source,yaml,subs="+macros,+attributes"]
+----
+[lab-user@bastion skupper-demo]$ sed -i "s|quay.io/mfoster/frontend:latest|$QUAY_URL/$QUAY_USER/frontend:0.1|g" $APP_HOME/skupper-demo/frontend.yml
+----
+
+====
+Verify the swap was successful
+====
+
+[source,sh,subs="attributes",role=execute]
+----
+cat $APP_HOME/skupper-demo/frontend.yml
+----
+
+[.console-output]
+[source,yaml,subs="+macros,+attributes"]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: frontend
+    demo: roadshow
+  name: frontend
+  namespace: patient-portal
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: quay-h2xfr.apps.cluster-h2xfr.h2xfr.sandbox2437.opentlc.com/quayadmin/frontend:0.1 
+		  
+		  (For example: Yours will be different)
+
+          imagePullPolicy: Always
+          env:
+----
+
+====
+Next, deploy the application with your updated manifests
+====
+
+[source,sh,subs="attributes",role=execute]
+----
+oc apply -f $APP_HOME/skupper-demo/
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+namespace/patient-portal created
+deployment.apps/database created
+service/database created
+deployment.apps/frontend created
+route.route.openshift.io/frontend-patient-route created
+service/frontend-service created
+deployment.apps/payment-processor created
+service/payment-service created
+----
+
+====
+And lastly, verify that the application is running.
+====
+
+[source,sh,subs="attributes",role=execute]
+----
+oc get pods -n patient-portal
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion skupper-demo]$ oc get pods -n patient-portal
+NAME                                 READY   STATUS    RESTARTS   AGE
+database-758f8f75f7-46ndf            1/1     Running   0          56s
+frontend-5c487dcb47-7gsm7            1/1     Running   0          54s
+frontend-5c487dcb47-f25hm            1/1     Running   0          54s
+frontend-5c487dcb47-z9stn            1/1     Running   0          54s
+payment-processor-6644dfc5b7-5vzqh   1/1     Running   0          51s
+payment-processor-6644dfc5b7-96jb6   1/1     Running   0          51s
+payment-processor-6644dfc5b7-9vl7b   1/1     Running   0          51s
+----
+
 == Summary
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNxZGd5Zm5qMnlpOHhrbm1hY2pwcG5ydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p18ohAgD3H60LSoI1C/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
-*Beautiful!*
+*Great Job!*
 
-In this module, you got access to all of the lab UI's and interfaces including the Showroom lab enviroment (Where you are reading this sentence). You downloaded and deployed some very insecure applications and setup the lab full of examples to dive into. 
+Now that the setup is all done, you are ready to move on with RHACS and dive into the security considerations. 
 
 On to *Visibility and Navigation*!!

@@ -4,7 +4,6 @@
 
 The goal of this lab is to learn about the features from the Trusted Software Supply Chain suite of products from Red Hat. 
 
-
 == Trusted Artifact Signer
 Red Hat Trusted Artifact Signer(TAS) enhances software supply chain security by simplifying cryptographic signing and verification of software artifacts, such as container images, binaries, and documents. 
 
