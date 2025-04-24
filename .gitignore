@@ -1,6 +1,7 @@
 www/*
 !www/.gitkeep
 
+
 *.html
 target/
 !.mvn/wrapper/maven-wrapper.jar
@@ -49,4 +50,5 @@ node_modules
 .firebase
 
 # annoying file
-/.vscode/*.code-workspace
+.vscode/*.code-workspace
+.vscode/
