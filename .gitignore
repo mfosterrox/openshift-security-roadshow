@@ -1,5 +1,6 @@
 .DS_Store
 .cache
+content/modules/ROOT/pages/openshift-security-roadshow.code-workspace
 node_modules
 www
 .editorconfig
