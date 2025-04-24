@@ -14,6 +14,7 @@ def ssh_to_bastion(bastion_host, bastion_port, bastion_user, password, command, 
     :param output_file: The file to write the output to on the bastion host
     :return: The output from the command executed
     """
+    
     # Initialize SSH client
     ssh_client = paramiko.SSHClient()
     
@@ -66,17 +67,34 @@ def main():
 
     # Bash commands to run on the bastion host
     command = f"""
-    mkdir -p {output_folder} 
+    mkdir -p {output_folder}
     touch {output_file}
-    sleep 2  # Add sleep to allow previous commands to finish
+    sleep 1  # Add sleep to allow previous commands to finish
     echo "Starting script execution..." > {output_file}
-    uptime >> {output_file}
-    sleep 2  # Add sleep to allow previous commands to finish
+    sleep 1  # Add sleep to allow previous commands to finish
+
+    # Check if the Quay URL is available
+    curl -I "$QUAY_URL/repository/quayadmin/frontend/"
+    if [ $? -eq 0 ]; then
+        echo "Module 0 success" >> {output_file}
+    else
+        echo "Module 0 failed" >> {output_file}
+        exit 1  # Exit the script if the command fails
+    fi
+
+    # Check if the policy is finished
     curl --insecure -X GET https://${{ROX_CENTRAL_ADDRESS}}/v1/policies \
     -H "Authorization: Bearer ${{ROX_API_TOKEN}}" \
-    -H "Content-Type: application/json" | jq '.policies[] | select(.name == "finished-1-policy") | {{id: .id, name: .name}}' >> {output_file}
-    sleep 2  # Allow curl to complete before moving to next command
-    echo "module 1 complete" >> {output_file}
+    -H "Content-Type: application/json" | jq '.policies[] | select(.name == "finished-1-policy") | {{id: .id, name: .name}}'
+    if [ $? -eq 0 ]; then
+        echo "Module 1 success" >> {output_file}
+    else
+        echo "Module 1 failed" >> {output_file}
+        exit 1  # Exit the script if the command fails
+    fi
+
+    # If all commands succeed, print completion
+    echo "Completion" >> {output_file}
     """
     
     # Run the command and capture output
