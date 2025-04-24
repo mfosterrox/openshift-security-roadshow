@@ -80,10 +80,10 @@ A search query consists of two parts:
 - A search term that finds the matching resource.
 
 ====
-For example, to find all violations in the *ctf-web-to-system* deployment, the search query is Deployment *THEN* ctf-web-to-system.
+For example, to find all violations in the *frontend* deployment, the search query is select Deployment *THEN* frontend.
 ====
 
-In this search query, Deployment is the attribute, and ctf-web-to-system is the search term.
+In this search query, Deployment is the attribute, and *frontend* is the search term.
 
 TIP: The search field in RHACS requires each attribute to be entered fully as a search term. Enter your first attribute, and hit the <tab> key to move along to the following attribute you would like to enter. Watch the video below for a demonstration.
 
@@ -118,8 +118,6 @@ IMPORTANT: RHACS, like Kubernetes, works on a *key:value* system primarily due t
 
 image::acs-search-cve.png[link=self, window=blank, width=100%, Search Syntax]
 
-NOTE: This is just a sample of the types of queries you can use to analyze your environment in RHACS. For additional examples of search queries, please see the RHACS documentation.
-
 ==== Local page filtering
 
 You can use local page filtering from within all views in the RHACS portal. Local page filtering works similarly to the global search, but only relevant attributes are available. You can select the search bar to show all available attributes for a specific view.
@@ -138,7 +136,7 @@ As you can see, the content is only relevant to the violations tab, but the sear
 
 === 2. Navigation menu
 
-image::acs-nav-01.png[link=self, window=blank, width=100%, Navigation Menu]
+image::01-acs-nav.png[link=self, window=blank, width=100%, Navigation Menu]
 
 The left-hand navigation menu provides access to each of the security use cases, as well as product configuration to integrate RHACS with your existing tooling. The navigation menu has the following items:
 
@@ -306,7 +304,7 @@ image::00-vuln-1.png[link=self, window=blank, width=100%]
 
 The Vulnerability Management tab contains *a lot* of information including 
 
-- Workload CVEs
+- Results
 - Exception Management
 - Vulnerability Reporting
 - Platform CVEs
@@ -400,6 +398,59 @@ The administration events tab is handy for troubleshooting platform issues by re
 image::00-pc-9.png[link=self, window=blank, width=100%]
 
 And lastly, the system Health Tap will help you handle things like Administration usage, generate diagnostic bundles that you monitor cluster status sensor upgrades, credential expiration, and more.
+
+== Throw up a bat signal!
+
+*Let us know you're done by running the following command*
+
+[source,sh,subs="attributes",role=execute]
+----
+curl --insecure -X POST https://${ROX_CENTRAL_ADDRESS}/v1/policies \
+-H "Authorization: Bearer ${ROX_API_TOKEN}" \
+-H "Content-Type: application/json" \
+-d '{
+  "apiVersion": "rhacs.stackrox.io/v1",
+  "kind": "Policy",
+  "name": "finished-1-policy", 
+  "description": "", 
+  "rationale": "", 
+  "remediation": "", 
+  "disabled": true,
+  "categories": [
+    "Vulnerability Management"
+  ],
+  "lifecycleStages": ["BUILD"],
+  "eventSource": "NOT_APPLICABLE",
+  "exclusions": [],
+  "scope": [],
+  "severity": "LOW_SEVERITY",
+  "enforcementActions": [],
+  "notifiers": [],
+  "policyVersion": "1.1",
+  "policySections": [
+    {
+      "sectionName": "Rule 1",
+      "policyGroups": [
+        {
+          "fieldName": "Image Tag",
+          "booleanOperator": "OR",
+          "negate": false,
+          "values": [
+            {
+              "value": "done-1"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "mitreAttackVectors": [],
+  "criteriaLocked": false,
+  "mitreVectorsLocked": false,
+  "isDefault": false,
+  "source": "IMPERATIVE"
+}'
+----
 
 == Summary
 
