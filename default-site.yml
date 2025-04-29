@@ -1,4 +1,3 @@
----
 site:
   title: OpenShift Security Roadshow
   url: https://www.redhat.com/en/events/openshift-roadshows/security
@@ -6,8 +5,8 @@ site:
 
 content:
   sources:
-    - url: .
-      start_path: content
+    - url: .  # Ensures that the content directory is specified correctly
+      start_path: content  # This assumes that the root of your content directory holds the AsciiDoc files
 
 ui:
   bundle:
@@ -15,7 +14,7 @@ ui:
     snapshot: true
 
 runtime:
-  cache_dir: ./.cache/antora
+  cache_dir: ./.cache/antora  # Keeps your cache in a dedicated folder within the project
 
 output:
-  dir: ./www
+  dir: ./www  # Ensures Antora's generated site is saved here

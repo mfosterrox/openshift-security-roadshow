@@ -8,15 +8,17 @@
 * xref:07-notifications.adoc[7. Notifications and Alerting]
 * xref:08-api.adoc[8. API Walkthrough]
 * xref:09-network-security.adoc[9. Network Security]
-* xref:10-installation.adoc[10. Installation]
+* xref:10-tssc.adoc[10. Trusted Software Supply Chain]
+* xref:11-installation.adoc[11. Installation]
 
 //Day 2 modules
 
 //Extra modules
-
-* xref:11-tssc.adoc[MISC: Trusted Software Supply Chain]
 * xref:misc-hacking-linux.adoc[MISC: CTF - hack a web application]
 * xref:misc-log-4-shell-lab.adoc[MISC: log4shell example]
+
+
+
 // * xref:partner-paladin.adoc[Partner - Paladin Cloud & RHACS Integration]
 
 
