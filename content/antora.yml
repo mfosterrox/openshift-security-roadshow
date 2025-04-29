@@ -3,9 +3,6 @@ title: Red Hat OpenShift Roadshow
 version: master
 nav:
   - modules/ROOT/nav.adoc
-start_page: 
-  -  modules/ROOT/pages/index.adoc
-
 
 asciidoc:
   attributes:

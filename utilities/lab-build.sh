@@ -6,7 +6,7 @@ echo "Removing old site..."
 rm -rf ./www/*
 echo "Building new site..."
 
-npx antora --fetch default-site.yml
+npx antora --fetch default-site.yml --stacktrace
 
 echo "Build process complete. Check the ./www folder for the generated site."
 echo "To view the site locally, run the following command: utilities/lab-serve"
