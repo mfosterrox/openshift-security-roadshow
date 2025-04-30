@@ -2,7 +2,7 @@
 
 == Module goals
 * Setup the Compliance Operator
-* Understand the Compliance 1.0 and 2.0 dashboard
+* Understand the Compliance dashboard
 * Schedule a scan in the Compliance Coverage dashboard
 
 == Compliance Operator and Compliance in ACS

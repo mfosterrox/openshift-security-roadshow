@@ -93,6 +93,39 @@ def main():
         exit 1  # Exit the script if the command fails
     fi
 
+    # Check if the colleciton has been created
+    curl --insecure -X GET "https://$ROX_CENTRAL_ADDRESS/v1/collections?name=frontend-collection" \
+    -H "Authorization: Bearer $ROX_API_TOKEN" \
+    -H "Content-Type: application/json"
+    if [ $? -eq 0 ]; then
+        echo "Module 2 success" >> {output_file}
+    else
+        echo "Module 2 failed" >> {output_file}
+        exit 1  # Exit the script if the command fails
+    fi
+
+    # Check if the policy is finished
+    curl --insecure -X GET https://$ROX_CENTRAL_ADDRESS/v1/reports \
+    -H "Authorization: Bearer $ROX_API_TOKEN" \
+    -H "Content-Type: application/json"
+    if [ $? -eq 0 ]; then
+        echo "Module 3 success" >> {output_file}
+    else
+        echo "Module 3 failed" >> {output_file}
+        exit 1  # Exit the script if the command fails
+    fi
+
+    # Check if the policy is finished
+    curl --insecure -X GET https://${{ROX_CENTRAL_ADDRESS}}/v1/policies \
+    -H "Authorization: Bearer ${{ROX_API_TOKEN}}" \
+    -H "Content-Type: application/json" | jq '.policies[] | select(.name == "Alpine Linux Package Manager in Image - Enforce Build") | {{id: .id, name: .name}}'
+    if [ $? -eq 0 ]; then
+        echo "Module 4 success" >> {output_file}
+    else
+        echo "Module 4 failed" >> {output_file}
+        exit 1  # Exit the script if the command fails
+    fi
+
     # If all commands succeed, print completion
     echo "Completion" >> {output_file}
     """

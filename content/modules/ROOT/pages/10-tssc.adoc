@@ -1,10 +1,11 @@
-== Module 11: Trusted Software Supply Chain
+= Trusted Software Supply Chain
 
-=== Goal of Module 11
+== Module Goals
 
 The goal of this lab is to learn about the features from the Trusted Software Supply Chain suite of products from Red Hat. 
 
 == Trusted Artifact Signer
+
 Red Hat Trusted Artifact Signer(TAS) enhances software supply chain security by simplifying cryptographic signing and verification of software artifacts, such as container images, binaries, and documents. 
 
 Trusted Artifact Signer provides a production-ready deployment of the https://www.sigstore.dev/[Sigstore project] as a core component of the Red Hat Trusted Software Supply Chain product family.
@@ -136,9 +137,14 @@ requirements.
 
 
 === Setup 
-For this exercise, we'll be using the container image in Quay that we created during our Lab setup xref:00-setup-install-navigation.adoc#build-a-container-image[Build a container image]
+
+For this exercise, we'll be using the container image in Quay that we created during our lab setup xref:00-setup-install-navigation.adoc#build-a-container-image[Build a container image]
 
 NOTE: Make sure you still have the variables set. If not, please go through the xref:00-setup-install-navigation.adoc#build-a-container-image[Build a container image] section again to setup your environment and make sure you have pushed the image to Quay.
+
+*Procedure*
+
+. Run the following command in the terminal
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -146,15 +152,24 @@ echo $QUAY_USER
 echo $QUAY_URL
 ----
 
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+quayadmin
+quay-88k5s.apps.cluster-88k5s.88k5s.sandbox139.opentlc.com
+----
+
 For signing and verification of container images, we'll be using the `cosign` CLI binary, which has already been installed in your bastion host (and can also be downloaded from the OpenShift Console).
 
 `cosign` can as easily be used in any CI/CD toolchain as we use it here and handles all the communication with the Sigstore / Trusted Artifact Signer services that request certificates, handle the OIDC authentication, store info in the transparency log (Rekor), etc.
+
+[start=2]
+. Run the following command in the terminal
 
 [source,sh,subs="attributes",role=execute]
 ----
 cosign version
 ----
-
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
@@ -177,15 +192,16 @@ Compiler:      gc
 Platform:      linux/amd64
 ----
 
-`cosign` needs to be initialized with all the required endpoints that it communicates with. Additionally, during initialization, it will download the public trust root certificate in a local cache.
+> `cosign` needs to be initialized with all the required endpoints that it communicates with. Additionally, during initialization, it will download the public trust root certificate in a local cache.
 
 This initialization can be done via command line parameters or by setting environment variables that are read when no commandline parameters are present.
 
 NOTE: Cosign itself doesn't need access to OpenShift, but since we have Trusted Artifact Signer installed on OpenShift (a RHEL installation is another deployment option), we will be using some `oc` commands to get the required endpoints.
-Before proceeding, please verify you are still logged in to OpenShift via `oc whoami`
 
-[[setting-up-the-environment-variables]]
-To setup the environment variables, execute this script:
+> Before proceeding, please verify you are still logged in to OpenShift via `oc whoami`
+
+[start=3]
+. Run the following command in the terminal
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -207,9 +223,27 @@ export REKOR_REKOR_SERVER=$COSIGN_REKOR_URL
 env | grep URL
 ----
 
-NOTE: In case you're wondering why we define multiple variables with the same values: The upstream https://www.sigstore.dev/[Sigstore project^] has a long history, and some tools (like `cosign` and `gitsign`) use different environment variables for the same purpose. For various reasons (Open Source principles as well as compatibility), we are not branching off a specialized Red Hat version with simplified environment parameters. While these are maintained in the upstream project, they will be maintained in the Red Hat enterprise-ready version as well. 
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+# to verify URL endpoints have been set
+env | grep URL
+TUF_URL=https://tuf-trusted-artifact-signer.apps.cluster-88k5s.88k5s.sandbox139.opentlc.com
+OIDC_ISSUER_URL=https://keycloak-rhsso.apps.cluster-88k5s.88k5s.sandbox139.opentlc.com/auth/realms/openshift
+QUAY_URL=quay-88k5s.apps.cluster-88k5s.88k5s.sandbox139.opentlc.com
+COSIGN_FULCIO_URL=https://fulcio-server-trusted-artifact-signer.apps.cluster-88k5s.88k5s.sandbox139.opentlc.com
+SIGSTORE_REKOR_URL=https://rekor-server-trusted-artifact-signer.apps.cluster-88k5s.88k5s.sandbox139.opentlc.com
+SIGSTORE_FULCIO_URL=https://fulcio-server-trusted-artifact-signer.apps.cluster-88k5s.88k5s.sandbox139.opentlc.com
+COSIGN_REKOR_URL=https://rekor-server-trusted-artifact-signer.apps.cluster-88k5s.88k5s.sandbox139.opentlc.com
+[lab-user@bastion ~]$ 
+----
 
-As the last step, initialize `cosign`, so it knows who to talk to:
+NOTE: The reason we define multiple variables with the same values is due to the long history of the upstream Sigstore project. Some tools (like cosign and gitsign) use different environment variables for the same purpose. For various reasons, including Open Source principles and compatibility, we are not creating a specialized Red Hat version with simplified environment parameters. These variables will be maintained in both the upstream project and the Red Hat enterprise-ready version.
+
+> As the last step, initialize `cosign`, so it knows who to talk to
+
+[start=4]
+. Run the following command in the terminal.
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -260,13 +294,16 @@ Root status:
 
 === Signing and verifying a container image
 
-`cosign` will be interacting with the image in our private registry, therefore we need to login to Quay:
+`cosign` will be interacting with the image in our private registry, therefore we need to login to Quay
+
+*Procedure*
+
+. Run the following command in the terminal.
 
 [source,sh,subs="attributes",role=execute]
 ----
 cosign login $QUAY_URL -u $QUAY_USER -p {quay_admin_password}
 ----
-
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
@@ -277,32 +314,39 @@ auth.go:203: logged in via /home/lab-user/.docker/config.json
 
 TIP: To verify that the image we created xref:00-setup-install-navigation.adoc#build-a-container-image[here] is still available and cosign can access the image, we can use the `cosign tree` command that checks for signatures, SBOMs (Software Bills of Materials) and attestations (e.g. build provenance attestation): 
 
+[start=2]
+. Run the following command in the terminal.
+
 [source,sh,subs="attributes",role=execute]
 ----
-cosign tree $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+cosign tree $QUAY_URL/$QUAY_USER/frontend:0.1
 ----
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-[lab-user@bastion ~]$ cosign tree $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
-📦 Supply Chain Security Related artifacts for an image: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:1.0
-No Supply Chain Security Related Artifacts artifacts found for image quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:1.0
+[lab-user@bastion ~]$ cosign tree $QUAY_URL/$QUAY_USER/frontend:0.1
+📦 Supply Chain Security Related artifacts for an image: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/frontend:0.1
+No Supply Chain Security Related Artifacts artifacts found for image quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/frontend:0.1
 , start creating one with simply running$ COSIGN_EXPERIMENTAL=1 cosign sign <img>
 ----
 
-As `cosign` suggests, signing this image is as simple as
+> As `cosign` suggests, signing this image is as simple as the following
+
+[start=3]
+. Run the following command in the terminal.
+
 
 [source,sh,subs="attributes",role=execute]
 ----
-cosign sign $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+cosign sign $QUAY_URL/$QUAY_USER/frontend:0.1
 ----
 
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-[lab-user@bastion ~]$ cosign sign $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+[lab-user@bastion ~]$ cosign sign $QUAY_URL/$QUAY_USER/frontend:0.1
 Generating ephemeral keys...
 Retrieving signed certificate...
 
@@ -323,7 +367,8 @@ NOTE: As mentioned above, the signing process ties an identity (an OIDC identity
 
 In this example, the "OAuth2 browser based flow" is used. In other words, you will authenticate to the OIDC system by user and password via a browser login. We are running `cosign` in a `ssh` session with no connection to your system, therefore the check for a browser to open the login page fails: `error opening browser: exec: "xdg-open": executable file not found in $PATH` 
 
-Copy the URL and paste it in a new browser window or tab and login - use the following credentials: 
+[start=4]
+. Copy the URL and paste it in a new browser window or tab and login - use the following credentials
 
 [cols="2,2"]
 |===
@@ -337,13 +382,18 @@ image::11-signing-successcode.png[copy the success code]
 
 IMPORTANT: Make sure to copy the whole code, as it is longer than the text box.
 
+NOTE: You may have to run `rm -rf ~/.sigstore` if you get a cache error.
+
+[start=5]
+. Enter verification code:
+
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
 Enter verification code: 3cc0c9fc-db2e-4920-ba2e-7adac8c685cb.6309e23d-facd-4bca-8855-0443a3c4ddf5.d8370879-39c7-41ec-99ab-669101e99f91
 
 Successfully verified SCT...
-WARNING: Image reference quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:1.0 uses a tag, not a digest, to identify the image to sign.
+WARNING: Image reference quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/frontend:0.1 uses a tag, not a digest, to identify the image to sign.
     This can lead you to sign a different image than the intended one. Please use a
     digest (example.com/ubuntu@sha256:abc123...) rather than tag
     (example.com/ubuntu:latest) for the input to cosign. The ability to refer to
@@ -357,18 +407,26 @@ Pushing signature to: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/
 
 With one command, you have signed the container image and pushed the container image to the registry. Furthermore, the signing event and its metadata have been recorded in the *Rekor* transparency log: `tlog entry created with index: 1` 
 
-To check, we can again use `cosign tree`:
+> To check, we can again use `cosign tree`
+
+[start=6]
+. Run the following command in the terminal.
+
+[source,sh,subs="attributes",role=execute]
+----
+cosign tree $QUAY_URL/$QUAY_USER/frontend:0.1
+----
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-[lab-user@bastion ~]$ cosign tree $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
-📦 Supply Chain Security Related artifacts for an image: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:1.0
+[lab-user@bastion ~]$ cosign tree $QUAY_URL/$QUAY_USER/frontend:0.1
+📦 Supply Chain Security Related artifacts for an image: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/frontend:0.1
 └── 🔐 Signatures for an image tag: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:sha256-4530d5e1556631804ce21d37271b0d3f173c350956f2312421db0840fd103c82.sig
    └── 🍒 sha256:f638a989546b998409719e3eb78c0843d880e0bbb5237afa831da685fee48880
 ----
 
-We can also login to Quay at {quay_console_url} using the Quay credentials
+> We can also login to Quay at {quay_console_url} using the Quay credentials
 
 [cols="2,2"]
 |===
@@ -380,14 +438,16 @@ Quay recognizes the `cosign` image signature, too!
 
 image::11-quay-signed-image.png[link=self, window=blank, width=100%]
 
-NOTE: You might ask yourselves - ok, but how would a pipeline task authenticate itself? A pipeline task can't open a browser to login... 
-*Trusted Artifact Signer / Sigstore* (and the `cosign` tool as part of it) doesn't authenticate the user itself, but instead asks the *OIDC system* configured to authenticate the request before issuing a signing certificate. Therefore, all the flexibility of OIDC systems for authentication is available.
+----
+Here's the cleaned-up version of your message:
 
-For example, *GitHub Actions* and *GitLab CI/CD* can pass the OIDC identity of the pipeline runner via OIDC tokens into the pipeline. 
+You might be wondering how a pipeline task authenticates itself, since it can't open a browser to log in. Trusted Artifact Signer / Sigstore (including the cosign tool) doesn't authenticate the user directly. Instead, it relies on the OIDC system to authenticate the request before issuing a signing certificate. This allows the full flexibility of OIDC systems for authentication.
 
-In general, continuous integration (CI) systems focus on providing the identity of the build or deployment environment rather than the personal identity of a triggering user, to maintain least privilege and ensure reproducibility. 
+For example, GitHub Actions and GitLab CI/CD can pass the OIDC identity of the pipeline runner via OIDC tokens into the pipeline.
 
-But, depending on your CI setup and requirements, you can leverage the flexibility of OIDC to meet your needs.
+In general, continuous integration (CI) systems focus on providing the identity of the build or deployment environment rather than the personal identity of the user who triggered it. This helps maintain least privilege and ensures reproducibility.
+
+However, depending on your CI setup and requirements, you can leverage the flexibility of OIDC to meet your specific needs.
 
 **EXAMPLE**
 
@@ -432,17 +492,17 @@ WARNING: This is just an example - naturally, in your own CI system, you would n
 
 [source,sh,subs="attributes",role=execute]
 ----
-cosign sign -y --identity-token=$OIDC_TOKEN $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+cosign sign -y --identity-token=$OIDC_TOKEN $QUAY_URL/$QUAY_USER/frontend:0.1
 ---- 
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-[lab-user@bastion ~]$ cosign sign -y --identity-token=$OIDC_TOKEN $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+[lab-user@bastion ~]$ cosign sign -y --identity-token=$OIDC_TOKEN $QUAY_URL/$QUAY_USER/frontend:0.1
 Generating ephemeral keys...
 Retrieving signed certificate...
 Successfully verified SCT...
-WARNING: Image reference quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:1.0 uses a tag, not a digest, to identify the image to sign.
+WARNING: Image reference quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/frontend:0.1 uses a tag, not a digest, to identify the image to sign.
     This can lead you to sign a different image than the intended one. Please use a
     digest (example.com/ubuntu@sha256:abc123...) rather than tag
     (example.com/ubuntu:latest) for the input to cosign. The ability to refer to
@@ -484,21 +544,21 @@ Verifying an image signature is even easier than signing:
 
 [source,sh,subs="attributes",role=execute]
 ----
-cosign verify --certificate-identity jdoe@redhat.com $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 | jq
+cosign verify --certificate-identity jdoe@redhat.com $QUAY_URL/$QUAY_USER/frontend:0.1 | jq
 ----
 
 In this case, we are asking `cosign` (and therefore *Trusted Artifact Signer*) to verify if `jdoe@redhat.com` has signed this image. We can also use regular expressions, to check if anyone from Red Hat has signed this image, using `--certificate-identity-regexp`:
 
 [source,sh,subs="attributes",role=execute]
 ----
-cosign verify --certificate-identity-regexp ^[a-zA-Z0-9._%+-]+@redhat\.com$ $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 | jq
+cosign verify --certificate-identity-regexp ^[a-zA-Z0-9._%+-]+@redhat\.com$ $QUAY_URL/$QUAY_USER/frontend:0.1 | jq
 ----
 
 We can also verify that the person (to be correct, the OIDC identity) who signed the image was authenticated against a specific OIDC Issuer (using the `--certificate-oidc-issuer` flag) or against an OIDC Issuer somewhere in our domain:
 
 [source,sh,subs="attributes",role=execute]
 ----
-cosign verify --certificate-identity jdoe@redhat.com --certificate-oidc-issuer-regexp \.opentlc\.com $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 | jq
+cosign verify --certificate-identity jdoe@redhat.com --certificate-oidc-issuer-regexp \.opentlc\.com $QUAY_URL/$QUAY_USER/frontend:0.1 | jq
 ----
 
 NOTE: We are using `jq` for readability in these examples, it is not required.
@@ -506,9 +566,9 @@ NOTE: We are using `jq` for readability in these examples, it is not required.
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-[lab-user@bastion ~]$ cosign verify --certificate-identity jdoe@redhat.com --certificate-oidc-issuer-regexp \.opentlc\.com $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 | jq
+[lab-user@bastion ~]$ cosign verify --certificate-identity jdoe@redhat.com --certificate-oidc-issuer-regexp \.opentlc\.com $QUAY_URL/$QUAY_USER/frontend:0.1 | jq
 
-Verification for quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system:1.0 --
+Verification for quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/frontend:0.1 --
 The following checks were performed on each of these signatures:
   - The cosign claims were validated
   - Existence of the claims in the transparency log was verified offline
@@ -542,7 +602,6 @@ The following checks were performed on each of these signatures:
     }
   }
 ----
-
 
 === Signing and verifying git commits
 

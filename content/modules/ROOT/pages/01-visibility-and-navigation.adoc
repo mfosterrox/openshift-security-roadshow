@@ -209,7 +209,7 @@ With these widgets, you can customize the information displayed on the dashboard
 
 We are going to work from the top down throughout the ACS dashboard to give you an overview of all of the use cases that ACS will cover, starting with the network UI.
 
-=== Network 
+=== Network Security
 
 The network user interface contains two drop-downs: the *Network Graph* tab and the *Listening Endpoints* tab. 
 
@@ -282,9 +282,7 @@ The Compliance dashboard will be empty when you're here for the first time. This
 
 image::01-compliance-3.png[link=self, window=blank, width=100%]
 
-.Procedure
-
-> Hit the *Scan environment* button in the top right of the page to kick off your first scan. 
+> Click the *Scan environment* button in the top right of the page to kick off your first scan. 
 
 image::01-compliance-4.png[link=self, window=blank, width=100%]
 
@@ -317,7 +315,7 @@ image::01-vuln-2.png[link=self, window=blank, width=100%]
 
 === Configuration Management
 
-The Configuration Management tab contains a bunch of information about the security configuration across your OpenShift and Kubernetes clusters
+The Configuration Management tab contains a bunch of information about the security configuration across your OpenShift and Kubernetes clusters.
 
 image::01-config-1.png[link=self, window=blank, width=100%]
 
@@ -460,4 +458,4 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcTYwZWZlazBoanhlcXV3Njkx
 
 Nice job!
 
-In this module, you learned how to navigate the ACS dashboard and perform basic search queries. You have the navigational basics to move through the ACS UI proficiently. On to *Vulnerability Management*!!
+In this module, you learned how to navigate the ACS dashboard and perform basic search queries. You have the navigational basics to move through the ACS UI proficiently. On to *Vulnerability Management*!

@@ -1,11 +1,130 @@
 = CI/CD and Automation
 
 == Module goals
-* Trigger build-time violations for images and deployments on the command line and CI/CD pipelines
-* Enforce a container image vulnerability violation at build time
-* Codify an image vulnerability violation enforcement in a pipeline
-* Explore warnings about deployment attributes from the command line
 
+
+== Implement Policy-as-Code in ACM with OpenShift GitOps
+
+Here, you will manage ACS security policies via RHACM and OpenShift GitOps. First, you must create an ArgoCD controller in RHACM.
+
+===  RHACM console access
+
+The RHACM console is available in the OpenShift cluster console at: {openshift_console_url}
+
+Administrator login is available with:
+
+[cols="1,1"]
+|===
+| *Username:* | kubeadmin 
+| *Password:* | {openshift_kubeadmin_password}
+|===
+
+Navigate to the *Cluster* drop down menu and then select *All Clusters*. 
+
+image::05-acm-00.png[link=self, window=blank, width=100%, Cluster Selection Menu]
+
+=== Implement security policy-as-code
+
+*Procedure*
+
+. Navigate to *Applications* from the left side menu.
+
+image::05-acm-02.png[link=self, window=blank, width=100%]
+
+[start=2]
+. Click *Create application, select ArgoCD AppicationSet-Push Model*.
+. Configure the Application:
+* Name: Give the application a name, e.g., pac-custom-policies.
+* Select the Argo server, "openshift-gitops"
+. Under the Argo server select *Add Argo Server* 
+
+image::05-acm-03.png[link=self, window=blank, width=100%]
+
+[start=5]
+. Enter the following information:
+* *Name:* openshift-gitops
+* *Namespace:* openshift-gitops
+* *ClusterSet:* default
+. Click "Add"
+
+image::05-acm-04.png[link=self, window=blank, width=100%]
+
+link:https://github.com/mfosterrox/skupper-security-demo/tree/main/PaC-custom-policies[PaC Custom Policies on GitHub]
+
+
+[start=7]
+. Click "*Next*"
+. In the Template tab, select *Git Repository* and enter the URL of the GitHub repository containing the custom policies - URL: https://github.com/mfosterrox/skupper-security-demo.git
+. Select "Main"
+. Select "PaC-custom-policies"
+. Enter the remote namespace of "stackrox"
+
+image::05-acm-05.png[link=self, window=blank, width=100%]
+
+[start=12]
+. Click "*Next* TWICE"
+. Set the following in the Placement tab
+* Cluster sets: *default*
+. Under *Label expressions* click *add label* and select the following
+* *Label:* name
+* *Operator:* equals any of
+* *Values:* local-cluster
+
+image::05-acm-06.png[link=self, window=blank, width=100%]
+
+[start=14]
+. Click "*Next*"
+. Click "*Submit*"
+
+== Ensure that the policies are properly configured
+
+Let's run the check again to check if the policies were successful.
+
+*Procedure*
+
+[start=1]
+. Perform an image security scan using roxctl to check for policy violations.
+
+[source,sh,subs="attributes",role=execute]
+----
+roxctl -e $ROX_CENTRAL_ADDRESS:443 image check --image $QUAY_URL/$QUAY_USER/frontend:0.1
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+WARN:   A total of 4 policies have been violated
+ERROR:  failed policies found: 2 policies violated that are failing the check
+ERROR:  Policy "Alpine Linux Package Manager (apk) in Image - Build and Deploy - Enforce" - Possible remediation: "Run `apk --purge del apk-tools` in the image build for production containers."
+ERROR:  Policy "Alpine Linux Package Manager in Image - Enforce Build" - Possible remediation: "Run `apk --purge del apk-tools` in the image build for production containers."
+ERROR:  checking image failed: failed policies found: 2 policies violated that are failing the check
+----
+
+> You should see a second APK policy violation, as you have created a second "externally managed" policy in RHACS.
+
+=== Check on your policies
+
+*Procedure*
+
+. Go to the RHACS dashboard and head to the Platform Configuration -> Policy Management dashboard. 
+. Search by `Policy` the `alpine`
+
+image::05-acm-07.png[link=self, window=blank, width=100%]
+
+> Notice how the policies are System, Locally managed, and Externally managed?
+
+What's the difference?
+
+* System policies comes with RHACS by default
+* Locally managed policies are create in RHACS or via the API. 
+* Externally managed policies are managed via GitOps and policy as code.
+
+[start=3]
+. Delete the two locally managed policies by clicking the 3 dots and selecting `Delete policy`
+
+image::05-acm-08.png[link=self, window=blank, width=100%]
+
+> Nice job! 
 
 == Implementing Security Checks into your CI/CD pipeline
 
@@ -26,7 +145,7 @@ Implementing CI/CD security in container builds involves more than just securing
 
 Now, RHACS can be implemented into any CI/CD process as a step in the build-deploy-run lifecycle. RHACS is able to acheive this through the *roxctl CLI* and the *admission controller*. RHACS can implement those image scanning, env variables and compliance checks into those pipelines.  
 
-Let's take a look at a very simple CI/CD pipeline in OpenShift would look like.
+Let's take a look at a very simple CI/CD pipeline in OpenShift Pipelines.
 
 == Review a basic CI/CD pipeline
 
@@ -34,8 +153,9 @@ In this section, we will review a simple pipeline that has been configured in Re
 
 Red Hat^(R)^ OpenShift Pipelines is a Kubernetes-native CI/CD (Continuous Integration/Continuous Deployment) solution that automates the process of building, testing, and deploying applications. It leverages Tekton, a powerful and flexible open-source framework, to create cloud-native pipelines that integrate seamlessly with OpenShift and other Kubernetes environments. This enables developers to define and manage their build and deployment workflows as code, ensuring consistency, scalability, and repeatability across the software development lifecycle.
 
-.Procedure
-.Head over to the OpenShift Console. If you don't have access follow the steps below. If you do proceed to the following section.
+*Procedure*
+
+. Head over to the OpenShift Console. If you don't have access follow the steps below. If you do proceed to the following section.
 
 === Access the Red Hat^(R)^ OpenShift Container Platform (OCP) web console 
 
@@ -72,38 +192,57 @@ You should be directed to the RHACM dashboard. RHACM is intergrated into the Ope
 [start=5]
 . To get to your clusters local OpenShift dashboard click the top dropdown and select *local-cluster*
 
-image::06-cd-1.png[link=self, window=blank, width=100%]
-image::06-cd-2.png[link=self, window=blank, width=100%]
+image::06-cd-01.png[link=self, window=blank, width=100%]
+image::06-cd-02.png[link=self, window=blank, width=100%]
 
 [start=6]
 . Click on the *Pipelines* tab on the left side of the page and select "*Pipelines*" 
 
-image::06-cd-3.png[link=self, window=blank, width=100%]
+> The pipeline we are looking for is called *rox-pipeline* and you can either find it and select it or you can change the *Project to "pipeline-demo"*.
 
-|====
-You should see all of the default pipelines that Red Hat OpenShift and it's operators use to update or fetch information. Most of these have not been run and are simply configuration files. 
-|====
+image::06-cd-03.png[link=self, window=blank, width=100%]
+
+image::06-cd-04.png[link=self, window=blank, width=100%]
 
 [start=7]
-. The pipeline we are looking for is called *rox-pipeline* and you can either find it and select it or you can change the *Project to "pipeline-demo"*.
+. There's no pipeline currently. Let's apply it now.
 
-image::06-cd-4.png[link=self, window=blank, width=100%]
+[source,sh,subs="attributes",role=execute]
+----
+oc apply -f $TUTORIAL_HOME/openshift-pipelines/ --recursive
+----
 
-We haven't run the pipeline yet so let's start one.
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ oc apply -f $TUTORIAL_HOME/openshift-pipelines/ --recursive
+pipeline.tekton.dev/rox-pipeline created
+secret/roxsecrets created
+clustertask.tekton.dev/rox-deployment-check created
+clustertask.tekton.dev/rox-image-check created
+clustertask.tekton.dev/rox-image-scan created
+----
+
+> The pipeline has not been run yet, so start a pipeline run. 
 
 [start=8]
 . Click the three dots on the right side of the screen and select *start*
 
-image::06-cd-5.png[link=self, window=blank, width=100%]
+image::06-cd-05.png[link=self, window=blank, width=100%]
 
-|====
+----
 This pipeline works by taking and image that you have created and passing it through a "roxctl image scan" and a "roxctl image check" process.
-|====
+----
 
 [start=9]
-. Let's use the *ubuntu:latest* image that we used in the previous module.
+. Let's use the *frontend:0.1* image that we've been using all day. Run the following and input it into the image bar.
 
-image::06-cd-6.png[link=self, window=blank, width=100%]
+[source,sh,subs="attributes",role=execute]
+----
+echo $QUAY_URL/$QUAY_USER/frontend:0.1
+----
+
+image::06-cd-06.png[link=self, window=blank, width=100%]
 
 IMPORTANT: The pipeline should fail. 
 
@@ -116,7 +255,7 @@ Let's look at the logs.
 [start=10]
 . Take a look at the log snippet on the bottom right of the page.
 
-image::06-cd-9.png[link=self, window=blank, width=100%]
+image::06-cd-09.png[link=self, window=blank, width=100%]
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
@@ -129,14 +268,13 @@ chmod: cannot access './roxctl': No such file or directory
 
 This snippet indicates that there are incorrect variables. With RHACS, API access is required to query Central for results.
 
-Let's take a look at the secret file necessary for *OpenShift Pipelines*.
+> Let's take a look at the secret file necessary for *OpenShift Pipelines*.
 
 [start=11]
 . Run the following in the terminal.
 
 [source,sh,subs="attributes",role=execute]
 ----
-export TUTORIAL_HOME="$(pwd)/demo-apps"
 ls $TUTORIAL_HOME/openshift-pipelines
 ----
 
@@ -174,18 +312,17 @@ metadata:
   namespace: pipeline-demo
 ----
 
-Ok. So need the RHACS Central endpoint and a API token with the right permissions. Luckily we have the RHACS Central endpoint handy.
-
-Yours is {acs_route} but you can run the following command to update the rox-secrets file with your unique route.
+Ok. So need the RHACS Central endpoint and a API token with the right permissions. Luckily we have the RHACS Central endpoint and an admin access token that we can use.
 
 [start=13]
-. Run the following in the terminal.
+. Run the following in the terminal to update the RHACS Central address and API Token
 
 [source,sh,subs="attributes",role=execute]
 ----
 ACS_URL=$(oc -n stackrox get route central -o jsonpath='{.spec.host}')
 ACS_URL_PORT=$(echo "$ACS_URL" | sed 's/$/:443/')
 sed -i "s|ROXCTL_CENTRAL_ENDPOINT|$ACS_URL_PORT|g" $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
+sed -i "s|API_TOKEN|$ROX_API_TOKEN|g" $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
 ----
 
 [start=14]
@@ -200,84 +337,20 @@ cat $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-[lab-user@bastion pipeline]$ cat $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
 apiVersion: v1
 stringData:
-  rox_central_endpoint: "central-stackrox.apps.cluster-mjh4d.sandbox1834.opentlc.com:443"
+  rox_central_endpoint: "central-stackrox.apps.cluster-88k5s.88k5s.sandbox139.opentlc.com:443"
   # The address:port tuple for StackRox Central (example - rox.stackrox.io:443)
-  rox_api_token: "API_TOKEN"
+  rox_api_token: "YOUR NEW API TOKEN"
   # StackRox API token with CI permissions
   # Refer to https://help.stackrox.com/docs/use-the-api/#generate-an-access-token
 kind: Secret
 metadata:
   name: roxsecrets
-  namespace: pipeline-demo
-type: Opaque
 ----
 
-== Get an API token from RHACS 
 
-Just like the title says.
-
-*Procedure*
-
-[start=1]
-. Head back to the RHACS dashboard and on *Platform Configuration* -> *Integrations* and scroll to the bottom of the page.
-
-image::06-cd-10.png[link=self, window=blank, width=100%]
-
-[start=2]
-. Click on *API Token*
-. Click on *Generate token*
-. Give your token a name, select *Continuous Integration* as the Role and set an expiration date and hit *Generate*
-
-image::06-cd-11.png[link=self, window=blank, width=100%]
-
-IMPORTANT: The role of CI has read only access to the RHACS Central Services. You can setup other roles but there are a few default roles like Admin, Analyst and Continuous Integration.
-
-[start=5]
-. Now either save the API Token into the `$TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml` file and replace *API_TOKEN* or export the variable and use SED with the following commands.
-
-[source,sh,subs="attributes",role=execute]
-----
-export ACS_API=
-----
-
-[start=6]
-. Then run
-
-[source,sh,subs="attributes",role=execute]
-----
-sed -i "s|API_TOKEN|$ACS_API|g" $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
-----
-
-[start=7]
-. And verify that your file is ready by running the following and getting a similar output. 
-
-[source,sh,subs="attributes",role=execute]
-----
-cat $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
-----
-
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-[lab-user@bastion pipeline]$ cat $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
-apiVersion: v1
-stringData:
-  rox_central_endpoint: "central-stackrox.apps.cluster-mjh4d.sandbox1834.opentlc.com:443"
-  # The address:port tuple for StackRox Central (example - rox.stackrox.io:443)
-  rox_api_token: "eyJhbGciOiJSUzI1NiIsImtpZCI6Imp3dGswIiwidHlwIjoiSldUIn0.eyJFeHBpcmVBdCI6IjIwMjQtMDUtMjRUMDQ6MDA6MDBaIiwiYXVkIjoiaHR0cHM6Ly9zdGFja3JveC5pby9qd3Qtc291cmNlcyNhcGktdG9rZW5zIiwiZXhwIjoxNzE2NTIzMjAwLCJpYXQiOjE3MTY1MTA4MzAsImlzcyI6Imh0dHBzOi8vc3RhY2tyb3guaW8vand0IiwianRpIjoiMTMxNmMwMGQtM2Q4Mi00NTVmLWJmNzktMzYyNzlmZTc5MWY1IiwibmFtZSI6ImNpY2QtdG9rZW4iLCJyb2xlcyI6WyJDb250aW51b3VzIEludGVncmF0aW9uIl19.Uxz2w8d_PPwS85bL4IuchaXVybBM80fSYQ2X6zAm69fNv72unXq_tne0amsrdbSlbzqE-MY9xKoLLfp0O7Y4jh0rN10g9G301M4Ure0uoXRe5X62Iso3_MBIDMY-JiZCqZ7dnHChgRj1bt7BOsLS1MOK-uGXlzFZlGDXZ_TVk0yqkyJUu-7oIq1Rd-UZJzL8FFkAUwPra33gQ_3bJJeZvbNmxFKalXoEhuLzOmrThGXqLG5Pnp5lg-6OOsFVfWbbe-HzeXAkY1qWD4GSPpaeiuqPXzmdc6N7EElpLyZzXyEUSQfqZc1SY0Rqe-8vR_qD0sk8Z8bwmbFXZ0lpyHVkLSlLBiyqeIuT8ReNPMxtYjFXnbHvrLy518TVPZYCleoz90gRuPNvkMjpp3rdXAodFNwjxW7-D8MxpMSlzMUTsoO9DiRM28ER5mU2OC5i6qeGhz0mTkwBtkmLW6Rcc54Xm6E2jPOWAi4PzK1CNGLlozfyQtCyZ0ljJ1aYOwe44Z-kEeYkd9QSjJIt2X4w4kpykimn03DEacfR-oq_2smI5J-PdcR_fUs6SZw7BdlTMx8rZcnnNDIAbOooinb0ggpDYjk2e2fbVe-ZWFtxidGApOkTDPVHiYzYqgBWCSWrqEK70spg7YTnvsuQC22DyEKRhfw7ikj5qZtO7H9L_-MfrdM"
-  # StackRox API token with CI permissions
-  # Refer to https://help.stackrox.com/docs/use-the-api/#generate-an-access-token
-kind: Secret
-metadata:
-  name: roxsecrets
-  namespace: pipeline-demo
-type: Opaque
-----
-
-[start=8]
+[start=15]
 . Lastly apply the following and head over to the OpenShift Console
 
 [source,sh,subs="attributes",role=execute]
@@ -294,13 +367,18 @@ secret/roxsecrets configured
 
 === Let's try again
 
-.Procedure
-. Let's make sure that you are looking at the pipeline we ran before.
+*Procedure*
+
+. Go back to the pipelines view.
 
 image::06-cd-12.png[link=self, window=blank, width=100%]
 
 [start=2]
 . Click the *Actions* dropdown and select *Rerun*. Then relax for a few seconds and grab a sip of water. 
+
+----
+What are you expecting to happen
+----
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeXdiMmFwaTNrbW02cTNod3BmaTh2aGRrdDJsc3d4NHpqNXY5ZzkwNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/073QSCJf2tIbtWjZpb/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
@@ -340,7 +418,6 @@ IMPORTANT: Do not disable the policy. Disable the enforcement.
 Your mission is completed with a successful pipeline run.
 
 image::06-cd-14.png[link=self, window=blank, width=100%]
-
 
 == What would you do?
 

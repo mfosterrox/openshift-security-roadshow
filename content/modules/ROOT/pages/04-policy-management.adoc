@@ -7,73 +7,70 @@
 
 == RHACS Policy Management Basics
 
-RHACS has many built-in policies to detect activity related to attacker goals: gain a foothold, maintain a presence, move laterally, and exfiltrate data. The continuous runtime monitoring observes all container activity and will automatically respond to events with appropriate enforcement and notification. However, that would be missing out on an opportunity - RHACS wants to go one step further, to take advantage of containers' ephemeral, immutable nature, to improve security in a measurable way.
+RHACS has built-in policies to detect activities linked to attacker goals, like gaining access, maintaining presence, moving laterally, and exfiltrating data. Continuous runtime monitoring watches all container activities and automatically responds with enforcement and notifications. However, RHACS aims to go beyond this by leveraging the ephemeral, immutable nature of containers to improve security.
 
-We want to use runtime incidents and vulnerabilities as a learning opportunity to improve security going forward by constraining how our containers can act. We achieve this by creating policies and implementing them early in the CI/CD process.
+We want to turn runtime incidents and vulnerabilities into opportunities for better security by restricting container actions. This is done by creating and implementing policies early in the CI/CD process.
 
-As we move into this next section, let's focus on identifying and enforcing a runtime policy in the cluster. For the upcoming example, we will focus on stopping the Ubuntu package manager from being run on pods in our cluster. Our example container *ctf-web-to-system* has this package manager in the container. Let's ensure that it never calls for updates while present in our clusters.
+In the next section, we’ll focus on identifying and enforcing a runtime policy in the cluster. For this example, we'll prevent the Alpine Linux package manager from running on pods in our cluster. We'll use the frontend container, which includes this package manager, and ensure it cannot update while in the cluster.
 
 == Introduction to Runtime Policy Creation and Enforcement
 
-RHACS observes container processes and collects this information to enable you to craft policies to prevent behavior that you don’t like. This information can also create baseline policy configurations that the user can update. Runtime policies can include build-time and deploy-time policy criteria but they can also include data about process executions during runtime. However, runtime policies that use “audit logs” event source cannot use build and deploy criteria at all as they are Kubernetes specific events.
+RHACS monitors container processes and collects data to help create policies that block unwanted behavior. It also helps establish baseline policies that users can adjust. Runtime policies can include criteria from build-time and deploy-time but also account for process executions during runtime. However, runtime policies based on audit logs can't use build and deploy criteria, as these logs are Kubernetes-specific events.
 
-The example below demonstrates how security may want to block a package manager from downloading any packages to the container. This runtime enforcement option is the first in the process of shifting left. After runtime enforcement, you will want to stop the package manager from being used in the container altogether.
+The example below shows how security may block a package manager from downloading packages. This runtime enforcement is the first step in shifting security left. After enforcing runtime policies, the next step will be to prevent the package manager from being used in the container entirely.
 
-IMPORTANT: For the Runtime stage, RHACS stops all pods that match the conditions of the policy. It does not scale the deployment down to zero.
+IMPORTANT: For the *Runtime* stage, RHACS stops all pods that match the conditions of the policy. It does not scale the deployment down to zero.
 
 .Procedure
 . On the left-hand side of the application, click the *Platform Configuration* tab and select *Policy Management*.
 
-image::acs-policy-00.png[link=self, window=blank, width=100%, Policy Management Dashboard]
+image::04-policy-00.png[link=self, window=blank, width=100%, Policy Management Dashboard]
 
 [start=2]
 
-. Filter through the policies to find *Ubuntu Package Manager Execution* or use the search bar to select *Policy*.
+. Filter through the policies to find *Alpine Linux Package Manager Execution* or use the search bar to select *Policy*.
 
-image::acs-policy-01.png[link=self, window=blank, width=100%, Policy Management Search]
+image::04-policy-01.png[link=self, window=blank, width=100%, Policy Management Search]
 
 [start=3]
 
-. Once you have found the policy *Ubuntu Package Manager Execution*, click on it to learn more.
+. Once you have found the policy *Alpine Linux Package Manager (apk) in Image*, click on it to learn more.
 
-image::acs-policy-02.png[link=self, window=blank, width=100%, Policy Management Details]
-
-NOTE: If you click the actions button, you will see how easy it is to edit, clone, export or disable these policies. We also recommended cloning the policies and adding or removing specific filters as you need them.
+image::04-policy-02.png[link=self, window=blank, width=100%, Policy Management Details]
 
 [[runtime-enforce]]
 
 === Prevent execution of package manager binary
 
-Package managers like apt (Ubuntu), apk (Alpine), or yum/dnf (RedHat) are binary software components used to manage and update installed software on a Linux® host system. They are used extensively to manage running virtual machines. However, using a package manager to install or remove software on a running container violates the immutable principle of container operation.
+Package managers like apt (Ubuntu), apk (Alpine), and yum/dnf (RedHat) are used to manage and update software on Linux hosts, including virtual machines. However, using a package manager to install or remove software on a running container breaks the container’s immutable nature.
 
-This policy demonstrates how RHACS detects and avoids a runtime violation, using Linux kernel instrumentation to detect the running process and OpenShift® to terminate the pod for enforcement. Using OpenShift to enforce runtime policy is preferable to enforcing rules directly within containers or in the container engine, as it avoids a disconnect between the state that OpenShift is maintaining and the state where the container is operating. Furthermore, because a runtime policy may detect only part of an attacker’s activity inside a container, removing the container avoids the attack.
+This policy shows how RHACS detects and prevents such violations by using Linux kernel instrumentation to identify the running process and OpenShift to terminate the pod for enforcement. Enforcing runtime policy through OpenShift is preferred over doing it directly in the container or container engine. This ensures consistency between the state OpenShift manages and the state of the container. Additionally, since runtime policies might only detect part of an attack, removing the container entirely helps stop the attack.
 
 === Enable enforcement of policy
 
-[start=4]
+*Procedure*
 
 . Click the *Actions* button, then click *Edit policy*.
 
-image::acs-runtime-01.png[link=self, window=blank, width=100%]
+image::04-policy-03.png[link=self, window=blank, width=100%]
 
-[start=5]
+[start=2]
 
 . Select *Policy Behavior -> Actions*
 
-image::acs-runtime-02.png[link=self, window=blank, width=100%]
+image::04-policy-04.png[link=self, window=blank, width=100%]
 
-[start=6]
+[start=3]
 
 . Enable runtime enforcement by clicking the *inform and enforce* button.
 . Configure enforcement behavior by selecting *Enforce at Runtime*.
 
-image::acs-runtime-03.png[link=self, window=blank, width=100%, Enforce Runtime Policy]
+image::04-policy-03.png[link=self, window=blank, width=100%, Enforce Runtime Policy]
 
-[start=8]
+[start=5]
 
-. Go to the *Review* tab
-. Review the changes
-. Click save
+. Click *Next*
+. Review the changes then click save
 
 IMPORTANT: Make sure to save the policy changes! If you do not save the policy, the process will not be blocked!
 
@@ -97,287 +94,212 @@ tmux new-session \; split-window -v \; attach
 
 [source,sh,role=execute]
 ----
-oc get events -w
+oc get events -n patient-portal -w
 ----
 
 [start=3]
 
-. Press Ctrl+b *THEN* o to switch to the next pane. (Hold ctrl+b then press o)
+. Press `Ctrl+b` first, *and then press* o to switch to the next pane. (Hold ctrl+b then press o)
 . Exec into our Java application by getting the pod details and adding them to the following command.
 
 [source,sh,role=execute]
 ----
-POD=$(oc get pod -l app=ctf-web-to-system -o jsonpath="{.items[0].metadata.name}")
-oc exec $POD -i --tty -- /bin/bash
+POD=$(oc get pod -l app=frontend -n patient-portal -o jsonpath="{.items[0].metadata.name}")
+oc exec $POD -n patient-portal -i --tty -- /bin/bash
 ----
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-[demo-user@bastion ~]$ POD=$(oc get pod -l app=ctf-web-to-system -o jsonpath="{.items[0].metadata.name}")
+[demo-user@bastion ~]$ POD=$(oc get pod -l app=frontend -o jsonpath="{.items[0].metadata.name}")
 oc exec $POD -i --tty -- /bin/bash
-node@ctf-web-to-system-6db858448f-hz6j2:/app$
+node@frontend-6db858448f-hz6j2:/app$
 ----
 
-NOTE: If you see *node@ctf...* you've confirmed you have a shell and access to the Java application.
+> If you see */home/fritz* you've confirmed you have a shell and access to the Java application.
 
 [start=5]
-. Run the Ubuntu package manager in this shell:
+. Run the apk package manager in this shell:
 
 [source,sh,role=execute]
 ----
-apt update
+apk update
 ----
-
-[start=6]
-. Examine the output and expect to see that the package manager attempts to perform an update operation:
 
 *Sample output*
 [source,texinfo,subs="attributes"]
 ----
-node@ctf-web-to-system-6db858448f-stwhq:/$ apt update
+node@frontend-6db858448f-stwhq:/$ apt update
 Reading package lists... Done
 E: List directory /var/lib/apt/lists/partial is missing. - Acquire (13: Permission denied)
-node@ctf-web-to-system-6db858448f-stwhq:/$ command terminated with exit code 137
+node@frontend-6db858448f-stwhq:/$ command terminated with exit code 137
 ----
 
-[start=7]
+
+[start=6]
+. Examine the output and expect to see that the package manager attempts to perform an update operation
 . Examine the oc get events tmux pane (The pane on the bottom), and note that it shows that RHACS detected the package manager invocation and deleted the pod:
 
 [source,texinfo,subs="attributes"]
 ----
-0s          Normal    Killing                  pod/ctf-web-to-system-6db858448f-hz6j2    Stopping container ctf-web-container
-0s          Normal    AddedInterface           pod/ctf-web-to-system-6db858448f-qp85v    Add eth0 [10.128.2.162/23] from ovn-kubernetes
-0s          Normal    Pulling                  pod/ctf-web-to-system-6db858448f-qp85v    Pulling image "quay.io/jechoisec/ctf-web-to-system-01"
-0s          Normal    Pulled                   pod/ctf-web-to-system-6db858448f-qp85v    Successfully pulled image "quay.io/jechoisec/ctf-web-to-system-01" in 262ms (263ms including waiting)
-0s          Normal    Created                  pod/ctf-web-to-system-6db858448f-qp85v    Created container ctf-web-container
-0s          Normal    Started                  pod/ctf-web-to-system-6db858448f-qp85v    Started container ctf-web-container
+0s          Normal    Killing                pod/frontend-78795c75fc-7nhs4             Stopping container frontend
+0s          Normal    SuccessfulCreate       replicaset/frontend-78795c75fc            Created pod: frontend-78795c75fc-8q9fn
+0s          Normal    Scheduled              pod/frontend-78795c75fc-8q9fn             Successfully assigned patient-portal/frontend-78795c75fc-8q9fn to ip-10-0-108-51.us-east-2.compute.internal
+0s          Normal    AddedInterface         pod/frontend-78795c75fc-8q9fn             Add eth0 [10.129.3.148/23] from ovn-kubernetes
+0s          Normal    Pulling                pod/frontend-78795c75fc-8q9fn             Pulling image "quay-88k5s.apps.cluster-88k5s.88k5s.sandbox139.opentlc.com/quayadmin/frontend:0.1"
+0s          Normal    Pulled                 pod/frontend-78795c75fc-8q9fn             Successfully pulled image "quay-88k5s.apps.cluster-88k5s.88k5s.sandbox139.opentlc.com/quayadmin/frontend:0.1" in 61ms (61ms including waiting). Image size: 119108884 bytes.
+0s          Normal    Created                pod/frontend-78795c75fc-8q9fn             Created container: frontend
+0s          Normal    Started                pod/frontend-78795c75fc-8q9fn             Started container frontend
 ----
 
 NOTE: After a few seconds, you can see the pod is deleted and recreated. In your tmux shell pane, note that your shell session has terminated and that you are returned to the Bastion VM command line.
 
 *Congrats!* 
 
-You have successfully stopped yourself from downloading malicious packages! However, the security investigative process continues, as you have now raised a flag that must be triaged! We will triage our violations later in this module.
+The security investigative process continues, as you have now raised a flag that must be triaged! We will triage our violations later in this module.
 
 NOTE: Type *exit* in the terminal, use *ctrl+c* to stop the 'watch' command, and type exit one more time to get back to the default terminal.
 
 == Introduction to deploy-time policy enforcement
 
-Deploy-time policy refers to enforcing configuration controls in the cluster and before deployment in the CI/CD process and the configuration of applications inside the cluster. Deploy-time policies can include all build-time policy criteria, but they can also include data from your cluster configurations, such as running in privileged mode or mounting the Docker socket.
+Deploy-time policy enforces configuration controls both before deployment in the CI/CD process and within the cluster itself. It can include build-time policies and cluster configurations, such as privileged mode or mounting the Docker socket.
 
-There are two approaches to enforcing deploy-time policies in RHACS:
+There are two ways to enforce deploy-time policies in RHACS:
 
-- In clusters with **listen** and **enforce** AdmissionController options enabled, RHACS uses the admission controller to reject deployments that violate policy.
-- In clusters where the admission controller option is disabled, RHACS scales pod replicas to zero for deployments that violate policy.
+* With listen and enforce options enabled, RHACS rejects deployments that violate the policy using the admission controller.
 
-In the next example, we are going to configure a *Deploy-Time* policy to block applications from deploying into the default namespace with the *apt|dpkg* application in the image.
+* When the admission controller is disabled, RHACS scales pod replicas to zero for deployments that violate the policy.
 
-=== Prevent the Ubuntu Package Manager in the ctf-web-to-system image from being deployed
+Next, we'll set up a Deploy-Time policy to block applications from deploying into the default namespace if the image contains the apt|dpkg application.
+
+=== Prevent the Alpine Linux Package Manager in the frontend image from being deployed
+
+*Procedure*
 
 [start=1]
 . First, delete the deployment from the cluster, we will redeploy the application after creating the policy.
 
 [source,sh,subs="attributes",role=execute]
 ----
-oc delete -f $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml
+oc delete -f $APP_HOME/skupper-demo/frontend.yml
 ----
 
-. Navigate to Platform Configuration → Policy Management
-. On the *Policy Management* page, type *Policy* then *Ubuntu* into the filter bar at the top.
+*Sample output*
+[source,texinfo,subs="attributes"]
+----
+[lab-user@bastion ~]$ oc delete -f $APP_HOME/skupper-demo/
+namespace "patient-portal" deleted
+deployment.apps "database" deleted
+service "database" deleted
+deployment.apps "frontend" deleted
+route.route.openshift.io "frontend-patient-route" deleted
+service "frontend-service" deleted
+deployment.apps "payment-processor" deleted
+service "payment-service" deleted
+----
 
-IMPORTANT: This time you are going to edit a different policy for the Ubuntu package manager, specifically related to the *Build & Deploy* phases.
+[start=2]
+. Navigate to Platform Configuration → Policy Management
+. On the *Policy Management* page, type *Policy* then *Alpine Linux Package Manager (apk) in Image* into the filter bar at the top.
+
+IMPORTANT: This time you are going to edit a different policy for the Alpine Linux Package Manager (apk), specifically related to the *Build & Deploy* phases.
 
 [start=3]
 
-. Click on the *Ubuntu Package Manager in Image* options (The three dots on the right side of the screen) and select *Clone policy*
+. Click on the *Alpine Linux Package Manager (apk) in Image* options (The three dots on the right side of the screen) and select *Clone policy*
 
-IMPORTANT: Make sure to *CLONE* the policy. Cloning policies ensure the defaults don't change.
+IMPORTANT: Make sure to *CLONE* the policy. Cloning policies ensure the default policies don't aren't altered. 
 
-image::acs-deploy-00.png[link=self, window=blank, width=100%]
+image::04-deploy-00.png[link=self, window=blank, width=100%]
 
 [start=4]
 
-. Give the policy a new name, such as Ubuntu Package Manager in Image - Enforce Deploy. The best practice would be to add a description for future policy enforcers as well. 
+. Give the policy a new name, such as `Alpine Linux Package Manager in Image - Enforce Deploy`. The best practice would be to add a description for future policy enforcers as well. 
+. Click *Next*
+. Next, deselect *Build* stage so that only the Deploy stage is selected.
 
-[start=5]
+image::04-deploy-01.png[link=self, window=blank, width=100%]
 
-. Next, ensure the policy by clicking on the *Build* stage so that only the Deploy stage is selected.
+NOTE: Since certain policy criteria is specific to each stage you have to reset the policy criteria
 
-image::acs-deploy-02.png[link=self, window=blank, width=100%]
+> Now, we want to target our specific deployment with an image label.
 
-IMPORTANT: Make sure to unselect the *Build* lifecycle before moving forward. This will trigger an alert!
-
-image::acs-deploy-021.png[link=self, window=blank, width=100%]
-
-We will have to add the policy criteria back. This is because certain actions can only be done in the build, deploy, or runtime stages.
-
-Now, we want to target our specific deployment with an image label.
-
-[start=6]
-. Click on the *Rules* tab.
+[start=7]
+. Click *Next*
 . Click on the *Image contents* dropdown on the right side of the browser.
 . Find the *Image component* label and drag it to the default policy criteria.
-. Type *apt-get* under the criteria
+. Type *apk-tools* under the criteria
 
 Your policy should look like this,
 
-image::acs-deploy-04.png[link=self, window=blank, width=100%]
-
-[start=10]
-
-. In Policy behavior -> Actions, click *Inform and enforce* + *Enforce on Deploy*
-
-image::acs-deploy-044.png[link=self, window=blank, width=100%]
+image::04-deploy-02.png[link=self, window=blank, width=100%]
 
 [start=11]
-. Lastly, go to the *Review Policy* tab
-. Review the changes
+. In Policy behavior -> Actions, click *Inform and enforce* + *Enforce on Deploy*
 
-NOTE: There is a preview tab on the right side of the page that will show you all of the affected applications with the introduction of this policy.
-
-image::acs-deploy-05.png[link=self, window=blank, width=100%]
+image::04-deploy-03.png[link=self, window=blank, width=100%]
 
 [start=12]
+. Click *Next*
+. Review the changes
+. Click *Save*
 
-. *Click Save*
+Now, let's test it out! We're going to redeploy the frontend application from earlier.
 
-Now, let's test it out! We're going to redeploy the CTF-web-to-system application from earlier.
+> In case you forgot to run the command earlier
 
 [source,sh,subs="attributes",role=execute]
 ----
-cat $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml
+oc delete -f $APP_HOME/skupper-demo/frontend.yml
+----
+
+> Now reapply the frontend service and deployment
+
+[source,sh,subs="attributes",role=execute]
+----
+oc apply -f $APP_HOME/skupper-demo/frontend.yml
 ----
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-apiVersion: v1
-kind: Service
-metadata:
-  name: ctf-web-to-system-service
-spec:
-  selector:
-    app: ctf-web-to-system
-  ports:
-    - protocol: TCP
-      port: 80 
-      targetPort: 9090  
-  type: LoadBalancer
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ctf-web-to-system
-  labels:
-    app: ctf-web-to-system
-    demo: roadshow
-  annotation:
-    app: ctf-web-to-system
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ctf-web-to-system
-  template:
-    metadata:
-      labels:
-        app: ctf-web-to-system
-    spec:
-      containers:
-      - name: ctf-web-container
-        image: quay-jlchp.apps.cluster-jlchp.jlchp.sandbox2037.opentlc.com/quayadmin/ctf-web-to-system:1.0
-        ports:
-        - containerPort: 9090
-----
-
-[start=13]
-. Now, apply the manifests to the cluster.
-
-[source,sh,subs="attributes",role=execute]
-----
-oc apply -f $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml
-----
-
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-[lab-user@bastion ~]$ oc apply -f $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml
-Error from server (Failed currently enforced policies from StackRox): error when creating "/home/lab-user/demo-apps/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml": admission webhook "policyeval.stackrox.io" denied the request: 
+route.route.openshift.io/frontend-patient-route created
+service/frontend-service created
+Error from server (Failed currently enforced policies from RHACS): error when creating "/home/lab-user/skupper-app/skupper-demo/frontend.yml": admission webhook "policyeval.stackrox.io" denied the request: 
 The attempted operation violated 1 enforced policy, described below:
 
-Policy: Ubuntu Package Manager in Image (COPY)
+Policy: Alpine Linux Package Manager in Image - Enforce Deploy
 - Description:
-    ↳ Alert on deployments with components of the Debian/Ubuntu package management
-      system in the image.
+    ↳ Alert on deployments with the Alpine Linux package manager (apk) present
 - Rationale:
     ↳ Package managers make it easier for attackers to use compromised containers,
       since they can easily add software.
 - Remediation:
-    ↳ Run `dpkg -r --force-all apt apt-get && dpkg -r --force-all debconf dpkg` in the
-      image build for production containers.
+    ↳ Run `apk --purge del apk-tools` in the image build for production containers.
 - Violations:
-    - Container 'ctf-web-container' includes component 'apt' (version 1.4.9)
-    - Container 'ctf-web-container' includes component 'dpkg' (version 1.18.25)
+    - Container 'frontend' includes component 'apk-tools' (version 2.14.6-r2)
+
 
 In case of emergency, add the annotation {"admission.stackrox.io/break-glass": "ticket-1234"} to your deployment with an updated ticket number
 ----
 
-Another option for enforcement is to use the "deployment check" CLI command.
+> Another option for enforcement is to use the "deployment check" CLI command.
 
-[start=14]
-. Verify the ubuntu application against the policies you've created.
+[start=15]
+. Verify the frontend application against the policies you've created.
 
 [source,sh,subs="attributes",role=execute]
 ----
-roxctl -e $ROX_CENTRAL_ADDRESS:443 deployment check --file $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml --insecure-skip-tls-verify
+roxctl -e $ROX_CENTRAL_ADDRESS:443 deployment check --file $APP_HOME/skupper-demo/frontend.yml --insecure-skip-tls-verify
 ----
 
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-[lab-user@bastion ~]$ roxctl -e $ROX_CENTRAL_ADDRESS:443 deployment check --file $TUTORIAL_HOME/kubernetes-manifests/ctf-web-to-system/ctf-w2s.yml --insecure-skip-tls-verify
-Policy check results for deployments: [ctf-web-to-system]
-(TOTAL: 6, LOW: 3, MEDIUM: 2, HIGH: 1, CRITICAL: 0)
+image::04-deploy-04.png[link=self, window=blank, width=100%]
 
-+--------------------------------+----------+---------------+-------------------+--------------------------------+--------------------------------+--------------------------------+
-|             POLICY             | SEVERITY | BREAKS DEPLOY |    DEPLOYMENT     |          DESCRIPTION           |           VIOLATION            |          REMEDIATION           |
-+--------------------------------+----------+---------------+-------------------+--------------------------------+--------------------------------+--------------------------------+
-+--------------------------------+----------+---------------+-------------------+--------------------------------+--------------------------------+--------------------------------+
-|   Ubuntu Package Manager in    |   LOW    |       -       | ubuntu-deployment |      Alert on deployments      |          - Container           |    Run `dpkg -r --force-all    |
-|             Image              |          |               |                   |     with components of the     |  'ctf-web-container' includes  |     apt apt-get && dpkg -r     |
-|                                |          |               |                   |     Debian/Ubuntu package      |    component 'apt' (version    |  --force-all debconf dpkg` in  |
-|                                |          |               |                   |    management system in the    |             1.4.9)             | the image build for production |
-|                                |          |               |                   |             image.             |                                |          containers.           |
-|                                |          |               |                   |                                |          - Container           |                                |
-|                                |          |               |                   |                                |  'ctf-web-container' includes  |                                |
-|                                |          |               |                   |                                |   component 'dpkg' (version    |                                |
-|                                |          |               |                   |                                |            1.18.25)            |                                |
-+--------------------------------+----------+---------------+-------------------+--------------------------------+--------------------------------+--------------------------------+
-|   Ubuntu Package Manager in    |   LOW    |       X       | ctf-web-to-system |      Alert on deployments      |          - Container           |    Run `dpkg -r --force-all    |
-|   Image - Default namespace    |          |               |                   |     with components of the     |  'ctf-web-container' includes  |     apt apt-get && dpkg -r     |
-|                                |          |               |                   |     Debian/Ubuntu package      |    component 'apt' (version    |  --force-all debconf dpkg` in  |
-|                                |          |               |                   |    management system in the    |             1.4.9)             | the image build for production |
-|                                |          |               |                   |             image.             |                                |          containers.           |
-|                                |          |               |                   |                                |          - Container           |                                |
-|                                |          |               |                   |                                |  'ctf-web-container' includes  |                                |
-|                                |          |               |                   |                                |   component 'dpkg' (version    |                                |
-|                                |          |               |                   |                                |            1.18.25)            |                                |
-|                                |          |               |                   |                                |                                |                                |
-|                                |          |               |                   |                                | - Namespace has name 'default' |                                |
-+--------------------------------+----------+---------------+-------------------+--------------------------------+--------------------------------+--------------------------------+
-WARN:   A total of 6 policies have been violated
-ERROR:  failed policies found: 1 policies violated that are failing the check
-ERROR:  Policy "Ubuntu Package Manager in Image (COPY)" within Deployment "ctf-web-to-system" - Possible remediation: "Run `dpkg -r --force-all apt apt-get && dpkg -r --force-all debconf dpkg` in the image build for production containers."
-ERROR:  checking deployment failed: breaking policies found: failed policies found: 1 policies violated that are failing the check
-----
-
-
-> You should see one of the policies you've created breaking the deployment process while the others are in inform-only mode. 
+> The new policy will fail the check when in enforce mode. In inform mode you will get a policy violation without the "Failed policy" error.
 
 *Congrats!* 
 
-You're now enforcing against the Ubuntu package manager at runtime and deploy time. Let's finish with enforcing at build-time!
+You're now enforcing against the Alpine Linux package manager at runtime and deploy time. Let's finish with enforcing at build-time!
 
 == Introduction to build-time policy enforcement 
 
@@ -395,19 +317,10 @@ Here are some key areas covered by build time policies:
 
 In RHACS, build-time policies apply to image fields such as CVEs and Dockerfile instructions.
 
-=== Prevent the Ubuntu package manager in the ctf-web-to-system image from being pushed to Quay
+=== Prevent the Alpine Linux package manager in the frontend image from being pushed to Quay
 
-. Export the following variables to make our lives easier
-
-[source,sh,subs="attributes",role=execute]
-----
-export QUAY_USER={quay_admin_username}
-export QUAY_URL=$(oc -n quay-enterprise get route quay-quay -o jsonpath='{.spec.host}')
-export ROX_CENTRAL_ADDRESS={acs_route}
-----
-
-[start=2]
-. Verify that the variables are correct.
+[start=1]
+. Verify that the variables are correct to make this section smoother
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -416,8 +329,8 @@ echo $QUAY_URL
 echo $ROX_CENTRAL_ADDRESS
 ----
 
-[start=3]
-. Login to Quay
+[start=2]
+. Make sure you are logged in to Quay
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -427,7 +340,7 @@ podman login $QUAY_URL
 NOTE: Use the quay admin credentials, Username: *{quay_admin_username}* & password: *{quay_admin_password}*. You can create unique user and group credentials in Quay for proper segmentation.
 
 [start=4]
-. Let's pretend as if the developers are pushing an update to the ctf-web-to-system application. First, pull and scan the related image.
+. Let's pretend as if the developers are pushing an update to the frontend application. First, pull and scan the related image.
 
 |====
 The following command is designed to mimic and build a pipeline where a container build is going through a commit/promotion step. You download the image, scan for vulnerabilities, tag a newer version and upload to Quay.
@@ -435,41 +348,38 @@ The following command is designed to mimic and build a pipeline where a containe
 
 [source,sh,subs="attributes",role=execute]
 ----
-podman pull $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
-roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0
+podman pull $QUAY_URL/$QUAY_USER/frontend:0.1
+roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image check --image=$QUAY_URL/$QUAY_USER/frontend:0.1
 ----
-
-[source,sh,subs="attributes",role=execute]
-----
-podman tag $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.1
-podman push $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.1 --remove-signatures
-----
-
-IMPORTANT: We are using the *image check* CLI option, NOT the image scan. This is because we are checking for a policy violation and not grabbing a vulnerability scan output. 
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
- },
-    "notes": [
-      "OS_CVES_UNAVAILABLE",
-      "PARTIAL_SCAN_DATA"
-    ],
-    "hash": "4109274308829192377"
-  },
-  "components": 968,
-  "cves": 92,
-  "fixableCves": 89,
-  "lastUpdated": "2025-01-16T23:02:11.049699566Z",
-  "riskScore": 10.8,
-  "topCvss": 10,
-  "notes": [
-    "MISSING_SIGNATURE",
-    "MISSING_SIGNATURE_VERIFICATION_DATA"
-  ]
-}
-[lab-user@bastion ~]$ podman tag $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.0 $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.1
-podman push $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.1 --remove-signatures
++--------------------------------+----------+--------------+--------------------------------+--------------------------------+--------------------------------+
+|  Alpine Linux Package Manager  |   LOW    |      -       | Alert on deployments with the  |   - Image includes component   |      Run `apk --purge del      |
+|         (apk) in Image         |          |              |  Alpine Linux package manager  |      'apk-tools' (version      | apk-tools` in the image build  |
+|                                |          |              |         (apk) present          |           2.14.6-r3)           |   for production containers.   |
++--------------------------------+----------+--------------+--------------------------------+--------------------------------+--------------------------------+
+|  Alpine Linux Package Manager  |   LOW    |      -       | Alert on deployments with the  |   - Image includes component   |      Run `apk --purge del      |
+|    in Image - Enforce Build    |          |              |  Alpine Linux package manager  |      'apk-tools' (version      | apk-tools` in the image build  |
+|                                |          |              |         (apk) present          |           2.14.6-r3)           |   for production containers.   |
++--------------------------------+----------+--------------+--------------------------------+--------------------------------+--------------------------------+
+WARN:   A total of 3 policies have been violated
+----
+
+> With the *Image Check* cli command you can check against the created policies
+
+[source,sh,subs="attributes",role=execute]
+----
+podman tag $QUAY_URL/$QUAY_USER/frontend:0.1 $QUAY_URL/$QUAY_USER/frontend:0.2
+podman push $QUAY_URL/$QUAY_USER/frontend:0.2 --remove-signatures
+----
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+[lab-user@bastion ~]$ podman tag $QUAY_URL/$QUAY_USER/frontend:1.0 $QUAY_URL/$QUAY_USER/frontend:1.1
+podman push $QUAY_URL/$QUAY_USER/frontend:1.1 --remove-signatures
 Copying blob 308102f44919 skipped: already exists  
 Copying blob b8d9a96d44df skipped: already exists  
 ....
@@ -477,63 +387,57 @@ Copying config 1cbb2b7908 done   |
 Writing manifest to image destination
 ----
 
-NOTE: Now RHACS hasn't broken the command since there is no enforcement of any build policies. 
+NOTE: Now RHACS hasn't broken the command since there is no enforcement of any build policies. Letting the developer build tag and push a new image.
 
-Let's make a copy of the build & deploy-time policy and enforce it during the build phase.
+> Let's make a copy of the build & deploy-time policy and enforce it during the build phase.
 
-.Procedure
+*Procedure*
+
 . Navigate to Platform Configuration → Policy Management
-. On the *Policy Management* page, type *Policy* then *Ubuntu* into the filter bar at the top.
-. Click on the *Ubuntu Package Manager in Image* options (The three dots on the right side of the screen) and select *Clone policy*
+. On the *Policy Management* page, type *Policy* then *Alpine Linux* into the filter bar at the top.
+. Click on the *Alpine Linux Package Manager in Image* options (The three dots on the right side of the screen) and select *Clone policy*
 
 IMPORTANT: Make sure to *CLONE* the policy
 
-image::acs-deploy-00.png[link=self, window=blank, width=100%]
+image::04-deploy-05.png[link=self, window=blank, width=100%]
 
 [start=4]
+. Give the policy a new name, such as `Alpine Linux Package Manager in Image - Enforce Build`. The best practice would be to add a description for future policy enforcers as well. 
+. Unselect the "Deploy" stage, and reset the policy criteria.
+. Click "Next"
+. Add the "image component - apk-tools" to the *Rules*
+. Click "Next"
+. Remove all of the exclusion scopes. Exclusion scopes are limited to the build and runtime stages
+. Go to Policy behavior - Actions
+. Update the policy to *inform and enforce* while ensuring the Build stage checkbox is selected And select *Enforce on Build* at the bottom of the page.
 
-. Give the policy a new name, such as Ubuntu Package Manager in Image - Enforce Build. The best practice would be to add a description for future policy enforcers as well. 
+image::04-deploy-06.png[link=self, window=blank, width=100%]
 
-[start=5]
-
-. Next, update the policy to *inform and enforce* while ensuring the Build stage checkbox is selected And select *Enforce on Build* at the bottom of the page.
-
-image::05-build-3.png[link=self, window=blank, width=100%]
-
-[start=6]
-. At the policy scope tab, make sure there are no exclusions or inclusions.
-. Lastly, go to the *Review Policy* tab
+[start=12]
+. Go to the *Review Policy* tab
 . Review the changes.
 . Click *Save*
 
 Now let's test it out! 
 
-. Run the following in the terminal.
+> Run the following in the terminal.
 
 [source,sh,subs="attributes",role=execute]
 ----
-podman pull $QUAY_URL/$QUAY_USER/ctf-web-to-system:1.1
-roxctl image check --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443"  --image=$QUAY_URL/$QUAY_USER/ctf-web-to-system:1.1 
+podman pull $QUAY_URL/$QUAY_USER/frontend:0.1
+roxctl image check --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443"  --image=$QUAY_URL/$QUAY_USER/frontend:0.1 
 ----
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-------+--------------------------------+
-|   Ubuntu Package Manager in    |   LOW    |      X       |      Alert on deployments      |   - Image includes component   |    Run `dpkg -r --force-all    |
-|     Image - Enforce Build      |          |              |     with components of the     |     'apt' (version 1.4.9)      |     apt apt-get && dpkg -r     |
-|                                |          |              |     Debian/Ubuntu package      |                                |  --force-all debconf dpkg` in  |
-|                                |          |              |    management system in the    |   - Image includes component   | the image build for production |
-|                                |          |              |             image.             |    'dpkg' (version 1.18.25)    |          containers.           |
-+--------------------------------+----------+--------------+--------------------------------+--------------------------------+--------------------------------+
-WARN:   A total of 4 policies have been violated
+WARN:   A total of 3 policies have been violated
 ERROR:  failed policies found: 1 policies violated that are failing the check
-ERROR:  Policy "Ubuntu Package Manager in Image - Enforce Build" - Possible remediation: "Run `dpkg -r --force-all apt apt-get && dpkg -r --force-all debconf dpkg` in the image build for production containers."
+ERROR:  Policy "Alpine Linux Package Manager in Image - Enforce Build" - Possible remediation: "Run `apk --purge del apk-tools` in the image build for production containers."
 ERROR:  checking image failed: failed policies found: 1 policies violated that are failing the check
 ----
 
 IMPORTANT: You should see the same violations from the previous command EXCEPT now you have a failed policy check. This would send an exit 0 command if this was run in any pipeline. 
-
 
 == Summary
 
