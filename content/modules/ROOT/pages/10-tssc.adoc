@@ -436,7 +436,6 @@ Quay recognizes the `cosign` image signature, too!
 
 image::11-quay-signed-image.png[link=self, window=blank, width=100%]
 
-----
 Here's the cleaned-up version of your message:
 
 You might be wondering how a pipeline task authenticates itself, since it can't open a browser to log in. Trusted Artifact Signer / Sigstore (including the cosign tool) doesn't authenticate the user directly. Instead, it relies on the OIDC system to authenticate the request before issuing a signing certificate. This allows the full flexibility of OIDC systems for authentication.
@@ -540,19 +539,41 @@ Pushing signature to: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/
 
 Verifying an image signature is even easier than signing: 
 
+*Procedure*
+
+. Run the following command
+
 [source,sh,subs="attributes",role=execute]
 ----
 cosign verify --certificate-identity jdoe@redhat.com $QUAY_URL/$QUAY_USER/frontend:0.1 | jq
 ----
 
+
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+----
+
 In this case, we are asking `cosign` (and therefore *Trusted Artifact Signer*) to verify if `jdoe@redhat.com` has signed this image. We can also use regular expressions, to check if anyone from Red Hat has signed this image, using `--certificate-identity-regexp`:
+
+
+[start=2]
+. Run the following command
 
 [source,sh,subs="attributes",role=execute]
 ----
 cosign verify --certificate-identity-regexp ^[a-zA-Z0-9._%+-]+@redhat\.com$ $QUAY_URL/$QUAY_USER/frontend:0.1 | jq
 ----
 
+[.console-output]
+[source,bash,subs="+macros,+attributes"]
+----
+----
+
 We can also verify that the person (to be correct, the OIDC identity) who signed the image was authenticated against a specific OIDC Issuer (using the `--certificate-oidc-issuer` flag) or against an OIDC Issuer somewhere in our domain:
+
+[start=3]
+. Run the following command
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -872,159 +893,118 @@ NOTE: If you check the GitLab repository after you pushed the commit, you might 
 
 image::11-gitlab-signature.png[unverified badge]
 
-==== *Verifying a commit signature*
+== *Verifying a commit signature*
 
-//TODO
+=== Trusted Profile Analyzer
 
+The Trusted Profile Analyzer adds management capabilities for *Software Bills of Materials (SBOMs)* to OpenShift.
 
+=== *What is an SBOM?*
 
-== Trusted Profile Analyzer 
-The Trusted Profile Analyzer adds management capabilities for *Software Bills of Materials (SBOMs)* to OpenShift. 
+https://www.cisa.gov[CISA.gov] defines an SBOM as "a nested inventory, a list of ingredients that make up software components." https://www.cisa.gov/sbom[¹]
 
-=== *What is an SBOM?* 
-https://www.cisa.gov[CISA.gov] defines an SBOM as "a nested inventory, a list of ingredients that make up software components." https://www.cisa.gov/sbom[¹] 
-
-Using SBOMs, you can have a clear vision of everything that goes into your application or what you may have received from vendors, such as Red Hat. This enables platform engineers to more easily enforce operational controls and compliance across hybrid multi-cloud environments. 
+Using SBOMs, you can have a clear vision of everything that goes into your application or what you may have received from vendors, such as Red Hat. This enables platform engineers to more easily enforce operational controls and compliance across hybrid multi-cloud environments.
 
 In addition, several regulatory requirements and frameworks either *mandate* or *recommend* the use of *Software Bills of Materials (SBOMs)* to enhance software supply chain transparency and security. Here are some key examples, but the list is continually growing:
 
-
 ==== *1. U.S. Executive Order 14028 (Improving the Nation’s Cybersecurity)*
 
-* *Mandate*: In May 2021, this Executive Order directed the U.S.
-government to take actions to secure the software supply chain.
+* *Mandate*: In May 2021, this Executive Order directed the U.S. government to take actions to secure the software supply chain.
 * *SBOM Requirement*:
-** The *National Telecommunications and Information Administration
-(NTIA)* was tasked with defining minimum elements for SBOMs.
-** Vendors providing software to federal agencies must provide SBOMs as
-part of their cybersecurity practices.
-** Goal: Increase transparency about software components to mitigate
-risks from vulnerabilities.
-
-
+  - The *National Telecommunications and Information Administration (NTIA)* was tasked with defining minimum elements for SBOMs.
+  - Vendors providing software to federal agencies must provide SBOMs as part of their cybersecurity practices.
+  - Goal: Increase transparency about software components to mitigate risks from vulnerabilities.
 
 ==== *2. EU Cyber Resilience Act*
 
-* *Proposed Mandate*: Expected to become law in the near future, this
-act will apply to products with digital elements in the EU.
-* *SBOM Requirement*: It encourages or requires organizations to
-maintain transparency about their software dependencies, including
-SBOMs, for compliance with security standards.
-
-
+* *Proposed Mandate*: Expected to become law in the near future, this act will apply to products with digital elements in the EU.
+* *SBOM Requirement*: It encourages or requires organizations to maintain transparency about their software dependencies, including SBOMs, for compliance with security standards.
 
 ==== *3. U.S. Food and Drug Administration (FDA) Guidance*
 
-* *Recommendation*: The FDA issued guidance for medical device
-manufacturers to include SBOMs.
-* *Context*: As part of the *Pre-market Cybersecurity Guidance* for
-medical devices, manufacturers are encouraged to provide SBOMs to
-identify vulnerabilities in device software and support risk management.
+* *Recommendation*: The FDA issued guidance for medical device manufacturers to include SBOMs.
+* *Context*: As part of the *Pre-market Cybersecurity Guidance* for medical devices, manufacturers are encouraged to provide SBOMs to identify vulnerabilities in device software and support risk management.
 * *Goal*: Protect healthcare systems and patient safety.
-
 
 ==== *4. OWASP Software Component Verification Standard (SCVS)*
 
-* *Recommendation*: OWASP promotes SBOMs as part of software composition
-analysis (SCA) to track components and identify vulnerabilities.
-* *Context*: Although not a regulatory requirement, it is widely
-recognized in cybersecurity best practices.
-
-
+* *Recommendation*: OWASP promotes SBOMs as part of software composition analysis (SCA) to track components and identify vulnerabilities.
+* *Context*: Although not a regulatory requirement, it is widely recognized in cybersecurity best practices.
 
 ==== *5. CISA Binding Operational Directive (BOD) 23-01*
 
-* *Mandate*: U.S. government agencies are required to track and mitigate
-known vulnerabilities in software they use.
-* *SBOM Role*: Although the directive doesn’t explicitly mandate SBOMs,
-managing them is critical to identifying and addressing vulnerabilities
-efficiently.
-
-
+* *Mandate*: U.S. government agencies are required to track and mitigate known vulnerabilities in software they use.
+* *SBOM Role*: Although the directive doesn’t explicitly mandate SBOMs, managing them is critical to identifying and addressing vulnerabilities efficiently.
 
 ==== *6. ISO/IEC 5962 (SBOM Standard)*
 
-* *Recommendation*: This international standard formalizes SBOM
-structure, ensuring consistent implementation across industries. It
-supports compliance with regulatory and industry standards requiring
-software transparency.
-
-
+* *Recommendation*: This international standard formalizes SBOM structure, ensuring consistent implementation across industries. It supports compliance with regulatory and industry standards requiring software transparency.
 
 ==== *7. Proposed SEC Cybersecurity Rules*
 
-* *Recommendation*: Companies under U.S. Securities and Exchange
-Commission (SEC) regulations must report cybersecurity risks, including
-supply chain vulnerabilities. SBOMs can help meet these transparency
-requirements.
-
-
+* *Recommendation*: Companies under U.S. Securities and Exchange Commission (SEC) regulations must report cybersecurity risks, including supply chain vulnerabilities. SBOMs can help meet these transparency requirements.
 
 === *Why SBOMs are Becoming Standard in Regulations*
 
-* *Transparency*: Knowing what’s in your software reduces the risk of
-vulnerabilities.
-* *Risk Management*: SBOMs help identify, track, and remediate issues in
-the software supply chain.
-* *Compliance*: They demonstrate adherence to evolving cybersecurity and
-data privacy laws.
+* *Transparency*: Knowing what’s in your software reduces the risk of vulnerabilities.
+* *Risk Management*: SBOMs help identify, track, and remediate issues in the software supply chain.
+* *Compliance*: They demonstrate adherence to evolving cybersecurity and data privacy laws.
 
 *As cybersecurity frameworks continue to evolve, the use of SBOMs is increasingly seen as foundational for compliance and risk mitigation.*
 
-'''''
-
 === *Using the Trusted Profile Analyzer UI*
 
-A Red Hat Trusted Profile Analyzer has been created for you to use. The proctor will make the URL available to you once you've completed the previous section. 
+A Red Hat Trusted Profile Analyzer has been created for you to use. The proctor will make the URL available to you once you've completed the previous section.
 
 When you are given the URL, log into the RHTPA UI using the username and password provided.
 
 image::lab11.1-tpa.png[]
 
-You can search for an SBOM, advisory, or CVE directly from the home page, or you can click on Search in the left menu for further options. 
+You can search for an SBOM, advisory, or CVE directly from the home page, or you can click on Search in the left menu for further options.
 
 image::lab11.2-tpa.gif[]
 
-From the Search page, you can choose to browse SBOMs, Packages, CVEs, and Advisories from the Tabs, and further filter using the filter menu on the left. 
+From the Search page, you can choose to browse SBOMs, Packages, CVEs, and Advisories from the Tabs, and further filter using the filter menu on the left.
 
-Let's take a look at some packages. 
+Let's take a look at some packages.
 
-Click the Packages tab, then check the Red Hat box under supplier. 
+Click the Packages tab, then check the Red Hat box under supplier.
 
-The list now shows packages that are supplied by Red Hat. 
+The list now shows packages that are supplied by Red Hat.
 
-You may click on a package to get information like related vulnerabilities, if any exist, and related products. 
+You may click on a package to get information like related vulnerabilities, if any exist, and related products.
 
 ==== Uploading an SBOM
 
 An SBOM has been made available for you to download https://github.com/SeanRickerd/sbom/blob/main/home-banking-bom.json[here].
 
-Upload the SBOM. 
+Upload the SBOM.
 
 image::lab11.1-sbom.gif[lab11.1]
 
-It will take a few minutes for the SBOM to be processed by TPA, so click in the Search bar and type "home". Once you see home-banking, click on it. 
+It will take a few minutes for the SBOM to be processed by TPA, so click in the Search bar and type "home". Once you see home-banking, click on it.
 
-image::lab11.2-sbom.gif[lab11.2] 
+image::lab11.2-sbom.gif[lab11.2]
 
-This will open the page for the home-banking SBOM you've uploaded. 
+This will open the page for the home-banking SBOM you've uploaded.
 
-The Info tab will give you standard information about the SBOM itself, including the version, the CycloneDX version, and the serial number. 
+The Info tab will give you standard information about the SBOM itself, including the version, the CycloneDX version, and the serial number.
 
-Click on the Packages tab. 
+Click on the Packages tab.
 
 image::lab11.3-sbom.png[lab11.3]
 
-The Packages tab will list all the packages found in this SBOM. 
+The Packages tab will list all the packages found in this SBOM.
 
-Click on Dependency Analytics Report. 
+Click on Dependency Analytics Report.
 
-The Dependency Analytics Report tab will list the security issues found in this SBOM. As you can see, there are a number of violations found. 3 of them are Critical, 3 High, and 2 Medium. 
+The Dependency Analytics Report tab will list the security issues found in this SBOM. As you can see, there are a number of violations found. 3 of them are Critical, 3 High, and 2 Medium.
 
-Scroll down the page to find the osv tab. 
+Scroll down the page to find the osv tab.
 
-Here you will find further information about the detected vulnerabilities. Clicking on the Direct Vulnerabilities to the right of the log4j entry will expand the entry to show more information about he vulnerabilities, including Remediation. 
+Here you will find further information about the detected vulnerabilities. Clicking on the Direct Vulnerabilities to the right of the log4j entry will expand the entry to show more information about the vulnerabilities, including Remediation.
 
-The same can be done with the Transitive Vulnerabilites next to the struts2-core entry. 
+The same can be done with the Transitive Vulnerabilities next to the struts2-core entry.
 
 image::lab11.4-sbom.gif[lab11.4]
+
