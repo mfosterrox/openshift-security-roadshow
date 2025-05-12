@@ -22,8 +22,8 @@ Red Hat Advanced Cluster Security for Kubernetes (RHACS) supports OpenShift Cont
 
 [cols="1,1"]
 |===
-*User:*| {openshift_admin_user} |
-*Password:*| {openshift_admin_password} |
+| *User:*| {openshift_admin_user} 
+| *Password:*| {openshift_admin_password} 
 |===
 
 image::01-ocp-login-admin.png[link=self, window=blank, width=100%]
@@ -32,13 +32,13 @@ image::01-ocp-login-admin.png[link=self, window=blank, width=100%]
 . In the web console, go to the Operators → OperatorHub page.
 . Enter compliance operator into the Filter by keyword box to find the Compliance Operator.
 
-image::07-comp-1.png[link=self, window=blank, width=100%]
+image::06-comp-1.png[link=self, window=blank, width=100%]
 
 [start=6]
 . Select the Compliance Operator to view the details page.
 . Read the information about the Operator, select the defaults, and then click Install.
 
-image::07-comp-2.png[link=self, window=blank, width=100%]
+image::06-comp-2.png[link=self, window=blank, width=100%]
 
 Since RHACS was installed prior to the Compliance Operator, we’ll need to restart the ACS sensor in the OpenShift cluster to see these results.
 
@@ -118,7 +118,7 @@ When installing RHACS you need to kick off a complaince scan to ensure that the 
 . Head to the Compliance -> Dashboard
 . Click the "Scan environment" button on the top left.
 
-image::07-comp-3.png[link=self, window=blank, width=100%]
+image::06-comp-3.png[link=self, window=blank, width=100%]
 
 [start=3]
 
@@ -134,24 +134,24 @@ Each standard represents a series of controls, with guidance provided by RHACS o
 
 In the top right of the dashboard you will see two of the dropdown options
  
-image::07-comp-6.png[link=self, window=blank, width=100%]
+image::06-comp-6.png[link=self, window=blank, width=100%]
 
 * Manage standards &
 * Export
 
 *Click the "Manage standards button"*
 
-image::07-comp-6.png[link=self, window=blank, width=100%]
+image::06-comp-6.png[link=self, window=blank, width=100%]
 
 You will see all of the standards available to you in the dashboard. These standards will effect ALL of the controls that you see in the dashboad. For example;
 
 *Remove all of the options except NIST SP 800-53.*
 
-image::07-comp-8.png[link=self, window=blank, width=100%]
+image::06-comp-8.png[link=self, window=blank, width=100%]
 
 And you should end up with a dashboard that looks like this
 
-image::07-comp-9.png[link=self, window=blank, width=100%]
+image::06-comp-9.png[link=self, window=blank, width=100%]
 
 Focusing on the standards that matter most to you is essential for reducing unnecessary noise in the UI.
 
@@ -161,12 +161,12 @@ IMPORTANT: add all the standards back before progressing to the next section
 
 . Click on PCI, or the PCI percentage bar, in the upper-left “Passing Standards Across Clusters” graph
 
-image::07-comp-4.png[link=self, window=blank, width=100%]
+image::06-comp-4.png[link=self, window=blank, width=100%]
 
 [start=2]
 . Click on Control 1.1.4, “Requirements for a firewall…”
 
-image::07-comp-5.png[link=self, window=blank, width=100%]
+image::06-comp-5.png[link=self, window=blank, width=100%]
 
 For example, PCI-DSS has controls that refer to firewalls and DMZ - not exactly cloud-native
 
@@ -179,9 +179,9 @@ Last thing about compliance - you’re only as compliant as you can prove!
 
 This is the evidence export that your auditors will want to see for proof that the security controls mandated are actually in place.
 
-|====
+====
 How would you bring this standard up to 100%?
-|====
+====
 
 == Managing the Compliance Coverage feature (Technology Preview)
 
@@ -196,7 +196,7 @@ By viewing the cluster compliance page, you can get a comprehensive overview of 
 .Procedure
 . In the RHACS portal, go to the Compliance → Coverage tab.
 
-image::07-comp-10.png[link=self, window=blank, width=100%]
+image::06-comp-10.png[link=self, window=blank, width=100%]
 
 The cluster compliance page organizes information in the following groups:
 
@@ -210,7 +210,7 @@ The cluster compliance page organizes information in the following groups:
 There is currently nothing in the coverage dashboard since no schedule has been created yet!
 ====
 
-image::07-comp-11.png[link=self, window=blank, width=100%]
+image::06-comp-11.png[link=self, window=blank, width=100%]
 
 === Creating a compliance scan schedule
 
@@ -240,7 +240,7 @@ In the Configuration options page, provide the following information:
 
 . In the Clusters page, select one or more clusters that you want to include in the scan.
 
-image::07-comp-12.png[link=self, window=blank, width=100%]
+image::06-comp-12.png[link=self, window=blank, width=100%]
 
 [start=5]
 . Click *Next*.
@@ -248,9 +248,9 @@ image::07-comp-12.png[link=self, window=blank, width=100%]
 . Click *Next*.
 . Review your scan configuration, and then click Create.
 
-|====
+====
 Wait until the Compliance Operator returns the scan results. It might take a few minutes.
-|====
+====
 
 === Viewing the compliance scan status
 
@@ -260,7 +260,7 @@ By viewing the status of a compliance scan, you can efficiently monitor and anal
 . In the RHACS portal, go to the *Compliance* → *Coverage* tab.
 . Select the compliance scan you have created.
 
-image::07-comp-13.png[link=self, window=blank, width=100%]
+image::06-comp-13.png[link=self, window=blank, width=100%]
 
 === Compliance scan status overview
 
@@ -288,21 +288,21 @@ OPTIONAL: From the Compliance status drop-down list, select one or more statuses
 | The compliance scan data is inconsistent, and requires closer inspection and targeted resolution.
 |=== 
 
-|====
+====
 The scan shows 60 passing controls, 8 failing controls and 21 manual controls. 
-|====
+====
 
 Let's dive a little deeper.
 
 .Procedure
 . Sort the scan by the *Fail* status only.
 
-image::07-comp-14.png[link=self, window=blank, width=100%]
+image::06-comp-14.png[link=self, window=blank, width=100%]
 
 [start=2]
 . Review the failing standard called 'ocp4-cis-configure-network-policies-namespaces'
 
-image::07-comp-15.png[link=self, window=blank, width=100%]
+image::06-comp-15.png[link=self, window=blank, width=100%]
 
 You'll notice in details it gives you a Rationale, Description and Instructions on how to ensure a passing grade in the future. Let's try running those commands.
 
@@ -361,9 +361,9 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExa3R1YjV5eGt3MTQ2a2UxOGM0
 
 *Should you choose to accept it*
 
-|====
+====
 Implement a daily scan that with the rhcos4-stig profile. 
-|====
+====
 
 And for those wondering, review this link discussing link:https://www.perforce.com/blog/kw/what-is-DISA-STIG[what is DISA STIG?]
 

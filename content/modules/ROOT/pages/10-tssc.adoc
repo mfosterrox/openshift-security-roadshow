@@ -198,8 +198,6 @@ This initialization can be done via command line parameters or by setting enviro
 
 NOTE: Cosign itself doesn't need access to OpenShift, but since we have Trusted Artifact Signer installed on OpenShift (a RHEL installation is another deployment option), we will be using some `oc` commands to get the required endpoints.
 
-> Before proceeding, please verify you are still logged in to OpenShift via `oc whoami`
-
 [start=3]
 . Run the following command in the terminal
 
@@ -372,8 +370,8 @@ In this example, the "OAuth2 browser based flow" is used. In other words, you wi
 
 [cols="2,2"]
 |===
-|*Username:* | *jdoe@redhat.com* |
-*Password:* | *secure* |
+| *Username:* | *jdoe@redhat.com* 
+| *Password:* | *secure* 
 |===
 
 image::11-signing-sso-login.png[keycloak login]
@@ -430,8 +428,8 @@ cosign tree $QUAY_URL/$QUAY_USER/frontend:0.1
 
 [cols="2,2"]
 |===
-|*Quay Console Username:* | {quay_admin_username} |
-*Quay Console Password:* | {quay_admin_password} |
+| *Quay Console Username:* | {quay_admin_username}
+| *Quay Console Password:* | {quay_admin_password}
 |===
 
 Quay recognizes the `cosign` image signature, too!

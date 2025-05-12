@@ -15,8 +15,8 @@ Administrator login is available with:
 
 [cols="1,1"]
 |===
-| *Username:* | kubeadmin 
-| *Password:* | {openshift_kubeadmin_password}
+| *Username:* | {openshift_admin_user}
+| *Password:* | {openshift_admin_password} 
 |===
 
 Navigate to the *Cluster* drop down menu and then select *All Clusters*. 
@@ -174,8 +174,8 @@ image::01-ocp-login-admin.png[OpenShift console]
 
 [cols="1,1"]
 |===
-*User:*| {openshift_admin_user} |
-*Password:*| {openshift_admin_password} |
+| *User:*| {openshift_admin_user} 
+| *Password:*| {openshift_admin_password} 
 |===
 
 
@@ -185,24 +185,24 @@ image::01-ocp-login-admin.png[OpenShift console]
 image::01-ocp-login-password.png[OpenShift console login]
 
 
-|====
+====
 You should be directed to the RHACM dashboard. RHACM is intergrated into the OpenShift dashboard.
-|====
+====
 
 [start=5]
 . To get to your clusters local OpenShift dashboard click the top dropdown and select *local-cluster*
 
-image::06-cd-01.png[link=self, window=blank, width=100%]
-image::06-cd-02.png[link=self, window=blank, width=100%]
+image::05-cd-01.png[link=self, window=blank, width=100%]
+image::05-cd-02.png[link=self, window=blank, width=100%]
 
 [start=6]
 . Click on the *Pipelines* tab on the left side of the page and select "*Pipelines*" 
 
 > The pipeline we are looking for is called *rox-pipeline* and you can either find it and select it or you can change the *Project to "pipeline-demo"*.
 
-image::06-cd-03.png[link=self, window=blank, width=100%]
+image::05-cd-03.png[link=self, window=blank, width=100%]
 
-image::06-cd-04.png[link=self, window=blank, width=100%]
+image::05-cd-04.png[link=self, window=blank, width=100%]
 
 [start=7]
 . There's no pipeline currently. Let's apply it now.
@@ -228,7 +228,7 @@ clustertask.tekton.dev/rox-image-scan created
 [start=8]
 . Click the three dots on the right side of the screen and select *start*
 
-image::06-cd-05.png[link=self, window=blank, width=100%]
+image::05-cd-05.png[link=self, window=blank, width=100%]
 
 ----
 This pipeline works by taking and image that you have created and passing it through a "roxctl image scan" and a "roxctl image check" process.
@@ -242,20 +242,20 @@ This pipeline works by taking and image that you have created and passing it thr
 echo $QUAY_URL/$QUAY_USER/frontend:0.1
 ----
 
-image::06-cd-06.png[link=self, window=blank, width=100%]
+image::05-cd-06.png[link=self, window=blank, width=100%]
 
 IMPORTANT: The pipeline should fail. 
 
-|====
+====
 Why do you think the pipeline failed?
-|====
+====
 
 Let's look at the logs.
 
 [start=10]
 . Take a look at the log snippet on the bottom right of the page.
 
-image::06-cd-09.png[link=self, window=blank, width=100%]
+image::05-cd-09.png[link=self, window=blank, width=100%]
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
@@ -371,7 +371,7 @@ secret/roxsecrets configured
 
 . Go back to the pipelines view.
 
-image::06-cd-12.png[link=self, window=blank, width=100%]
+image::05-cd-12.png[link=self, window=blank, width=100%]
 
 [start=2]
 . Click the *Actions* dropdown and select *Rerun*. Then relax for a few seconds and grab a sip of water. 
@@ -382,11 +382,11 @@ What are you expecting to happen
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeXdiMmFwaTNrbW02cTNod3BmaTh2aGRrdDJsc3d4NHpqNXY5ZzkwNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/073QSCJf2tIbtWjZpb/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
-image::06-cd-13.png[link=self, window=blank, width=100%]
+image::05-cd-13.png[link=self, window=blank, width=100%]
 
-|====
+====
 What happened? Did you expect this behavior?
-|====
+====
 
 [start=3]
 . Check the log snippet in bottom right of the page.
@@ -416,8 +416,6 @@ Turn off the enforcement of the build lifecycle policy blocking this pipeline an
 IMPORTANT: Do not disable the policy. Disable the enforcement.
 
 Your mission is completed with a successful pipeline run.
-
-image::06-cd-14.png[link=self, window=blank, width=100%]
 
 == What would you do?
 

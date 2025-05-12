@@ -368,10 +368,10 @@ quay-bq65l.apps.cluster-bq65l.bq65l.sandbox209.opentlc.com
 
 [source,sh,subs="attributes",role=execute]
 ----
-podman login $QUAY_URL
+podman login $QUAY_URL -u $QUAY_USER -p {quay_admin_password}
 ----
 
-NOTE: Use the quay admin credentials to sign in. 
+NOTE: Use the quay admin credentials to sign in if you run into issues.
 
 [cols="2,2"]
 |===

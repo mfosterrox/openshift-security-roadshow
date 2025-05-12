@@ -342,9 +342,9 @@ NOTE: Use the quay admin credentials, Username: *{quay_admin_username}* & passwo
 [start=4]
 . Let's pretend as if the developers are pushing an update to the frontend application. First, pull and scan the related image.
 
-|====
+====
 The following command is designed to mimic and build a pipeline where a container build is going through a commit/promotion step. You download the image, scan for vulnerabilities, tag a newer version and upload to Quay.
-|====
+====
 
 [source,sh,subs="attributes",role=execute]
 ----

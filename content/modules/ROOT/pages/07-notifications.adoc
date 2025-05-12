@@ -32,97 +32,62 @@ Policies can be assigned different severity levels (Low, Medium, High, Critical)
 RHACS continuously monitors Kubernetes clusters for runtime anomalies. Alerts can be configured to trigger on suspicious activities such as unexpected network connections, process executions, or file system changes.By analyzing the runtime behavior of applications, RHACS can alert on deviations from known good states or behaviors.
 Configuring Alerting in RHACS
 
-== Setup a Microsoft Teams Integration
+== Integrating Slack with RHACS
 
-Let's setup a basic Microsoft teams integration. 
+In this guide, we will show you how to integrate Red Hat Advanced Cluster Security (RHACS) with Slack by setting up an Incoming Webhook in Slack and configuring it in RHACS to receive security alerts.
 
-IMPORTANT: For this lab I have setup a free personal account. If you do not have access to an account simply follow along and complete the steps that you are able to. Please head to the link:https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook?tabs=newteams%2Cdotnet[Microsoft site]
+=== Prerequisites
+Before proceeding, ensure you have the following:
+- A Slack account and access to create a Slack app.
 
-IMPORTANT: The following instructions have not been verified.
+=== Steps for Setting Up the Slack Integration
 
-.Procedure
-. In the New Teams client, select Teams and navigate to the channel where you want to add an Incoming Webhook.
-. Select More options ••• on the right side of the channel name.
-. Select Manage channel.
-. Screenshot shows the Manage channel option under More options for Teams 2.1
-. Select Edit.
-. Search for Incoming Webhook and select Add.
-. Select Add.
+*Procedure*
 
-NOTE: If you’ve already added an Incoming Webhook, the Configure option appears. Select Configure to create an Incoming Webhook.
+. Visit the Slack API site: https://api.slack.com/apps?new_app=1 and log in with your Slack credentials.
+. Click **MORE** then click **Automations**.
 
-[start=7]
-. Provide a name for the webhook and upload an image if necessary.
-. Select Create.
-. Screenshot shows the name and image fields to be filled to create the webhook.
-. Copy and save the unique webhook URL present in the dialog. The URL maps to the channel and you can use it to send information to Teams.
-. Select Done. The webhook is now available in the Teams channel.
+image::07-slack-00.png[link=self, window=blank, width=100%]
 
-=== Intergrate the Teams webhook into RHACS
+[start=3]
+. Select **New Workflow** at the top right of the page.
 
-.Procedure
-. Access the RHACS Console
-. Go to Platform Configurations -> Integrations
-. Click on Microsoft Teams
-. Click New integraton
-. Give your webhook a name
-. Paste the Teams Webhook
-. Hit *Test* and hopefully recieve a "The test was successful" message.
-
-== Setup a Slack Integration
-
-=== Create a Slack Webhook
-
-.Procedure
-. Create a Slack App
-. Log in to Slack: Go to the link: https://api.slack.com/apps?new_app=1[Slack API site] and log in with your Slack credentials.
-. Create a New App: Click on "Add Apps" 
-. Click on "From scratch"
-.  
-
-====
-You will need to choose a name for the app and select the workspace where it will be used.
-====
-
-TIP: You can add features such as webhooks or bot users later, but for now, focus on setting up the Incoming Webhooks.
+image::07-slack-01.png[link=self, window=blank, width=100%]
 
 [start=4]
-. Once your app is created, go to the app's settings and find the "Incoming Webhooks" feature.
-. Toggle Webhooks On: You will see an option to enable webhooks. Toggle it to “On” to allow incoming webhooks for your app.
-. After enabling Incoming Webhooks, scroll down to the "Webhook URLs for Your Workspace" section.
-. Add New Webhook to Workspace: Click the "Add New Webhook to Workspace" button.
+. Select **New Workflow** at the top right of the page.
+. Search for webhook and select it.
 
-====
-A new window will open, allowing you to choose a Slack channel where messages sent by the webhook will appear. Authorize this action by clicking the "Allow" button after selecting the desired channel.
-==== 
+image::07-slack-02.png[link=self, window=blank, width=100%]
+
+[start=6]
+. Hit continue
+. Select the **Slack workspace** where it will be used.
+
+image::07-slack-03.png[link=self, window=blank, width=100%]
+
+TIP: You can add additional features like webhooks or bot users later, but for now, focus on setting up the Incoming Webhooks.
+
+[start=8]
+. Add a test prompt and save it
+. Then click **Finish Up**
+
+image::07-slack-04.png[link=self, window=blank, width=100%]
 
 [start=10]
-. Copy the Webhook URL: Once the webhook is authorized, a unique Webhook URL will be generated. You will use this URL in the next step.
+. Scroll down to the **Webhook URLs for Your Workspace** section.
+. Next copy the unique **Webhook URL** and navigate to the RHACS dashboard
+. Log into the RHACS Console and navigate to **Platform Configurations -> Integrations**.
+. Under **Notifier Integrations**, select **Slack**.
+. Click the **New integration** button to start the configuration.
+* **Integration Name:** Enter a name for your integration, e.g., "Slack Webhook for Security Alerts".
+* **Webhook URL:** Paste the **Webhook URL** you copied earlier from Slack.
+* **Default Channel:** This is typically auto-populated based on the Webhook URL, but verify or select the correct Slack channel.
+. Click **Test** to ensure the integration works correctly.
+. If successful, you will see the message **"The test was successful"**.
 
-=== Intergrate the Slack webhook into RHACS
-
-.Procedure
-. Access the RHACS Console
-. Go to *Platform Configurations -> Integrations*
-. Select Notifier Integrations -> Slack
-. Click the *New integration* button to set up a new notification system.
-
-====
-A new window will appear where you can choose the type of integration. Select Slack from the list.
-====
-
-IMPORTANT: You will need to configure the Slack integration by providing the following information:
-
-*Integration Name:* Give your integration a name, like "Slack Webhook for Security Alerts."
-*Webhook URL*: Paste the Slack Webhook URL you generated earlier.
-*Default Channel:* This is typically auto-populated based on the webhook URL, but you can verify or specify the correct Slack channel.
-*Message Format: *Choose the format for your messages. This could be simple text, or you could customize it further using Block Kit if supported.
-
-
-[start=5]
-. Hit Test and hopefully recieve a "The test was successful" message.
-
-image::08-not-1.png[link=self, window=blank, width=100%]
+== References
+- [Slack API Documentation](https://api.slack.com/)
 
 ====
 Next we have to configure our policies to alert based on specific triggers.

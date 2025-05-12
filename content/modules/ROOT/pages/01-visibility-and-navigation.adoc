@@ -32,8 +32,8 @@ Administrator login is available with:
 
 [cols="1,1"]
 |===
-*RHACS Console Username:* | {acs_portal_username} |
-*RHACS Console Password:* | {acs_portal_password} |
+| *RHACS Console Username:* | {acs_portal_username}
+| *RHACS Console Password:* | {acs_portal_password}
 |===
 
 Please ensure that you have access before proceeding. 

@@ -304,9 +304,9 @@ image::03-risk-15.png[link=self, window=blank, width=100%]
 
 image::03-risk-16.png[link=self, window=blank, width=100%]
 
-|====
+====
 There will be a "Pending Exception" icon in the dashboard to mark that a deferral has been requested.
-|====
+====
 
 [start=6]
 . Click on the *Pending exception* icon
