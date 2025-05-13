@@ -445,6 +445,26 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzMyaHRsNTdwZWRlejRycGtp
 
 AMAZING!
 
+Before you head to the next module. Make sure to run the following commands to redploy our example app. 
+
+[source,sh,subs="attributes",role=execute]
+----
+POLICY_ID=$(curl -X GET \
+  -H "Authorization: Bearer $ROX_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  https://$ROX_CENTRAL_ADDRESS/v1/policies | jq -r '.policies[] | select(.name=="Alpine Linux Package Manager in Image - Enforce Deploy") | .id')
+
+curl -X DELETE \
+  -H "Authorization: Bearer $ROX_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "id": "$POLICY_ID"
+      }' \
+  https://$ROX_CENTRAL_ADDRESS/v1/policies/$POLICY_ID
+
+oc apply -f $APP_HOME/skupper-demo/
+----
+
 In summary, we made use of the features provided by Red Hat Advanced Cluster Security for Kubernetes to display potential security violations in your cluster in a central dashboard. You crafted both deploy-time and runtime policies to help prevent malicious events from occurring in our cluster. Hopefully this lab has helped demonstrate to you the immense value provided by RHACS and OpenShift Platform Plus. Please feel free to continue and explore the RHACS lab environment.
 
 On to *CI/CD and Automation*!

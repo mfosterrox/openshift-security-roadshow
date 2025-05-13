@@ -668,8 +668,8 @@ You can access the => {gitlab_url}[GitLab instance UI^] on the cluster using
 
 [cols="2,2"]
 |===
-|*GitLab Username:* | {gitlab_user} |
-*GitLab Password:* | {gitlab_user_password} |
+| *GitLab Username:* | {gitlab_user} 
+| *GitLab Password:* | {gitlab_user_password} 
 |===
 
 TIP: You can also create an empty repository in GitLab with just a README and clone this to your console - but since we already have a repo, we'll use that. However, for our signing and verification exercise, the actual content isn't really important, so an arbitrary repo will do.

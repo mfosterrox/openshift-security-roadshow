@@ -79,7 +79,6 @@ def main():
         echo "Module 0 success" >> {output_file}
     else
         echo "Module 0 failed" >> {output_file}
-        exit 1  # Exit the script if the command fails
     fi
 
     # Check if the policy is finished
@@ -90,7 +89,6 @@ def main():
         echo "Module 1 success" >> {output_file}
     else
         echo "Module 1 failed" >> {output_file}
-        exit 1  # Exit the script if the command fails
     fi
 
     # Check if the colleciton has been created
@@ -101,7 +99,6 @@ def main():
         echo "Module 2 success" >> {output_file}
     else
         echo "Module 2 failed" >> {output_file}
-        exit 1  # Exit the script if the command fails
     fi
 
     # Check if the policy is finished
@@ -112,7 +109,6 @@ def main():
         echo "Module 3 success" >> {output_file}
     else
         echo "Module 3 failed" >> {output_file}
-        exit 1  # Exit the script if the command fails
     fi
 
     # Check if the policy is finished
@@ -123,13 +119,40 @@ def main():
         echo "Module 4 success" >> {output_file}
     else
         echo "Module 4 failed" >> {output_file}
-        exit 1  # Exit the script if the command fails
+    fi
+
+
+    # Check TaskRun status for succeeded tasks
+    taskruns=$(oc get taskrun -n pipeline-demo -o json | jq '.items[] | select(.status.succeeded == true) | .metadata.name')
+    # If no succeeded TaskRun found, set eq=1
+    if [ -z "$taskruns" ]; then
+        eq=1
+    else
+        eq=0
+    fi
+
+    # Check the value of eq and log success/failure
+    if [ $eq -eq 0 ]; then
+        echo "Module 5 success" >> {output_file}
+    else
+        echo "Module 5 failed" >> {output_file}
+    fi
+
+    # Check if the compliance scan was created
+    curl --insecure -X GET "https://$ROX_CENTRAL_ADDRESS/v2/compliance/scan/results" \
+    -H "Authorization: Bearer $ROX_API_TOKEN" \
+    -H "Content-Type: application/json"
+    
+    if [ $? -eq 0 ]; then
+        echo "Module 6 success" >> {output_file}
+    else
+        echo "Module 6 failed" >> {output_file}
     fi
 
     # If all commands succeed, print completion
     echo "Completion" >> {output_file}
     """
-    
+
     # Run the command and capture output
     result = ssh_to_bastion(bastion_host, bastion_port, bastion_user, password, command, output_file)
     

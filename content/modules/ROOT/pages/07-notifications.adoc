@@ -56,11 +56,12 @@ image::07-slack-01.png[link=self, window=blank, width=100%]
 
 [start=4]
 . Select **New Workflow** at the top right of the page.
+. Click the workflow title and give it the following name: **first-notification-workflow**
 . Search for webhook and select it.
 
 image::07-slack-02.png[link=self, window=blank, width=100%]
 
-[start=6]
+[start=7]
 . Hit continue
 . Select the **Slack workspace** where it will be used.
 
@@ -68,19 +69,19 @@ image::07-slack-03.png[link=self, window=blank, width=100%]
 
 TIP: You can add additional features like webhooks or bot users later, but for now, focus on setting up the Incoming Webhooks.
 
-[start=8]
+[start=9]
 . Add a test prompt and save it
 . Then click **Finish Up**
 
 image::07-slack-04.png[link=self, window=blank, width=100%]
 
-[start=10]
+[start=11]
 . Scroll down to the **Webhook URLs for Your Workspace** section.
 . Next copy the unique **Webhook URL** and navigate to the RHACS dashboard
 . Log into the RHACS Console and navigate to **Platform Configurations -> Integrations**.
 . Under **Notifier Integrations**, select **Slack**.
 . Click the **New integration** button to start the configuration.
-* **Integration Name:** Enter a name for your integration, e.g., "Slack Webhook for Security Alerts".
+* **Integration Name:** Enter: **slack-alerts**
 * **Webhook URL:** Paste the **Webhook URL** you copied earlier from Slack.
 * **Default Channel:** This is typically auto-populated based on the Webhook URL, but verify or select the correct Slack channel.
 . Click **Test** to ensure the integration works correctly.
@@ -99,40 +100,33 @@ Balancing security alerting in a team is crucial to ensure that the team is resp
 
 Let's test this out. You will use the runtime enforcement policy that was used in the previous module. 
 
-.Procedure
+*Procedure*
+
 . On the left-hand side of the application, click the *Platform Configuration* tab and select *Policy Management*.
 
-image::acs-policy-00.png[link=self, window=blank, width=100%, Policy Management Dashboard]
+image::07-pol-not-00.png[link=self, window=blank, width=100%]
 
 [start=2]
 
-. Filter through the policies to find *Ubuntu Package Manager Execution* or use the search bar to select *Policy*.
+. Filter through the policies to find *No bash allowed* or use the search bar to select *Policy*.
 
-image::acs-policy-01.png[link=self, window=blank, width=100%, Policy Management Search]
+image::07-pol-not-01.png[link=self, window=blank, width=100%]
 
 [start=3]
 
-. Once you have found the policy *Ubuntu Package Manager Execution*, click on the runtime enforcement policy you created earlier 
+. Once you have found the policy *No bash allowed* click to edit the policy
 
 image::08-not-2.png[link=self, window=blank, width=100%]
 
-====
-There should now be a notifier option on the right hand side of the screen. 
-====
-
 [start=4]
-. Click your new webhook
-. Save the policy
-
-Next we are going to run the same runtime apt command as we did earlier.
-
-[start=6]
+. Go to Policy behavior - actions. There sohould be your slack-alerts notifier option available.
+. Click the notifier and save the policy
 . Run the following command in the terminal
 
 [source,sh,role=execute]
 ----
-POD=$(oc get pod -l app=ctf-web-to-system -o jsonpath="{.items[0].metadata.name}")
-oc exec $POD -i --tty -- /bin/bash
+POD=$(oc get pod -n payments -l app=visa-processor -o jsonpath="{.items[0].metadata.name}")
+oc exec $POD -n payments -i --tty -- /bin/bash
 ----
 
 [.console-output]
@@ -145,42 +139,10 @@ node@ctf-web-to-system-6db858448f-hz6j2:/app$
 
 NOTE: If you see *node@ctf...* you've confirmed you have a shell and access to the Java application.
 
-[start=5]
-. Run the Ubuntu package manager in this shell:
-
-[source,sh,role=execute]
-----
-apt update
-----
-
-[start=6]
-. Examine the output and expect to see that the package manager attempts to perform an update operation:
-
-*Sample output*
-[source,texinfo,subs="attributes"]
-----
-node@ctf-web-to-system-6db858448f-stwhq:/$ apt update
-Reading package lists... Done
-E: List directory /var/lib/apt/lists/partial is missing. - Acquire (13: Permission denied)
-node@ctf-web-to-system-6db858448f-stwhq:/$ command terminated with exit code 137
-----
-
 [start=7]
 . Lastly, review your Slack or Teams channel for the alert. 
 
-image::08-not-3.png[link=self, window=blank, width=100%]
-
 *Congrats!* 
-
-== A task to complete on your own.
-
-*You know the drill*
-
-image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExenowdjBqdG9weG5jdXJ2NTZwdzhmbTF5dzBkcjIwZ2w4eDM2cTB0byZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/NCZYQW0wJlsCkMCH4j/giphy.gif[link=self, window=blank, width=100%, class="center"]
-
-Add the notifier to the *Runtime Policy* 'Netcat Execution Detected'. Enable enforcement of the policy and watch the "visa-processor" container for a violation. This container runs an *nc* command every minute or so. 
-
-Your mission is completed with a notification to Slack or Teams.
 
 == Summary
 

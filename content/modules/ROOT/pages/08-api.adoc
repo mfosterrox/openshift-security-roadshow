@@ -80,7 +80,7 @@ NOTE:  All API requests are made over HTTPS to ensure data encryption during tra
 [start=1]
 . Head back to the RHACS dashboard and on *Platform Configuration* -> *Integrations* and scroll to the bottom of the page.
 
-image::06-cd-10.png[link=self, window=blank, width=100%]
+image::05-cd-10.png[link=self, window=blank, width=100%]
 
 [start=2]
 . Click on *API Token.

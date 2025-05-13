@@ -120,9 +120,23 @@ What's the difference?
 * Externally managed policies are managed via GitOps and policy as code.
 
 [start=3]
-. Delete the two locally managed policies by clicking the 3 dots and selecting `Delete policy`
+. Delete the the locally managed policies by running the following command
 
-image::05-acm-08.png[link=self, window=blank, width=100%]
+[source,sh,subs="attributes",role=execute]
+----
+POLICY_ID=$(curl -X GET \
+  -H "Authorization: Bearer $ROX_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  https://$ROX_CENTRAL_ADDRESS/v1/policies | jq -r '.policies[] | select(.name=="Alpine Linux Package Manager in Image - Enforce Build") | .id')
+
+curl -X DELETE \
+  -H "Authorization: Bearer $ROX_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "id": "$POLICY_ID"
+      }' \
+  https://$ROX_CENTRAL_ADDRESS/v1/policies/$POLICY_ID
+----
 
 > Nice job! 
 
@@ -183,7 +197,6 @@ image::01-ocp-login-admin.png[OpenShift console]
 . Enter the OpenShift username *{openshift_admin_user}* and password: *{openshift_admin_password}*
 
 image::01-ocp-login-password.png[OpenShift console login]
-
 
 ====
 You should be directed to the RHACM dashboard. RHACM is intergrated into the OpenShift dashboard.
@@ -376,10 +389,6 @@ image::05-cd-12.png[link=self, window=blank, width=100%]
 [start=2]
 . Click the *Actions* dropdown and select *Rerun*. Then relax for a few seconds and grab a sip of water. 
 
-----
-What are you expecting to happen
-----
-
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeXdiMmFwaTNrbW02cTNod3BmaTh2aGRrdDJsc3d4NHpqNXY5ZzkwNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/073QSCJf2tIbtWjZpb/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
 image::05-cd-13.png[link=self, window=blank, width=100%]
@@ -401,21 +410,7 @@ ERROR:	Policy "Ubuntu Package Manager in Image - Build-time" - Possible remediat
 ERROR:	checking image failed after 3 retries: failed policies found: 1 policies violated that are failing the check
 ----
 
-So it looks like our build policy from the previous exercise impacted the ability to complete this pipeline run. 
-
-== A task to complete on your own.
-
-*Here is your mission*
-
-image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNnJoNHE2MXhocm52ZzFmeHVyY3JiN3F5cGFjYW00dGsycXF2bnNtbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohs4lNKssQD2wewyQ/giphy.gif[link=self, window=blank, width=100%, class="center"]
-
-*Should you choose to accept it*
-
-Turn off the enforcement of the build lifecycle policy blocking this pipeline and rerun the pipeline.
-
-IMPORTANT: Do not disable the policy. Disable the enforcement.
-
-Your mission is completed with a successful pipeline run.
+So it looks like our policy-as-code example blocked the pipeline from executing successfully. 
 
 == What would you do?
 
