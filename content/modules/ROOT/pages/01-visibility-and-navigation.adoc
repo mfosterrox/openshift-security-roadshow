@@ -26,7 +26,7 @@ Using Red Hat Advanced Cluster Security for Kubernetes, you can gain comprehensi
 
 === Accessing the RHACS console
 
-Your RHACS Console is available at: {acs_route}[window=blank]
+Your RHACS Console is available at: {acs_route}[{acs_route}^]
 
 Administrator login is available with:
 
@@ -36,7 +36,7 @@ Administrator login is available with:
 | *RHACS Console Password:* | {acs_portal_password}
 |===
 
-Please ensure that you have access before proceeding. 
+Please ensure that you have access before proceeding.
 
 == Introduction to the RHACS console
 
@@ -56,14 +56,14 @@ image::01-acs-dashboard-00.png[link=self, window=blank, width=100%, Numbered Das
 
 === 1. Navigation bar
 
-The top bar contains the following functionality: 
+The top bar contains the following functionality:
 
-- Global search 
-- Command-line tools 
-- Cluster health 
-- Documentation 
-- API reference 
-- Enable dark/light Mode 
+- Global search
+- Command-line tools
+- Cluster health
+- Documentation
+- API reference
+- Enable dark/light Mode
 - Logged-in user account
 
 image::01-acs-top-bar.png[link=self, window=blank, width=100%, Navigation Bar]
@@ -93,7 +93,7 @@ video::01-acs-search.mp4[width=640,opts=autoplay, class="center" ]
 
 ---
 
-NOTE: RHACS maintains a library of searchable assets to help you search faster. They will appear in a drop-down list, and you can click on them to enter them as well. If a specific CVE or deployment cannot be found, please confirm the spelling of the asset name or that it is correctly deployed in the cluster. 
+NOTE: RHACS maintains a library of searchable assets to help you search faster. They will appear in a drop-down list, and you can click on them to enter them as well. If a specific CVE or deployment cannot be found, please confirm the spelling of the asset name or that it is correctly deployed in the cluster.
 
 You can also search using *REGEX like capabilities*. Add an *r/* before the search term to find all possibilities. For example if you search for *Namespace:r/st.*x*, the results include matches from namespace stackrox and stix.
 
@@ -122,7 +122,7 @@ image::01-acs-search-cve.png[link=self, window=blank, width=100%, Search Syntax]
 
 You can use local page filtering from within all views in the RHACS portal. Local page filtering works similarly to the global search, but only relevant attributes are available. You can select the search bar to show all available attributes for a specific view.
 
-For example, filtering in the violations window by the default namespace. 
+For example, filtering in the violations window by the default namespace.
 
 ---
 
@@ -143,8 +143,8 @@ The left-hand navigation menu provides access to each of the security use cases,
 - *Dashboard:* Summary view of your environment
 - *Network Graph:* Real time network flows and public ports that are available. Enables to automated creation of Network Policies to implement network segmentation
 - *Violations:* Events that are in violation of the default and your defined security policies
-- *Compliance:* Our new compliance dashboard (Self titled *NextGen Compliance*) update is in progress. With plans to make compliance reporting even easier with tailored compliance profiles and reporting by application, namespace and cluster. 
-- *Vulnerability Management:* Over the past year, we've revamped our Vulnerability Management workflows, focusing on filtering important and critical issues. We've also introduced node, platform, and workload-specific vulnerability dashboards. This segmentation helps the operations team quickly identify where a vulnerability exists and determine which team to contact, making the process much more efficient. 
+- *Compliance:* Our new compliance dashboard (Self titled *NextGen Compliance*) update is in progress. With plans to make compliance reporting even easier with tailored compliance profiles and reporting by application, namespace and cluster.
+- *Vulnerability Management:* Over the past year, we've revamped our Vulnerability Management workflows, focusing on filtering important and critical issues. We've also introduced node, platform, and workload-specific vulnerability dashboards. This segmentation helps the operations team quickly identify where a vulnerability exists and determine which team to contact, making the process much more efficient.
 - *Configuration Management:* The configuration management tab enables you to identify potential misconfigurations that can lead to security issues
 - *Risk:* The Risk tab points out major risky applications by using configuration, runtime, and vulnerability data, helping you focus on the "high-risk" workloads.
 - *Platform Configuration:* RHACS configuration, policy management and integration details, including;
@@ -158,7 +158,7 @@ The left-hand navigation menu provides access to each of the security use cases,
 * Administration Events
 * System Health
 
-=== 3. Dashboard 
+=== 3. Dashboard
 
 The Red Hat Advanced Cluster Security for Kubernetes (RHACS) Dashboard provides quick access to the data you need. It contains additional navigation shortcuts and actionable widgets that are easy to filter and customize so that you can focus on the data that matters most to you. You can view information about levels of risk in your environment, compliance status, policy violations, and common vulnerabilities and exposures (CVEs) in images.
 
@@ -175,7 +175,7 @@ image::01-acs-dashboard-02.png[link=self, window=blank, width=100%, Three Dashbo
 
 ==== 1. The status bar
 
-The status bar provides at-a-glance numerical counters for critical resources. The counters reflect what is visible with your current access scope, defined by the roles associated with your user profile. 
+The status bar provides at-a-glance numerical counters for critical resources. The counters reflect what is visible with your current access scope, defined by the roles associated with your user profile.
 
 These counters are clickable, providing fast access to the desired list view pages as follows:
 
@@ -189,7 +189,7 @@ These counters are clickable, providing fast access to the desired list view pag
 |Secrets|Configuration Management -> Applications & Infrastructure -> Secrets
 |============
 
-==== 2. The dashboard filter 
+==== 2. The dashboard filter
 
 The dashboard includes a top-level filter that applies simultaneously to all widgets. You can select clusters and one or more namespaces within selected clusters. Any change to the filter is immediately reflected by all widgets, limiting the data they present to the selected scope.
 
@@ -211,7 +211,7 @@ We are going to work from the top down throughout the ACS dashboard to give you 
 
 === Network Security
 
-The network user interface contains two drop-downs: the *Network Graph* tab and the *Listening Endpoints* tab. 
+The network user interface contains two drop-downs: the *Network Graph* tab and the *Listening Endpoints* tab.
 
 > *Click on the Network Graph tab*
 
@@ -229,21 +229,21 @@ image::01-network-2.png[link=self, window=blank, width=100%, Dashboard Filter]
 
 With the *Listening Endpoints tab*, you can see all of the deployments across your clusters and audit for any reported listening endpoints. As you drill down through cluster namespace and into deployments, you will see the exact process ID, Port protocol pod ID, container name and whether they are exposed.
 
-=== Violations 
+=== Violations
 
 On to the violations tab.
 
-The violations tab is where you will manage all of your policy violations. The violations tab is excellent for managing policy violations in the workflow. 
+The violations tab is where you will manage all of your policy violations. The violations tab is excellent for managing policy violations in the workflow.
 
 It contains:
 
-* The exact policy that was violated 
-* The entity that violated the policy 
-* The type 
-* If it is enforced 
-* The severity of that policy 
-* The category 
-* The life cycle 
+* The exact policy that was violated
+* The entity that violated the policy
+* The type
+* If it is enforced
+* The severity of that policy
+* The category
+* The life cycle
 * And the time of the violation
 
 image::01-violations-1.png[link=self, window=blank, width=100%]
@@ -256,7 +256,7 @@ Red Hat Advanced Cluster Security for Kubernetes supports OpenShift Container Pl
 
 The OpenShift Compliance Operator allows OpenShift Container Platform administrators to define the desired compliance state of a cluster and provides an overview of gaps and ways to remediate any non-compliant policy. We will be installing and managing the compliance operator in  later modules
 
-The Compliance dropdown has three tabs to choose from. 
+The Compliance dropdown has three tabs to choose from.
 
 - Coverage
 - Schedules
@@ -282,7 +282,7 @@ The Compliance dashboard will be empty when you're here for the first time. This
 
 image::01-compliance-3.png[link=self, window=blank, width=100%]
 
-> Click the *Scan environment* button in the top right of the page to kick off your first scan. 
+> Click the *Scan environment* button in the top right of the page to kick off your first scan.
 
 image::01-compliance-4.png[link=self, window=blank, width=100%]
 
@@ -296,7 +296,7 @@ We will dive deeper into this tab in later sections but feel free to explore the
 
 Next, we have the *Vulnerability Management* tab, which has been overhauled for greater visibility and efficient filtering.
 
-The Vulnerability Management tab contains *a lot* of information including 
+The Vulnerability Management tab contains *a lot* of information including
 
 - Results
 - Exception Management
@@ -343,7 +343,7 @@ RHACS configuration, policy management and integration details, including;
 
 image::01-pc-1.png[link=self, window=blank, width=100%]
 
-Where you can manage your clusters, check out cluster status, watch your credential expiration manager delegated scanning, and onboard your clusters via init bundles 
+Where you can manage your clusters, check out cluster status, watch your credential expiration manager delegated scanning, and onboard your clusters via init bundles
 
 ==== Policy Management
 
@@ -362,11 +362,11 @@ In the collections tab, you can configure deployment collections to associate wi
 image::01-pc-4.png[link=self, window=blank, width=100%]
 
 The integration tab holds all of your options for:
-- Image integration 
-- Signature Integrations 
-- Notifier Integrations 
-- Backup Integrations 
-- Cloud Source Integrations 
+- Image integration
+- Signature Integrations
+- Notifier Integrations
+- Backup Integrations
+- Cloud Source Integrations
 - and authentication tokens
 
 ==== Exception Configuration
@@ -391,7 +391,7 @@ The system configuration tab manages things like private data retention configur
 
 image::01-pc-8.png[link=self, window=blank, width=100%]
 
-The administration events tab is handy for troubleshooting platform issues by reviewing event logs now, these logs are approached after four days by default, but you can change that in the system configuration tab. We will have a whole section on the administration events later, but it is beneficial for diagnosing issues and looking into domains such as authentication image scanning Integrations and more 
+The administration events tab is handy for troubleshooting platform issues by reviewing event logs now, these logs are approached after four days by default, but you can change that in the system configuration tab. We will have a whole section on the administration events later, but it is beneficial for diagnosing issues and looking into domains such as authentication image scanning Integrations and more
 
 ==== System Health
 
@@ -411,10 +411,10 @@ curl --insecure -X POST https://${ROX_CENTRAL_ADDRESS}/v1/policies \
 -d '{
   "apiVersion": "rhacs.stackrox.io/v1",
   "kind": "Policy",
-  "name": "finished-1-policy", 
-  "description": "", 
-  "rationale": "", 
-  "remediation": "", 
+  "name": "finished-1-policy",
+  "description": "",
+  "rationale": "",
+  "remediation": "",
   "disabled": true,
   "categories": [
     "Vulnerability Management"
