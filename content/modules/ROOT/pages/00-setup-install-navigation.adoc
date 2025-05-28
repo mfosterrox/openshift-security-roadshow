@@ -8,63 +8,63 @@
 
 == Accessing the workshop components
 
-Let's start by ensuring you have access to all the necessary resources to complete this lab. 
+Let's start by ensuring you have access to all the necessary resources to complete this lab.
 
 TIP: Always open the URL by opening in a new tab. For example on a Mac *<cmd> click*
 
-=== Access the Red Hat^(R)^ OpenShift Container Platform (OCP) user interface 
+=== Access the Red Hat^(R)^ OpenShift Container Platform (OCP) user interface
 
 First, make sure you can access the Red Hat^(R)^ OCP console user interface.
 
 *Procedure*
 
 [start=1]
-. Log into the OCP console at `{web_console_url}`
+. Log into the OCP console at `{web_console_url}[{web_console_url}^]`
 . Click the *rhsso* option
 
 IMPORTANT: If the variables on the screen are unavailable, please inform your workshop administrator.
 
-image::01-ocp-login-admin.png[OpenShift console]
+image::01-ocp-login-admin.png[OpenShift console,link=self, window=blank, width=100%]
 
 [start=3]
-. Enter the OCP credentials 
+. Enter the OCP credentials
 
 [cols="1,1"]
 |===
 |*User:*| {openshift_admin_user}
-|*Password:*| {openshift_admin_password} 
+|*Password:*| {openshift_admin_password}
 |===
 
 
 [start=4]
 . Enter the OpenShift username *{openshift_admin_user}* and password: *{openshift_admin_password}*
 
-image::01-ocp-login-password.png[OpenShift console login]
+image::01-ocp-login-password.png[OpenShift console login,link=self, window=blank, width=100%]
 
-=== Access the Red Hat^(R)^ Advanced Cluster Security (RHACS) user interface 
+=== Access the Red Hat^(R)^ Advanced Cluster Security (RHACS) user interface
 
 Ensure that you have access to the RHACS user interface.
 
 *Procedure*
 
 [start=1]
-. Log into the RHACS console at `{acs_route}`
+. Log into the RHACS console at `{acs_route}[{acs_route}^]`
 
-image::01-rhacs-login.png[RHACS console]
+image::01-rhacs-login.png[RHACS console,link=self, window=blank, width=100%]
 
 [start=2]
-. Enter the RHACS credentials 
+. Enter the RHACS credentials
 
 [cols="1,1"]
 |===
-| *RHACS Console Username:* | {acs_portal_username} 
-| *RHACS Console Password:* | {acs_portal_password} 
+| *RHACS Console Username:* | {acs_portal_username}
+| *RHACS Console Password:* | {acs_portal_password}
 |===
 
 
-image::01-rhacs-console-dashboard.png[RHACS console]
+image::01-rhacs-console-dashboard.png[RHACS console,link=self, window=blank, width=100%]
 
-=== Access the Red Hat^(R)^ Quay user interface 
+=== Access the Red Hat^(R)^ Quay user interface
 
 Red Hat Quay is an enterprise-grade container registry that provides a secure, scalable, and highly available solution for storing and managing container images. It offers integrated security scanning, access controls, and image signing to help ensure the integrity and security of containerized applications across hybrid and multi-cloud environments, including Red Hat OpenShift, AWS, Azure, and Google Cloud.
 
@@ -75,19 +75,19 @@ Let's ensure that you have access to the RHACS User Interface.
 *Procedure*
 
 [start=1]
-. Log into the Quay console at {quay_console_url}
+. Log into the Quay console at {quay_console_url}[{quay_console_url}^]
 
-image::00-quay-login.png[link=self, window=blank, width=100%]
+image::00-quay-login.png[Quay Console,link=self, window=blank, width=100%]
 
 [start=2]
-. Enter the Quay credentials 
+. Enter the Quay credentials
 
 [source,sh,subs="attributes",role=execute]
 
 [cols="1,1"]
 |===
-| *Quay Console Username:* | {quay_admin_username} 
-| *Quay Console Password:* | {quay_admin_password} 
+| *Quay Console Username:* | {quay_admin_username}
+| *Quay Console Password:* | {quay_admin_password}
 |===
 
 === OpenShift admin access verification
@@ -141,7 +141,7 @@ NAME                                        STATUS   ROLES                  AGE 
 
 You will now see the OCP role using the *oc* command, as we are currently working in the OpenShift cluster
 
-=== Verify the roxctl CLI and access to RHACS Central Services  
+=== Verify the roxctl CLI and access to RHACS Central Services
 
 Next, verify that we have access to the RHACS Central Service.
 
@@ -150,6 +150,7 @@ Next, verify that we have access to the RHACS Central Service.
 [start=1]
 . Run the following command.
 
+[NOTE]
 ====
 This command uses variables saved in the ~/.bashrc file to authenticate with the RHACS Central Service.
 ====
@@ -197,7 +198,7 @@ Access:
 
 IMPORTANT: This output is showing that you have unrestricted access to the RHACS product. These permissions can be seen in the **RHACS Access Control** tab that we will review later.
 
-image::00-acs-access-control.png[RHACS access control]
+image::00-acs-access-control.png[RHACS access control,link=self, window=blank, width=100%]
 
 *Great job!*
 
@@ -215,7 +216,7 @@ After deploying the applications, you'll scan some of these containers using the
 . Run the following commands in the terminal, one after the other.
 
 ====
-This command downloads a repository container dockerfiles, attack scripts, and Kubernetes manifests that you will use to deploy the containerized applications to OpenShift.  
+This command downloads a repository container dockerfiles, attack scripts, and Kubernetes manifests that you will use to deploy the containerized applications to OpenShift.
 ====
 
 [source,sh,subs="attributes",role=execute]
@@ -261,7 +262,7 @@ The following command will watch all of the applications as they are successfull
 
 [source,bash,role="execute"]
 ----
-oc get deployments -l demo=roadshow -A
+oc get deployments -l demo=roadshow -A -w
 ----
 
 [.console-output]
@@ -283,7 +284,7 @@ operations   jump-host             1/1     1            1           54s
 payments     visa-processor        1/1     1            1           52s
 ----
 
-IMPORTANT: Please ensure the deploy application are deployed and available before moving onto the next module. 
+IMPORTANT: Please ensure the deploy application are deployed and available before moving onto the next module.
 
 [start=2]
 . Run the following roxctl commands to check on the vulnerability status of the applications you deployed.
@@ -302,7 +303,7 @@ TIP: The following output can be configured using flags. You can configure diffe
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-[demo-user@bastion ~]$ roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=quay.io/mfoster/dvwa --force -o table 
+[demo-user@bastion ~]$ roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=quay.io/mfoster/dvwa --force -o table
 Scan results for image: quay.io/mfoster/dvwa
 
 ---------------------------------+------------------+
@@ -338,7 +339,7 @@ QUAY_USER={quay_admin_username}
 
 [start=2]
 
-. Run the following command to set the Quay URL variable 
+. Run the following command to set the Quay URL variable
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -375,8 +376,8 @@ NOTE: Use the quay admin credentials to sign in if you run into issues.
 
 [cols="2,2"]
 |===
-| *Quay Username:* | *{quay_admin_username}* 
-| *Quay Password:* | *{quay_admin_password}* 
+| *Quay Username:* | *{quay_admin_username}*
+| *Quay Password:* | *{quay_admin_password}*
 |===
 
 [.console-output]
@@ -410,11 +411,11 @@ podman pull python:3.12-alpine
 [demo-user@bastion ~]$ podman pull python:3.12-alpine
 Trying to pull docker.io/library/python:3.12-alpine...
 Getting image source signatures
-Copying blob e846654b130a skipped: already exists  
-Copying blob 00bb69fc5235 skipped: already exists  
-Copying blob 1f3e46996e29 skipped: already exists  
-Copying blob 7b104e645578 skipped: already exists  
-Copying config 451fdb03e1 done   | 
+Copying blob e846654b130a skipped: already exists
+Copying blob 00bb69fc5235 skipped: already exists
+Copying blob 1f3e46996e29 skipped: already exists
+Copying blob 7b104e645578 skipped: already exists
+Copying config 451fdb03e1 done   |
 Writing manifest to image destination
 451fdb03e17285d3263d88f0f3bed692c82556935490d233096974386cd0381b
 ----
@@ -460,15 +461,15 @@ podman push $QUAY_URL/$QUAY_USER/python-alpine-golden:0.1
 ----
 [demo-user@bastion ~]$ podman push $QUAY_URL/$QUAY_USER/python-alpine-golden:0.1
 Getting image source signatures
-Copying blob c6121fb0c7de done   | 
-Copying blob a0904247e36a done   | 
-Copying blob 5b6d0b88dd08 done   | 
-Copying blob 375bee7d34e2 done   | 
-Copying config 451fdb03e1 done   | 
+Copying blob c6121fb0c7de done   |
+Copying blob a0904247e36a done   |
+Copying blob 5b6d0b88dd08 done   |
+Copying blob 375bee7d34e2 done   |
+Copying config 451fdb03e1 done   |
 Writing manifest to image destination
 ----
 
-Perfect! 
+Perfect!
 
 [[dev-app]]
 
@@ -476,7 +477,7 @@ Perfect!
 
 In this section, you will add the application code to the image, build, tag and push the new image to Quay. Later, we'll use that image to deploy an application to the OpenShift Cluster.
 
-TIP: With the variables saved in the ~/.bashrc file you will not have to declare them again in the future. 
+TIP: With the variables saved in the ~/.bashrc file you will not have to declare them again in the future.
 
 *Procedure*
 
@@ -566,7 +567,7 @@ cat $TUTORIAL_HOME/app-images/frontend/Dockerfile
 [demo-user@bastion ~]$ cat $TUTORIAL_HOME/app-images/frontend/Dockerfile
 FROM quay-w2t4c.apps.cluster-w2t4c.w2t4c.sandbox1647.opentlc.com/quayadmin/python-alpine-golden:0.1 AS build
 
-RUN pip install --no-cache-dir 
+RUN pip install --no-cache-dir
 
 ....
 ----
@@ -597,26 +598,26 @@ Successfully tagged quay-w2t4c.apps.cluster-w2t4c.w2t4c.sandbox1647.opentlc.com/
 
 [source,sh,subs="attributes",role=execute]
 ----
-podman push $QUAY_URL/$QUAY_USER/frontend:0.1 
+podman push $QUAY_URL/$QUAY_USER/frontend:0.1
 ----
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
 [demo-user@bastion frontend]$ podman push $QUAY_URL/$QUAY_USER/frontend:0.1 --remove-signatures
-Copying blob e2adcecab318 done   | 
-Copying blob 9944062081bf done   | 
-Copying blob 83e98ac5789e skipped: already exists  
-Copying blob 32fd82e104c5 skipped: already exists  
-Copying blob 453d5d1264c7 done   | 
-Copying blob 3c37dc31320d done   | 
-Copying blob 210a2ae1a75e skipped: already exists  
-Copying blob 57a6ec527341 skipped: already exists  
-Copying config 46ea42cba3 done   | 
+Copying blob e2adcecab318 done   |
+Copying blob 9944062081bf done   |
+Copying blob 83e98ac5789e skipped: already exists
+Copying blob 32fd82e104c5 skipped: already exists
+Copying blob 453d5d1264c7 done   |
+Copying blob 3c37dc31320d done   |
+Copying blob 210a2ae1a75e skipped: already exists
+Copying blob 57a6ec527341 skipped: already exists
+Copying config 46ea42cba3 done   |
 Writing manifest to image destination
 ----
 
-NOTE: Quay will automatically create a private registry to store the application image because of your admin access. 
+NOTE: Quay will automatically create a private registry to store the application image because of your admin access.
 
 The frontend application is finally built! The next step is to review it in Quay and deploy it to OpenShift using ACM and OpenShift GitOps.
 
@@ -626,7 +627,7 @@ The frontend application is finally built! The next step is to review it in Quay
 
 Red Hat Quay is an enterprise-quality registry for building, securing and serving container images. It provides secure storage, distribution, governance of containers and cloud-native artifacts on any infrastructure.
 
-=== Accessing Quay 
+=== Accessing Quay
 
 Your Red Hat Quay console is available at: {quay_console_url}[window=blank]
 
@@ -636,29 +637,29 @@ Administrator login is available with:
 
 [cols="1,1"]
 |===
-| *Quay Console Username:* | {quay_admin_username} 
-| *Quay Console Password:* | {quay_admin_password} 
+| *Quay Console Username:* | {quay_admin_username}
+| *Quay Console Password:* | {quay_admin_password}
 |===
 
 [[navigating-the-registry]]
 
 === Browse the registry
 
-In the setup module you downloaded built and pushed a insecure java application called *frontend*. Now it's time to deploy it to the OpenShift Cluster. To do this you will need to make the registry that you created public. 
+In the setup module you downloaded built and pushed a insecure java application called *frontend*. Now it's time to deploy it to the OpenShift Cluster. To do this you will need to make the registry that you created public.
 
 Let's take a look at our application in the registry.
 
 *Procedure*
 
-. First, click on the *frontend* repository. 
+. First, click on the *frontend* repository.
 
 image::00-quay-login.png[link=self, window=blank, width=100%]
 
-The information tab shows you information such as;
+The information tab shows you information such as
 
 - Podman and Docker commands
 - Repository activity
-- The repository description. 
+- The repository description.
 
 image::00-frontend-repo.png[link=self, window=blank, width=100%]
 
@@ -676,23 +677,23 @@ image::00-quay-sidebar.png[link=self, window=blank, width=100%]
 
 
 [start=2]
-. Click on the *Tags* icon. 
+. Click on the *Tags* icon.
 
 image::00-quay-tags.png[link=self, window=blank, width=100%]
 
-This tab displays all of the images and tags that have been upladed, providing information such as fixable vulnerabilities, the image size and allows for bulk changes to images based on the security posture. 
+This tab displays all of the images and tags that have been upladed, providing information such as fixable vulnerabilities, the image size and allows for bulk changes to images based on the security posture.
 
 We will explore this tab a little later in this module.
 
 [start=3]
-. Click on the *Tags History* icon. 
+. Click on the *Tags History* icon.
 
 image::00-quay-history.png[link=self, window=blank, width=100%]
 
-This tab simply displays the container images history over time. 
+This tab simply displays the container images history over time.
 
 [start=4]
-. Click into the SHA256 hash number. 
+. Click into the SHA256 hash number.
 
 image::00-image-details.png[link=self, window=blank, width=100%]
 
@@ -701,20 +702,20 @@ From this dashboard you will be able to see the image manifest of that container
 image::00-image-manifest.png[link=self, window=blank, width=100%]
 
 [start=5]
-. Click the *BACK* icon in the top left of the dashboard then click on the *Usage Logs* icon. 
+. Click the *BACK* icon in the top left of the dashboard then click on the *Usage Logs* icon.
 
 image::00-quay-back.png[link=self, window=blank, width=100%]
 image::00-quay-usage.png[link=self, window=blank, width=100%]
 
 
-This tab displays the usage over time along with details about who/how the images were pushed to the cluster. 
+This tab displays the usage over time along with details about who/how the images were pushed to the cluster.
 
 ====
-You should see that you (The "quayadmin") pushed an image tagged 0.1 to the repository today. 
+You should see that you (The "quayadmin") pushed an image tagged 0.1 to the repository today.
 ====
 
 [start=6]
-. Lastly click on the *Settings* icon. 
+. Lastly click on the *Settings* icon.
 
 image::00-quay-settings.png[link=self, window=blank, width=100%]
 
@@ -751,12 +752,12 @@ NOTE: You may need to click the checkbox near the image you would would like mor
 
 image::00-quay-scan-hover.png[link=self, window=blank, width=100%]
 
-NOTE: The alpine container image you are using in this lab shows 34 vulnerabilities, with 2 cirtical vulnerabilities. This number will change with time and will be different between container scanners for a variety of reasons such as reporting mechanisms, vulnerability feeds and operating system support. 
+NOTE: The alpine container image you are using in this lab shows 34 vulnerabilities, with 2 cirtical vulnerabilities. This number will change with time and will be different between container scanners for a variety of reasons such as reporting mechanisms, vulnerability feeds and operating system support.
 
 [start=3]
 . Click on the list of vulnerabilities to see a more detailed view.
 
-image::00-quay-security.png[link=self, window=blank, width=100%] 
+image::00-quay-security.png[link=self, window=blank, width=100%]
 
 image::00-quay-vuln-overview.png[link=self, window=blank, width=100%]
 
@@ -765,7 +766,7 @@ image::00-quay-vuln-overview.png[link=self, window=blank, width=100%]
 
 image::00-quay-vuln-detailed.png[link=self, window=blank, width=100%]
 
-NOTE: Toggling for fixable/unfixable vulnerabilities is an excellent way for developers to understand what is within their responsibility for fixing. For example, since you are using an older version of Java, many fixes are available for these common issues. 
+NOTE: Toggling for fixable/unfixable vulnerabilities is an excellent way for developers to understand what is within their responsibility for fixing. For example, since you are using an older version of Java, many fixes are available for these common issues.
 
 === Ensure ACS can pull the image manifest from your Quay instance
 
@@ -791,7 +792,7 @@ TIP: The following output can be configured using flags. You can configure diffe
 WARN:   A total of 38 unique vulnerabilities were found in 8 components
 ----
 
-=== Deploy you're newly built application
+=== Deploy your newly built application
 
 The last step is to deploy the skupper application with your specific frontend container. You will do this buy altering an existing manifest.
 
@@ -800,7 +801,7 @@ The last step is to deploy the skupper application with your specific frontend c
 . Run the following commands in the terminal, one after the other.
 
 ====
-This commands set's new variables for the skupper example and clones the manifests
+This commands sets new variables for the skupper example and clones the manifests
 ====
 
 [source,sh,subs="attributes",role=execute]
@@ -869,8 +870,8 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: quay-h2xfr.apps.cluster-h2xfr.h2xfr.sandbox2437.opentlc.com/quayadmin/frontend:0.1 
-		  
+          image: quay-h2xfr.apps.cluster-h2xfr.h2xfr.sandbox2437.opentlc.com/quayadmin/frontend:0.1
+
 		  (For example: Yours will be different)
 
           imagePullPolicy: Always
@@ -928,6 +929,6 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNx
 
 *Great Job!*
 
-Now that the setup is all done, you are ready to move on with RHACS and dive into the security considerations. 
+Now that the setup is all done, you are ready to move on with RHACS and dive into the security considerations.
 
 On to *Visibility and Navigation*!!
