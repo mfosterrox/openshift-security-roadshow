@@ -4,7 +4,7 @@ This course offers you hands-on experience working with the essential security u
 
 == Lab homepage
 
-Most of the lab will take place in this *Showroom* lab environment and between various Red Hat product user interfaces (UI). 
+Most of the lab will take place in this *Showroom* lab environment and between various Red Hat product user interfaces (UI).
 
 Below, you can find all the URLs and passwords needed to complete the lab on the homepage. If you ever get lost simply click the home button at the top of the webpage to find the essentials.
 
@@ -14,52 +14,50 @@ IMPORTANT: This is the *HOME* page. The modules can be found by clicking the tab
 
 == All lab components
 
-During the roadshow, you will utilize the following applications:
+During the roadshow, you will utilize the following applications to complete all of the lab tasks:
 
 * Red Hat^(R)^ OpenShift Container Platform (RHOCP) console
 * Red Hat^(R)^ Advanced Cluster Management (RHACM) console with OpenShift GitOps (ArgoCD)
 * Red Hat^(R)^ Advanced Cluster Security (RHACS) console
 * Red Hat^(R)^ Quay console
 * Red Hat^(R)^ Trusted Application Signer (RHTAS)
-* Red Hat^(R)^ Enterprise Linux (RHEL) bastion host (The "Showroom" lab environment) 
-
-To complete all of the lab tasks.
+* Red Hat^(R)^ Enterprise Linux (RHEL) bastion host (The "Showroom" lab environment)
 
 === Red Hat^(R)^ OpenShift Container Platform (OCP) console information
-[cols="1,1"]  
-|=== 
-|Console URL| {web_console_url}
+[cols="1,1"]
+|===
+|Console URL| {web_console_url}[{web_console_url}^]
 |Username| {openshift_admin_user}
 |Password| {openshift_admin_password}
-|=== 
+|===
 
 === Red Hat^(R)^ Advanced Cluster Security (RHACS) console information
-[cols="1,1"]  
-|=== 
-|Console URL| {acs_route}
+[cols="1,1"]
+|===
+|Console URL| {acs_route}[{acs_route}^]
 |Username| {acs_portal_username}
 |Password| {acs_portal_password}
-|=== 
+|===
 
 === Red Hat^(R)^ Quay
-[cols="1,1"]  
-|=== 
-|Console URL| {quay_console_url}
+[cols="1,1"]
+|===
+|Console URL| {quay_console_url}[{quay_console_url}^]
 |Username| {quay_admin_username}
 |Password| {quay_admin_password}
-|=== 
+|===
 
 === Red Hat^(R)^ Trusted Profile Analyzer (RHTAP) information
-[cols="1,1"]  
-|=== 
-|Console URL| {tpa_console_url}
+[cols="1,1"]
+|===
+|Console URL| {tpa_console_url}[{tpa_console_url}^]
 |Username| {tpa_username}
 |Password| {tpa_password}
-|=== 
+|===
 
 === Red Hat^(R)^ Enterprise Linux (RHEL) bastion host information
-[cols="1,1"]  
-|=== 
+[cols="1,1"]
+|===
 |Username@host| {bastion_ssh_user_name}@{bastion_public_hostname}
 |Password| {bastion_ssh_password}
-|=== 
+|===
