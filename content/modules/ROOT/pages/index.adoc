@@ -23,11 +23,10 @@ During the roadshow, you will utilize the following applications to complete all
 * Red Hat^(R)^ Trusted Application Signer (RHTAS)
 * Red Hat^(R)^ Enterprise Linux (RHEL) bastion host (The "Showroom" lab environment)
 
-
 === Red Hat^(R)^ OpenShift Container Platform (OCP) console information
 [cols="1,1"]
 |===
-|Console URL| {web_console_url}
+|Console URL| {web_console_url}[{web_console_url}^]
 |Username| {openshift_admin_user}
 |Password| {openshift_admin_password}
 |===
@@ -35,7 +34,7 @@ During the roadshow, you will utilize the following applications to complete all
 === Red Hat^(R)^ Advanced Cluster Security (RHACS) console information
 [cols="1,1"]
 |===
-|Console URL| {acs_route}
+|Console URL| {acs_route}[{acs_route}^]
 |Username| {acs_portal_username}
 |Password| {acs_portal_password}
 |===
@@ -43,7 +42,7 @@ During the roadshow, you will utilize the following applications to complete all
 === Red Hat^(R)^ Quay
 [cols="1,1"]
 |===
-|Console URL| {quay_console_url}
+|Console URL| {quay_console_url}[{quay_console_url}^]
 |Username| {quay_admin_username}
 |Password| {quay_admin_password}
 |===
@@ -51,7 +50,7 @@ During the roadshow, you will utilize the following applications to complete all
 === Red Hat^(R)^ Trusted Profile Analyzer (RHTAP) information
 [cols="1,1"]
 |===
-|Console URL| {tpa_console_url}
+|Console URL| {tpa_console_url}[{tpa_console_url}^]
 |Username| {tpa_username}
 |Password| {tpa_password}
 |===

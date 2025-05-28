@@ -12,7 +12,63 @@ asciidoc:
     page-links:
     - url: https://github.com/mfosterrox/openshift-security-roadshow/issues
       text: File a lab issue
+    openshift_admin_user: sample_user
+    acs_portal_password: sample_password
+    acs_portal_username: sameple_admin
+    acs_route: https://central-stackrox.apps.cluster-sample.sample.sandboxsample.opentlc.com
+    api_url: https://api.cluster-sample.sample.sandboxsample.opentlc.com:6443
+    argocd_url: https://argocd-server-janus-argocd.apps.cluster-sample.sample.sandboxsample.opentlc.com
+    argocd_user: sample_admin
+    argocd_user_password: sample_KQt21WpVVWzo
+    aws_region: sample_us-east-2
+    bastion_public_hostname: bastion.sample.sandboxsample.opentlc.com
+    bastion_ssh_command: ssh lab-user@sample.us-east-2.compute.amazonaws.com
+    bastion_ssh_password: sample_KQt21WpVVWzo
+    bastion_ssh_user_name: sample_lab-user
+    cloud_provider: sample_ec2
+    devspaces_url: https://devspaces.apps.cluster-sample.sample.sandboxsample.opentlc.com
+    devspaces_user: sample_user1
+    devspaces_user_password: sample_KQt21WpVVWzo
+    gitlab_url: https://gitlab-gitlab.apps.cluster-sample.sample.sandboxsample.opentlc.com
+    gitlab_user: sample_user1
+    gitlab_user_password: sample_KQt21WpVVWzo
+    guid: sample_guid
+    openshift_admin_password: sample_KQt21WpVVWzo
+    openshift_api_server_url: https://api.cluster-sample.sample.sandboxsample.opentlc.com:6443
+    openshift_api_url: https://api.cluster-sample.sample.sandboxsample.opentlc.com:6443
+    openshift_client_download_url: http://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.18.12/openshift-client-linux-4.18.12.tar.gz
+    openshift_cluster_admin_password: sample_KQt21WpVVWzo
+    openshift_cluster_admin_username: asample_dmin
+    openshift_cluster_console_url: console-openshift-console.apps.cluster-sample.sample.sandboxsample.opentlc.com
+    openshift_cluster_ingress_domain: apps.cluster-sample.sample.sandboxsample.opentlc.com
+    openshift_cluster_num_users: sample_1
+    openshift_cluster_user_base: sample_user
+    openshift_cluster_user_count: sample_1
+    openshift_console_url: https://console-openshift-console.apps.cluster-sample.sample.sandboxsample.opentlc.com
+    quay_admin_password: sample_LSncwGJkXcayY1tUMmr8
+    quay_admin_token: sample_2NTO6NMFETAXHIMZ85IQFH6KE6T7Z0S2FPKEI84I
+    quay_admin_username: sample_quayadmin
+    quay_config_password: sample_yshJluUq0G-MoKMl
+    quay_config_url: https://quay-quay-config-editor-quay-enterprise.apps.cluster-sample.sample.sandboxsample.opentlc.com
+    quay_config_username: sample_quayconfig
+    quay_console_url: https://quay-sample.apps.cluster-sample.sample.sandboxsample.opentlc.com
+    rhdh_id_provider: sample_GitLab
+    rhdh_url: https://backstage-backstage.apps.cluster-sample.sample.sandboxsample.opentlc.com
+    rhdh_user: sample_user1
+    rhdh_user_password: sample_KQt21WpVVWzo
+    rhsso_admin_console: keycloak-rhsso.apps.cluster-sample.sample.sandboxsample.opentlc.com
+    rhsso_admin_password: sample_btl01vLB4sGHyA==
+    rhsso_admin_user: sample_admin
+    showroom_host: bastion.sample.sandboxsample.opentlc.com
+    showroom_primary_view_url: https://bastion.sample.sandboxsample.opentlc.com:443/showroom/
+    sonarqube_password: sample_KQt21WpVVWzo
+    sonarqube_url: https://sonarqube-sonarqube.apps.cluster-sample.sample.sandboxsample.opentlc.com
+    sonarqube_username: sample_admin
+    tpa_console_url: https://console-trusted-profile-analyzer.apps.cluster-sample.sample.sandboxsample.opentlc.com
+    tpa_password: sample_KQt21WpVVWzo
+    tpa_username: sample_admin
+    web_console_url: https://console-openshift-console.apps.cluster-sample.sample.sandboxsample.opentlc.com
 
   extensions:
     - ./content/lib/tab-block.js
-    - ./content/lib/remote-include-processor.js 
+    - ./content/lib/remote-include-processor.js
