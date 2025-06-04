@@ -34,8 +34,14 @@ image::05-acm-02.png[link=self, window=blank, width=100%]
 [start=2]
 . Click *Create application, select ArgoCD AppicationSet-Push Model*.
 . Configure the Application:
-* Name: Give the application a name, e.g., pac-custom-policies.
-* Select the Argo server, "openshift-gitops"
+* Name: Give the application the name *pac-custom-policies*.
+
+[source,sh,subs="attributes",role=execute]
+----
+pac-custom-policies
+----
+
+[start=3]
 . Under the Argo server select *Add Argo Server* 
 
 image::05-acm-03.png[link=self, window=blank, width=100%]
@@ -45,7 +51,7 @@ image::05-acm-03.png[link=self, window=blank, width=100%]
 * *Name:* openshift-gitops
 * *Namespace:* openshift-gitops
 * *ClusterSet:* default
-. Click "Add"
+. Click "Add" then make sure to select the created Argo server
 
 image::05-acm-04.png[link=self, window=blank, width=100%]
 
@@ -75,6 +81,9 @@ image::05-acm-06.png[link=self, window=blank, width=100%]
 [start=14]
 . Click "*Next*"
 . Click "*Submit*"
+. Click on "Topology" and wait for the policies to go green
+
+image::05-acm-06.5.png[link=self, window=blank, width=100%]
 
 == Ensure that the policies are properly configured
 
@@ -120,7 +129,7 @@ What's the difference?
 * Externally managed policies are managed via GitOps and policy as code.
 
 [start=3]
-. Delete the the locally managed policies by running the following command
+. Delete the the locally managed "conflicting" policies by running the following command
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -210,14 +219,6 @@ image::05-cd-02.png[link=self, window=blank, width=100%]
 
 [start=6]
 . Click on the *Pipelines* tab on the left side of the page and select "*Pipelines*" 
-
-> The pipeline we are looking for is called *rox-pipeline* and you can either find it and select it or you can change the *Project to "pipeline-demo"*.
-
-image::05-cd-03.png[link=self, window=blank, width=100%]
-
-image::05-cd-04.png[link=self, window=blank, width=100%]
-
-[start=7]
 . There's no pipeline currently. Let's apply it now.
 
 [source,sh,subs="attributes",role=execute]
@@ -235,6 +236,12 @@ clustertask.tekton.dev/rox-deployment-check created
 clustertask.tekton.dev/rox-image-check created
 clustertask.tekton.dev/rox-image-scan created
 ----
+
+> The pipeline we are looking for is called *rox-pipeline* and you can either find it and select it or you can change the *Project to "pipeline-demo"*.
+
+image::05-cd-03.png[link=self, window=blank, width=100%]
+
+image::05-cd-04.png[link=self, window=blank, width=100%]
 
 > The pipeline has not been run yet, so start a pipeline run. 
 

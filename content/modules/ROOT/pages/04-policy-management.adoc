@@ -50,7 +50,12 @@ This policy shows how RHACS detects and prevents such violations by using Linux 
 
 *Procedure*
 
-. Click the *Actions* button, then click *Edit policy*.
+. Click the *Actions* button, then click *CLONE policy*. Then give it the name "Alpine Linux Package Manager Execution - Runtime"
+
+[source,sh,role=execute]
+----
+Alpine Linux Package Manager Execution - Runtime
+----
 
 image::04-policy-03.png[link=self, window=blank, width=100%]
 
@@ -215,6 +220,13 @@ image::04-deploy-00.png[link=self, window=blank, width=100%]
 [start=4]
 
 . Give the policy a new name, such as `Alpine Linux Package Manager in Image - Enforce Deploy`. The best practice would be to add a description for future policy enforcers as well. 
+
+[source,sh,subs="attributes",role=execute]
+----
+Alpine Linux Package Manager in Image - Enforce Deploy
+----
+
+[start=5]
 . Click *Next*
 . Next, deselect *Build* stage so that only the Deploy stage is selected.
 
@@ -334,7 +346,7 @@ echo $ROX_CENTRAL_ADDRESS
 
 [source,sh,subs="attributes",role=execute]
 ----
-podman login $QUAY_URL
+podman login $QUAY_URL -u $QUAY_USER -p {quay_admin_password}
 ----
 
 NOTE: Use the quay admin credentials, Username: *{quay_admin_username}* & password: *{quay_admin_password}*. You can create unique user and group credentials in Quay for proper segmentation.
@@ -402,13 +414,20 @@ IMPORTANT: Make sure to *CLONE* the policy
 image::04-deploy-05.png[link=self, window=blank, width=100%]
 
 [start=4]
-. Give the policy a new name, such as `Alpine Linux Package Manager in Image - Enforce Build`. The best practice would be to add a description for future policy enforcers as well. 
+. Give the policy the name `Alpine Linux Package Manager in Image - Enforce Build`. The best practice would be to add a description for future policy enforcers as well. 
+
+[source,sh,subs="attributes",role=execute]
+----
+Alpine Linux Package Manager in Image - Enforce Build
+----
+
+[start=5]
 . Unselect the "Deploy" stage, and reset the policy criteria.
 . Click "Next"
 . Add the "image component - apk-tools" to the *Rules*
 . Click "Next"
-. Remove all of the exclusion scopes. Exclusion scopes are limited to the build and runtime stages
-. Go to Policy behavior - Actions
+. Remove all of the exclusion scopes. You can do this by clicking the garbage tags in the scope. Exclusion scopes are limited to the build and runtime stages.
+. Click "Next"
 . Update the policy to *inform and enforce* while ensuring the Build stage checkbox is selected And select *Enforce on Build* at the bottom of the page.
 
 image::04-deploy-06.png[link=self, window=blank, width=100%]

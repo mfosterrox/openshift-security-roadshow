@@ -290,12 +290,12 @@ IMPORTANT: Please ensure the deploy application are deployed and available befor
 . Run the following roxctl commands to check on the vulnerability status of the applications you deployed.
 
 ====
-The following command triggers a vulnerability scan by RHACS, roxctl filters the results into a table. The severity flag means only the critical vulnerabilities will be shown. This image is known as the "Damn Vulnerable Wed Application" and it contains A LOT of vulnerabilities.
+The following command triggers a vulnerability scan by RHACS, roxctl filters the results into a table. The severity flag means only the critical and important vulnerabilities will be shown. This image is known as the "Damn Vulnerable Wed Application" and it contain a significant amount of vulnerabilities.
 ====
 
 [source,sh,subs="attributes",role=execute]
 ----
-roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=quay.io/mfoster/dvwa --force -o table
+roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=quay.io/mfoster/dvwa --severity CRITICAL,IMPORTANT --force -o table
 ----
 
 TIP: The following output can be configured using flags. You can configure different outputs (table, CSV, JSON, and sarif.) and filter for specific severities.

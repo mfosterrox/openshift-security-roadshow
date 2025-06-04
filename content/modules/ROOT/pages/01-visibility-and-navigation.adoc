@@ -126,7 +126,7 @@ For example, filtering in the violations window by the default namespace.
 
 ---
 
-video::01-acs-local.mp4[width=640,opts=autoplay, class="center" ]
+video::01-acs-local.mp4[width=640,opts=autoplay, class="center"]
 
 ---
 
