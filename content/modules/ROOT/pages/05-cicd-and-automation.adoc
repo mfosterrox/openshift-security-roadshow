@@ -151,7 +151,7 @@ curl -X DELETE \
 
 == Implementing Security Checks into your CI/CD pipeline
 
-Implementing CI/CD security in container builds involves more than just securing your contianer images and your deployment manifests. There are several best practices to ensure that your containerized applications are secure throughout the development and deployment lifecycle.
+Implementing CI/CD security in container builds involves more than just securing your container images and your deployment manifests. There are several best practices to ensure that your containerized applications are secure throughout the development and deployment lifecycle.
 
 * Access Control: Use strong authentication and authorization mechanisms. Implement role-based access control (RBAC) to limit who can modify the pipeline and deploy applications.
 * Audit Logging: Enable and regularly review audit logs to monitor access and changes to the CI/CD pipeline.
