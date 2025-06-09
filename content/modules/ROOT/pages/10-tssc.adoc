@@ -135,8 +135,14 @@ verifying software artifacts.
 * Aligns with modern software practices and supply chain security
 requirements.
 
-
 === Setup 
+
+IMPORTANT: Run the following command to ensure the environment is up-to-date
+
+[source,sh,subs="attributes",role=execute]
+----
+curl -fsSL https://raw.githubusercontent.com/redhat-tssc-tmm/security-roadshow/main/cosign_gitsign_installer.sh | bash
+----
 
 For this exercise, we'll be using the container image in Quay that we created during our lab setup xref:00-setup-install-navigation.adoc#build-a-container-image[Build a container image]
 
