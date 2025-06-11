@@ -752,7 +752,7 @@ NOTE: You may need to click the checkbox near the image you would would like mor
 
 image::00-quay-scan-hover.png[link=self, window=blank, width=100%]
 
-NOTE: The alpine container image you are using in this lab shows 34 vulnerabilities, with 2 cirtical vulnerabilities. This number will change with time and will be different between container scanners for a variety of reasons such as reporting mechanisms, vulnerability feeds and operating system support.
+NOTE: The alpine container image you are using in this lab shows 34 vulnerabilities, with 2 critical vulnerabilities. This number will change with time and will be different between container scanners for a variety of reasons such as reporting mechanisms, vulnerability feeds and operating system support.
 
 [start=3]
 . Click on the list of vulnerabilities to see a more detailed view.
