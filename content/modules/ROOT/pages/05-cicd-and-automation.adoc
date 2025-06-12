@@ -251,7 +251,7 @@ image::05-cd-04.png[link=self, window=blank, width=100%]
 image::05-cd-05.png[link=self, window=blank, width=100%]
 
 ----
-This pipeline works by taking and image that you have created and passing it through a "roxctl image scan" and a "roxctl image check" process.
+This pipeline works by taking an image that you have created and passing it through a "roxctl image scan" and a "roxctl image check" process.
 ----
 
 [start=9]
