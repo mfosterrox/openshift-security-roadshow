@@ -124,7 +124,7 @@ The *Risk Indicators* tab shows why this deployment is highly risky. The deploym
 
 image::03-risk-03.png[link=self, window=blank, width=100%]
 
-NOTE: The configuration details are automatically pulled by RHACS from OpenShift and Kubernetes distrobutions, risk score is applied to each factor, making the risk report immediately available as soon as you start running RHACS.
+NOTE: The configuration details are automatically pulled by RHACS from OpenShift and Kubernetes distributions, risk score is applied to each factor, making the risk report immediately available as soon as you start running RHACS.
 
 This "visa-processor" image is highly insecure in the service configuration section. The container has;
 
@@ -270,7 +270,7 @@ When you add multiple scopes to a policy, the policy matches violations from any
 *Try it yourself*
 ====
 
-Search for the the deployments in the `default` and `patient-portant` namespace.
+Search for the deployments in the `default` and `patient-portal` namespace.
 
 *Output*
 
