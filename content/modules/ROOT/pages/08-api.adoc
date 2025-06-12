@@ -2,7 +2,7 @@
 
 == Module goals
 * Understand the basics of creating an API request in RHACS
-* Work througha few use cases
+* Work through use cases
 * Come up with a few use cases of your own
 
 == Overview of an API request

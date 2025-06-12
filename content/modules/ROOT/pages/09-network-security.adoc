@@ -21,7 +21,7 @@ The Exposed Ports Dashboard gives users a clear and organized view of all the se
 
 === BONUS: The roxctl netpol CLI command
 
-The roxctl netpol command in Red Hat Advanced Cluster Security (RHACS) for Kubernetes offers several advantages that enhance network security management within Kubernetes environments. This command is part of the roxctl CLI tool, which is designed to interact with RHACS. The roxctl netpol command can automatically generate Kubernetes network policies based on the OpenShift and Kubernetes assets. This can be done in deploy-time by developers OR operators to help accerate network policy adoption.
+The roxctl netpol command in Red Hat Advanced Cluster Security (RHACS) for Kubernetes offers several advantages that enhance network security management within Kubernetes environments. This command is part of the roxctl CLI tool, which is designed to interact with RHACS. The roxctl netpol command can automatically generate Kubernetes network policies based on the OpenShift and Kubernetes assets. This can be done in deploy-time by developers OR operators to help accelerate network policy adoption.
 
 == Hands-on with the RHACS Network UI
 
@@ -60,7 +60,7 @@ Now, let's aim to get the *backend* namespace on that list.
 image::ex-net-1.png[link=self, window=blank, width=100%]
 
 ====
-The graph does not display any results by default. This is a performance choice as large environments will become unweildly in a dashboard like this.
+The graph does not display any results by default. This is a performance choice as large environments will become unwieldly in a dashboard like this.
 ====
 
 [start=2]

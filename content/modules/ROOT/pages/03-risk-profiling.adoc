@@ -8,7 +8,7 @@
 
 == The Configuration Management Tab
 
-The configuration management tab contains a lot fo useful information that directs you to other dashboards. It is currently undergoing an overhaul, and the RHACS team is looking for feedback. 
+The configuration management tab contains a lot of useful information that directs you to other dashboards. It is currently undergoing an overhaul, and the RHACS team is looking for feedback. 
 
 Here are the four top use cases that we tend to see from people looking into security configuration management.
 

@@ -4,7 +4,7 @@
 .Goals
 - Deploy RHACS Cloud Service Central Instance
 - Remove the existing RHACS operator
-- Use the ACS Cloud Service to reinstall the Secred Cluster Services
+- Use the ACS Cloud Service to reinstall the Secured Cluster Services
 
 == Setting Up Red Hat Account and Creating Central Instance on ACS
 
