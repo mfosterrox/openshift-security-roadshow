@@ -464,7 +464,7 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzMyaHRsNTdwZWRlejRycGtp
 
 AMAZING!
 
-Before you head to the next module. Make sure to run the following commands to redploy our example app. 
+Before you head to the next module. Make sure to run the following commands to redeploy our example app. 
 
 [source,sh,subs="attributes",role=execute]
 ----
