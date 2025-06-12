@@ -55,7 +55,7 @@ With the Sensor restarted, kick off a compliance scan in ACS to see the updated 
 
 == Execute your first Compliance Scan
 
-When installing RHACS you need to kick off a complaince scan to ensure that the Compliance results are available. So let’s execute our first compliance scan.
+When installing RHACS you need to kick off a compliance scan to ensure that the Compliance results are available. So let’s execute our first compliance scan.
 
 *Procedure*
 
@@ -87,7 +87,7 @@ image::06-comp-6.png[link=self, window=blank, width=100%]
 
 image::06-comp-6.png[link=self, window=blank, width=100%]
 
-You will see all of the standards available to you in the dashboard. These standards will effect ALL of the controls that you see in the dashboad. For example;
+You will see all of the standards available to you in the dashboard. These standards will affect ALL of the controls that you see in the dashboard. For example;
 
 *Remove all of the options except NIST SP 800-53.*
 
@@ -189,7 +189,7 @@ image::06-comp-12.png[link=self, window=blank, width=100%]
 . In the Profiles page, select the *ocp4-cis* profile. This is the most up to date CIS benchmarks for OpenShift Container Platform 4.
 . Click *Next*.
 . Review your scan configuration, and then click Create.
-. Click the elipses on the side and select "Run scan"
+. Click the ellipses on the side and select "Run scan"
 
 image::06-comp-12.5.png[link=self, window=blank, width=100%]
 
@@ -294,7 +294,7 @@ oc get networkpolicies -A -o json | jq '[.items[] | select((.metadata.namespace 
 
 > It's great to know that StackRox (RHACS) is covered!
 
-It the Networking section we will go about fixing this issue through the generation and application of network policy. For now I offer you a challenge.
+In the Networking section we will go about fixing this issue through the generation and application of network policy. For now I offer you a challenge.
 
 == A task to complete on your own
 
@@ -318,6 +318,6 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMGh0OWkxemNoNmF4dG9lNHE4
 
 What he said ^!
 
-In this lab, you installed the Compliance Operator and set up a daily scan that will report against OpenShift CIS benchmarks. You also review workload compliance in the COmpliance 1.0 dashboard. 
+In this lab, you installed the Compliance Operator and set up a daily scan that will report against OpenShift CIS benchmarks. You also review workload compliance in the Compliance 1.0 dashboard. 
 
 On to *Notifications*!
