@@ -1,43 +1,39 @@
-= Lab setup and introduction
+= Lab Setup and Introduction
 
-== Module goals
+== Module Goals
 
-* Access all of the applications in the lab environment
-* Deploy our default insecure applications
-* Build and deploy a "Developer" image to be used in the workshop
+* Access all applications in the lab environment
+* Deploy default insecure applications
+* Build and deploy a "Developer" image for the workshop
 
-== Accessing the workshop components
+== Accessing the Workshop Components
 
-Let's start by ensuring you have access to all the necessary resources to complete this lab.
+Ensure you can access all necessary resources to complete this lab.
 
-TIP: Always open the URL by opening in a new tab. For example on a Mac *<cmd> click*
+TIP: Always open URLs in a new tab. For example, on a Mac, use *<cmd> click*.
 
-=== Access the Red Hat^(R)^ OpenShift Container Platform (OCP) user interface
+=== Access the Red Hat^(R)^ OpenShift Container Platform (OCP) UI
 
 First, make sure you can access the Red Hat^(R)^ OCP console user interface.
 
 *Procedure*
 
 [start=1]
-. Log into the OCP console at `{web_console_url}[{web_console_url}^]`
-. Click the *rhsso* option
+. Log into the OCP console at `{web_console_url}[{web_console_url}^]`.
+. Click the *rhsso* option.
 
-IMPORTANT: If the variables on the screen are unavailable, please inform your workshop administrator.
+IMPORTANT: If variables on the screen are unavailable, inform your workshop administrator.
 
 image::01-ocp-login-admin.png[OpenShift console,link=self, window=blank, width=100%]
 
 [start=3]
-. Enter the OCP credentials
+. Enter the OCP credentials:
 
 [cols="1,1"]
 |===
-|*User:*| {openshift_admin_user}
-|*Password:*| {openshift_admin_password}
+| *User:* | {openshift_admin_user}
+| *Password:* | {openshift_admin_password}
 |===
-
-
-[start=4]
-. Enter the OpenShift username *{openshift_admin_user}* and password: *{openshift_admin_password}*
 
 image::01-ocp-login-password.png[OpenShift console login,link=self, window=blank, width=100%]
 
@@ -61,10 +57,9 @@ image::01-rhacs-login.png[RHACS console,link=self, window=blank, width=100%]
 | *RHACS Console Password:* | {acs_portal_password}
 |===
 
-
 image::01-rhacs-console-dashboard.png[RHACS console,link=self, window=blank, width=100%]
 
-=== Access the Red Hat^(R)^ Quay user interface
+=== Access the Red Hat^(R)^ Quay UI
 
 Red Hat Quay is an enterprise-grade container registry that provides a secure, scalable, and highly available solution for storing and managing container images. It offers integrated security scanning, access controls, and image signing to help ensure the integrity and security of containerized applications across hybrid and multi-cloud environments, including Red Hat OpenShift, AWS, Azure, and Google Cloud.
 
@@ -75,14 +70,12 @@ Let's ensure that you have access to the RHACS User Interface.
 *Procedure*
 
 [start=1]
-. Log into the Quay console at {quay_console_url}[{quay_console_url}^]
+. Log into the Quay console at `{quay_console_url}[{quay_console_url}^]`
 
 image::00-quay-login.png[Quay Console,link=self, window=blank, width=100%]
 
 [start=2]
-. Enter the Quay credentials
-
-[source,sh,subs="attributes",role=execute]
+. Enter the Quay credentials:
 
 [cols="1,1"]
 |===
@@ -90,35 +83,24 @@ image::00-quay-login.png[Quay Console,link=self, window=blank, width=100%]
 | *Quay Console Password:* | {quay_admin_password}
 |===
 
-=== OpenShift admin access verification
+=== OpenShift Admin Access Verification
 
-OpenShift admin access verification involves ensuring that users have the appropriate permissions and roles assigned to them for managing the OpenShift cluster. This can be done by checking the user roles and bindings within the cluster. You'll be verifying your permissions using the oc command-line tool.
-
-*Verify access to the OpenShift cluster*
-
-Next, let's switch to the OpenShift cluster running and do our work (for now) in the OpenShift cluster
+Verify that you have admin-level access using the `oc` CLI.
 
 *Procedure*
 
 [start=1]
-. Run the following command
+. Switch to the admin context:
 
-[source,sh,subs="attributes",role=execute]
+[source,sh,role=execute]
 ----
 oc config use-context admin
 ----
 
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-[lab-user@bastion ~]$oc config use-context eks-admin
-Switched to context "admin".
-----
-
 [start=2]
-. Verify access to the OpenShift cluster and the available nodes
+. Verify access and check available nodes:
 
-[source,sh,subs="attributes",role=execute]
+[source,sh,role=execute]
 ----
 oc whoami
 oc get nodes -A
@@ -262,7 +244,7 @@ The following command will watch all of the applications as they are successfull
 
 [source,bash,role="execute"]
 ----
-oc get deployments -l demo=roadshow -A -w
+oc get deployments -l demo=roadshow -A
 ----
 
 [.console-output]
@@ -833,7 +815,7 @@ sed -i "s|quay.io/mfoster/frontend:latest|$QUAY_URL/$QUAY_USER/frontend:0.1|g" $
 ----
 
 [.console-output]
-[source,yaml,subs="+macros,+attributes"]
+[source,bash,subs="+macros,+attributes"]
 ----
 [lab-user@bastion skupper-demo]$ sed -i "s|quay.io/mfoster/frontend:latest|$QUAY_URL/$QUAY_USER/frontend:0.1|g" $APP_HOME/skupper-demo/frontend.yml
 ----
