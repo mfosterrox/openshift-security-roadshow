@@ -1,5 +1,5 @@
 name: modules
-title: Red Hat OpenShift Roadshow
+title: Red Hat OpenShift Security Roadshow
 version: master
 nav:
   - modules/ROOT/nav.adoc
