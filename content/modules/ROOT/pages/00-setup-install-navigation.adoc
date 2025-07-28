@@ -580,7 +580,7 @@ Successfully tagged quay-w2t4c.apps.cluster-w2t4c.w2t4c.sandbox1647.opentlc.com/
 
 [source,sh,subs="attributes",role=execute]
 ----
-podman push $QUAY_URL/$QUAY_USER/frontend:0.1
+podman push $QUAY_URL/$QUAY_USER/frontend:0.1 --remove-signatures
 ----
 
 [.console-output]
