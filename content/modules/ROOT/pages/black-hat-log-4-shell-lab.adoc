@@ -257,6 +257,7 @@ Before you go! please Run these commands to clean up:
 ----
 oc delete project log4shell || true
 rm -f ~/deploy.yaml
+oc delete sp block-log4shell-cve-2021-44228 -n stackrox
 
 # Remove non-default policies (including log4shell)
 ROX_CENTRAL_ADDRESS=$(oc -n stackrox get route central -o jsonpath='{.spec.host}')
