@@ -3,8 +3,9 @@
 This lab shows how to block workloads with Log4Shell vulnerabilities using Red Hat Advanced Cluster Security (RHACS).
 
 .Goals
-* Block vulnerable deployments
-* See and resolve violations
+* Block the vulnerable deployment of a log4shell application
+* Craft a policy to block the deployment of any application that uses log4shell
+* Verify the policy in the RHACS console
 
 == 1. Clean Up Environment
 
@@ -12,16 +13,29 @@ Run these commands to reset your environment:
 
 [source,sh,role=execute]
 ----
-oc delete project log4shell || true
-rm -f ~/deploy.yaml
-ROX_CENTRAL_ADDRESS=$(oc -n stackrox get route central -o jsonpath='{.spec.host}')
+if oc get project log4shell &>/dev/null; then
+  oc delete project log4shell
+else
+  echo "Project 'log4shell' already cleaned up."
+fi
+
+if [ -f ~/deploy.yaml ]; then
+  rm -f ~/deploy.yaml
+else
+  echo "'~/deploy.yaml' already cleaned up."
+fi
+
 POL_ID=$(curl -k -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS/v1/policies" | jq -r '.policies[] | select(.isDefault|not) | .id')
-curl -k -X DELETE -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS/v1/policies/$POL_ID"
+if [ -n "$POL_ID" ] && [ "$POL_ID" != "null" ]; then
+  curl -k -X DELETE -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS/v1/policies/$POL_ID"
+else
+  echo "Policy already cleaned up."
+fi
 ----
 
 == 2. Deploy Vulnerable Application
 
-Create a new project and deploy the vulnerable Log4Shell app:
+Awesome! You're ready to go. Now, create a new project and deploy the vulnerable Log4Shell app:
 
 [source,sh,role=execute]
 ----
@@ -61,6 +75,19 @@ Check the pod status:
 oc get pods -l deployment=log4shell -n log4shell
 ----
 
+NOTE: You can add -w to the command to watch the pod status.
+
+[.console-output]
+[source,sh]
+----
+[lab-user@bastion ~]$ oc get pods -l deployment=log4shell -n log4shell
+NAME                         READY   STATUS              RESTARTS   AGE
+log4shell-6454cfb8c9-whskt   0/1     ContainerCreating   0          9s
+log4shell-6454cfb8c9-whskt   1/1     Running             0          12s
+----
+
+
+
 == 3. Verify Vulnerability
 
 Scan the image to confirm the Log4Shell vulnerability is present:
@@ -72,17 +99,17 @@ roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --ima
 
 Look for CVE-2021-44228 in the output.
 
-== 4. Enforce Log4Shell Policy
+== 4. Review the Vulnerability in the RHACS Console
 
-1. Log in to the RHACS web console: {acs_route}
-2. Go to **Platform Configuration > Policy Management**.
-3. Search for "Log4Shell" policy.
-4. Clone the policy.
-5. Set Policy Behavior to **Inform and enforce**.
-6. Enable **Deploy** and **Build** time enforcement.
-7. Save the policy.
+Quickly identifying a vulnerability with RHACS enables you to proactively protect your workloads, minimize risk, and respond to security threats before they can be exploited.
 
-== 5. Test Policy Enforcement
+1. In the RHACS console, go to the **Vulnerabilities** page.
+2. Filter for the Log4Shell CVE (CVE-2021-44228).
+3. Click on the vulnerability to see the details.
+4. Click on the **Vulnerable Workloads** tab to see the workloads that are vulnerable.
+
+
+== 5. Test Deployment Policy Enforcement
 
 Try to redeploy the vulnerable app:
 
