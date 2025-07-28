@@ -1,13 +1,13 @@
 = CI/CD and Automation
 
-== Module goals
+== Module Goals
 
 
 == Implement Policy-as-Code in ACM with OpenShift GitOps
 
 Here, you will manage ACS security policies via RHACM and OpenShift GitOps. First, you must create an ArgoCD controller in RHACM.
 
-===  RHACM console access
+=== RHACM Console Access
 
 The RHACM console is available in the OpenShift cluster console at: {openshift_console_url}
 
@@ -19,22 +19,22 @@ Administrator login is available with:
 | *Password:* | {openshift_admin_password} 
 |===
 
-Navigate to the *Cluster* drop down menu and then select *All Clusters*. 
+Navigate to the *Cluster* dropdown menu and then select *All Clusters*: 
 
 image::05-acm-00.png[link=self, window=blank, width=100%, Cluster Selection Menu]
 
-=== Implement security policy-as-code
+=== Implement Security Policy-as-Code
 
 *Procedure*
 
-. Navigate to *Applications* from the left side menu.
+. Navigate to *Applications* from the left side menu:
 
 image::05-acm-02.png[link=self, window=blank, width=100%]
 
 [start=2]
-. Click *Create application, select ArgoCD AppicationSet-Push Model*.
+. Click *Create application*, select *ArgoCD ApplicationSet-Push Model*:
 . Configure the Application:
-* Name: Give the application the name *pac-custom-policies*.
+* Name: Give the application the name *pac-custom-policies*:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -42,7 +42,7 @@ pac-custom-policies
 ----
 
 [start=3]
-. Under the Argo server select *Add Argo Server* 
+. Under the Argo server, select *Add Argo Server*: 
 
 image::05-acm-03.png[link=self, window=blank, width=100%]
 
@@ -50,49 +50,48 @@ image::05-acm-03.png[link=self, window=blank, width=100%]
 . Enter the following information:
 * *Name:* openshift-gitops
 * *Namespace:* openshift-gitops
-* *ClusterSet:* default
-. Click "Add" then make sure to select the created Argo server
+* *ClusterSet:* default:
+. Click "Add," then make sure to select the created Argo server:
 
 image::05-acm-04.png[link=self, window=blank, width=100%]
 
 link:https://github.com/mfosterrox/skupper-security-demo/tree/main/PaC-custom-policies[PaC Custom Policies on GitHub]
 
-
 [start=7]
 . Click "*Next*"
-. In the Template tab, select *Git Repository* and enter the URL of the GitHub repository containing the custom policies - URL: https://github.com/mfosterrox/skupper-security-demo.git
-. Select "Main"
-. Select "PaC-custom-policies"
-. Enter the remote namespace of "stackrox"
+. In the Template tab, select *Git Repository* and enter the URL of the GitHub repository containing the custom policies - URL: https://github.com/mfosterrox/skupper-security-demo.git:
+. Select "Main":
+. Select "PaC-custom-policies":
+. Enter the remote namespace of "stackrox":
 
 image::05-acm-05.png[link=self, window=blank, width=100%]
 
 [start=12]
-. Click "*Next* TWICE"
-. Set the following in the Placement tab
-* Cluster sets: *default*
-. Under *Label expressions* click *add label* and select the following
+. Click "*Next* TWICE":
+. Set the following in the Placement tab:
+* Cluster sets: *default*:
+. Under *Label expressions*, click *add label* and select the following:
 * *Label:* name
 * *Operator:* equals any of
-* *Values:* local-cluster
+* *Values:* local-cluster:
 
 image::05-acm-06.png[link=self, window=blank, width=100%]
 
 [start=14]
-. Click "*Next*"
-. Click "*Submit*"
-. Click on "Topology" and wait for the policies to go green
+. Click "*Next*":
+. Click "*Submit*":
+. Click on "Topology" and wait for the policies to go green:
 
 image::05-acm-06.5.png[link=self, window=blank, width=100%]
 
-== Ensure that the policies are properly configured
+== Ensure That the Policies Are Properly Configured
 
 Let's run the check again to check if the policies were successful.
 
 *Procedure*
 
 [start=1]
-. Perform an image security scan using roxctl to check for policy violations.
+. Perform an image security scan using roxctl to check for policy violations:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -111,12 +110,12 @@ ERROR:  checking image failed: failed policies found: 2 policies violated that a
 
 > You should see a second APK policy violation, as you have created a second "externally managed" policy in RHACS.
 
-=== Check on your policies
+=== Check on Your Policies
 
 *Procedure*
 
-. Go to the RHACS dashboard and head to the Platform Configuration -> Policy Management dashboard. 
-. Search by `Policy` the `alpine`
+. Go to the RHACS dashboard and head to the Platform Configuration -> Policy Management dashboard: 
+. Search by `Policy` the `alpine`:
 
 image::05-acm-07.png[link=self, window=blank, width=100%]
 
@@ -124,12 +123,12 @@ image::05-acm-07.png[link=self, window=blank, width=100%]
 
 What's the difference?
 
-* System policies comes with RHACS by default
-* Locally managed policies are create in RHACS or via the API. 
-* Externally managed policies are managed via GitOps and policy as code.
+* System policies come with RHACS by default
+* Locally managed policies are created in RHACS or via the API
+* Externally managed policies are managed via GitOps and policy as code
 
 [start=3]
-. Delete the the locally managed "conflicting" policies by running the following command
+. Delete the locally managed "conflicting" policies by running the following command:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -149,7 +148,7 @@ curl -X DELETE \
 
 > Nice job! 
 
-== Implementing Security Checks into your CI/CD pipeline
+== Implementing Security Checks into Your CI/CD Pipeline
 
 Implementing CI/CD security in container builds involves more than just securing your container images and your deployment manifests. There are several best practices to ensure that your containerized applications are secure throughout the development and deployment lifecycle.
 
@@ -166,11 +165,11 @@ Implementing CI/CD security in container builds involves more than just securing
 * Policy as Code: Use tools like Open Policy Agent (OPA) to define and enforce security policies as code within your CI/CD pipeline.
 * Compliance Checks: Automate compliance checks to ensure all deployments adhere to security standards and policies.
 
-Now, RHACS can be implemented into any CI/CD process as a step in the build-deploy-run lifecycle. RHACS is able to acheive this through the *roxctl CLI* and the *admission controller*. RHACS can implement those image scanning, env variables and compliance checks into those pipelines.  
+Now, RHACS can be implemented into any CI/CD process as a step in the build-deploy-run lifecycle. RHACS is able to achieve this through the *roxctl CLI* and the *admission controller*. RHACS can implement those image scanning, environment variables, and compliance checks into those pipelines.  
 
 Let's take a look at a very simple CI/CD pipeline in OpenShift Pipelines.
 
-== Review a basic CI/CD pipeline
+== Review a Basic CI/CD Pipeline
 
 In this section, we will review a simple pipeline that has been configured in Red Hat^(R)^ OpenShift Pipelines. 
 
@@ -178,22 +177,22 @@ Red Hat^(R)^ OpenShift Pipelines is a Kubernetes-native CI/CD (Continuous Integr
 
 *Procedure*
 
-. Head over to the OpenShift Console. If you don't have access follow the steps below. If you do proceed to the following section.
+. Head over to the OpenShift Console. If you don't have access, follow the steps below. If you do, proceed to the following section.
 
-=== Access the Red Hat^(R)^ OpenShift Container Platform (OCP) web console 
+=== Access the Red Hat^(R)^ OpenShift Container Platform (OCP) Web Console
 
 First, make sure you can access the Red Hat^(R)^ OCP console web console.
 
 *Procedure*
 
 [start=1]
-. Log into the OCP console at `{web_console_url}`
+. Log into the OCP console at `{web_console_url}`:
 . Click the *rhsso* option
 
 image::01-ocp-login-admin.png[OpenShift console]
 
 [start=3]
-. Enter the OCP credentials 
+. Enter the OCP credentials: 
 
 [cols="1,1"]
 |===
@@ -203,23 +202,23 @@ image::01-ocp-login-admin.png[OpenShift console]
 
 
 [start=4]
-. Enter the OpenShift username *{openshift_admin_user}* and password: *{openshift_admin_password}*
+. Enter the OpenShift username *{openshift_admin_user}* and password: *{openshift_admin_password}*:
 
 image::01-ocp-login-password.png[OpenShift console login]
 
 ====
-You should be directed to the RHACM dashboard. RHACM is intergrated into the OpenShift dashboard.
+You should be directed to the RHACM dashboard. RHACM is integrated into the OpenShift dashboard.
 ====
 
 [start=5]
-. To get to your clusters local OpenShift dashboard click the top dropdown and select *local-cluster*
+. To get to your cluster's local OpenShift dashboard, click the top dropdown and select *local-cluster*:
 
 image::05-cd-01.png[link=self, window=blank, width=100%]
 image::05-cd-02.png[link=self, window=blank, width=100%]
 
 [start=6]
-. Click on the *Pipelines* tab on the left side of the page and select "*Pipelines*" 
-. There's no pipeline currently. Let's apply it now.
+. Click on the *Pipelines* tab on the left side of the page and select "*Pipelines*": 
+. There's no pipeline currently. Let's apply it now:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -237,25 +236,25 @@ clustertask.tekton.dev/rox-image-check created
 clustertask.tekton.dev/rox-image-scan created
 ----
 
-> The pipeline we are looking for is called *rox-pipeline* and you can either find it and select it or you can change the *Project to "pipeline-demo"*.
+> The pipeline we are looking for is called *rox-pipeline*, and you can either find it and select it or you can change the *Project to "pipeline-demo"*.
 
 image::05-cd-03.png[link=self, window=blank, width=100%]
 
 image::05-cd-04.png[link=self, window=blank, width=100%]
 
-> The pipeline has not been run yet, so start a pipeline run. 
+> The pipeline has not been run yet, so start a pipeline run: 
 
 [start=8]
-. Click the three dots on the right side of the screen and select *start*
+. Click the three dots on the right side of the screen and select *start*:
 
 image::05-cd-05.png[link=self, window=blank, width=100%]
 
 ----
-This pipeline works by taking and image that you have created and passing it through a "roxctl image scan" and a "roxctl image check" process.
+This pipeline works by taking an image that you have created and passing it through a "roxctl image scan" and a "roxctl image check" process.
 ----
 
 [start=9]
-. Let's use the *frontend:0.1* image that we've been using all day. Run the following and input it into the image bar.
+. Let's use the *frontend:0.1* image that we've been using all day. Run the following and input it into the image bar:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -273,7 +272,7 @@ Why do you think the pipeline failed?
 Let's look at the logs.
 
 [start=10]
-. Take a look at the log snippet on the bottom right of the page.
+. Take a look at the log snippet on the bottom right of the page:
 
 image::05-cd-09.png[link=self, window=blank, width=100%]
 
@@ -288,10 +287,10 @@ chmod: cannot access './roxctl': No such file or directory
 
 This snippet indicates that there are incorrect variables. With RHACS, API access is required to query Central for results.
 
-> Let's take a look at the secret file necessary for *OpenShift Pipelines*.
+> Let's take a look at the secret file necessary for *OpenShift Pipelines*:
 
 [start=11]
-. Run the following in the terminal.
+. Run the following in the terminal:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -308,7 +307,7 @@ pipeline  secrets  tasks
 As you can see, the pipelines are broken up into one pipeline, with three tasks that need a secret file. Let's take a look at what variables are needed for the pipeline.
 
 [start=12]
-. Run the following in the terminal.
+. Run the following in the terminal:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -332,10 +331,10 @@ metadata:
   namespace: pipeline-demo
 ----
 
-Ok. So need the RHACS Central endpoint and a API token with the right permissions. Luckily we have the RHACS Central endpoint and an admin access token that we can use.
+Ok. So we need the RHACS Central endpoint and an API token with the right permissions. Luckily we have the RHACS Central endpoint and an admin access token that we can use.
 
 [start=13]
-. Run the following in the terminal to update the RHACS Central address and API Token
+. Run the following in the terminal to update the RHACS Central address and API Token:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -346,8 +345,7 @@ sed -i "s|API_TOKEN|$ROX_API_TOKEN|g" $TUTORIAL_HOME/openshift-pipelines/secrets
 ----
 
 [start=14]
-
-. Verify by running the following command
+. Verify by running the following command:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -371,7 +369,7 @@ metadata:
 
 
 [start=15]
-. Lastly apply the following and head over to the OpenShift Console
+. Lastly, apply the following and head over to the OpenShift Console:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -385,16 +383,16 @@ oc apply -f $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
 secret/roxsecrets configured
 ----
 
-=== Let's try again
+=== Let's Try Again
 
 *Procedure*
 
-. Go back to the pipelines view.
+. Go back to the pipelines view:
 
 image::05-cd-12.png[link=self, window=blank, width=100%]
 
 [start=2]
-. Click the *Actions* dropdown and select *Rerun*. Then relax for a few seconds and grab a sip of water. 
+. Click the *Actions* dropdown and select *Rerun*. Then relax for a few seconds and grab a sip of water: 
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeXdiMmFwaTNrbW02cTNod3BmaTh2aGRrdDJsc3d4NHpqNXY5ZzkwNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/073QSCJf2tIbtWjZpb/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
@@ -405,7 +403,7 @@ What happened? Did you expect this behavior?
 ====
 
 [start=3]
-. Check the log snippet in bottom right of the page.
+. Check the log snippet in the bottom right of the page:
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
@@ -419,7 +417,7 @@ ERROR:	checking image failed after 3 retries: failed policies found: 1 policies 
 
 So it looks like our policy-as-code example blocked the pipeline from executing successfully. 
 
-== What would you do?
+== What Would You Do?
 
 * How would you implement roxctl into your pipelines?
 * Would you have enforcement off at the beginning?
@@ -431,6 +429,6 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbTkyMGVyZW5qaG84dHB1cWM3
 
 THUMBS UP!
 
-In this lab, you review a basic CI/CD use case that implemented the build policy from the previous module. You then adjusted the policy so the pipeline would succeed. 
+In this lab, you reviewed a basic CI/CD use case that implemented the build policy from the previous module. You then adjusted the policy so the pipeline would succeed. 
 
 Congrats! On to Compliance!

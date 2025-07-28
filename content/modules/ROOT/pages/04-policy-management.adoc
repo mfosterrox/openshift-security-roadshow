@@ -1,7 +1,7 @@
 = Policy Management
 
-== Module goals
-* Create build, deploy and runtime policies 
+== Module Goals
+* Create build, deploy, and runtime policies 
 * Create policies from filters
 * Clone and edit policies based on the ACS defaults
 
@@ -21,36 +21,34 @@ The example below shows how security may block a package manager from downloadin
 
 IMPORTANT: For the *Runtime* stage, RHACS stops all pods that match the conditions of the policy. It does not scale the deployment down to zero.
 
-.Procedure
-. On the left-hand side of the application, click the *Platform Configuration* tab and select *Policy Management*.
+*Procedure*
+. On the left-hand side of the application, click the *Platform Configuration* tab and select *Policy Management*:
 
 image::04-policy-00.png[link=self, window=blank, width=100%, Policy Management Dashboard]
 
 [start=2]
-
-. Filter through the policies to find *Alpine Linux Package Manager Execution* or use the search bar to select *Policy*.
+. Filter through the policies to find *Alpine Linux Package Manager Execution* or use the search bar to select *Policy*:
 
 image::04-policy-01.png[link=self, window=blank, width=100%, Policy Management Search]
 
 [start=3]
-
-. Once you have found the policy *Alpine Linux Package Manager (apk) in Image*, click on it to learn more.
+. Once you have found the policy *Alpine Linux Package Manager (apk) in Image*, click on it to learn more:
 
 image::04-policy-02.png[link=self, window=blank, width=100%, Policy Management Details]
 
 [[runtime-enforce]]
 
-=== Prevent execution of package manager binary
+=== Prevent Execution of Package Manager Binary
 
 Package managers like apt (Ubuntu), apk (Alpine), and yum/dnf (RedHat) are used to manage and update software on Linux hosts, including virtual machines. However, using a package manager to install or remove software on a running container breaks the container’s immutable nature.
 
 This policy shows how RHACS detects and prevents such violations by using Linux kernel instrumentation to identify the running process and OpenShift to terminate the pod for enforcement. Enforcing runtime policy through OpenShift is preferred over doing it directly in the container or container engine. This ensures consistency between the state OpenShift manages and the state of the container. Additionally, since runtime policies might only detect part of an attack, removing the container entirely helps stop the attack.
 
-=== Enable enforcement of policy
+=== Enable Enforcement of Policy
 
 *Procedure*
 
-. Click the *Actions* button, then click *CLONE policy*. Then give it the name "Alpine Linux Package Manager Execution - Runtime"
+. Click the *Actions* button, then click *CLONE policy*. Then give it the name "Alpine Linux Package Manager Execution - Runtime":
 
 [source,sh,role=execute]
 ----
@@ -60,33 +58,30 @@ Alpine Linux Package Manager Execution - Runtime
 image::04-policy-03.png[link=self, window=blank, width=100%]
 
 [start=2]
-
-. Select *Policy Behavior -> Actions*
+. Select *Policy Behavior -> Actions*:
 
 image::04-policy-04.png[link=self, window=blank, width=100%]
 
 [start=3]
-
-. Enable runtime enforcement by clicking the *inform and enforce* button.
-. Configure enforcement behavior by selecting *Enforce at Runtime*.
+. Enable runtime enforcement by clicking the *inform and enforce* button:
+. Configure enforcement behavior by selecting *Enforce at Runtime*:
 
 image::04-policy-03.png[link=self, window=blank, width=100%, Enforce Runtime Policy]
 
 [start=5]
-
-. Click *Next*
-. Review the changes then click save
+. Click *Next*:
+. Review the changes, then click save:
 
 IMPORTANT: Make sure to save the policy changes! If you do not save the policy, the process will not be blocked!
 
-=== Testing the configured policy
+=== Testing the Configured Policy
 
 Next, we will use tmux to watch OpenShift events while running the test so you can see how RHACS enforces the policy at runtime.
 
 IMPORTANT: Make sure that you are signed into the bastion host with OpenShift access when running the following commands. 
 
-.Procedure
-. In the terminal,  start tmux with two panes:
+*Procedure*
+. In the terminal, start tmux with two panes:
 
 [source,sh,role=execute]
 ----
@@ -94,7 +89,6 @@ tmux new-session \; split-window -v \; attach
 ----
 
 [start=2]
-
 . Next, run a watch on OpenShift events in the first shell pane:
 
 [source,sh,role=execute]
@@ -103,9 +97,8 @@ oc get events -n patient-portal -w
 ----
 
 [start=3]
-
-. Press `Ctrl+b` first, *and then press* o to switch to the next pane. (Hold ctrl+b then press o)
-. Exec into our Java application by getting the pod details and adding them to the following command.
+. Press `Ctrl+b` first, *and then press* o to switch to the next pane. (Hold ctrl+b, then press o):
+. Exec into our Java application by getting the pod details and adding them to the following command:
 
 [source,sh,role=execute]
 ----
@@ -121,7 +114,7 @@ oc exec $POD -i --tty -- /bin/bash
 node@frontend-6db858448f-hz6j2:/app$
 ----
 
-> If you see */home/fritz* you've confirmed you have a shell and access to the Java application.
+> If you see */home/fritz*, you've confirmed you have a shell and access to the Java application.
 
 [start=5]
 . Run the apk package manager in this shell:
@@ -142,8 +135,8 @@ node@frontend-6db858448f-stwhq:/$ command terminated with exit code 137
 
 
 [start=6]
-. Examine the output and expect to see that the package manager attempts to perform an update operation
-. Examine the oc get events tmux pane (The pane on the bottom), and note that it shows that RHACS detected the package manager invocation and deleted the pod:
+. Examine the output and expect to see that the package manager attempts to perform an update operation:
+. Examine the oc get events tmux pane (the pane on the bottom), and note that it shows that RHACS detected the package manager invocation and deleted the pod:
 
 [source,texinfo,subs="attributes"]
 ----
@@ -157,7 +150,7 @@ node@frontend-6db858448f-stwhq:/$ command terminated with exit code 137
 0s          Normal    Started                pod/frontend-78795c75fc-8q9fn             Started container frontend
 ----
 
-NOTE: After a few seconds, you can see the pod is deleted and recreated. In your tmux shell pane, note that your shell session has terminated and that you are returned to the Bastion VM command line.
+NOTE: After a few seconds, you can see the pod is deleted and recreated. In your tmux shell pane, note that your shell session has terminated and that you are returned to the Bastion VM command-line.
 
 *Congrats!* 
 
@@ -165,7 +158,7 @@ The security investigative process continues, as you have now raised a flag that
 
 NOTE: Type *exit* in the terminal, use *ctrl+c* to stop the 'watch' command, and type exit one more time to get back to the default terminal.
 
-== Introduction to deploy-time policy enforcement
+== Introduction to Deploy-Time Policy Enforcement
 
 Deploy-time policy enforces configuration controls both before deployment in the CI/CD process and within the cluster itself. It can include build-time policies and cluster configurations, such as privileged mode or mounting the Docker socket.
 
@@ -177,12 +170,12 @@ There are two ways to enforce deploy-time policies in RHACS:
 
 Next, we'll set up a Deploy-Time policy to block applications from deploying into the default namespace if the image contains the apt|dpkg application.
 
-=== Prevent the Alpine Linux Package Manager in the frontend image from being deployed
+=== Prevent the Alpine Linux Package Manager in the Frontend Image from Being Deployed
 
 *Procedure*
 
 [start=1]
-. First, delete the deployment from the cluster, we will redeploy the application after creating the policy.
+. First, delete the deployment from the cluster. We will redeploy the application after creating the policy:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -204,22 +197,20 @@ service "payment-service" deleted
 ----
 
 [start=2]
-. Navigate to Platform Configuration → Policy Management
+. Navigate to Platform Configuration → Policy Management:
 . On the *Policy Management* page, type *Policy* then *Alpine Linux Package Manager (apk) in Image* into the filter bar at the top.
 
 IMPORTANT: This time you are going to edit a different policy for the Alpine Linux Package Manager (apk), specifically related to the *Build & Deploy* phases.
 
 [start=3]
+. Click on the *Alpine Linux Package Manager (apk) in Image* options (the three dots on the right side of the screen) and select *Clone policy*:
 
-. Click on the *Alpine Linux Package Manager (apk) in Image* options (The three dots on the right side of the screen) and select *Clone policy*
-
-IMPORTANT: Make sure to *CLONE* the policy. Cloning policies ensure the default policies don't aren't altered. 
+IMPORTANT: Make sure to *CLONE* the policy. Cloning policies ensures the default policies aren't altered. 
 
 image::04-deploy-00.png[link=self, window=blank, width=100%]
 
 [start=4]
-
-. Give the policy a new name, such as `Alpine Linux Package Manager in Image - Enforce Deploy`. The best practice would be to add a description for future policy enforcers as well. 
+. Give the policy a new name, such as `Alpine Linux Package Manager in Image - Enforce Deploy`. The best practice would be to add a description for future policy enforcers as well: 
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -228,44 +219,44 @@ Alpine Linux Package Manager in Image - Enforce Deploy
 
 [start=5]
 . Click *Next*
-. Next, deselect *Build* stage so that only the Deploy stage is selected.
+. Next, deselect *Build* stage so that only the Deploy stage is selected:
 
 image::04-deploy-01.png[link=self, window=blank, width=100%]
 
-NOTE: Since certain policy criteria is specific to each stage you have to reset the policy criteria
+NOTE: Since certain policy criteria is specific to each stage, you have to reset the policy criteria.
 
 > Now, we want to target our specific deployment with an image label.
 
 [start=7]
-. Click *Next*
-. Click on the *Image contents* dropdown on the right side of the browser.
-. Find the *Image component* label and drag it to the default policy criteria.
-. Type *apk-tools* under the criteria
+. Click *Next*:
+. Click on the *Image contents* dropdown on the right side of the browser:
+. Find the *Image component* label and drag it to the default policy criteria:
+. Type *apk-tools* under the criteria:
 
-Your policy should look like this,
+Your policy should look like this:
 
 image::04-deploy-02.png[link=self, window=blank, width=100%]
 
 [start=11]
-. In Policy behavior -> Actions, click *Inform and enforce* + *Enforce on Deploy*
+. In Policy behavior -> Actions, click *Inform and enforce* + *Enforce on Deploy*:
 
 image::04-deploy-03.png[link=self, window=blank, width=100%]
 
 [start=12]
-. Click *Next*
-. Review the changes
-. Click *Save*
+. Click *Next*:
+. Review the changes:
+. Click *Save*:
 
 Now, let's test it out! We're going to redeploy the frontend application from earlier.
 
-> In case you forgot to run the command earlier
+> In case you forgot to run the command earlier:
 
 [source,sh,subs="attributes",role=execute]
 ----
 oc delete -f $APP_HOME/skupper-demo/frontend.yml
 ----
 
-> Now reapply the frontend service and deployment
+> Now reapply the frontend service and deployment:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -295,10 +286,10 @@ Policy: Alpine Linux Package Manager in Image - Enforce Deploy
 In case of emergency, add the annotation {"admission.stackrox.io/break-glass": "ticket-1234"} to your deployment with an updated ticket number
 ----
 
-> Another option for enforcement is to use the "deployment check" CLI command.
+> Another option for enforcement is to use the "deployment check" CLI command:
 
 [start=15]
-. Verify the frontend application against the policies you've created.
+. Verify the frontend application against the policies you've created:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -307,20 +298,21 @@ roxctl -e $ROX_CENTRAL_ADDRESS:443 deployment check --file $APP_HOME/skupper-dem
 
 image::04-deploy-04.png[link=self, window=blank, width=100%]
 
-> The new policy will fail the check when in enforce mode. In inform mode you will get a policy violation without the "Failed policy" error.
+> The new policy will fail the check when in enforce mode. In inform mode, you will get a policy violation without the "Failed policy" error.
 
 *Congrats!* 
 
 You're now enforcing against the Alpine Linux package manager at runtime and deploy time. Let's finish with enforcing at build-time!
 
-== Introduction to build-time policy enforcement 
+== Introduction to Build-Time Policy Enforcement
 
-Build time policies for container images are guidelines that define how container images should be constructed. These policies aim to achieve several goals, including:
+Build-time policies for container images are guidelines that define how container images should be constructed. These policies aim to achieve several goals, including:
 
 * *Security:* Minimizing vulnerabilities and ensuring images are built with secure practices.
 * *Efficiency:* Reducing image size and build times for faster deployments.
 * *Consistency:* Maintaining a uniform structure and content across all images.
-Here are some key areas covered by build time policies:
+
+Here are some key areas covered by build-time policies:
 * *Base Image:* Specifying a minimal base image that only contains essential components.
 * *Package Management:* Encouraging the use of package managers for dependency installation and updates.
 * *File Copying:* Limiting what gets copied into the image to only required files and avoiding unnecessary bloat.
@@ -329,10 +321,10 @@ Here are some key areas covered by build time policies:
 
 In RHACS, build-time policies apply to image fields such as CVEs and Dockerfile instructions.
 
-=== Prevent the Alpine Linux package manager in the frontend image from being pushed to Quay
+=== Prevent the Alpine Linux Package Manager in the Frontend Image from Being Pushed to Quay
 
 [start=1]
-. Verify that the variables are correct to make this section smoother
+. Verify that the variables are correct to make this section smoother:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -342,20 +334,20 @@ echo $ROX_CENTRAL_ADDRESS
 ----
 
 [start=2]
-. Make sure you are logged in to Quay
+. Make sure you are logged in to Quay:
 
 [source,sh,subs="attributes",role=execute]
 ----
 podman login $QUAY_URL -u $QUAY_USER -p {quay_admin_password}
 ----
 
-NOTE: Use the quay admin credentials, Username: *{quay_admin_username}* & password: *{quay_admin_password}*. You can create unique user and group credentials in Quay for proper segmentation.
+NOTE: Use the Quay admin credentials, Username: *{quay_admin_username}* & password: *{quay_admin_password}*. You can create unique user and group credentials in Quay for proper segmentation.
 
 [start=4]
-. Let's pretend as if the developers are pushing an update to the frontend application. First, pull and scan the related image.
+. Let's pretend as if the developers are pushing an update to the frontend application. First, pull and scan the related image:
 
 ====
-The following command is designed to mimic and build a pipeline where a container build is going through a commit/promotion step. You download the image, scan for vulnerabilities, tag a newer version and upload to Quay.
+The following command is designed to mimic and build a pipeline where a container build is going through a commit/promotion step. You download the image, scan for vulnerabilities, tag a newer version, and upload to Quay.
 ====
 
 [source,sh,subs="attributes",role=execute]
@@ -379,7 +371,7 @@ roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image check --im
 WARN:   A total of 3 policies have been violated
 ----
 
-> With the *Image Check* cli command you can check against the created policies
+> With the *Image Check* CLI command, you can check against the created policies:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -399,22 +391,22 @@ Copying config 1cbb2b7908 done   |
 Writing manifest to image destination
 ----
 
-NOTE: Now RHACS hasn't broken the command since there is no enforcement of any build policies. Letting the developer build tag and push a new image.
+NOTE: Now RHACS hasn't broken the command since there is no enforcement of any build policies. Letting the developer build, tag, and push a new image.
 
 > Let's make a copy of the build & deploy-time policy and enforce it during the build phase.
 
 *Procedure*
 
-. Navigate to Platform Configuration → Policy Management
-. On the *Policy Management* page, type *Policy* then *Alpine Linux* into the filter bar at the top.
-. Click on the *Alpine Linux Package Manager in Image* options (The three dots on the right side of the screen) and select *Clone policy*
+. Navigate to Platform Configuration → Policy Management:
+. On the *Policy Management* page, type *Policy*, then *Alpine Linux* into the filter bar at the top:
+. Click on the *Alpine Linux Package Manager in Image* options (the three dots on the right side of the screen) and select *Clone policy*:
 
-IMPORTANT: Make sure to *CLONE* the policy
+IMPORTANT: Make sure to *CLONE* the policy:
 
 image::04-deploy-05.png[link=self, window=blank, width=100%]
 
 [start=4]
-. Give the policy the name `Alpine Linux Package Manager in Image - Enforce Build`. The best practice would be to add a description for future policy enforcers as well. 
+. Give the policy the name `Alpine Linux Package Manager in Image - Enforce Build`. The best practice would be to add a description for future policy enforcers as well: 
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -422,24 +414,24 @@ Alpine Linux Package Manager in Image - Enforce Build
 ----
 
 [start=5]
-. Unselect the "Deploy" stage, and reset the policy criteria.
+. Unselect the "Deploy" stage, and reset the policy criteria:
 . Click "Next"
-. Add the "image component - apk-tools" to the *Rules*
+. Add the "image component - apk-tools" to the *Rules*:
 . Click "Next"
-. Remove all of the exclusion scopes. You can do this by clicking the garbage tags in the scope. Exclusion scopes are limited to the build and runtime stages.
+. Remove all of the exclusion scopes. You can do this by clicking the garbage tags in the scope. Exclusion scopes are limited to the build and runtime stages:
 . Click "Next"
-. Update the policy to *inform and enforce* while ensuring the Build stage checkbox is selected And select *Enforce on Build* at the bottom of the page.
+. Update the policy to *inform and enforce* while ensuring the Build stage checkbox is selected, and select *Enforce on Build* at the bottom of the page:
 
 image::04-deploy-06.png[link=self, window=blank, width=100%]
 
 [start=12]
-. Go to the *Review Policy* tab
-. Review the changes.
-. Click *Save*
+. Go to the *Review Policy* tab:
+. Review the changes:
+. Click *Save*:
 
 Now let's test it out! 
 
-> Run the following in the terminal.
+> Run the following in the terminal:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -464,7 +456,7 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzMyaHRsNTdwZWRlejRycGtp
 
 AMAZING!
 
-Before you head to the next module. Make sure to run the following commands to redploy our example app. 
+Before you head to the next module, make sure to run the following commands to redeploy our example app: 
 
 [source,sh,subs="attributes",role=execute]
 ----

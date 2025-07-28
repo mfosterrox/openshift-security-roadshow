@@ -87,7 +87,6 @@ log4shell-6454cfb8c9-whskt   1/1     Running             0          12s
 ----
 
 
-
 == 3. Verify Vulnerability
 
 Scan the image to confirm the Log4Shell vulnerability is present:
@@ -97,47 +96,173 @@ Scan the image to confirm the Log4Shell vulnerability is present:
 roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=quay.io/rhacs-misc/log4shell:1.0 --force -o table --severity=CRITICAL
 ----
 
-Look for CVE-2021-44228 in the output.
+[.console-output]
+[source,sh]
+----
+Scan results for image: quay.io/rhacs-misc/log4shell:1.0
+(TOTAL-COMPONENTS: 5, TOTAL-VULNERABILITIES: 4, LOW: 0, MODERATE: 0, IMPORTANT: 0, CRITICAL: 4)
+
++------------------------------------------------+---------+----------------+----------+------+---------------------------------------------------+---------------+----------+---------------+
+|                   COMPONENT                    | VERSION |      CVE       | SEVERITY | CVSS |                       LINK                        | FIXED VERSION | ADVISORY | ADVISORY LINK |
++------------------------------------------------+---------+----------------+----------+------+---------------------------------------------------+---------------+----------+---------------+
+|      org.apache.logging.log4j:log4j-core       | 2.14.1  | CVE-2021-44228 | CRITICAL |  10  | https://osv.dev/vulnerability/GHSA-jfh8-c2jp-5v3q |    2.15.0     |    -     |       -       |
+|                                                |         +----------------+----------+------+---------------------------------------------------+---------------+----------+---------------+
+|                                                |         | CVE-2021-45
+.
+.
+.
+WARN:   A total of 4 unique vulnerabilities were found in 5 components
+----
+
+Look for CVE-2021-44228 in the output. It should be at the top of the list.
 
 == 4. Review the Vulnerability in the RHACS Console
 
 Quickly identifying a vulnerability with RHACS enables you to proactively protect your workloads, minimize risk, and respond to security threats before they can be exploited.
 
-1. In the RHACS console, go to the **Vulnerabilities** page.
+1. In the RHACS console, go to the **Results** page under the vulnerability management tab.
+
+image::BH-log4shell-00.png[link=self, window=blank, width=100%]
+
+[start=2]
 2. Filter for the Log4Shell CVE (CVE-2021-44228).
-3. Click on the vulnerability to see the details.
-4. Click on the **Vulnerable Workloads** tab to see the workloads that are vulnerable.
 
+image::BH-log4shell-01.png[link=self, window=blank, width=100%]
 
-== 5. Test Deployment Policy Enforcement
+[start=3]
+3. Click on the CVE-2021-44228 vulnerability to see the details.
 
-Try to redeploy the vulnerable app:
+image::BH-log4shell-02.png[link=self, window=blank, width=100%]
+
+[start=4]
+4. Click on the **quay.io/rhacs-misc/log4shell:1.0** tab to see the workload you deployed.
+
+image::BH-log4shell-03.png[link=self, window=blank, width=100%]
+
+== 5. Apply Policy to Block Log4Shell at the build, deploy and runtime stages
+
+Below, you will be deploying one policy that will block the log4shell vulnerability.
+
+This policy blocks images containing the vulnerable Log4j version at build, deploy, and runtime. Execute the following commands to create the policy in the stackrox namespace:
+
+[source,sh,role=execute]
+----
+cat <<EOF > block-log4shell-policy.yaml
+apiVersion: config.stackrox.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: block-log4shell-cve-2021-44228
+spec:
+  policyName: block-log4shell-cve-2021-44228
+  description: |
+    Blocks deployments containing the Log4Shell (CVE-2021-44228) vulnerability in Log4j.
+    This policy helps prevent exploitation of a critical remote code execution vulnerability
+    in affected versions of the Log4j library.
+  rationale: |
+    The Log4Shell vulnerability (CVE-2021-44228) is a critical security issue in the Log4j
+    library that allows remote code execution and has been widely exploited. Blocking deployments
+    with this vulnerability reduces the risk of compromise and lateral movement in your cluster.
+  remediation: |
+    Update your application dependencies to use Log4j version 2.15.0 or later, which contains
+    the fix for CVE-2021-44228. Rebuild and redeploy your application images after updating.
+  categories:
+    - Vulnerability Management
+  lifecycleStages:
+    - BUILD
+    - DEPLOY
+  eventSource: NOT_APPLICABLE
+  severity: CRITICAL_SEVERITY
+  enforcementActions:
+    - FAIL_BUILD_ENFORCEMENT
+    - SCALE_TO_ZERO_ENFORCEMENT
+    - UNSATISFIABLE_NODE_CONSTRAINT_ENFORCEMENT
+  policySections:
+    - sectionName: Rule 1
+      policyGroups:
+        - fieldName: CVE
+          booleanOperator: OR
+          values:
+            - value: CVE-2021-44228
+  criteriaLocked: false
+  mitreVectorsLocked: false
+  isDefault: false
+EOF
+
+oc apply -f block-log4shell-policy.yaml -n stackrox
+----
+
+== 6. Review Violations
+
+1. In the RHACS console, go to the **Violations** page.
+
+image::BH-violations-00.png[link=self, window=blank, width=100%]
+
+[start=2]
+2. You should see the log4shell policy at the top of the list.
+
+image::BH-violations-01.png[link=self, window=blank, width=100%]
+
+Awesome! So we know you've "enforced" the policy. However, the workload is still running. This is because ACS will not kill a running workload to avoid disrupting the application.
+
+[source,sh,role=execute]
+----
+oc get pods -l deployment=log4shell -n log4shell
+----
+
+But if you try to redeploy the application, you will see the following error:
 
 [source,sh,role=execute]
 ----
 oc create -f ~/deploy.yaml
 ----
 
-You should see an error saying the deployment is blocked by the Log4Shell policy.
+[.console-output]
+[source,sh]
+----
+Error from server (Failed currently enforced policies from RHACS): error when creating "/home/lab-user/deploy.yaml": admission webhook "policyeval.stackrox.io" denied the request: 
+The attempted operation violated 1 enforced policy, described below:
 
-== 6. Review Violations
+Policy: block-log4shell-cve-2021-44228
+- Description:
+    ↳ Blocks deployments containing the Log4Shell (CVE-2021-44228) vulnerability in
+      Log4j.
+      This policy helps prevent exploitation of a critical remote code execution
+      vulnerability
+      in affected versions of the Log4j library.
+- Rationale:
+    ↳ The Log4Shell vulnerability (CVE-2021-44228) is a critical security issue in the
+      Log4j
+      library that allows remote code execution and has been widely exploited.
+      Blocking deployments
+      with this vulnerability reduces the risk of compromise and lateral movement in
+      your cluster.
+- Remediation:
+    ↳ Update your application dependencies to use Log4j version 2.15.0 or later, which
+      contains
+      the fix for CVE-2021-44228. Rebuild and redeploy your application images after
+      updating.
+- Violations:
+    - CVE-2021-44228 (CVSS 10) (severity Critical) found in component 'org.apache.logging.log4j:log4j-core' (version 2.14.1) in container 'log4shell'
 
-1. In the RHACS console, go to the **Violations** page.
-2. Filter for the Log4Shell policy to see the blocked deployment event.
+In case of emergency, add the annotation {"admission.stackrox.io/break-glass": "ticket-1234"} to your deployment with an updated ticket number
+----
+
+Congrats! Moving forward no applications will be able to deploy with the vulnerable Log4j version!
 
 == 7. Clean Up
 
-Run these commands to clean up:
+Before you go! please Run these commands to clean up:
 
 [source,sh,role=execute]
 ----
 oc delete project log4shell || true
 rm -f ~/deploy.yaml
+
+# Remove non-default policies (including log4shell)
 ROX_CENTRAL_ADDRESS=$(oc -n stackrox get route central -o jsonpath='{.spec.host}')
-POL_ID=$(curl -k -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS/v1/policies" | jq -r '.policies[] | select(.isDefault|not) | .id')
-curl -k -X DELETE -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS/v1/policies/$POL_ID"
+curl -k -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS/v1/policies" | \
+  jq -r '.policies[] | select(.isDefault|not) | .id' | \
+  xargs -I{} curl -k -X DELETE -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS/v1/policies/{}"
 ----
 
----
-
-Lab complete! You have enforced and tested Log4Shell protection with RHACS.
+Thanks! Enjoy Black Hat!

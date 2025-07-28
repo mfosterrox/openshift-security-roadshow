@@ -1,11 +1,11 @@
 = Notifications
 
-== Module goals
+== Module Goals
 * Understanding how notification and alerting work in RHACS
-* Setup a notification alert to a Microsoft teams channel
-* Setup a notification alert to a Slack channel
+* Set up a notification alert to a Microsoft Teams channel
+* Set up a notification alert to a Slack channel
 
-== How do notifications and alerts work in RHACS 
+== How Do Notifications and Alerts Work in RHACS
 
 Red Hat Advanced Cluster Security for Kubernetes (RHACS) offers robust notification and alerting mechanisms to enhance the security and observability of Kubernetes environments. 
 
@@ -29,8 +29,9 @@ Policies can be assigned different severity levels (Low, Medium, High, Critical)
 
 ==== Runtime Alerts
 
-RHACS continuously monitors Kubernetes clusters for runtime anomalies. Alerts can be configured to trigger on suspicious activities such as unexpected network connections, process executions, or file system changes.By analyzing the runtime behavior of applications, RHACS can alert on deviations from known good states or behaviors.
-Configuring Alerting in RHACS
+RHACS continuously monitors Kubernetes clusters for runtime anomalies. Alerts can be configured to trigger on suspicious activities such as unexpected network connections, process executions, or file system changes. By analyzing the runtime behavior of applications, RHACS can alert on deviations from known good states or behaviors.
+
+== Configuring Alerting in RHACS
 
 == Integrating Slack with RHACS
 
@@ -44,84 +45,82 @@ Before proceeding, ensure you have the following:
 
 *Procedure*
 
-. Visit the Slack API site: https://api.slack.com/apps?new_app=1 and log in with your Slack credentials.
-. Click **MORE** then click **Automations**.
+. Visit the Slack API site: https://api.slack.com/apps?new_app=1 and log in with your Slack credentials:
+. Click **MORE**, then click **Automations**:
 
 image::07-slack-00.png[link=self, window=blank, width=100%]
 
 [start=3]
-. Select **New Workflow** at the top right of the page.
+. Select **New Workflow** at the top right of the page:
 
 image::07-slack-01.png[link=self, window=blank, width=100%]
 
 [start=4]
-. Select **New Workflow** at the top right of the page.
-. Click the workflow title and give it the following name: **first-notification-workflow**
-. Search for webhook and select it.
+. Select **New Workflow** at the top right of the page:
+. Click the workflow title and give it the following name: **first-notification-workflow**:
+. Search for webhook and select it:
 
 image::07-slack-02.png[link=self, window=blank, width=100%]
 
 [start=7]
-. Hit continue
-. Select the **Slack workspace** where it will be used.
+. Hit continue:
+. Select the **Slack workspace** where it will be used:
 
 image::07-slack-03.png[link=self, window=blank, width=100%]
 
 TIP: You can add additional features like webhooks or bot users later, but for now, focus on setting up the Incoming Webhooks.
 
 [start=9]
-. Add a test prompt and save it
-. Then click **Finish Up**
+. Add a test prompt and save it:
+. Then click **Finish Up**:
 
 image::07-slack-04.png[link=self, window=blank, width=100%]
 
 [start=11]
-. Scroll down to the **Webhook URLs for Your Workspace** section.
-. Next copy the unique **Webhook URL** and navigate to the RHACS dashboard
-. Log into the RHACS Console and navigate to **Platform Configurations -> Integrations**.
-. Under **Notifier Integrations**, select **Slack**.
-. Click the **New integration** button to start the configuration.
+. Scroll down to the **Webhook URLs for Your Workspace** section:
+. Next, copy the unique **Webhook URL** and navigate to the RHACS dashboard:
+. Log into the RHACS Console and navigate to **Platform Configurations -> Integrations**:
+. Under **Notifier Integrations**, select **Slack**:
+. Click the **New integration** button to start the configuration:
 * **Integration Name:** Enter: **slack-alerts**
 * **Webhook URL:** Paste the **Webhook URL** you copied earlier from Slack.
 * **Default Channel:** This is typically auto-populated based on the Webhook URL, but verify or select the correct Slack channel.
-. Click **Test** to ensure the integration works correctly.
+. Click **Test** to ensure the integration works correctly:
 . If successful, you will see the message **"The test was successful"**.
 
 == References
 - [Slack API Documentation](https://api.slack.com/)
 
 ====
-Next we have to configure our policies to alert based on specific triggers.
+Next, we have to configure our policies to alert based on specific triggers.
 ====
 
 == Configure Notifications
 
-Balancing security alerting in a team is crucial to ensure that the team is responsive to genuine threats while minimizing alert fatigue. RHACS enables this by letting you configure your alert channels and attach them to the policies you car about. 
+Balancing security alerting in a team is crucial to ensure that the team is responsive to genuine threats while minimizing alert fatigue. RHACS enables this by letting you configure your alert channels and attach them to the policies you care about. 
 
-Let's test this out. You will use the runtime enforcement policy that was used in the previous module. 
+Let's test this out. You will use the runtime enforcement policy that was used in the previous module.
 
 *Procedure*
 
-. On the left-hand side of the application, click the *Platform Configuration* tab and select *Policy Management*.
+. On the left-hand side of the application, click the *Platform Configuration* tab and select *Policy Management*:
 
 image::07-pol-not-00.png[link=self, window=blank, width=100%]
 
 [start=2]
-
-. Filter through the policies to find *No bash allowed* or use the search bar to select *Policy*.
+. Filter through the policies to find *No bash allowed* or use the search bar to select *Policy*:
 
 image::07-pol-not-01.png[link=self, window=blank, width=100%]
 
 [start=3]
-
-. Once you have found the policy *No bash allowed* click to edit the policy
+. Once you have found the policy *No bash allowed*, click to edit the policy:
 
 image::08-not-2.png[link=self, window=blank, width=100%]
 
 [start=4]
-. Go to Policy behavior - actions. There sohould be your slack-alerts notifier option available.
-. Click the notifier and save the policy
-. Run the following command in the terminal
+. Go to Policy behavior - actions. There should be your slack-alerts notifier option available:
+. Click the notifier and save the policy:
+. Run the following command in the terminal:
 
 [source,sh,role=execute]
 ----
@@ -137,10 +136,10 @@ oc exec $POD -i --tty -- /bin/bash
 node@ctf-web-to-system-6db858448f-hz6j2:/app$
 ----
 
-NOTE: If you see *node@ctf...* you've confirmed you have a shell and access to the Java application.
+NOTE: If you see *node@ctf...*, you've confirmed you have a shell and access to the Java application.
 
 [start=7]
-. Lastly, review your Slack or Teams channel for the alert. 
+. Lastly, review your Slack or Teams channel for the alert: 
 
 *Congrats!* 
 
@@ -148,8 +147,8 @@ NOTE: If you see *node@ctf...* you've confirmed you have a shell and access to t
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjJmczc4MmswYmk1cnhvZ254ZXBiZ2M3bGJzbDV5eDQ3OGlqNWdwdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QSSA5Bd56W25ytLIwz/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
-Nice! 
+Nice!
 
-You integrations a webhook into RHACS and configured notifications based on previous policies.
+You integrated a webhook into RHACS and configured notifications based on previous policies.
 
 Time to review the *RHACS API*!

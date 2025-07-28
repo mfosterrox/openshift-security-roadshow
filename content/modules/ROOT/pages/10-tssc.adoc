@@ -2,155 +2,107 @@
 
 == Module Goals
 
-The goal of this lab is to learn about the features from the Trusted Software Supply Chain suite of products from Red Hat. 
+The goal of this lab is to learn about the features from the Trusted Software Supply Chain suite of products from Red Hat.
 
 == Trusted Artifact Signer
 
-Red Hat Trusted Artifact Signer(TAS) enhances software supply chain security by simplifying cryptographic signing and verification of software artifacts, such as container images, binaries, and documents. 
+Red Hat Trusted Artifact Signer (TAS) enhances software supply chain security by simplifying cryptographic signing and verification of software artifacts, such as container images, binaries, and documents.
 
 Trusted Artifact Signer provides a production-ready deployment of the https://www.sigstore.dev/[Sigstore project] as a core component of the Red Hat Trusted Software Supply Chain product family.
 
-Signing and verification, e.g. using GPG has been around a long time - why would someone found a new Open Source project to address signing and verification, you might ask.
+Signing and verification, e.g., using GPG, has been around a long time—why would someone found a new open source project to address signing and verification, you might ask?
 
-=== *Why Sigstore / Trusted Artifact Signer?*
+=== Why Sigstore / Trusted Artifact Signer?
 
-. *Supply Chain Security*: Modern software development requires robust
-mechanisms to secure dependencies and artifacts, which GPG struggles to
-address effectively.
-. *Usability*: Developers need simpler, more intuitive signing solutions
-without the burden of manual key management.
-. *Transparency*: A centralized, tamper-evident log system ensures
-accountability and traceability of signatures, enhancing trust.
-. *Modern Identity Integration*: Sigstore aligns with contemporary
-authentication mechanisms (e.g., OAuth, OpenID Connect), making it
-easier to tie signatures to identities.
-. *Automation*: Sigstore fits seamlessly into automated CI/CD workflows,
-which are critical in modern software development pipelines.
-
+. *Supply Chain Security*: Modern software development requires robust mechanisms to secure dependencies and artifacts, which GPG struggles to address effectively.
+. *Usability*: Developers need simpler, more intuitive signing solutions without the burden of manual key management.
+. *Transparency*: A centralized, tamper-evident log system ensures accountability and traceability of signatures, enhancing trust.
+. *Modern Identity Integration*: Sigstore aligns with contemporary authentication mechanisms (e.g., OAuth, OpenID Connect), making it easier to tie signatures to identities.
+. *Automation*: Sigstore fits seamlessly into automated CI/CD workflows, which are critical in modern software development pipelines.
 
 These are bold statements, so let's quickly compare the two to better understand the advantages that Trusted Artifact Signer brings to the table:
 
-==== *1. Key Management*
+==== 1. Key Management
 
 * *GPG*:
-** Users must generate and manage long-term public/private key pairs
-themselves.
-** Keys are often stored locally, and their security is tied to the
-user’s system.
-** If a private key is lost or compromised, recovery or revocation can
-be complex.
+** Users must generate and manage long-term public/private key pairs themselves.
+** Keys are often stored locally, and their security is tied to the user’s system.
+** If a private key is lost or compromised, recovery or revocation can be complex.
 * *Sigstore / Trusted Artifact Signer*:
-** Utilizes short-lived (ephemeral) keys generated on-demand for
-signing.
-** No need for long-term private key management; keys are automatically
-discarded after use.
-** Simplifies key management for developers, reducing the risk of key
-compromise.
+** Utilizes short-lived (ephemeral) keys generated on-demand for signing.
+** No need for long-term private key management; keys are automatically discarded after use.
+** Simplifies key management for developers, reducing the risk of key compromise.
 
-'''''
-
-==== *2. Trust Model*
+==== 2. Trust Model
 
 * *GPG*:
-** Relies on a *Web of Trust* where individuals sign each other’s keys
-to establish authenticity.
-** Trust depends on manual verification and key-signing parties, which
-can be cumbersome and error-prone.
-** Requires a high degree of trust in individual users and their ability
-to manage their keys properly.
+** Relies on a *Web of Trust* where individuals sign each other’s keys to establish authenticity.
+** Trust depends on manual verification and key-signing parties, which can be cumbersome and error-prone.
+** Requires a high degree of trust in individual users and their ability to manage their keys properly.
 * *Sigstore / Trusted Artifact Signer*:
-** Leverages OpenID Connect (OIDC) for authentication, binding artifacts
-to an identity (e.g., an SSO system such as Keycloak, a GitHub or GitLab account, email, etc.).
-** Trust is rooted in central transparency logs (e.g., Rekor), ensuring
-all signatures are centrally (or publicly, if desired) auditable.
-** Encourages a more automated and modern trust model, simplifying
-verification.
+** Leverages OpenID Connect (OIDC) for authentication, binding artifacts to an identity (e.g., an SSO system such as Keycloak, a GitHub or GitLab account, email, etc.).
+** Trust is rooted in central transparency logs (e.g., Rekor), ensuring all signatures are centrally (or publicly, if desired) auditable.
+** Encourages a more automated and modern trust model, simplifying verification.
 
-'''''
-
-==== *3. Transparency and Verifiability*
+==== 3. Transparency and Verifiability
 
 * *GPG*:
-** Signed artifacts and their signatures must be manually shared and
-verified.
-** No central or automatic system for transparency or revocation
-tracking.
-** Difficult to audit or trace all signatures and the associated public
-keys at scale.
+** Signed artifacts and their signatures must be manually shared and verified.
+** No central or automatic system for transparency or revocation tracking.
+** Difficult to audit or trace all signatures and the associated public keys at scale.
 * *Sigstore / Trusted Artifact Signer*:
-** Every signing action is logged in a central, optionally public, tamper-evident
-transparency log (Rekor).
-** Anyone can independently verify the signing event and its associated
-identity.
-** Provides a centralized and automated system for transparency and
-auditability.
+** Every signing action is logged in a central, optionally public, tamper-evident transparency log (Rekor).
+** Anyone can independently verify the signing event and its associated identity.
+** Provides a centralized and automated system for transparency and auditability.
 
-'''''
-
-==== *4. Ease of Use*
+==== 4. Ease of Use
 
 * *GPG*:
-** Comparatively complex for users, requiring manual key generation, management,
-and sharing.
-** CLI tools have a steep learning curve and are not always
-user-friendly.
+** Comparatively complex for users, requiring manual key generation, management, and sharing.
+** CLI tools have a steep learning curve and are not always user-friendly.
 ** Widespread adoption hindered by usability challenges.
 * *Sigstore / Trusted Artifact Signer*:
 ** Streamlined experience designed for developers and modern workflows.
-** No need to manually manage keys or trust chains; authentication is
-identity-based.
-** Easily integrates into CI/CD pipelines and modern development
-practices.
+** No need to manually manage keys or trust chains; authentication is identity-based.
+** Easily integrates into CI/CD pipelines and modern development practices.
 
-'''''
-
-==== *5. Security*
+==== 5. Security
 
 * *GPG*:
-** Vulnerable to long-term key compromise if private keys are not
-properly secured.
-** Trust in signatures is tightly coupled to key security and revocation
-is challenging.
+** Vulnerable to long-term key compromise if private keys are not properly secured.
+** Trust in signatures is tightly coupled to key security and revocation is challenging.
 * *Sigstore / Trusted Artifact Signer*:
 ** Ephemeral keys reduce the risk of long-term compromise.
-** Transparency logs provide tamper-evident evidence of signing,
-reducing the risk of undetected forgery.
-** Designed with supply chain security in mind, reducing risks from
-malicious dependencies or compromised keys.
+** Transparency logs provide tamper-evident evidence of signing, reducing the risk of undetected forgery.
+** Designed with supply chain security in mind, reducing risks from malicious dependencies or compromised keys.
 
-'''''
+==== Advantages of Sigstore / Trusted Artifact Signer over GPG
 
-==== *Advantages of Sigstore / Trusted Artifact Signer over GPG*
-
-In summary, Sigstore is designed to address the pain points and
-limitations of GPG in the context of modern software development,
-focusing on ease of use, transparency, and security for signing and
-verifying software artifacts.
+In summary, Sigstore is designed to address the pain points and limitations of GPG in the context of modern software development, focusing on ease of use, transparency, and security for signing and verifying software artifacts.
 
 * Eliminates manual key management.
 * Provides automated, identity-based signing.
 * Ensures transparency with central (optionally public) logs.
 * Simplifies adoption with developer-friendly tools.
 * Reduces risks from long-term private key compromises.
-* Aligns with modern software practices and supply chain security
-requirements.
+* Aligns with modern software practices and supply chain security requirements.
 
-=== Setup 
+== Setup
 
-IMPORTANT: Run the following command to ensure the environment is up-to-date
+IMPORTANT: Run the following command to ensure the environment is up to date:
 
 [source,sh,subs="attributes",role=execute]
 ----
 curl -fsSL https://raw.githubusercontent.com/redhat-tssc-tmm/security-roadshow/main/cosign_gitsign_installer.sh | bash
 ----
 
-For this exercise, we'll be using the container image in Quay that we created during our lab setup xref:00-setup-install-navigation.adoc#build-a-container-image[Build a container image]
+For this exercise, we'll be using the container image in Quay that we created during our lab setup (xref:00-setup-install-navigation.adoc#build-a-container-image[Build a container image]).
 
-NOTE: Make sure you still have the variables set. If not, please go through the xref:00-setup-install-navigation.adoc#build-a-container-image[Build a container image] section again to setup your environment and make sure you have pushed the image to Quay.
+NOTE: Make sure you still have the variables set. If not, please go through the xref:00-setup-install-navigation.adoc#build-a-container-image[Build a container image] section again to set up your environment and make sure you have pushed the image to Quay.
 
 *Procedure*
 
-. Run the following command in the terminal
+. Run the following command in the terminal:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -165,12 +117,12 @@ quayadmin
 quay-88k5s.apps.cluster-88k5s.88k5s.sandbox139.opentlc.com
 ----
 
-For signing and verification of container images, we'll be using the `cosign` CLI binary, which has already been installed in your bastion host (and can also be downloaded from the OpenShift Console).
+For signing and verification of container images, we'll be using the `cosign` CLI binary, which has already been installed on your bastion host (and can also be downloaded from the OpenShift Console).
 
-`cosign` can as easily be used in any CI/CD toolchain as we use it here and handles all the communication with the Sigstore / Trusted Artifact Signer services that request certificates, handle the OIDC authentication, store info in the transparency log (Rekor), etc.
+`cosign` can easily be used in any CI/CD toolchain as we use it here and handles all the communication with the Sigstore / Trusted Artifact Signer services that request certificates, handle the OIDC authentication, store info in the transparency log (Rekor), etc.
 
 [start=2]
-. Run the following command in the terminal
+. Run the following command in the terminal:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -200,12 +152,12 @@ Platform:      linux/amd64
 
 > `cosign` needs to be initialized with all the required endpoints that it communicates with. Additionally, during initialization, it will download the public trust root certificate in a local cache.
 
-This initialization can be done via command line parameters or by setting environment variables that are read when no commandline parameters are present.
+This initialization can be done via command-line parameters or by setting environment variables that are read when no command-line parameters are present.
 
 NOTE: Cosign itself doesn't need access to OpenShift, but since we have Trusted Artifact Signer installed on OpenShift (a RHEL installation is another deployment option), we will be using some `oc` commands to get the required endpoints.
 
 [start=3]
-. Run the following command in the terminal
+. Run the following command in the terminal:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -239,15 +191,15 @@ COSIGN_FULCIO_URL=https://fulcio-server-trusted-artifact-signer.apps.cluster-88k
 SIGSTORE_REKOR_URL=https://rekor-server-trusted-artifact-signer.apps.cluster-88k5s.88k5s.sandbox139.opentlc.com
 SIGSTORE_FULCIO_URL=https://fulcio-server-trusted-artifact-signer.apps.cluster-88k5s.88k5s.sandbox139.opentlc.com
 COSIGN_REKOR_URL=https://rekor-server-trusted-artifact-signer.apps.cluster-88k5s.88k5s.sandbox139.opentlc.com
-[lab-user@bastion ~]$ 
+[lab-user@bastion ~]$
 ----
 
-NOTE: The reason we define multiple variables with the same values is due to the long history of the upstream Sigstore project. Some tools (like cosign and gitsign) use different environment variables for the same purpose. For various reasons, including Open Source principles and compatibility, we are not creating a specialized Red Hat version with simplified environment parameters. These variables will be maintained in both the upstream project and the Red Hat enterprise-ready version.
+NOTE: The reason we define multiple variables with the same values is due to the long history of the upstream Sigstore project. Some tools (like cosign and gitsign) use different environment variables for the same purpose. For various reasons, including open source principles and compatibility, we are not creating a specialized Red Hat version with simplified environment parameters. These variables will be maintained in both the upstream project and the Red Hat enterprise-ready version.
 
-> As the last step, initialize `cosign`, so it knows who to talk to
+> As the last step, initialize `cosign` so it knows who to talk to.
 
 [start=4]
-. Run the following command in the terminal.
+. Run the following command in the terminal:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -296,13 +248,13 @@ Root status:
 }
 ----
 
-=== Signing and verifying a container image
+=== Signing and Verifying a Container Image
 
-`cosign` will be interacting with the image in our private registry, therefore we need to login to Quay
+`cosign` will be interacting with the image in our private registry, therefore we need to log in to Quay.
 
 *Procedure*
 
-. Run the following command in the terminal.
+. Run the following command in the terminal:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -316,10 +268,10 @@ cosign login $QUAY_URL -u $QUAY_USER -p {quay_admin_password}
 auth.go:203: logged in via /home/lab-user/.docker/config.json
 ----
 
-TIP: To verify that the image we created xref:00-setup-install-navigation.adoc#build-a-container-image[here] is still available and cosign can access the image, we can use the `cosign tree` command that checks for signatures, SBOMs (Software Bills of Materials) and attestations (e.g. build provenance attestation): 
+TIP: To verify that the image we created xref:00-setup-install-navigation.adoc#build-a-container-image[here] is still available and cosign can access the image, we can use the `cosign tree` command that checks for signatures, SBOMs (Software Bills of Materials), and attestations (e.g., build provenance attestation):
 
 [start=2]
-. Run the following command in the terminal.
+. Run the following command in the terminal:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -335,17 +287,15 @@ No Supply Chain Security Related Artifacts artifacts found for image quay-l2ktc.
 , start creating one with simply running$ COSIGN_EXPERIMENTAL=1 cosign sign <img>
 ----
 
-> As `cosign` suggests, signing this image is as simple as the following
+> As `cosign` suggests, signing this image is as simple as the following:
 
 [start=3]
-. Run the following command in the terminal.
-
+. Run the following command in the terminal:
 
 [source,sh,subs="attributes",role=execute]
 ----
 cosign sign $QUAY_URL/$QUAY_USER/frontend:0.1
 ----
-
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
@@ -367,17 +317,17 @@ Enter verification code:
 
 ----
 
-NOTE: As mentioned above, the signing process ties an identity (an OIDC identity, to be specific) to the signature. The signing certificate is issued on demand, but *only issued if an OIDC identity proof can be established*. 
+NOTE: As mentioned above, the signing process ties an identity (an OIDC identity, to be specific) to the signature. The signing certificate is issued on demand, but *only issued if an OIDC identity proof can be established*.
 
-In this example, the "OAuth2 browser based flow" is used. In other words, you will authenticate to the OIDC system by user and password via a browser login. We are running `cosign` in a `ssh` session with no connection to your system, therefore the check for a browser to open the login page fails: `error opening browser: exec: "xdg-open": executable file not found in $PATH` 
+In this example, the "OAuth2 browser-based flow" is used. In other words, you will authenticate to the OIDC system by user and password via a browser login. We are running `cosign` in an `ssh` session with no connection to your system, therefore the check for a browser to open the login page fails: `error opening browser: exec: "xdg-open": executable file not found in $PATH`.
 
 [start=4]
-. Copy the URL and paste it in a new browser window or tab and login - use the following credentials
+. Copy the URL and paste it in a new browser window or tab and log in—use the following credentials:
 
 [cols="2,2"]
 |===
-| *Username:* | *jdoe@redhat.com* 
-| *Password:* | *secure* 
+| *Username:* | *jdoe@redhat.com*
+| *Password:* | *secure*
 |===
 
 image::11-signing-sso-login.png[keycloak login]
@@ -407,14 +357,14 @@ tlog entry created with index: 1
 Pushing signature to: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system
 ----
 
-*SUCCESS!* 
+*SUCCESS!*
 
-With one command, you have signed the container image and pushed the container image to the registry. Furthermore, the signing event and its metadata have been recorded in the *Rekor* transparency log: `tlog entry created with index: 1` 
+With one command, you have signed the container image and pushed the container image to the registry. Furthermore, the signing event and its metadata have been recorded in the *Rekor* transparency log: `tlog entry created with index: 1`.
 
-> To check, we can again use `cosign tree`
+> To check, we can again use `cosign tree`.
 
 [start=6]
-. Run the following command in the terminal.
+. Run the following command in the terminal:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -430,7 +380,7 @@ cosign tree $QUAY_URL/$QUAY_USER/frontend:0.1
    └── 🍒 sha256:f638a989546b998409719e3eb78c0843d880e0bbb5237afa831da685fee48880
 ----
 
-> We can also login to Quay at {quay_console_url} using the Quay credentials
+> We can also log in to Quay at {quay_console_url} using the Quay credentials:
 
 [cols="2,2"]
 |===
@@ -441,8 +391,6 @@ cosign tree $QUAY_URL/$QUAY_USER/frontend:0.1
 Quay recognizes the `cosign` image signature, too!
 
 image::11-quay-signed-image.png[link=self, window=blank, width=100%]
-
-Here's the cleaned-up version of your message:
 
 You might be wondering how a pipeline task authenticates itself, since it can't open a browser to log in. Trusted Artifact Signer / Sigstore (including the cosign tool) doesn't authenticate the user directly. Instead, it relies on the OIDC system to authenticate the request before issuing a signing certificate. This allows the full flexibility of OIDC systems for authentication.
 
@@ -478,7 +426,7 @@ https://keycloak-rhsso.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/auth/realm
 ----
 export OIDC_TOKEN=$(curl -s --request POST --url $OIDC_TOKEN_SERVICE --header 'content-type: application/x-www-form-urlencoded' --data 'grant_type=password' --data 'client_id=trusted-artifact-signer' --data 'username=jdoe@redhat.com'  --data 'password=secure' --data 'scope=openid' | jq -r '.["access_token"]')
 echo $OIDC_TOKEN
----- 
+----
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
@@ -489,14 +437,14 @@ eyJhbGciOiJSUzI1NiIsInR5cC...
 ...IgOiAiSldUIiwia2lkIiA6ICJl
 ----
 
-WARNING: This is just an example - naturally, in your own CI system, you would not use username and password of the signing user in clear text. Rather, you would store them in a Kubernetes Secret or in a Vault. Or, depending on your setup, you already have the pipeline user's OIDC token as environment variable during your pipeline run. Additionally, you wouldn't echo the token so it doesn't show in logs - even though it might only be short-lived, this is not a good practice. 
+WARNING: This is just an example—naturally, in your own CI system, you would not use the username and password of the signing user in clear text. Rather, you would store them in a Kubernetes Secret or in a Vault. Or, depending on your setup, you already have the pipeline user's OIDC token as an environment variable during your pipeline run. Additionally, you wouldn't echo the token so it doesn't show in logs—even though it might only be short-lived, this is not a good practice.
 
 3) Now that we have the token, we can pass that to `cosign` for authentication:
 
 [source,sh,subs="attributes",role=execute]
 ----
 cosign sign -y --identity-token=$OIDC_TOKEN $QUAY_URL/$QUAY_USER/frontend:0.1
----- 
+----
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
@@ -511,7 +459,6 @@ WARNING: Image reference quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.c
     (example.com/ubuntu:latest) for the input to cosign. The ability to refer to
     images by tag will be removed in a future release.
 
-
         Note that there may be personally identifiable information associated with this signed artifact.
         This may include the email address associated with the account with which you authenticate.
         This information will be used for signing this artifact and will be stored in public transparency logs and cannot be removed later.
@@ -519,10 +466,9 @@ WARNING: Image reference quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.c
 By typing 'y', you attest that you grant (or have permission to grant) and agree to have this information stored permanently in transparency logs.
 tlog entry created with index: 2
 Pushing signature to: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system
----- 
+----
 
-NOTE: You might have seen the `cosign` warning about using a tag rather than a `sha256` digest. Yes, tags can be reassigned and can be considered inappropriate for signing (and verification) purposes. We have left this out for sake of simplicity, but if you'd like, you can obtain the image's `sha256` digest via the Quay console or by using `podman inspect`, for example.
-
+NOTE: You might have seen the `cosign` warning about using a tag rather than a `sha256` digest. Yes, tags can be reassigned and can be considered inappropriate for signing (and verification) purposes. We have left this out for the sake of simplicity, but if you'd like, you can obtain the image's `sha256` digest via the Quay console or by using `podman inspect`, for example.
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
@@ -541,30 +487,28 @@ tlog entry created with index: 4
 Pushing signature to: quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system
 ----
 
-==== *Verifying Signatures*
+==== Verifying Signatures
 
-Verifying an image signature is even easier than signing: 
+Verifying an image signature is even easier than signing:
 
 *Procedure*
 
-. Run the following command
+. Run the following command:
 
 [source,sh,subs="attributes",role=execute]
 ----
 cosign verify --certificate-identity jdoe@redhat.com $QUAY_URL/$QUAY_USER/frontend:0.1 | jq
 ----
 
-
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
 ----
 
-In this case, we are asking `cosign` (and therefore *Trusted Artifact Signer*) to verify if `jdoe@redhat.com` has signed this image. We can also use regular expressions, to check if anyone from Red Hat has signed this image, using `--certificate-identity-regexp`:
-
+In this case, we are asking `cosign` (and therefore *Trusted Artifact Signer*) to verify if `jdoe@redhat.com` has signed this image. We can also use regular expressions to check if anyone from Red Hat has signed this image, using `--certificate-identity-regexp`:
 
 [start=2]
-. Run the following command
+. Run the following command:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -579,14 +523,14 @@ cosign verify --certificate-identity-regexp ^[a-zA-Z0-9._%+-]+@redhat\.com$ $QUA
 We can also verify that the person (to be correct, the OIDC identity) who signed the image was authenticated against a specific OIDC Issuer (using the `--certificate-oidc-issuer` flag) or against an OIDC Issuer somewhere in our domain:
 
 [start=3]
-. Run the following command
+. Run the following command:
 
 [source,sh,subs="attributes",role=execute]
 ----
 cosign verify --certificate-identity jdoe@redhat.com --certificate-oidc-issuer-regexp \.opentlc\.com $QUAY_URL/$QUAY_USER/frontend:0.1 | jq
 ----
 
-NOTE: We are using `jq` for readability in these examples, it is not required.
+NOTE: We are using `jq` for readability in these examples; it is not required.
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
@@ -598,40 +542,11 @@ The following checks were performed on each of these signatures:
   - The cosign claims were validated
   - Existence of the claims in the transparency log was verified offline
   - The code-signing certificate was verified using trusted certificate authority certificates
-[
-  {
-    "critical": {
-      "identity": {
-        "docker-reference": "quay-l2ktc.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/quayadmin/ctf-web-to-system"
-      },
-      "image": {
-        "docker-manifest-digest": "sha256:4530d5e1556631804ce21d37271b0d3f173c350956f2312421db0840fd103c82"
-      },
-      "type": "cosign container image signature"
-    },
-    "optional": {
-      "1.3.6.1.4.1.57264.1.1": "https://keycloak-rhsso.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/auth/realms/openshift",
-      "Bundle": {
-        "SignedEntryTimestamp": "MGQCMBDDEiVjHtj0Hho7EkfCOps0N/RxbcJDgh+VDQ8LGvpKmoBImzHSTkv0sKOtbl8z6AIwHeIi1tqLjuagYak/zMuorqiBKjAKAvzfUyXAWHCdfMEozBj/BIhrtpSRZgkfUgSM",
-        "Payload": {
-          "body": "eyJhcGlWZ
-          ...
-          0TFMwdExRbz0ifX19fQ==",
-          "integratedTime": 1734200825,
-          "logIndex": 0,
-          "logID": "abeb9ddb0d7a346d990d9eb7692ec74bef081f9a0ad203444fb9606c5cbc7644"
-        }
-      },
-      "Issuer": "https://keycloak-rhsso.apps.cluster-l2ktc.l2ktc.sandbox75.opentlc.com/auth/realms/openshift",
-      "Subject": "jdoe@redhat.com"
-    }
-  }
 ----
 
-=== Signing and verifying git commits
+=== Signing and Verifying Git Commits
 
-TIP: Using traditional commit signing and verification methods required management and distribution of private/public key pairs to developers - a task that can become quite cumbersome for a large number of developers in your organisation. With *Red Hat Trusted Artifact Signer*, there is no need to issue/distribute/re-issue keys due to lost passwords/maintain a key revocation list etc. 
-
+TIP: Using traditional commit signing and verification methods required management and distribution of private/public key pairs to developers - a task that can become quite cumbersome for a large number of developers in your organization. With *Red Hat Trusted Artifact Signer*, there is no need to issue/distribute/re-issue keys due to lost passwords/maintain a key revocation list etc.
 
 NOTE: If you haven't already done so, please execute the following steps from previous exercises:
 
@@ -639,7 +554,7 @@ NOTE: If you haven't already done so, please execute the following steps from pr
 
 2. We won't go through setting up the environment for signing and verification (the Trusted Artifact Signer endpoints) again. If you have followed this chapter from the beginning, you have everything configured already. If not, please set the environment variables as shown xref:#setting-up-the-environment-variables[here], followed by a `cosign initialize`
 
-==== *Setting up gitsign*
+==== Setting up gitsign
 
 While you *could* use the `gitsign` CLI binary directly for signing your commits, it is much easier to configure your local (or global, if you want) `git` configuration, so that commits will be signed every time you issue a `git commit` or `git tag`, for example. This also applies to using your `git` installation from e.g. VSCode or other IDEs leveraging the local git installation.
 
@@ -651,7 +566,6 @@ cd /home/lab-user/demo-apps
 git status
 git remote -v
 ----
-
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
@@ -665,17 +579,16 @@ Your branch is up to date with 'origin/main'.
 nothing to commit, working tree clean
 origin  https://github.com/mfosterrox/demo-apps.git (fetch)
 origin  https://github.com/mfosterrox/demo-apps.git (push)
----- 
+----
 
-Since we don't want to push our commits to the original source, we will use a GitLab instance on this cluster: 
-
+Since we don't want to push our commits to the original source, we will use a GitLab instance on this cluster:
 
 You can access the => {gitlab_url}[GitLab instance UI^] on the cluster using
 
 [cols="2,2"]
 |===
-| *GitLab Username:* | {gitlab_user} 
-| *GitLab Password:* | {gitlab_user_password} 
+| *GitLab Username:* | {gitlab_user}
+| *GitLab Password:* | {gitlab_user_password}
 |===
 
 TIP: You can also create an empty repository in GitLab with just a README and clone this to your console - but since we already have a repo, we'll use that. However, for our signing and verification exercise, the actual content isn't really important, so an arbitrary repo will do.
@@ -706,7 +619,7 @@ git remote -v
 [lab-user@bastion demo-apps]$ git remote -v
 origin  https://gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com/user1/demo-apps.git (fetch)
 origin  https://gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com/user1/demo-apps.git (push)
----- 
+----
 
 [start=2]
 . Now let's push it to GitLab
@@ -718,13 +631,12 @@ git push --set-upstream origin main
 
 Use the GitLab *username* and *password* from above.
 
-
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
 [lab-user@bastion demo-apps]$ git push --set-upstream origin main
 Username for 'https://gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com': user1
-Password for 'https://user1@gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com': 
+Password for 'https://user1@gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com':
 Enumerating objects: 2907, done.
 Counting objects: 100% (2907/2907), done.
 Delta compression using up to 32 threads
@@ -732,18 +644,18 @@ Compressing objects: 100% (2240/2240), done.
 Writing objects: 100% (2907/2907), 73.15 MiB | 137.19 MiB/s, done.
 Total 2907 (delta 499), reused 2907 (delta 499), pack-reused 0
 remote: Resolving deltas: 100% (499/499), done.
-remote: 
-remote: 
+remote:
+remote:
 remote: The private project user1/demo-apps was successfully created.
-remote: 
+remote:
 remote: To configure the remote, run:
 remote:   git remote add origin https://gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com/user1/demo-apps.git
-remote: 
+remote:
 remote: To view the project, visit:
 remote:   https://gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com/user1/demo-apps
-remote: 
-remote: 
-remote: 
+remote:
+remote:
+remote:
 To https://gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com/user1/demo-apps.git
  * [new branch]      main -> main
 branch 'main' set up to track 'origin/main'.
@@ -802,7 +714,7 @@ gitsign.issuer=https://keycloak-rhsso.apps.cluster-47fg6.47fg6.sandbox2892.opent
 gitsign.clientid=trusted-artifact-signer
 ----
 
-==== *Signing a commit*
+==== Signing a commit
 
 Now, let's quickly modify our repo and commit the changes (you can of course make any modification you like, we'll simply add an empty file)
 
@@ -832,7 +744,7 @@ Changes to be committed:
 git commit -m "added an empty file"
 ----
 
-NOTE: Similarly to signing an image, you will be asked to open your browser to the OIDC System (in our case Keycloak) to authenticate. This is because you are working in an SSH session with no connection to your local computer, so it can't automatically open your browser. 
+NOTE: Similarly to signing an image, you will be asked to open your browser to the OIDC System (in our case Keycloak) to authenticate. This is because you are working in an SSH session with no connection to your local computer, so it can't automatically open your browser.
 
 Please use the "signing user" *`jdoe@redhat.com`* with password *`secure`* again.
 
@@ -844,7 +756,7 @@ error opening browser: exec: "xdg-open": executable file not found in $PATH
 Go to the following link in a browser:
 
          https://keycloak-rhsso.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com/auth/realms/openshift/protocol/openid-connect/auth?access_type=online&client_id=trusted-artifact-signer&code_challenge=QzAAVp3Bo82vhdN0DFX1nUBHA3iSzrvD1-GFxj58xCI&code_challenge_method=S256&nonce=2raUg4ukP7RtOKQCOJiVfYyCQp2&redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob&response_type=code&scope=openid+email&state=2raUg74ynB8w1azNM8rV5va2Ypr
-Enter verification code: 
+Enter verification code:
 tlog entry created with index: 2
 [main 390aeb4] added an empty file
  Committer: Red Hat Demo Platform Student <lab-user@bastion.47fg6.internal>
@@ -864,13 +776,13 @@ After doing this, you may fix the identity used for this commit with:
  create mode 100644 make-a-commit.txt
 ----
 
-TIP: `gitsign` doesn't echo the output of the verification code, so don't worry if you don't see it when pasting from your browser. 
+TIP: `gitsign` doesn't echo the output of the verification code, so don't worry if you don't see it when pasting from your browser.
 
 image::11-signing-sso-login.png[keycloak login]
 
 image::11-signing-successcode.png[copy the success code]
 
-IMPORTANT: If you look closer at the `git` console output, you will notice that you have commited your code change as "Red Hat Demo Platform Student". That is because your git environment hasn't been configured with an explicit user. It is important to understand that we have two user types here - and depending on your requirements, these can be the same or different users: Firstly, the *committer*. This is what `git` is storing as the user metadata. However, this is not secure, as it can be changed easily, just by configuring your local `git` environment. Secondly, the *signer* - in our case, "jdoe@redhat.com". Since that user just authenticated against the "Company SSO" (Keycloak), this signature is safe - and furthermore, the signing event in the transparency log cannot be altered. This also gives a user the option to work in different git systems with different committer IDs - but all commits would be signed with the same identifiable OIDC identity. 
+IMPORTANT: If you look closer at the `git` console output, you will notice that you have committed your code change as "Red Hat Demo Platform Student". That is because your git environment hasn't been configured with an explicit user. It is important to understand that we have two user types here - and depending on your requirements, these can be the same or different users: Firstly, the *committer*. This is what `git` is storing as the user metadata. However, this is not secure, as it can be changed easily, just by configuring your local `git` environment. Secondly, the *signer* - in our case, "jdoe@redhat.com". Since that user just authenticated against the "Company SSO" (Keycloak), this signature is safe - and furthermore, the signing event in the transparency log cannot be altered. This also gives a user the option to work in different git systems with different committer IDs - but all commits would be signed with the same identifiable OIDC identity.
 
 Now we can push the signed commit to our remote GitLab repository:
 
@@ -882,9 +794,9 @@ git push
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-[lab-user@bastion demo-apps]$ git push 
+[lab-user@bastion demo-apps]$ git push
 Username for 'https://gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com': user1
-Password for 'https://user1@gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com': 
+Password for 'https://user1@gitlab-gitlab.apps.cluster-47fg6.47fg6.sandbox2892.opentlc.com':
 Enumerating objects: 4, done.
 Counting objects: 100% (4/4), done.
 Delta compression using up to 32 threads
@@ -899,7 +811,7 @@ NOTE: If you check the GitLab repository after you pushed the commit, you might 
 
 image::11-gitlab-signature.png[unverified badge]
 
-== *Verifying a commit signature*
+== Verifying a commit signature
 
 === Trusted Profile Analyzer
 
@@ -967,8 +879,6 @@ When you are given the URL, log into the RHTPA UI using the username and passwor
 image::lab11.1-tpa.png[]
 
 You can search for an SBOM, advisory, or CVE directly from the home page, or you can click on Search in the left menu for further options.
-
-image::lab11.2-tpa.gif[]
 
 From the Search page, you can choose to browse SBOMs, Packages, CVEs, and Advisories from the Tabs, and further filter using the filter menu on the left.
 

@@ -1,9 +1,8 @@
-= Network security
+= Network Security
 
-== Module goals
-.Goals
+== Module Goals
 * Review the Network Dashboard
-* Create Network Policies that improve our CIS compliance.
+* Create Network Policies that improve our CIS compliance
 
 == Understanding the Network UI
 
@@ -15,21 +14,21 @@ The Network Graph in RHACS provides a visual representation of the network traff
 
 RHACS Network Graph helps you visualize network traffic by displaying the flow of network traffic between different pods, services, and namespaces within a Kubernetes cluster. The Network Graph also helps identify unusual or unexpected network traffic patterns. If there are unexpected connections or traffic flows between components that should not be communicating, these anomalies can be quickly spotted and investigated. By understanding the actual network traffic, security teams can create more precise network policies to restrict unnecessary communication paths and reduce the attack surface. The Network Policies can be generated at deploy-time or runtime.
 
-=== The Exposed Ports dashboard
+=== The Exposed Ports Dashboard
 
 The Exposed Ports Dashboard gives users a clear and organized view of all the services in their Kubernetes cluster that are exposed to external networks. 
 
-=== BONUS: The roxctl netpol CLI command
+=== BONUS: The roxctl netpol CLI Command
 
 The roxctl netpol command in Red Hat Advanced Cluster Security (RHACS) for Kubernetes offers several advantages that enhance network security management within Kubernetes environments. This command is part of the roxctl CLI tool, which is designed to interact with RHACS. The roxctl netpol command can automatically generate Kubernetes network policies based on the OpenShift and Kubernetes assets. This can be done in deploy-time by developers OR operators to help accelerate network policy adoption.
 
 == Hands-on with the RHACS Network UI
 
-=== CIS compliance reminder
+=== CIS Compliance Reminder
 
-In this module, we will focus on the *backend* namespace. Also, hopefully, you remember the complaint section where we were told how we could become CIS-compliant by applying network policies. 
+In this module, we will focus on the *backend* namespace. Also, hopefully, you remember the compliance section where we were told how we could become CIS-compliant by applying network policies. 
 
-Run the following two commands to remember which namespaces are currently compliant.
+Run the following two commands to remember which namespaces are currently compliant:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -53,18 +52,18 @@ Now, let's aim to get the *backend* namespace on that list.
 
 === The Network Graph UI
 
-.Procedure
+*Procedure*
 
-. Start by heading to the Network -> Network Graph.
+. Start by heading to the Network -> Network Graph:
 
 image::ex-net-1.png[link=self, window=blank, width=100%]
 
 ====
-The graph does not display any results by default. This is a performance choice as large environments will become unwieldly in a dashboard like this.
+The graph does not display any results by default. This is a performance choice as large environments will become unwieldy in a dashboard like this.
 ====
 
 [start=2]
-. Use the filters at the top to select ONLY the *backend* namespace.
+. Use the filters at the top to select ONLY the *backend* namespace:
 
 image::ex-net-2.png[link=self, window=blank, width=100%]
 
@@ -83,12 +82,12 @@ You can also filter by "Active flows" or "Inactive flows."
 image::ex-net-4.png[link=self, window=blank, width=100%]
 
 [start=4]
-. Click on the *Network policy generator* on the top right of the dashboard.
+. Click on the *Network policy generator* on the top right of the dashboard:
 
 image::ex-net-5.png[link=self, window=blank, width=100%]
 
 [start=5]
-. Click the *View active YAMLS* tab.
+. Click the *View active YAMLS* tab:
 
 image::ex-net-7.png[link=self, window=blank, width=100%]
 
@@ -97,12 +96,12 @@ You should see no active YAMLs in the namespace since we have not created any ne
 ====
 
 [start=6]
-. Click the *Simulate network policies* and click *Generate and simulate network policies*
+. Click the *Simulate network policies* and click *Generate and simulate network policies*:
 
 image::ex-net-8.png[link=self, window=blank, width=100%]
 
 [start=7]
-. Click the *Compare* tab on the right side of the page. 
+. Click the *Compare* tab on the right side of the page: 
 
 image::ex-net-9.png[link=self, window=blank, width=100%]
 
@@ -116,7 +115,7 @@ We know the backend namespace needs some work. And while we can copy the simulat
 
 We're going to use the roxctl netpol command to generate network policies based on the *Backend* applications.
 
-First, let's take a look at the four applications and all of their associated services.
+First, let's take a look at the four applications and all of their associated services:
 
 . Run the following command. 
 
@@ -140,10 +139,10 @@ metadata:
 
 You can see the manifest contains EVERYTHING about the applications in the namespace.
 
-IMPORTANT: The netpol command only looks at the services and deployment manifests to generate network policies. This is why it is extremely important that the deployments and service are properly configured first. 
+IMPORTANT: The netpol command only looks at the services and deployment manifests to generate network policies. This is why it is extremely important that the deployments and services are properly configured first. 
 
 [start=2]
-. Run the following command. 
+. Run the following command: 
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -166,7 +165,7 @@ backend/varnish[Deployment] => backend/postgres[Deployment] : All Connections
 This output is telling us that all connections are currently authorized into the backend namespace. The goal is to only allow the connections that are necessary for the applications to function. 
 
 [start=3]
-. Run the following command. This command will copy the network policy output to a "everything" file and will display what was added.
+. Run the following command. This command will copy the network policy output to an "everything" file and will display what was added:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -174,10 +173,10 @@ roxctl netpol generate $TUTORIAL_HOME/kubernetes-manifests/medical-application/b
 roxctl netpol generate $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
 ----
 
-Now we have network policies! Time to put them to work
+Now we have network policies! Time to put them to work.
 
 [start=4]
-. Apply the network policies with the following command.
+. Apply the network policies with the following command:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -195,12 +194,12 @@ networkpolicy.networking.k8s.io/default-deny-in-namespace-backend created
 ----
 
 [start=5]
-. And go and verify that everything is green in the dashboard.
+. And go and verify that everything is green in the dashboard:
 
 image::ex-net-20.png[link=self, window=blank, width=100%]
 
 [start=6]
-. Lastly let's check the netpol connecitons output AND our compliance command!
+. Lastly, let's check the netpol connections output AND our compliance command:
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -227,9 +226,9 @@ backend/varnish[Deployment] => backend/api-server[Deployment] : TCP 9001
 ]
 ----
 
-And we see that there is only ONE! External connection to the namespace. All other connections are shut down. 
+And we see that there is only ONE external connection to the namespace. All other connections are shut down. 
 
-== A task to complete on your own.
+== A Task to Complete on Your Own
 
 *LAST ONE*
 
@@ -237,13 +236,13 @@ Use the 'roxctl netpol generate' command on the rest of the Kubernetes manifests
 
 image::https://media.giphy.com/media/3ZP7udDbKKDS0/giphy.gif?cid=790b7611ag8xf2i0ectfchcasx9mo9vcym9l5v8gm96q7ub4&ep=v1_gifs_search&rid=giphy.gif&ct=g[link=self, window=blank, width=100%, class="center"]
 
-What is the CIS compliance standard percentage at now? 
+What is the CIS compliance standard percentage now? 
 
 == Summary
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNxZGd5Zm5qMnlpOHhrbm1hY2pwcG5ydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p18ohAgD3H60LSoI1C/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
-In this module you got hands-on in the Network graph UI and used the netpol generate command to create and apply network policies to the OpenShift cluster.
+In this module, you got hands-on in the Network Graph UI and used the netpol generate command to create and apply network policies to the OpenShift cluster.
 
 Congrats!!!
 

@@ -1,11 +1,11 @@
 = API Walkthrough
 
-== Module goals
+== Module Goals
 * Understand the basics of creating an API request in RHACS
 * Work through use cases
 * Come up with a few use cases of your own
 
-== Overview of an API request
+== Overview of an API Request
 
 An API (Application Programming Interface) request is a way for a client (such as a web or mobile application) to communicate with a server to retrieve or send data. The request typically involves sending an HTTP method (GET, POST, PUT, DELETE) to a specified endpoint (URL) along with any necessary headers and body data.
 
@@ -20,17 +20,17 @@ An API (Application Programming Interface) request is a way for a client (such a
 * Headers: Provide metadata such as authentication tokens, content type, etc.
 * Body: Contains data to be sent to the server, usually in JSON format (for POST and PUT requests).
 
-== RHACS API Overview 
+== RHACS API Overview
 
 Red Hat Advanced Cluster Security (RHACS) for Kubernetes provides a robust API that allows users to programmatically interact with the platform. This API enables automation, integration, and customization of various security operations within the Kubernetes environment.
 
-The API documentation can be found inside of the application after deployment. 
+The API documentation can be found inside the application after deployment. 
 
 === RHACS Endpoint
 
 The RHACS API endpoint can be found using an 'oc' or 'kubectl' command to the URL of the central service. 
 
-For example,
+For example:
 
 [source,bash,role="execute"]
 ----
@@ -55,16 +55,16 @@ The RHACS API offers various endpoints for different functionalities such as pol
 
 === Headers/Authentication
 
-Red Hat Advanced Cluster Security (RHACS) employs token-based authentication to secure its API requests, ensuring only authorized users and systems can interact with its resources. 
+Red Hat Advanced Cluster Security (RHACS) employs token-based authentication to secure its API requests, ensuring only authorized users and systems can interact with its resources.
 
-We will demonstrate this workflow after but the typical RHACS token-based authentication process contains the following
+We will demonstrate this workflow after, but the typical RHACS token-based authentication process contains the following:
 
 1. User Authentication: Users authenticate themselves through a login process, typically via the OpenShift login page or using an identity provider (IdP) integrated with OpenShift.
 2. Token Generation: Upon successful authentication, the user is issued a JSON Web Token (JWT) or a similar token type. This token encodes user identity and associated permissions.
 3. Authorization Header: The user, when making API requests to RHACS, the token is included in the HTTP Authorization header using the Bearer schema: Authorization: Bearer <token>.
 4. Token Verification: RHACS backend verifies the token by checking its signature, expiration time, and claims. Then, based on the token's claims, RHACS determines the API request's level of access and permissions. Only authorized or expired tokens are accepted.
 
-NOTE:  All API requests are made over HTTPS to ensure data encryption during transmission, preventing token interception and man-in-the-middle attacks.
+NOTE: All API requests are made over HTTPS to ensure data encryption during transmission, preventing token interception and man-in-the-middle attacks.
 
 === Common Operations:
 
@@ -78,18 +78,18 @@ NOTE:  All API requests are made over HTTPS to ensure data encryption during tra
 *Procedure*
 
 [start=1]
-. Head back to the RHACS dashboard and on *Platform Configuration* -> *Integrations* and scroll to the bottom of the page.
+. Head back to the RHACS dashboard and on *Platform Configuration* -> *Integrations* and scroll to the bottom of the page:
 
 image::05-cd-10.png[link=self, window=blank, width=100%]
 
 [start=2]
-. Click on *API Token.
-. Click on *Generate token*
-. Give your token a name, select *Admin*, since we are going to need full access to RHACS Central
-. Click *Generate*
-. Now it's time to export the API token as a variable for the roxctl CLI. 
+. Click on *API Token*:
+. Click on *Generate token*:
+. Give your token a name, select *Admin*, since we are going to need full access to RHACS Central:
+. Click *Generate*:
+. Now it's time to export the API token as a variable for the roxctl CLI.
 
-IMPORTANT:Be sure to put the API token in the correct location.
+IMPORTANT: Be sure to put the API token in the correct location.
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -110,11 +110,11 @@ central-stackrox.apps.cluster-kftnc.sandbox866.opentlc.com
 <a long API token>
 ----
 
-=== View, create and update policies via API Requests
+=== View, Create, and Update Policies via API Requests
 
 Use a tool like curl, Postman, or a programming language with HTTP client libraries (e.g., Python’s requests library) to interact with the API. Below are a few examples of what you can do with the API requests and RHACS.
 
-==== Example using curl where you get a list of policies
+==== Example Using curl Where You Get a List of Policies
 
 [source,sh,subs="attributes",role=execute]
 
@@ -144,7 +144,7 @@ curl -k -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS/
 ...
 ----
 
-==== Example using curl to get a list of alerts
+==== Example Using curl to Get a List of Alerts
 
 [source,sh,subs="attributes",role=execute]
 
@@ -183,7 +183,7 @@ curl -k -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS:
 
 *Let's cut down on that list of alerts into something more manageable*
 
-You can use queries as part of the URL to simplify the request to RHACS. You can also use a tool like 'jq' to filter through the output as you well see in the following step.
+You can use queries as part of the URL to simplify the request to RHACS. You can also use a tool like 'jq' to filter through the output as you will see in the following step.
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -223,7 +223,7 @@ curl -k -H "Authorization: Bearer $ROX_API_TOKEN" https://$ROX_CENTRAL_ADDRESS:4
 }
 ----
 
-As mentioned before, let's use the previous command without the added query and sort the output using 'jq'. This time let's find all of the *ACTIVE* alerts and pull the IDs of those alerts
+As mentioned before, let's use the previous command without the added query and sort the output using 'jq'. This time let's find all of the *ACTIVE* alerts and pull the IDs of those alerts:
 
 [source,sh,subs="attributes",role=execute]
 
@@ -250,7 +250,7 @@ That output will allow you to loop through the IDs of the alerts if you'd like t
 
 ---
 
-Next let's combine a few namespaces together using the query feature from before. 
+Next, let's combine a few namespaces together using the query feature from before: 
 
 [source,sh,subs="attributes",role=execute]
 ----
@@ -275,7 +275,7 @@ curl -k -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS/
 
 The official RHACS API documentation provides detailed information on all available endpoints, request formats, and responses. This is available within the RHACS console.
 
-== A task to complete on your own.
+== A Task to Complete on Your Own
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcTN6N2l3OXR0OXo4eGRkb3dpaHdocWRxZzQzN3A4OHQ3NTEycjFhaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/C1AaD43G6rMlZjT628/giphy.gif[link=self, window=blank, width=100%, class="center"]
 

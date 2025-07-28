@@ -163,7 +163,7 @@ nano init-bundle.yaml
 NOTE: Hit ctrl + x to exit nano.
 
 [start=7]
-. Run the following on your command line
+. Run the following on your command line:
 
 [source,bash,role="execute"]
 ----
@@ -212,14 +212,3 @@ image::11-cs-10.png[link=self, window=blank, width=100%]
 == Summary
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjJmczc4MmswYmk1cnhvZ254ZXBiZ2M3bGJzbDV5eDQ3OGlqNWdwdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QSSA5Bd56W25ytLIwz/giphy.gif[link=self, window=blank, width=100%, class="center"]
-
-
-
-
-
-
-
-
-
-
-
