@@ -13,7 +13,7 @@ Have fun exploring!
 
 == Getting access
 
-Start by networking the running container so that you can access it. the following commands deployes our vulnerable container to EKS and creates a LoadBalancer service to make it publically accessable. 
+Start by networking the running container so that you can access it. The following commands deploy our vulnerable container to EKS and creates a LoadBalancer service to make it publicly accessible. 
 
 [source,sh,role=execute]
 ----

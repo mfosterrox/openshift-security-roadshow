@@ -54,7 +54,7 @@ Now, let's aim to get the *backend* namespace on that list.
 
 *Procedure*
 
-. Start by heading to the Network -> Network Graph:
+. Start by heading to the Network -> Network Graph.
 
 image::ex-net-1.png[link=self, window=blank, width=100%]
 
@@ -63,7 +63,7 @@ The graph does not display any results by default. This is a performance choice 
 ====
 
 [start=2]
-. Use the filters at the top to select ONLY the *backend* namespace:
+. Use the filters at the top to select ONLY the *backend* namespace.
 
 image::ex-net-2.png[link=self, window=blank, width=100%]
 
@@ -82,12 +82,12 @@ You can also filter by "Active flows" or "Inactive flows."
 image::ex-net-4.png[link=self, window=blank, width=100%]
 
 [start=4]
-. Click on the *Network policy generator* on the top right of the dashboard:
+. Click on the *Network policy generator* on the top right of the dashboard.
 
 image::ex-net-5.png[link=self, window=blank, width=100%]
 
 [start=5]
-. Click the *View active YAMLS* tab:
+. Click the *View active YAMLS* tab.
 
 image::ex-net-7.png[link=self, window=blank, width=100%]
 
@@ -96,7 +96,7 @@ You should see no active YAMLs in the namespace since we have not created any ne
 ====
 
 [start=6]
-. Click the *Simulate network policies* and click *Generate and simulate network policies*:
+. Click the *Simulate network policies* and click *Generate and simulate network policies*.
 
 image::ex-net-8.png[link=self, window=blank, width=100%]
 
@@ -123,7 +123,7 @@ First, let's take a look at the four applications and all of their associated se
 ----
 export TUTORIAL_HOME="$(pwd)/demo-apps"
 cat $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
----- 
+-----
 
 *Sample output*
 [source, bash]
@@ -181,7 +181,7 @@ Now we have network policies! Time to put them to work.
 [source,sh,subs="attributes",role=execute]
 ----
 oc apply -f $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
----- 
+-----
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
@@ -228,15 +228,26 @@ backend/varnish[Deployment] => backend/api-server[Deployment] : TCP 9001
 
 And we see that there is only ONE external connection to the namespace. All other connections are shut down. 
 
+Use the 'roxctl netpol generate' command on the rest of the Kubernetes manifests in the $TUTORIAL_HOME/kubernetes-manifests/ folder. Apply these changes and view the updates in the Network Graph UI. 
+
+What is the CIS compliance standard percentage now? 
+
 == A Task to Complete on Your Own
 
 *LAST ONE*
 
-Use the 'roxctl netpol generate' command on the rest of the Kubernetes manifests in the $TUTORIAL_HOME/kubernetes-manifests/ folder. Apply these changes and view the updates in the Network Graph UI. 
+run the following commands to create a publically available applications. You task is to use the network graph and find the external IP address of the redhat.com loadbalancer.
+
+----
+git clone https://github.com/shaneboulden/tailspin-argocd-cd.git netcoreapp
+oc new-project tailspin
+oc apply -k netcoreapp/overlays/development
+sleep 20
+while true; do oc exec deploy/leaderboard -n tailspin -c ubi -- curl -s -L https://redhat.com > /dev/null; sleep 3; done
+----
 
 image::https://media.giphy.com/media/3ZP7udDbKKDS0/giphy.gif?cid=790b7611ag8xf2i0ectfchcasx9mo9vcym9l5v8gm96q7ub4&ep=v1_gifs_search&rid=giphy.gif&ct=g[link=self, window=blank, width=100%, class="center"]
 
-What is the CIS compliance standard percentage now? 
 
 == Summary
 

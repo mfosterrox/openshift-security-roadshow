@@ -214,7 +214,7 @@ IMPORTANT: What deployments did you expect to see?
 image::03-risk-11.png[link=self, window=blank, width=100%]
 
 [start=5]
-. Click the *+ (Create Policy)* next to the filter bar: 
+. Click the *Create Policy* button next to the filter bar: 
 
 image::03-risk-12.png[link=self, window=blank, width=100%]
 

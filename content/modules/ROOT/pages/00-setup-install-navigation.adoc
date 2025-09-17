@@ -27,7 +27,7 @@ IMPORTANT: If variables on the screen are unavailable, inform your workshop admi
 image::01-ocp-login-admin.png[OpenShift console,link=self, window=blank, width=100%]
 
 [start=3]
-. Enter the OCP credentials:
+. Enter the OCP credentials.
 
 [cols="1,1"]
 |===
@@ -44,7 +44,7 @@ Ensure that you have access to the RHACS user interface.
 *Procedure*
 
 [start=1]
-. Log into the RHACS console at `{acs_route}[{acs_route}^]`
+. Log into the RHACS console at `{acs_route}[{acs_route}^]`.
 
 image::01-rhacs-login.png[RHACS console,link=self, window=blank, width=100%]
 
@@ -293,7 +293,7 @@ Scan results for image: quay.io/mfoster/dvwa
 +-------------------+-------------------------+----------------+-----------+------+-------------------------------------------------+-------------------------+----------+---------------+
 | perl-modules-5.36 |    5.36.0-7+deb12u1     | CVE-2023-31484 | IMPORTANT | 8.1  | https://nvd.nist.gov/vuln/detail/CVE-2023-31484 |            -            |    -     |       -       |
 +-------------------+-------------------------+----------------+-----------+------+-------------------------------------------------+-------------------------+----------+---------------+
-WARN:   A total of 179 unique vulnerabilities were found in 14 components
+WARN:   A total of 180 unique vulnerabilities were found in 15 components
 ----
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNxZGd5Zm5qMnlpOHhrbm1hY2pwcG5ydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p18ohAgD3H60LSoI1C/giphy.gif[link=self, window=blank, width=100%, class="center"]

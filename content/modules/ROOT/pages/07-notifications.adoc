@@ -4,6 +4,7 @@
 * Understanding how notification and alerting work in RHACS
 * Set up a notification alert to a Microsoft Teams channel
 * Set up a notification alert to a Slack channel
+* Configure policies to send alerts to both Teams and Slack
 
 == How Do Notifications and Alerts Work in RHACS
 
@@ -45,7 +46,7 @@ Before proceeding, ensure you have the following:
 
 *Procedure*
 
-. Visit the Slack API site: https://api.slack.com/apps?new_app=1 and log in with your Slack credentials:
+. Visit the Slack API site: https://api.slack.com/apps?new_app=1 and log in with your Slack credentials.
 . Click **MORE**, then click **Automations**:
 
 image::07-slack-00.png[link=self, window=blank, width=100%]
@@ -56,14 +57,14 @@ image::07-slack-00.png[link=self, window=blank, width=100%]
 image::07-slack-01.png[link=self, window=blank, width=100%]
 
 [start=4]
-. Select **New Workflow** at the top right of the page:
-. Click the workflow title and give it the following name: **first-notification-workflow**:
+. Select **New Workflow** at the top right of the page.
+. Click the workflow title and give it the following name: **first-notification-workflow**.
 . Search for webhook and select it:
 
 image::07-slack-02.png[link=self, window=blank, width=100%]
 
 [start=7]
-. Hit continue:
+. Hit continue.
 . Select the **Slack workspace** where it will be used:
 
 image::07-slack-03.png[link=self, window=blank, width=100%]
@@ -71,7 +72,7 @@ image::07-slack-03.png[link=self, window=blank, width=100%]
 TIP: You can add additional features like webhooks or bot users later, but for now, focus on setting up the Incoming Webhooks.
 
 [start=9]
-. Add a test prompt and save it:
+. Add a test prompt and save it.
 . Then click **Finish Up**:
 
 image::07-slack-04.png[link=self, window=blank, width=100%]
@@ -90,6 +91,58 @@ image::07-slack-04.png[link=self, window=blank, width=100%]
 
 == References
 - [Slack API Documentation](https://api.slack.com/)
+
+====
+Next, we have to configure our policies to alert based on specific triggers.
+====
+
+== Integrating Microsoft Teams with RHACS
+
+In this guide, we will show you how to integrate Red Hat Advanced Cluster Security (RHACS) with Microsoft Teams by setting up an Incoming Webhook in Teams and configuring it in RHACS to receive security alerts.
+
+=== Prerequisites
+Before proceeding, ensure you have the following:
+
+- A Microsoft Teams account and access to create a Teams app.
+- Administrator permissions in your Microsoft Teams organization.
+
+=== Steps for Setting Up the Microsoft Teams Integration
+
+*Procedure*
+
+. Navigate to the Microsoft Teams web app or desktop application and log in with your Microsoft credentials:
+. Go to the channel where you want to receive the notifications:
+. Click the **More options** (three dots) next to the channel name and select **Workflows**:
+
+image::07-teams-00.png[link=self, window=blank, width=100%]
+
+[start=4]
+. In the Workflows dialog, click **send webhook alerts to chat**:
+
+image::07-teams-01.png[link=self, window=blank, width=100%]
+
+[start=5]
+. Fill in the webhook details:
+* **Name:** Enter: **RHACS Security Alerts**
+. Click **add workflow**:
+
+image::07-teams-02.png[link=self, window=blank, width=100%]
+
+[start=7]
+. Copy the **Webhook URL** that is generated. You will need this for the RHACS configuration
+. Navigate to the RHACS Console and log in
+. Go to **Platform Configurations -> Integrations**
+. Under **Notifier Integrations**, select **Microsoft Teams**
+. Click the **New integration** button to start the configuration
+. Configure the Teams integration.
+* **Integration Name:** Enter: **teams-alerts**
+* **Webhook URL:** Paste the **Webhook URL** you copied earlier from Teams.
+. Click **Test** to ensure the integration works correctly
+. If successful, you will see the message **"The test was successful"**.
+. Click **Save**
+
+=== References
+- [Microsoft Teams Webhook Documentation](https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook)
 
 ====
 Next, we have to configure our policies to alert based on specific triggers.
@@ -118,8 +171,58 @@ image::07-pol-not-01.png[link=self, window=blank, width=100%]
 image::08-not-2.png[link=self, window=blank, width=100%]
 
 [start=4]
-. Go to Policy behavior - actions. There should be your slack-alerts notifier option available:
-. Click the notifier and save the policy:
+. Go to Policy behavior - actions. There should be your slack-alerts and teams-alerts notifier options available:
+. Click the desired notifier(s) and save the policy:
+
+IMPORTANT: Run the following command if you have not created the policy in the earlier module:
+
+[source,sh,role=execute]
+----
+cat <<EOF | oc apply -n stackrox -f -
+apiVersion: config.stackrox.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: no-bash-allowed
+  labels:
+    app.kubernetes.io/name: anomalous-activity-policy
+    app.kubernetes.io/part-of: security-policies
+spec:
+  policyName: No bash allowed
+  description: 'Privilege escalation technique'
+  rationale: ''
+  remediation: Uninstall during container build
+  disabled: false
+  categories:
+    - Anomalous Activity
+  lifecycleStages:
+    - RUNTIME
+  eventSource: DEPLOYMENT_EVENT
+  exclusions: []
+  scope:
+    - cluster: ''
+      namespace: payments
+      label: null
+  severity: HIGH_SEVERITY
+  enforcementActions: []
+  SORTName: ''
+  SORTLifecycleStage: ''
+  SORTEnforcement: false
+  policyVersion: '1.1'
+  policySections:
+    - sectionName: ''
+      policyGroups:
+        - fieldName: Process Name
+          booleanOperator: OR
+          negate: false
+          values:
+            - value: bash
+  mitreAttackVectors: []
+  criteriaLocked: false
+  mitreVectorsLocked: false
+  isDefault: false
+EOF
+----
+
 . Run the following command in the terminal:
 
 [source,sh,role=execute]
@@ -133,13 +236,13 @@ oc exec $POD -n payments -i --tty -- /bin/bash
 ----
 [demo-user@bastion ~]$ POD=$(oc get pod -l app=ctf-web-to-system -o jsonpath="{.items[0].metadata.name}")
 oc exec $POD -i --tty -- /bin/bash
-node@ctf-web-to-system-6db858448f-hz6j2:/app$
+tomcat@visa-processor-9bfcf46f7-cwtjb:/usr/local/tomcat$ 
 ----
 
-NOTE: If you see *node@ctf...*, you've confirmed you have a shell and access to the Java application.
+NOTE: If you see *tomcat@visa-processor...*, you've confirmed you have a shell and access to the visa-processor application.
 
 [start=7]
-. Lastly, review your Slack or Teams channel for the alert: 
+. Lastly, review your Slack and/or Teams channel for the alert: 
 
 *Congrats!* 
 
@@ -149,6 +252,6 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjJmczc4MmswYmk1cnhvZ254
 
 Nice!
 
-You integrated a webhook into RHACS and configured notifications based on previous policies.
+You integrated webhooks into RHACS for both Slack and Microsoft Teams and configured notifications based on previous policies.
 
 Time to review the *RHACS API*!
