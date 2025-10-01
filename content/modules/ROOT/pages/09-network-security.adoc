@@ -123,7 +123,7 @@ First, let's take a look at the four applications and all of their associated se
 ----
 export TUTORIAL_HOME="$(pwd)/demo-apps"
 cat $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
------
+----
 
 *Sample output*
 [source, bash]
@@ -149,6 +149,7 @@ IMPORTANT: The netpol command only looks at the services and deployment manifest
 roxctl netpol connectivity map $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
 ----
 
+*Sample output*
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
@@ -181,8 +182,9 @@ Now we have network policies! Time to put them to work.
 [source,sh,subs="attributes",role=execute]
 ----
 oc apply -f $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
------
+----
 
+*Sample output*
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
@@ -207,6 +209,7 @@ roxctl netpol connectivity map $TUTORIAL_HOME/kubernetes-manifests/medical-appli
 oc get --all-namespaces networkpolicies -o json | jq '[.items[] | select((.metadata.namespace | startswith("openshift") | not) and (.metadata.namespace | startswith("kube-") | not) and .metadata.namespace != "default") | .metadata.namespace] | unique'
 ----
 
+*Sample output*
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
@@ -256,10 +259,3 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNx
 In this module, you got hands-on in the Network Graph UI and used the netpol generate command to create and apply network policies to the OpenShift cluster.
 
 Congrats!!!
-
-You've made it through the Roadshow! There are a few extra modules for you to work through.
-
-Thank you for all of your hard work!
-
-
-
