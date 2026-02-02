@@ -1,0 +1,60 @@
+= Advanced Labs Index (Skills A1–A10)
+:toc:
+:icons: font
+
+== Overview
+
+These advanced labs cover enterprise-grade security architectures and patterns for OpenShift environments. You'll learn to design and implement zero-trust networking, advanced cryptography, and confidential computing solutions.
+
+Advanced capabilities covered:
+
+* Platform-wide security governance and multi-team architecture - A1
+* GitOps-driven policy and compliance pipelines - A2
+* Multi-tenant zero-trust network segmentation - A3
+* Runtime threat detection and response workflows - A4
+* Incident response and forensic investigation - A5
+* End-to-end supply chain integrity and provenance - A6
+* Automated remediation and policy enforcement - A7
+* Security culture and maturity programs - A8
+* Advanced cryptography and encryption strategies - A9
+* Zero-trust workload identity and confidential computing - A10
+
+What you'll practice:
+
+* Leading platform-wide security governance and architecture decisions
+* Implementing GitOps-driven policy and compliance pipelines
+* Architecting service mesh mTLS and layered NetworkPolicies
+* Engineering runtime threat detection and response workflows
+* Leading incident response and forensic investigations
+* Establishing supply chain integrity and artifact provenance
+* Automating remediation and policy enforcement
+* Driving security culture and maturity improvements
+* Integrating key management and encryption strategies
+* Configuring workload identity and confidential computing
+
+Audience and prerequisites:
+
+* Red Hat OpenShift cluster with cluster-admin access
+* For security architects, platform engineers, and senior security practitioners
+* Requires deep understanding of OpenShift networking, security, and architecture
+* Advanced knowledge of cryptography, key management, and confidential computing concepts
+
+== Advanced Labs Index
+
+[cols="1,4,5,1",options="header"]
+|===
+| Skill | Lab File | Title | Status
+| A1 | a1-platform-security-governance.adoc | Lead Platform-Wide Security Governance and Multi-Team Architecture Decisions | PLANNED
+| A2 | a2-gitops-policy-compliance.adoc | Implement GitOps-Driven Policy and Compliance Pipelines at Scale | PLANNED
+| A3 | a3-multi-tenant-zero-trust-network.adoc | Architect Multi-Tenant Zero-Trust Network and Service Segmentation | PLANNED
+| A4 | a4-runtime-threat-detection.adoc | Engineer Runtime Threat Detection Pipelines and Integrate into Response Workflows | PLANNED
+| A5 | a5-incident-response-forensics.adoc | Lead Coordinated Incident Response and Forensic Investigation on the Platform | PLANNED
+| A6 | a6-supply-chain-integrity.adoc | Establish End-to-End Supply Chain Integrity and Artifact Provenance | PLANNED
+| A7 | a7-automated-remediation.adoc | Automate Remediation and Policy Enforcement Using Controllers and Operators | PLANNED
+| A8 | a8-security-culture-maturity.adoc | Drive Security Culture, Coaching Teams and Maturing Practices | PLANNED
+| A9 | a9-advanced-cryptography-encryption.adoc | Design Advanced Cryptography, Observability, and Encryption Strategies | PLANNED
+| A10 | a10-zero-trust-workload-identity.adoc | Implement Zero-Trust Workload Identity and Confidential Computing | PLANNED
+|===
+
+Legend: Implemented = fully written; Planned = initial content may need expansion; WORK IN PROGRESS = Content being actively developed.
+

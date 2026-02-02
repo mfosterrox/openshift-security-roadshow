@@ -1,24 +1,57 @@
-* xref:00-setup-install-navigation.adoc[Setup and Introduction]
-* xref:01-visibility-and-navigation.adoc[Visibility & Navigation]
-* xref:02-vulnerability-management-lab.adoc[Vulnerability Management]
-* xref:03-risk-profiling.adoc[Risk profiling]
-* xref:04-policy-management.adoc[Policy Management]
-* xref:05-cicd-and-automation.adoc[CI/CD Automation and Integration]
-* xref:06-compliance.adoc[Compliance]
-* xref:07-notifications.adoc[Notifications and Alerting]
-* xref:08-api.adoc[API Walkthrough]
-* xref:09-network-security.adoc[Network Security]
-* xref:10-tssc.adoc[Trusted Software Supply Chain]
-* xref:11-installation.adoc[Installation]
+.Advanced Cluster Security Labs
+* xref:00-acs-setup-install-navigation.adoc[Setup and Introduction]
+* xref:01-acs-visibility-and-navigation.adoc[Visibility & Navigation]
+* xref:02-acs-vulnerability-management-lab.adoc[Vulnerability Management]
+* xref:03-acs-risk-profiling.adoc[Risk profiling]
+* xref:04-acs-policy-management.adoc[Policy Management]
+* xref:05-acs-cicd-and-automation.adoc[CI/CD Automation and Integration]
+* xref:06-acs-compliance.adoc[Compliance]
+* xref:07-acs-notifications.adoc[Notifications and Alerting]
+* xref:08-acs-api.adoc[API Walkthrough]
+* xref:09-acs-network-security.adoc[Network Security]
+* xref:11-acs-installation.adoc[Installation]
 
-//Day 2 modules
+.Software Supply Chain Security Labs
+* xref:10-acs-tssc.adoc[Trusted Software Supply Chain]
 
-//Extra modules
-* xref:misc-hacking-linux.adoc[CTF - Hack a web application]
-* xref:black-hat-log-4-shell-lab.adoc[Black Hat - log4shell lab]
+.101 OpenShift Security Labs
+* xref:basic-INDEX.adoc[Basic Labs Overview]
+* xref:b1-least-privilege-action.adoc[It Works on My Laptop (Default Secure Behavior)]
+* xref:b2-rbac-basics.adoc[Who Really Has Access? (RBAC Basics)]
+* xref:b3-scc-limits-resource-guardrails.adoc[SCC Limits & Resource Guardrails]
+* xref:b4-network-policy-basics.adoc[You Shall Not Pass – NetworkPolicy Basics]
+* xref:b5-secrets-management.adoc[Don't Hardcode – Managing Secrets Properly]
+* xref:b6-image-provenance-guardrails.adoc[Trusted Sources Only – Image Provenance Guardrails]
+* xref:b7-audit-exec-events.adoc[Logs Don't Lie – Audit & Exec Events]
+* xref:b8-security-compliance-addons.adoc[Security & Compliance Add‑Ons Overview]
+* xref:b9-rebuilding-images.adoc[Secure by Design – Rebuilding Images]
+* xref:b10-enforcing-tls-routes.adoc[Enforcing TLS on Routes]
 
-// * xref:misc-log-4-shell-lab.adoc[Misc: log4shell example]
-// * xref:partner-paladin.adoc[Partner - Paladin Cloud & RHACS Integration]
+.201 OpenShift Security Labs
+* xref:intermediate-INDEX.adoc[Intermediate Labs Overview]
+* xref:i1-threat-modeling-control-mapping.adoc[Threat Modeling & Control Mapping]
+* xref:i2-custom-rbac.adoc[Write Your Own Keycard: Custom RBAC]
+* xref:i3-workload-hardening.adoc[Custom SCC + Seccomp + SELinux Basics]
+* xref:i5-shift-left-pipeline.adoc[CI/CD Scanning & Signing]
+* xref:i6-vault-csi.adoc[Secret Lifecycle Externalization]
+* xref:i7-audit-monitoring-correlation.adoc[Audit Correlation & Anomaly Alerts]
+* xref:i8-compliance-tailoring.adoc[Scan, Remediate, Tailor (Compliance Operator)]
+* xref:i9-sandboxed-containers.adoc[Advanced Workload Restriction]
+* xref:i10-admission-governance.adoc[Admission / Policy Controllers]
+
+.301 OpenShift Security Labs
+* xref:advanced-INDEX.adoc[Advanced Labs Overview]
+* xref:a1-platform-security-governance.adoc[Lead Platform-Wide Security Governance and Multi-Team Architecture Decisions]
+* xref:a2-gitops-policy-compliance.adoc[Implement GitOps-Driven Policy and Compliance Pipelines at Scale]
+* xref:a3-multi-tenant-zero-trust-network.adoc[Architect Multi-Tenant Zero-Trust Network and Service Segmentation]
+* xref:a4-runtime-threat-detection.adoc[Engineer Runtime Threat Detection Pipelines and Integrate into Response Workflows]
+* xref:a5-incident-response-forensics.adoc[Lead Coordinated Incident Response and Forensic Investigation on the Platform]
+* xref:a6-supply-chain-integrity.adoc[Establish End-to-End Supply Chain Integrity and Artifact Provenance]
+* xref:a7-automated-remediation.adoc[Automate Remediation and Policy Enforcement Using Controllers and Operators]
+* xref:a8-security-culture-maturity.adoc[Drive Security Culture, Coaching Teams and Maturing Practices]
+* xref:a9-advanced-cryptography-encryption.adoc[Design Advanced Cryptography, Observability, and Encryption Strategies]
+* xref:a10-zero-trust-workload-identity.adoc[Implement Zero-Trust Workload Identity and Confidential Computing]
+
 
 
 

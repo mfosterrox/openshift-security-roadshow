@@ -96,9 +96,9 @@ IMPORTANT: Run the following command to ensure the environment is up to date:
 curl -fsSL https://raw.githubusercontent.com/redhat-tssc-tmm/security-roadshow/main/cosign_gitsign_installer.sh | bash
 ----
 
-For this exercise, we'll be using the container image in Quay that we created during our lab setup (xref:00-setup-install-navigation.adoc#build-a-container-image[Build a container image]).
+For this exercise, we'll be using the container image in Quay that we created during our lab setup (xref:00-acs-setup-install-navigation.adoc#build-a-container-image[Build a container image]).
 
-NOTE: Make sure you still have the variables set. If not, please go through the xref:00-setup-install-navigation.adoc#build-a-container-image[Build a container image] section again to set up your environment and make sure you have pushed the image to Quay.
+NOTE: Make sure you still have the variables set. If not, please go through the xref:00-acs-setup-install-navigation.adoc#build-a-container-image[Build a container image] section again to set up your environment and make sure you have pushed the image to Quay.
 
 *Procedure*
 
@@ -268,7 +268,7 @@ cosign login $QUAY_URL -u $QUAY_USER -p {quay_admin_password}
 auth.go:203: logged in via /home/lab-user/.docker/config.json
 ----
 
-TIP: To verify that the image we created xref:00-setup-install-navigation.adoc#build-a-container-image[here] is still available and cosign can access the image, we can use the `cosign tree` command that checks for signatures, SBOMs (Software Bills of Materials), and attestations (e.g., build provenance attestation):
+TIP: To verify that the image we created xref:00-acs-setup-install-navigation.adoc#build-a-container-image[here] is still available and cosign can access the image, we can use the `cosign tree` command that checks for signatures, SBOMs (Software Bills of Materials), and attestations (e.g., build provenance attestation):
 
 [start=2]
 . Run the following command in the terminal:
@@ -591,7 +591,7 @@ TIP: Using traditional commit signing and verification methods required manageme
 
 NOTE: If you haven't already done so, please execute the following steps from previous exercises:
 
-1. We need a git repository for git signing, therefore please make sure you have cloned the workshop apps repository as shown here: xref:00-setup-install-navigation.adoc#deploy-the-workshop-apps[Deploy the Workshop Applications]
+1. We need a git repository for git signing, therefore please make sure you have cloned the workshop apps repository as shown here: xref:00-acs-setup-install-navigation.adoc#deploy-the-workshop-apps[Deploy the Workshop Applications]
 
 2. We won't go through setting up the environment for signing and verification (the Trusted Artifact Signer endpoints) again. If you have followed this chapter from the beginning, you have everything configured already. If not, please set the environment variables as shown xref:#setting-up-the-environment-variables[here], followed by a `cosign initialize`
 
