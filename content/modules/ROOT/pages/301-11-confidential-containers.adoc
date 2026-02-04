@@ -1,0 +1,121 @@
+= Lab: Confidential Containers & Secure Enclaves (Kata/Sandboxed + HW Support)
+:labid: LAB-301-11
+:cis-summary: "Implement confidential containers using Kata containers and secure enclaves with hardware support."
+:mitre-summary: "Protects workload data and code from host-level access through hardware-backed isolation."
+:toc:
+:sectnums:
+:icons: font
+
+== Skill
+Learn how to deploy confidential containers using Kata containers and secure enclaves with hardware support. You'll understand how confidential computing protects workload data and code from host-level access, meeting requirements for sensitive workloads and regulatory compliance.
+
+== Objective
+
+* Understand confidential computing concepts
+* Deploy Kata containers
+* Configure secure enclaves
+* Verify hardware-backed isolation
+* Implement confidential workloads
+
+== Why it Matters
+Confidential containers provide hardware-backed isolation that protects workload data and code even from privileged host access. This is critical for sensitive workloads, multi-tenant environments, and regulatory compliance where data must remain protected throughout its lifecycle.
+
+== What it Solves
+
+* Host-level data access
+* Multi-tenant data protection
+* Regulatory compliance
+* Sensitive workload isolation
+* Trust boundary extension
+
+== Understanding the Attack Surface
+[cols="1,2,2",options="header"]
+|===
+|Area | Risk Without Confidential Computing | Mitigation
+|Host Access | Data exposure | Hardware isolation
+|Multi-tenancy | Cross-tenant access | Enclave isolation
+|Memory Access | Unauthorized reads | Encrypted memory
+|Code Execution | Host inspection | Protected execution
+|===
+
+== How to Try It
+
+=== Check Kata container support
+[source,sh]
+----
+oc get nodes -o jsonpath='{.items[*].status.nodeInfo.containerRuntimeVersion}'
+----
+
+=== Create RuntimeClass for Kata
+[source,sh]
+----
+oc apply -f - <<'EOF'
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: kata
+handler: kata
+EOF
+----
+
+=== Deploy workload with Kata runtime
+[source,sh]
+----
+oc apply -f - <<'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: confidential-app
+  namespace: 301-11-demo
+spec:
+  runtimeClassName: kata
+  containers:
+  - name: app
+    image: registry.access.redhat.com/ubi9/ubi:latest
+    command: ["sleep", "infinity"]
+EOF
+----
+
+=== Verify runtime
+[source,sh]
+----
+oc get pod confidential-app -n 301-11-demo -o jsonpath='{.spec.runtimeClassName}'
+----
+
+=== Cleanup
+[source,sh]
+----
+oc delete project 301-11-demo --wait=false
+----
+
+== Solutions / Controls
+
+* Kata containers
+* Secure enclaves
+* Hardware-backed isolation
+* Encrypted memory
+* Protected execution
+
+== Summary Table
+[cols="1,2,2",options="header"]
+|===
+|Control | Purpose | Benefit
+|Kata Containers | VM-level isolation | Stronger boundaries
+|Secure Enclaves | Hardware protection | Data confidentiality
+|Encrypted Memory | Data protection | Runtime security
+|Protected Execution | Code protection | IP protection
+|===
+
+== FAQs
+What hardware is required?:: Intel TDX, AMD SEV, or ARM TrustZone support.
+What's the performance impact?:: Some overhead due to VM isolation; acceptable for sensitive workloads.
+When should I use confidential containers?:: For sensitive data, regulatory compliance, or untrusted host environments.
+
+== Closing Story
+Confidential containers extend trust boundaries to hardware, protecting sensitive workloads even from privileged host access.
+
+== Next Step Ideas
+
+* Evaluate hardware support
+* Implement for sensitive workloads
+* Monitor performance impact

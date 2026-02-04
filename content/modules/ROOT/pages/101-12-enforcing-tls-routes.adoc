@@ -1,0 +1,115 @@
+= Lab: Friends Don’t Let Friends Use HTTP – Enforcing TLS End-to-End
+:labid: LAB-101-12
+:cis-summary: "Enforce TLS on application routes with automatic HTTP→HTTPS redirects."
+:mitre-summary: "Prevents credential theft and data tampering by enforcing TLS and redirecting all plaintext route access."
+:audit-evidence: "Initial HTTP curl succeeds; after edge TLS route with redirect, HTTPS response retrieved and HTTP downgraded traffic redirected."
+:cis-mitre-codes: '{"cisMapping":{"primary":["1.2.26"]},"mitre":{"techniques":["T1040"],"tactics":["TA0006"],"mitigations":["M1041"]}}'
+:toc:
+:sectnums:
+:icons: font
+
+== Skill
+Learn to secure OpenShift routes with TLS, enforce HTTPS-only access with automatic redirects, and choose the right termination mode (edge, re-encrypt, or passthrough).
+
+== Objective
+
+* Expose over HTTP
+* Add TLS (edge) + redirect
+* Validate HTTPS & cert
+* Understand re-encrypt vs passthrough
+
+== Why it Matters
+HTTP is a postcard; TLS is a sealed envelope with a signature. Without TLS, credentials, cookies, and API payloads can be read or altered in transit. Enforcing HTTPS with automatic redirects ensures confidentiality, integrity, and server identity while closing downgrade paths—often a compliance requirement.
+
+== What it Solves
+
+* Credential theft
+* Session hijacking
+* Compliance failures
+* Undetectable tampering
+
+== Understanding the Attack Surface
+[cols="1,2,2",options="header"]
+|===
+|Area | Risk Without TLS | Mitigation
+|Login Forms | Credential sniffing | HTTPS + redirect/HSTS
+|API Payloads | Data manipulation | Integrity via TLS
+|Session Cookies | Replay / theft | Secure + encrypted path
+|Internal Service Calls | Lateral snooping | Re-encrypt/passthrough
+|===
+
+== How to Secure (Lifecycle View)
+* Build: Avoid embedding secrets in query strings.
+* Registry: Base images with current TLS libs.
+* Deploy: Routes with TLS + redirect; manage cert rotation.
+* Runtime: Monitor expiry & cipher posture.
+
+== How to Try It
+Prereq: LAB-B9 `101-12-e-rebuild` project with `webapp` exists.
+
+=== Switch project & get host
+[source,sh]
+----
+oc project 101-12-e-rebuild
+ROUTE=$(oc get route webapp -o jsonpath='{.spec.host}' 2>/dev/null)
+echo $ROUTE
+----
+
+=== Baseline HTTP
+[source,sh]
+----
+curl http://$ROUTE
+----
+
+=== Replace route with HTTPS (edge + redirect)
+[source,sh]
+----
+oc delete route webapp
+oc create route edge webapp --service=webapp --port=8080 --insecure-policy=Redirect
+----
+
+=== Test HTTPS
+[source,sh]
+----
+curl -k https://$ROUTE
+----
+
+=== Cleanup (optional)
+[source,sh]
+----
+oc delete project 101-12-e-rebuild --wait=false
+----
+
+== Solutions / Controls
+
+* Route TLS termination
+* Redirect policy enforcement
+* Re-encrypt mode for internal leg confidentiality
+* Passthrough when app handles TLS (mTLS/SNI logic)
+* Cert rotation automation
+
+== Summary Table
+[cols="1,2,2,2",options="header"]
+|===
+|Mode | Encrypts Client→Router | Encrypts Router→Pod | Use Case
+|Edge | Yes | No | Simplicity; trusted internal network
+|Re-encrypt | Yes | Yes (router re-issues) | Protect internal segment
+|Passthrough | Yes (app terminates) | App handles | Custom protocols / mTLS end-to-end
+|===
+
+== FAQs
+Is edge termination secure enough?:: Often yes for trusted internal networks; use re-encrypt if stricter confidentiality needed.
+Why enforce redirect?:: Prevent accidental plaintext & downgrade attacks.
+Manage cert renewals manually?:: Cluster certs rotate automatically; custom certs need process (e.g., cert-manager).
+Re-encrypt vs passthrough difference?:: Re-encrypt terminates then re-establishes TLS; passthrough leaves TLS untouched to app.
+
+== Closing Story
+Enabling TLS + redirect is installing automatic door closers—connections don’t stay ajar.
+
+== Next Step Ideas
+
+* Deny non-TLS routes in prod via policy
+* Implement HSTS headers
+* Cert age monitoring & renewal alerts
+
+

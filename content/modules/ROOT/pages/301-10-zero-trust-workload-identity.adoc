@@ -1,0 +1,78 @@
+= Lab: Implement Zero-Trust Workload Identity and Confidential Computing
+:role: Advanced Runtime Security
+:skills: Workload Identity Frameworks, Confidential Execution Runtimes, Hardware-Backed Attestation
+:labid: LAB-301-10
+:toc:
+:sectnums:
+:icons: font
+
+== Skill
+Implement zero-trust workload identity frameworks and confidential computing capabilities in OpenShift. You will configure workload identity systems, deploy confidential execution runtimes, and leverage hardware-backed attestation mechanisms to ensure workloads run with verified identity and protected execution environments.
+
+== Objective
+
+* Implement workload identity frameworks for zero-trust authentication
+* Configure confidential execution runtimes (Kata Containers, confidential VMs)
+* Set up hardware-backed attestation mechanisms
+* Design workload identity policies and trust boundaries
+* Validate workload identity and attestation effectiveness
+* Integrate identity verification into CI/CD pipelines
+
+== Why it Matters
+
+Zero-trust workload identity ensures that every workload is authenticated and authorized before execution. Confidential computing provides hardware-backed protection for sensitive workloads, ensuring:
+
+* Workloads cannot be tampered with during execution
+* Data remains encrypted even during processing
+* Identity is cryptographically verified before execution
+* Attestation provides proof of secure execution environment
+* Protection against runtime attacks and data exfiltration
+
+== What it Solves
+
+Traditional workload security relies on platform-level controls. Zero-trust workload identity and confidential computing add additional layers:
+
+* **Workload Identity**: Every workload has a cryptographically verifiable identity
+* **Confidential Execution**: Workloads run in hardware-protected environments
+* **Attestation**: Proof that workloads are running in trusted environments
+* **Hardware Backing**: Leverage CPU features (Intel TDX, AMD SEV, etc.) for protection
+* **Policy Enforcement**: Identity-based policies control workload behavior
+
+== Understanding the Architecture
+
+[cols="1,2,2",options="header"]
+|===
+|Component | Purpose | OpenShift/K8s Implementation
+|Workload Identity Frameworks | Authenticate and authorize workloads | SPIFFE/SPIRE, Workload Identity Service
+|Confidential Execution Runtimes | Hardware-protected execution environments | Kata Containers, Confidential Containers, Secure Execution
+|Hardware-Backed Attestation | Verify execution environment integrity | TPM, Intel TDX, AMD SEV attestation
+|Identity Policies | Control workload behavior based on identity | Admission controllers, policy engines
+|Trust Boundaries | Define trusted execution environments | RuntimeClass, Security Profiles, Attestation policies
+|===
+
+== Lab Content
+
+[NOTE]
+====
+This lab is currently under development. Content will include:
+
+* Workload identity framework setup (SPIFFE/SPIRE or similar)
+* Confidential container runtime configuration
+* Hardware attestation setup and verification
+* Workload identity policy design and implementation
+* Integration with CI/CD pipelines for identity verification
+* Attestation validation and trust boundary enforcement
+====
+
+== Prerequisites
+
+* OpenShift cluster with cluster-admin access
+* Hardware support for confidential computing (or simulated)
+* Understanding of workload identity concepts
+* Familiarity with attestation mechanisms
+* Access to confidential computing runtime components
+
+== Next Steps
+
+This lab content is being developed. Check back soon for complete instructions and exercises.
+

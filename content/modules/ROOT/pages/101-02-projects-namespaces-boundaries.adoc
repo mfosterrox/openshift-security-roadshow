@@ -1,0 +1,101 @@
+= Lab: Projects & Namespaces as Security Boundaries
+:labid: LAB-101-02
+:cis-summary: "Use OpenShift projects and namespaces as security boundaries for multi-tenancy and resource isolation."
+:mitre-summary: "Prevents unauthorized access and resource conflicts by establishing namespace-level security boundaries."
+:toc:
+:sectnums:
+:icons: font
+
+== Skill
+Learn how OpenShift projects and namespaces serve as security boundaries for multi-tenancy, resource isolation, and access control. You'll understand how to structure namespaces for security, implement namespace-level policies, and manage multi-tenant environments safely.
+
+== Objective
+
+* Understand projects vs namespaces in OpenShift
+* Create and configure projects with security labels
+* Implement namespace-level RBAC boundaries
+* Configure resource quotas and limits per namespace
+* Understand namespace isolation and network policies
+
+== Why it Matters
+Projects and namespaces are fundamental security boundaries in OpenShift. They provide logical separation between teams, applications, and environments, enabling multi-tenancy while maintaining security isolation. Proper namespace design prevents unauthorized access, resource conflicts, and simplifies compliance auditing.
+
+== What it Solves
+
+* Multi-tenant isolation
+* Resource conflict prevention
+* Access control boundaries
+* Compliance and audit organization
+* Network segmentation foundation
+
+== Understanding the Attack Surface
+[cols="1,2,2",options="header"]
+|===
+|Area | Risk If Misconfigured | Mitigation
+|Namespace Overlap | Unauthorized access | Clear RBAC boundaries
+|Resource Conflicts | Noisy neighbors | ResourceQuota per namespace
+|Network Isolation | Lateral movement | NetworkPolicy per namespace
+|Label Inconsistency | Policy gaps | Standardized labeling
+|===
+
+== How to Try It
+
+=== Create a project with security labels
+[source,sh]
+----
+oc new-project 101-02-demo --display-name="Security Demo" --description="101-02 Lab Project"
+oc label namespace 101-02-demo security-tier=basic environment=dev
+oc get namespace 101-02-demo --show-labels
+----
+
+=== Configure namespace-level RBAC
+[source,sh]
+----
+oc create rolebinding dev-team --clusterrole=edit --group=dev-team -n 101-02-demo
+oc auth can-i create pods --as=system:serviceaccount:101-02-demo:default -n 101-02-demo
+----
+
+=== Apply ResourceQuota
+[source,sh]
+----
+oc create quota demo-quota --hard=requests.cpu=2,requests.memory=2Gi,limits.cpu=4,limits.memory=4Gi,pods=10 -n 101-02-demo
+oc describe quota demo-quota -n 101-02-demo
+----
+
+=== Cleanup
+[source,sh]
+----
+oc delete project 101-02-demo --wait=false
+----
+
+== Solutions / Controls
+
+* Namespace-based RBAC
+* ResourceQuota per namespace
+* NetworkPolicy boundaries
+* Standardized labeling strategy
+* Namespace lifecycle management
+
+== Summary Table
+[cols="1,2,2",options="header"]
+|===
+|Control | Purpose | Benefit
+|Projects | Logical grouping | Team organization
+|RBAC | Access boundaries | Least privilege
+|ResourceQuota | Resource isolation | Fair multi-tenancy
+|NetworkPolicy | Network boundaries | Segmentation
+|===
+
+== FAQs
+What's the difference between project and namespace?:: In OpenShift, a project is a namespace with additional metadata and access controls.
+How many namespaces should I create?:: One per team/environment/application boundary—balance isolation with management overhead.
+Can namespaces communicate?:: By default yes; use NetworkPolicy to restrict.
+
+== Closing Story
+Namespaces are the foundation of multi-tenant security—proper boundaries enable safe collaboration.
+
+== Next Step Ideas
+
+* Implement namespace naming conventions
+* Automate namespace provisioning with GitOps
+* Monitor namespace resource usage

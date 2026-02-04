@@ -1,0 +1,118 @@
+= Lab: File Integrity Monitoring & Node Hardening
+:labid: LAB-201-04
+:cis-summary: "Implement file integrity monitoring and node-level security hardening using the File Integrity Operator."
+:mitre-summary: "Detects unauthorized file system changes and implements node-level security controls."
+:toc:
+:sectnums:
+:icons: font
+
+== Skill
+Learn how to deploy and configure the File Integrity Operator to monitor file system integrity on OpenShift nodes, detect unauthorized changes, and implement node-level security hardening measures.
+
+== Objective
+
+* Install and configure File Integrity Operator
+* Create FileIntegrity custom resources
+* Monitor file system changes
+* Review integrity reports
+* Implement node hardening recommendations
+
+== Why it Matters
+File integrity monitoring detects unauthorized changes to critical system files, which could indicate compromise or misconfiguration. Combined with node hardening, this provides defense-in-depth for the control plane and worker nodes, meeting compliance requirements for system integrity monitoring.
+
+== What it Solves
+
+* Undetected file system tampering
+* Compliance monitoring requirements
+* Node-level security gaps
+* Unauthorized configuration changes
+* Security baseline drift
+
+== Understanding the Attack Surface
+[cols="1,2,2",options="header"]
+|===
+|Area | Risk If Unmonitored | Mitigation
+|System Files | Tampering | File integrity monitoring
+|Node Configuration | Drift | Hardening policies
+|Binary Changes | Malware | Integrity checks
+|Config Files | Unauthorized edits | Continuous monitoring
+|===
+
+== How to Try It
+
+=== Check File Integrity Operator installation
+[source,sh]
+----
+oc get pods -n openshift-file-integrity
+oc get fileintegrity -A
+----
+
+=== Create FileIntegrity resource
+[source,sh]
+----
+oc apply -f - <<'EOF'
+apiVersion: fileintegrity.openshift.io/v1alpha1
+kind: FileIntegrity
+metadata:
+  name: worker-file-integrity
+  namespace: openshift-file-integrity
+spec:
+  nodeSelector:
+    node-role.kubernetes.io/worker: ""
+  config:
+    name: my-file-integrity-config
+    namespace: openshift-file-integrity
+  debug: false
+EOF
+----
+
+=== Monitor integrity status
+[source,sh]
+----
+oc get fileintegrity -n openshift-file-integrity
+oc get fileintegrityreports -n openshift-file-integrity
+----
+
+=== Review integrity reports
+[source,sh]
+----
+oc get fileintegrityreports -n openshift-file-integrity -o yaml | grep -A 10 "results"
+----
+
+=== Cleanup
+[source,sh]
+----
+oc delete fileintegrity worker-file-integrity -n openshift-file-integrity
+----
+
+== Solutions / Controls
+
+* File Integrity Operator
+* Node hardening policies
+* Continuous monitoring
+* Alerting on changes
+* Compliance reporting
+
+== Summary Table
+[cols="1,2,2",options="header"]
+|===
+|Control | Purpose | Benefit
+|File Integrity Monitoring | Detect changes | Early threat detection
+|Node Hardening | Reduce attack surface | Fewer vulnerabilities
+|Continuous Monitoring | Ongoing security | Compliance & detection
+|Alerting | Rapid response | Faster remediation
+|===
+
+== FAQs
+What files are monitored?:: Critical system files, binaries, and configuration files.
+How often are checks performed?:: Configurable; typically every few minutes.
+Does this impact node performance?:: Minimal; monitoring is lightweight.
+
+== Closing Story
+File integrity monitoring is like a security camera for your nodes—detecting changes before they become problems.
+
+== Next Step Ideas
+
+* Configure alerting for integrity violations
+* Integrate with compliance reporting
+* Expand monitoring to application nodes

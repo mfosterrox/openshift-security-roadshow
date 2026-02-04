@@ -1,0 +1,115 @@
+= Lab: Advanced Runtime Threat Hunting, Response & ACS Automation
+:labid: LAB-301-13
+:cis-summary: "Implement advanced runtime threat hunting, automated response, and ACS integration for security operations."
+:mitre-summary: "Detects and responds to advanced threats through proactive hunting, automated response, and security orchestration."
+:toc:
+:sectnums:
+:icons: font
+
+== Skill
+Learn advanced techniques for runtime threat hunting, automated threat response, and integration with Advanced Cluster Security (ACS) for comprehensive security operations. You'll implement proactive hunting strategies, automated response playbooks, and security orchestration workflows.
+
+== Objective
+
+* Implement proactive threat hunting
+* Configure automated response playbooks
+* Integrate ACS with security operations
+* Create hunting queries and detections
+* Automate incident response workflows
+
+== Why it Matters
+Advanced threats require proactive detection and rapid response. Threat hunting goes beyond automated alerts to actively search for indicators of compromise. Automated response reduces mean time to detect (MTTD) and mean time to respond (MTTR), while ACS integration provides comprehensive visibility and control.
+
+== What it Solves
+
+* Advanced persistent threats
+* Slow detection times
+* Manual response delays
+* Security operations complexity
+* Incident response automation
+
+== Understanding the Attack Surface
+[cols="1,2,2",options="header"]
+|===
+|Area | Risk Without Hunting | Mitigation
+|Advanced Threats | Undetected compromise | Proactive hunting
+|Response Time | Extended dwell time | Automated response
+|Visibility Gaps | Blind spots | ACS integration
+|Manual Processes | Delayed response | Automation
+|===
+
+== How to Try It
+
+=== Access ACS console
+[source,sh]
+----
+echo "Access ACS console for threat hunting and analysis"
+oc get route -n stackrox central -o jsonpath='{.spec.host}'
+----
+
+=== Create hunting query (example)
+[source,sh]
+----
+echo "Example: Search for suspicious process executions"
+# Use ACS API or UI to create custom queries
+----
+
+=== Configure automated response policy
+[source,sh]
+----
+oc apply -f - <<'EOF'
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: response-playbook
+  namespace: stackrox
+data:
+  playbook.yaml: |
+    - name: Detect suspicious activity
+      action: alert
+    - name: Isolate affected pod
+      action: network-policy-block
+EOF
+----
+
+=== Review ACS policies and violations
+[source,sh]
+----
+echo "Review ACS policies and violations through console or API"
+----
+
+=== Cleanup
+No cleanup needed for this lab.
+
+== Solutions / Controls
+
+* Advanced Cluster Security (ACS)
+* Threat hunting queries
+* Automated response playbooks
+* Security orchestration
+* Incident response automation
+
+== Summary Table
+[cols="1,2,2",options="header"]
+|===
+|Control | Purpose | Benefit
+|Threat Hunting | Proactive detection | Early threat discovery
+|Automated Response | Rapid containment | Reduced impact
+|ACS Integration | Comprehensive visibility | Unified security ops
+|Playbooks | Standardized response | Consistent handling
+|===
+
+== FAQs
+What makes threat hunting different from monitoring?:: Hunting is proactive search for threats; monitoring reacts to alerts.
+How do I create effective hunting queries?:: Start with known attack patterns and adapt based on your environment.
+What response actions are available?:: Network isolation, pod termination, policy enforcement, and custom actions.
+
+== Closing Story
+Advanced threat hunting and automated response transform security from reactive to proactive, reducing risk and improving resilience.
+
+== Next Step Ideas
+
+* Develop custom hunting queries
+* Create response playbooks
+* Integrate with SIEM systems
+* Measure and improve MTTD/MTTR

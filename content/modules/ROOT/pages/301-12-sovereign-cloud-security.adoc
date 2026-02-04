@@ -1,0 +1,122 @@
+= Lab: Sovereign Cloud & Digital Sovereignty Controls (BYO IdP, Data Residency)
+:labid: LAB-301-12
+:cis-summary: "Implement sovereign cloud controls including BYO identity provider and data residency requirements."
+:mitre-summary: "Meets regulatory requirements for data sovereignty, residency, and identity management."
+:toc:
+:sectnums:
+:icons: font
+
+== Skill
+Learn how to implement sovereign cloud controls including bring-your-own identity provider (BYO IdP), data residency requirements, and digital sovereignty controls to meet regulatory and compliance requirements.
+
+== Objective
+
+* Configure external identity provider
+* Implement data residency controls
+* Configure geographic restrictions
+* Verify sovereignty controls
+* Understand compliance implications
+
+== Why it Matters
+Sovereign cloud requirements mandate that data remains within specific geographic boundaries and that identity management meets local regulations. Implementing these controls enables organizations to operate in regulated markets while maintaining security and compliance.
+
+== What it Solves
+
+* Data residency compliance
+* Regulatory requirements
+* Identity provider integration
+* Geographic restrictions
+* Sovereignty controls
+
+== Understanding the Attack Surface
+[cols="1,2,2",options="header"]
+|===
+|Area | Risk Without Controls | Mitigation
+|Data Residency | Regulatory violations | Geographic restrictions
+|Identity Management | Compliance gaps | BYO IdP integration
+|Data Location | Unauthorized access | Residency policies
+|Cross-border Transfer | Legal violations | Data localization
+|===
+
+== How to Try It
+
+=== Configure OAuth identity provider
+[source,sh]
+----
+oc get oauth cluster -o yaml
+----
+
+=== Create identity provider configuration
+[source,sh]
+----
+oc apply -f - <<'EOF'
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+  - name: myidp
+    type: LDAP
+    mappingMethod: claim
+    ldap:
+      url: "ldap://ldap.example.com:389"
+      bindDN: "cn=admin,dc=example,dc=com"
+      bindPassword:
+        name: ldap-bind-password
+      insecure: false
+      attributes:
+        id: ["dn"]
+        email: ["mail"]
+        name: ["cn"]
+        preferredUsername: ["uid"]
+EOF
+----
+
+=== Verify identity provider
+[source,sh]
+----
+oc get oauth cluster -o jsonpath='{.spec.identityProviders[*].name}'
+----
+
+=== Configure data residency (informational)
+NOTE: Data residency is typically configured at the cluster installation level or through cluster configuration. This may involve:
+- Node placement policies
+- Storage class restrictions
+- Network policies for data flow
+- Compliance operator configurations
+
+=== Cleanup
+No cleanup needed for this lab.
+
+== Solutions / Controls
+
+* BYO Identity Provider
+* Data residency policies
+* Geographic restrictions
+* Compliance operator
+* Audit logging
+
+== Summary Table
+[cols="1,2,2",options="header"]
+|===
+|Control | Purpose | Benefit
+|BYO IdP | Identity management | Compliance & control
+|Data Residency | Geographic control | Regulatory compliance
+|Geographic Restrictions | Data localization | Sovereignty
+|Compliance Monitoring | Continuous validation | Audit readiness
+|===
+
+== FAQs
+What identity providers are supported?:: LDAP, OIDC, OAuth, and others.
+How do I enforce data residency?:: Through node placement, storage policies, and network controls.
+What regulations require sovereign cloud?:: GDPR, various national data protection laws.
+
+== Closing Story
+Sovereign cloud controls enable organizations to operate globally while meeting local regulatory requirements.
+
+== Next Step Ideas
+
+* Integrate with corporate IdP
+* Implement data residency policies
+* Configure compliance monitoring

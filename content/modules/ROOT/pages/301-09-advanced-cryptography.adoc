@@ -1,0 +1,77 @@
+= Lab: Design Advanced Cryptography, Observability, and Encryption Strategies
+:role: Advanced Security Architecture
+:skills: Key Management Integration, Service-to-Service Encryption, Observability Pipeline Design, Audit Telemetry
+:labid: LAB-301-09
+:toc:
+:sectnums:
+:icons: font
+
+== Skill
+Design and implement comprehensive encryption strategies for OpenShift environments, including key management integration, service-to-service encryption architecture, and observability/audit telemetry pipeline design. You will learn to architect encryption at rest, in transit, and in use across the entire platform.
+
+== Objective
+
+* Integrate external key management systems (KMS) with OpenShift
+* Design service-to-service encryption architecture
+* Implement encryption at rest for persistent storage
+* Configure observability and audit telemetry pipelines
+* Design encryption key rotation strategies
+* Validate encryption effectiveness and compliance
+
+== Why it Matters
+
+Advanced cryptography and encryption are fundamental to protecting sensitive data in cloud-native environments. This lab covers:
+
+* Protecting data at rest in persistent volumes and etcd
+* Ensuring end-to-end encryption for service communication
+* Managing encryption keys securely and at scale
+* Providing observability into encryption operations
+* Meeting compliance requirements for data protection
+
+== What it Solves
+
+Modern security requirements demand encryption at multiple layers:
+
+* **Encryption at Rest**: Protecting data stored in persistent volumes, databases, and etcd
+* **Encryption in Transit**: Securing all network communications between services
+* **Encryption in Use**: Protecting data during processing (confidential computing)
+* **Key Management**: Centralized, secure key lifecycle management
+* **Observability**: Monitoring encryption operations and key usage
+
+== Understanding the Architecture
+
+[cols="1,2,2",options="header"]
+|===
+|Component | Purpose | OpenShift/K8s Implementation
+|Key Management Integration | Centralized key lifecycle management | KMS provider integration, Key Management Service
+|Service-to-Service Encryption | End-to-end encryption for all communications | Service mesh mTLS, application-level encryption
+|Encryption at Rest | Protect stored data | Storage encryption, etcd encryption, volume encryption
+|Observability Pipeline | Monitor encryption operations | Audit logs, metrics, telemetry collection
+|Key Rotation | Automated key lifecycle management | Key rotation policies and automation
+|===
+
+== Lab Content
+
+[NOTE]
+====
+This lab is currently under development. Content will include:
+
+* Key management system (KMS) integration with OpenShift
+* Encryption at rest configuration for storage and etcd
+* Service-to-service encryption architecture design
+* Observability pipeline setup for encryption monitoring
+* Audit telemetry collection and analysis
+* Encryption key rotation strategies and automation
+====
+
+== Prerequisites
+
+* OpenShift cluster with cluster-admin access
+* Access to external key management system (or simulated)
+* Understanding of encryption concepts and key management
+* Familiarity with observability tools (Prometheus, Grafana, etc.)
+
+== Next Steps
+
+This lab content is being developed. Check back soon for complete instructions and exercises.
+

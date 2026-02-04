@@ -1,0 +1,91 @@
+= Lab: Lead Coordinated Incident Response and Forensic Investigation on the Platform
+:role: Advanced Incident Response & Forensics
+:skills: Forensic Data Collection, Timeline Reconstruction, Threat Intel Correlation, Root Cause Analysis
+:labid: LAB-301-05
+:toc:
+:sectnums:
+:icons: font
+
+== Skill
+Lead comprehensive incident response and forensic investigations on OpenShift platforms. You will collect forensic data, reconstruct attack timelines, correlate threat intelligence, perform root cause analysis, and coordinate response efforts across teams.
+
+== Objective
+
+* Execute forensic data collection procedures for OpenShift incidents
+* Reconstruct attack timelines from multiple data sources
+* Correlate threat intelligence with observed activities
+* Perform root cause analysis to understand attack vectors
+* Coordinate incident response across multiple teams
+* Document findings and create post-incident reports
+
+== Why it Matters
+
+Effective incident response and forensics are essential for:
+
+* **Rapid Containment**: Quickly identify and stop active attacks
+* **Impact Assessment**: Understand the scope and severity of incidents
+* **Root Cause Analysis**: Identify how attacks succeeded to prevent recurrence
+* **Threat Intelligence**: Learn from attacks to improve defenses
+* **Compliance**: Meet regulatory requirements for incident handling
+* **Continuous Improvement**: Use lessons learned to enhance security
+
+== What it Solves
+
+Incident response challenges include:
+
+* Incomplete data collection misses critical evidence
+* Timeline reconstruction is manual and time-consuming
+* Threat intelligence is not integrated with investigations
+* Root cause analysis lacks systematic approach
+* Coordination across teams is ad-hoc and inefficient
+* Documentation is inconsistent and incomplete
+
+This lab addresses these by:
+
+* Providing systematic forensic data collection procedures
+* Automating timeline reconstruction from multiple sources
+* Integrating threat intelligence into investigation workflows
+* Using structured root cause analysis methodologies
+* Establishing clear coordination processes
+* Creating standardized documentation templates
+
+== Understanding the Architecture
+
+[cols="1,2,2",options="header"]
+|===
+|Component | Purpose | OpenShift/K8s Implementation
+|Forensic Data Collection | Gather evidence from multiple sources | Audit logs, pod logs, events, metrics, snapshots
+|Timeline Reconstruction | Build chronological attack narrative | Log correlation tools, timeline visualization, event sequencing
+|Threat Intel Correlation | Match observed activity with known threats | Threat intel feeds, IOCs, TTPs, MITRE ATT&CK mapping
+|Root Cause Analysis | Identify underlying attack vectors | Analysis frameworks, attack trees, vulnerability assessment
+|Incident Coordination | Manage response across teams | Communication tools, ticketing systems, runbooks
+|Documentation | Record investigation findings | Report templates, evidence preservation, lessons learned
+|===
+
+== Lab Content
+
+[NOTE]
+====
+This lab is currently under development. Content will include:
+
+* Forensic data collection procedures and tools
+* Timeline reconstruction techniques and automation
+* Threat intelligence integration and correlation
+* Root cause analysis methodologies
+* Incident coordination and communication
+* Documentation and post-incident reporting
+====
+
+== Prerequisites
+
+* OpenShift cluster with cluster-admin access
+* Access to audit logs and monitoring data
+* Understanding of incident response procedures
+* Familiarity with forensic investigation techniques
+* Experience with threat intelligence platforms
+* Leadership and coordination skills
+
+== Next Steps
+
+This lab content is being developed. Check back soon for complete instructions and exercises.
+

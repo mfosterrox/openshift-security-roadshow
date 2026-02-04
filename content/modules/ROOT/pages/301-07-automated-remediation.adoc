@@ -1,0 +1,91 @@
+= Lab: Automate Remediation and Policy Enforcement Using Controllers and Operators
+:role: Advanced Automation & Policy
+:skills: Custom Controller/Operator Patterns, Policy Mutation Strategies, Automated Remediation Actions
+:labid: LAB-301-07
+:toc:
+:sectnums:
+:icons: font
+
+== Skill
+Design and implement custom Kubernetes controllers and operators that automatically detect policy violations, mutate resources to enforce policies, and execute remediation actions without manual intervention.
+
+== Objective
+
+* Develop custom controllers and operators for policy enforcement
+* Implement policy mutation strategies for automatic compliance
+* Create automated remediation actions for common violations
+* Design controller patterns for scalable policy enforcement
+* Integrate controllers with existing policy frameworks
+* Validate automated remediation effectiveness
+
+== Why it Matters
+
+Automated remediation provides:
+
+* **Immediate Response**: Fix violations as soon as they're detected
+* **Consistency**: Apply remediation uniformly across all resources
+* **Scalability**: Handle policy enforcement at scale without manual effort
+* **Reduced Risk**: Minimize time between violation detection and remediation
+* **Compliance**: Ensure continuous policy compliance automatically
+* **Efficiency**: Free security teams from repetitive remediation tasks
+
+== What it Solves
+
+Manual policy enforcement faces challenges:
+
+* Policy violations go unaddressed for extended periods
+* Remediation is inconsistent across teams and resources
+* Manual processes don't scale to large environments
+* Response times are slow, increasing risk exposure
+* Compliance gaps accumulate over time
+* Security teams are overwhelmed with repetitive tasks
+
+Automated controllers solve these by:
+
+* Detecting violations immediately
+* Applying consistent remediation automatically
+* Scaling to handle thousands of resources
+* Responding in seconds rather than hours or days
+* Maintaining continuous compliance
+* Freeing teams for higher-value work
+
+== Understanding the Architecture
+
+[cols="1,2,2",options="header"]
+|===
+|Component | Purpose | OpenShift/K8s Implementation
+|Custom Controllers | Detect and respond to resource changes | Controller-runtime, operator SDK, watch mechanisms
+|Policy Mutation | Automatically modify resources for compliance | Mutating admission controllers, webhooks, reconciliation loops
+|Remediation Actions | Automated fixes for violations | Controller actions, operator logic, automated patches
+|Controller Patterns | Reusable patterns for common scenarios | Controller templates, operator patterns, best practices
+|Policy Integration | Connect with policy frameworks | OPA Gatekeeper, Kyverno, custom policy engines
+|Validation | Ensure remediation effectiveness | Testing frameworks, validation logic, monitoring
+|===
+
+== Lab Content
+
+[NOTE]
+====
+This lab is currently under development. Content will include:
+
+* Custom controller development using operator SDK
+* Policy mutation strategies and implementation
+* Automated remediation action design
+* Controller patterns and best practices
+* Integration with policy frameworks
+* Testing and validation of automated remediation
+====
+
+== Prerequisites
+
+* OpenShift cluster with cluster-admin access
+* Understanding of Kubernetes controllers and operators
+* Experience with Go programming (for controller development)
+* Familiarity with operator SDK and controller-runtime
+* Knowledge of admission controllers and webhooks
+* Understanding of policy frameworks (OPA, Kyverno, etc.)
+
+== Next Steps
+
+This lab content is being developed. Check back soon for complete instructions and exercises.
+

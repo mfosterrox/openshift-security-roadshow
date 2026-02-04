@@ -1,0 +1,203 @@
+= Lab: Trusted Sources Only – Guardrails Against Unapproved Images
+:labid: LAB-101-07
+:cis-summary: "Enforce trusted image sources and allow only approved registries/signature origins."
+:mitre-summary: "Prevents untrusted supply chain and initial access risks by enforcing trusted, vetted image sources only."
+:audit-evidence: "Policy denies docker.io nginx; UBI image admitted and provenance (Image and digest) verified."
+:cis-mitre-codes: '{"cisMapping":{"primary":["5.5.1"],"related":[]},"mitre":{"techniques":["T1195"],"tactics":["TA0001","TA0003"],"mitigations":["M1016"]}}'
+:toc:
+:sectnums:
+:icons: font
+
+== Skill
+Learn why images from unknown registries are risky and how to allow only trusted sources. You'll set an allow‑list and verify image provenance (registry host + sha256 digest) in OpenShift.
+
+== Objective
+
+* Attempt deployment from unvetted source
+* Observe deny under allow‑list
+* Deploy trusted Red Hat UBI image
+* Verify provenance (host + digest)
+
+== Why it Matters
+Images from random registries are risky, you don’t know who built them, what’s inside, or whether they’re maintained. An allow‑list only permits trusted sources, making provenance clear and reducing noisy, avoidable CVEs.
+
+== What it Solves
+
+* Accidental pulls from arbitrary public defaults
+* Image provenance ambiguity
+* Higher vulnerability noise baseline
+* Reproducibility issues with `:latest`
+
+== Understanding the Attack Surface
+[cols="1,2,2",options="header"]
+|===
+|Area | Risk If Ignored | Analogy
+|Unknown Registry Source | Malware / outdated libs | Unlabeled box left at dock
+|Unmaintained Base Image | CVE accumulation | Expired fire extinguisher
+|Implicit Tag (:latest) | Version drift | Moving target marker
+|No Allow-List Policy | Anything enters prod | Unlocked side entrance
+|Mixed Provenance Namespace | Hard incident scoping | Scrap + certified parts mixed
+|Direct External Pull | Outage / tampering risk | Single fragile bridge
+|Missing Signature / SBOM | Weak chain of custody | Broken package seal
+|===
+
+== How to Try It
+
+=== Create & label project
+[source,sh]
+----
+oc new-project 101-07-i-trusted
+oc label namespace 101-07-i-trusted trusted-registry-enforce=true --overwrite
+----
+
+=== Apply namespace-scoped allow‑list (cluster-admin)
+[source,sh]
+----
+oc apply -f - <<'EOF'
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: allow-trusted-registries-pods
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    matchPolicy: Equivalent
+    resourceRules:
+    - apiGroups: [""]
+      apiVersions: ["v1"]
+      operations: ["CREATE","UPDATE"]
+      resources: [pods]
+  validations:
+  - expression: "object.spec.containers.all(c,\n        c.image.startsWith('registry.access.redhat.com') ||\n        c.image.startsWith('registry.redhat.io') ||\n        c.image.startsWith('quay.io') ||\n        c.image.startsWith('image-registry.openshift-image-registry.svc')\n     )"
+    message: "Pod rejected: only Red Hat registries, Quay.io, or internal registry images allowed."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: trusted-images-only-pods
+spec:
+  policyName: allow-trusted-registries-pods
+  validationActions: ["Deny"]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        trusted-registry-enforce: "true"
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: allow-trusted-registries-deployments
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    matchPolicy: Equivalent
+    resourceRules:
+    - apiGroups: ["apps"]
+      apiVersions: ["v1"]
+      operations: ["CREATE","UPDATE"]
+      resources: [deployments]
+  validations:
+  - expression: "object.spec.template.spec.containers.all(c,\n        c.image.startsWith('registry.access.redhat.com') ||\n        c.image.startsWith('registry.redhat.io') ||\n        c.image.startsWith('quay.io') ||\n        c.image.startsWith('image-registry.openshift-image-registry.svc')\n     )"
+    message: "Deployment rejected: only Red Hat registries, Quay.io, or internal registry images allowed."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: trusted-images-only-deployments
+spec:
+  policyName: allow-trusted-registries-deployments
+  validationActions: ["Deny"]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        trusted-registry-enforce: "true"
+EOF
+----
+
+=== Attempt disallowed image (expect deny)
+[source,sh]
+----
+oc -n 101-07-i-trusted create deployment bad --image=docker.io/library/nginx:latest || true
+----
+
+=== Deploy trusted UBI image (should succeed)
+[source,sh]
+----
+oc -n 101-07-i-trusted create deployment good --image=registry.access.redhat.com/ubi9/ubi:9.6 -- sleep infinity
+oc -n 101-07-i-trusted wait --for=condition=Available deployment/good --timeout=60s
+----
+
+=== Verify provenance
+[source,sh]
+----
+oc -n 101-07-i-trusted describe pod -l app=good | grep -E 'Image:|Image ID:'
+----
+
+What to look for:
+
+- Image: should show a trusted registry host (registry.access.redhat.com, registry.redhat.io, quay.io, or your internal registry)
+- Image ID: should show an immutable sha256 digest. This proves the exact content that ran; tags like :latest can change, digests do not.
+
+If both are correct (trusted host + sha256 digest), you have a basic provenance check: approved source and exact, verifiable content.
+
+Example (if you use UBI 9.6):
+
+- Image: registry.redhat.io/ubi9/ubi:9.6 (trusted source)
+- Image ID: …@sha256:dbc1e98d14a022542e45b5f22e0206d3f86b5bdf237b58ee7170c9ddd1b3a283 (immutable digest)
+
+=== Cleanup (optional)
+[source,sh]
+----
+oc delete project 101-07-i-trusted --wait=false
+oc delete validatingadmissionpolicybinding trusted-images-only-pods || true
+oc delete validatingadmissionpolicybinding trusted-images-only-deployments || true
+oc delete validatingadmissionpolicy allow-trusted-registries-pods || true
+oc delete validatingadmissionpolicy allow-trusted-registries-deployments || true
+----
+
+== Summary Table
+[cols="1,2,2,2",options="header"]
+|===
+|Aspect | DockerHub nginx:latest (Blocked) | Red Hat UBI (Allowed) | Quay.io Org Image (Allowed)
+|Provenance | Unknown | Certified & curated | Org-governed
+|Patch Cadence | Unclear | Documented errata | Varies
+|Policy Result | Denied | Admitted | Admitted
+|Vulnerability Noise | Higher | Lower baseline | Medium
+|Default Hygiene | Often root | Non-root friendly | Varies
+|Audit Confidence | Weak | Strong | Moderate
+|===
+
+== FAQs
+Why block DockerHub?:: Default registry fallback; weaker provenance guarantees.
+Can I still use public images?:: Mirror/import them into a trusted registry first.
+How to add another internal registry?:: Extend the CEL expression with another `startsWith`.
+Why namespace label scoping?:: Progressive opt-in reduces outage risk.
+
+[[control-mapping-detail]]
+== Appendix: Control Mapping Detail (CIS ↔ MITRE)
+
+Only CIS 5.5.1 (image provenance & policy) is asserted.
+
+[cols="1,3",options="header"]
+|===
+|Aspect | Explanation
+|Primary CIS Control (5.5.1) | Demonstrated by admission denial of unapproved registry image and success of trusted UBI; provenance (image + digest) verified post-admission.
+|ATT&CK Technique | T1195 (Supply Chain Compromise) – reducing ingress of unvetted artifacts.
+|Mitigation | M1016 (Vulnerability / Patch Management) by gating to curated, maintained sources.
+|Observed Evidence | Denied nginx pull; allowed UBI deployment; describe output shows registry + digest.
+|Learner Outcome | Implement allow‑list policies rather than ad hoc manual reviews.
+|Audit Use | Admission policy manifests + denied event + successful trusted deployment form traceable enforcement.
+|===
+Where does Lab B1 fit?:: B1 covers runtime least privilege; B6 covers image provenance.
+
+== Closing Story
+Trusted registries act like approved aerospace suppliers: origin is verified, not guessed.
+
+== Next Step Ideas
+
+* Extend policy to StatefulSets & DaemonSets
+* Add warn-only binding for dev
+* Integrate signature (cosign) verification
+* Track denied attempts KPI
+
+

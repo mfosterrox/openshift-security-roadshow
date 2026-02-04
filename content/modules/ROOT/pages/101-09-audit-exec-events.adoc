@@ -1,0 +1,127 @@
+= Lab: Logs Don’t Lie – Tracing Who Did What (Audit Forensics)
+:labid: LAB-101-09
+:cis-summary: "Maintain comprehensive audit logging to record sensitive API actions (exec, port‑forward, RBAC changes)."
+:mitre-summary: "Prevents undetected misuse by capturing exec and port-forward activity for rapid escalation investigation."
+:audit-evidence: "jq filters extract exec and portforward entries with user, pod, namespace, commands, and source IPs for incident summary."
+:cis-mitre-codes: '{"cisMapping":{"primary":["3.2.1"]},"mitre":{"techniques":["T1543"],"tactics":["TA0003","TA0004"],"mitigations":["M1026","M1047"]}}'
+:toc:
+:sectnums:
+:icons: font
+
+== Skill
+Learn to analyze OpenShift API audit logs to spot risky activity across the board—exec, port‑forward, secret access, RBAC changes, and other sensitive verbs—and turn findings into a concise, attributable incident report.
+
+== Objective
+
+* Locate exec & port-forward events
+* Attribute to identities
+* Summarize commands, source IPs, timing
+* Produce structured report
+
+== Why it Matters
+Audit logs are the security camera for API actions—who did what, when, and from where. They turn guesswork into evidence, speeding investigations and proving compliance.
+
+== What it Solves
+
+* Reduces downtime in incident reconstruction
+* Prevents disputes over actions
+* Supports least privilege validation
+
+== Understanding the Attack Surface
+[cols="1,2,2",options="header"]
+|===
+|Event Type | Risk | Example
+|pod/exec | Command injection / exfil | Insider dumps DB
+|pod/portforward | Tunneling internal svc | Expose admin console
+|Privilege Grant (rolebinding) | Escalation | Enables later exec
+|Secrets get/list | Credential harvest | Stage follow-on attack
+|===
+
+== How to Secure (Lifecycle View)
+* Build: IaC RBAC—drift stands out.
+* Registry: Harden images → fewer live debug execs.
+* Deploy: Restrict who can exec/port-forward.
+* Runtime: Ship audit logs to SIEM; alert on anomalies.
+
+== How to Try It
+Assuming `audit.json` file (JSON lines).
+
+=== Basic presence check
+[source,sh]
+----
+ls -l audit.json
+----
+
+=== Extract exec events
+[source,sh]
+----
+jq 'select(.objectRef.subresource=="exec") | {time:.requestReceivedTimestamp,user:.user.username,ns:.objectRef.namespace,pod:.objectRef.name,cmd:.requestObject.command}' audit.json
+----
+Fallback:
+[source,sh]
+----
+grep -F '"exec"' audit.json | head
+----
+
+=== Extract port-forward events
+[source,sh]
+----
+jq 'select(.objectRef.subresource=="portforward") | {time:.requestReceivedTimestamp,user:.user.username,ns:.objectRef.namespace,pod:.objectRef.name}' audit.json
+----
+
+=== Focus on suspected user
+[source,sh]
+----
+USER=suspect@example.com
+jq --arg U "$USER" 'select(.user.username==$U and (.objectRef.subresource=="exec" or .objectRef.subresource=="portforward")) | {time:.requestReceivedTimestamp,sub:.objectRef.subresource,pod:.objectRef.name,ns:.objectRef.namespace,sourceIPs:.sourceIPs}' audit.json
+----
+
+=== Stage distribution
+[source,sh]
+----
+jq 'select(.objectRef.subresource=="exec") | .stage' audit.json | sort | uniq -c
+----
+
+=== Unique exec actors
+[source,sh]
+----
+jq 'select(.objectRef.subresource=="exec") | .user.username' audit.json | sort | uniq -c
+----
+
+=== Commands (if captured)
+[source,sh]
+----
+jq 'select(.objectRef.subresource=="exec") | .requestObject.command' audit.json | sort | uniq -c
+----
+
+== Solutions / Controls
+
+* Central log aggregation (immutability)
+* RHACS correlation with runtime
+* Least privilege RBAC
+* Alert rules on unusual volume/time
+
+== Summary Table
+[cols="1,2,2",options="header"]
+|===
+|What to Track | Why | Tooling
+|exec Events | Potential tampering | jq / SIEM search
+|portforward | Data channel creation | Alert on frequency
+|RoleBinding Changes | Escalation path | GitOps diff + audit
+|Secret Access | Credential theft | SIEM correlation
+|===
+
+== FAQs
+Are audit logs enabled by default?:: OpenShift enables them; verify retention & shipping.
+Why might a command not appear?:: Request object detail may be trimmed.
+How long keep logs?:: Align with compliance (90–365d typical).
+Does this replace runtime detection?:: No—complements container-level signals.
+
+== Closing Story
+Audit logs are a time machine—without them investigation is guesswork, not evidence.
+
+== Next Step Ideas
+
+* Daily exec counts per user summary
+* Correlate events with workload restarts
+* Integrate RHACS alerts into incident pipeline

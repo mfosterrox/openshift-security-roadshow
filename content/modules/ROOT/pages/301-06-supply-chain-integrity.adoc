@@ -1,0 +1,91 @@
+= Lab: Establish End-to-End Supply Chain Integrity and Artifact Provenance
+:role: Advanced Supply Chain Security
+:skills: Artifact Signing Frameworks, SBOM Generation & Attestation, Supply Chain Assurance Levels, Policy Enforcement
+:labid: LAB-301-06
+:toc:
+:sectnums:
+:icons: font
+
+== Skill
+Design and implement comprehensive supply chain security frameworks that ensure end-to-end integrity of artifacts, provide complete provenance tracking, generate Software Bills of Materials (SBOMs), and enforce supply chain policies throughout the development and deployment lifecycle.
+
+== Objective
+
+* Implement artifact signing frameworks for images and binaries
+* Generate and attest SBOMs for all artifacts
+* Establish supply chain assurance levels and policies
+* Enforce supply chain policies at admission and runtime
+* Track artifact provenance from source to deployment
+* Integrate supply chain security into CI/CD pipelines
+
+== Why it Matters
+
+Supply chain attacks are increasingly common and dangerous:
+
+* **Artifact Integrity**: Ensure artifacts haven't been tampered with
+* **Provenance Tracking**: Know the origin and history of every artifact
+* **SBOM Requirements**: Meet regulatory requirements for software transparency
+* **Policy Enforcement**: Prevent unauthorized or untrusted artifacts
+* **Vulnerability Management**: Track vulnerabilities through supply chain
+* **Compliance**: Meet supply chain security standards (SLSA, NIST SSDF)
+
+== What it Solves
+
+Supply chain security challenges include:
+
+* Artifacts lack cryptographic signatures
+* Provenance information is incomplete or missing
+* SBOMs are not generated or attested
+* Supply chain policies are not enforced automatically
+* Vulnerability tracking is fragmented
+* Compliance evidence is difficult to produce
+
+This lab addresses these by:
+
+* Implementing comprehensive signing frameworks
+* Providing complete provenance tracking
+* Automating SBOM generation and attestation
+* Enforcing policies at multiple enforcement points
+* Integrating supply chain security throughout the lifecycle
+* Creating audit trails for compliance
+
+== Understanding the Architecture
+
+[cols="1,2,2",options="header"]
+|===
+|Component | Purpose | OpenShift/K8s Implementation
+|Artifact Signing | Cryptographic signatures for artifacts | Cosign, Sigstore, signing keys, signature verification
+|SBOM Generation | Software Bills of Materials | Syft, SPDX, CycloneDX, SBOM formats
+|Attestation | Proof of artifact properties | In-toto attestations, SLSA provenance, policy attestations
+|Supply Chain Assurance | Trust levels and policies | Assurance level definitions, policy frameworks
+|Policy Enforcement | Prevent untrusted artifacts | Admission controllers, image policies, signature verification
+|Provenance Tracking | Complete artifact history | Provenance metadata, attestation storage, tracking systems
+|===
+
+== Lab Content
+
+[NOTE]
+====
+This lab is currently under development. Content will include:
+
+* Artifact signing framework setup (Cosign/Sigstore)
+* SBOM generation and attestation workflows
+* Supply chain assurance level definitions
+* Policy enforcement at admission and runtime
+* Provenance tracking and verification
+* CI/CD pipeline integration
+====
+
+== Prerequisites
+
+* OpenShift cluster with cluster-admin access
+* Access to container registries and artifact repositories
+* Understanding of supply chain security concepts
+* Familiarity with signing tools (Cosign, Sigstore)
+* Experience with SBOM generation tools
+* Knowledge of SLSA and supply chain frameworks
+
+== Next Steps
+
+This lab content is being developed. Check back soon for complete instructions and exercises.
+

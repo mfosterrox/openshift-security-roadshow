@@ -1,0 +1,125 @@
+= Lab: Certificate Management & mTLS Basics (cert-manager Operator)
+:labid: LAB-201-09
+:cis-summary: "Implement automated certificate management and mutual TLS (mTLS) using cert-manager Operator."
+:mitre-summary: "Prevents man-in-the-middle attacks and ensures secure service-to-service communication through automated certificate lifecycle management."
+:toc:
+:sectnums:
+:icons: font
+
+== Skill
+Learn how to deploy and configure cert-manager Operator for automated certificate provisioning, renewal, and management. You'll implement mutual TLS (mTLS) between services to ensure authenticated and encrypted communication.
+
+== Objective
+
+* Install cert-manager Operator
+* Configure Certificate and Issuer resources
+* Implement automated certificate provisioning
+* Configure mTLS between services
+* Verify certificate rotation
+
+== Why it Matters
+Manual certificate management is error-prone and leads to expired certificates causing outages. Cert-manager automates the entire certificate lifecycle—provisioning, renewal, and revocation—reducing operational overhead and security risks. Mutual TLS adds an extra layer of security by requiring both client and server authentication.
+
+== What it Solves
+
+* Certificate expiration outages
+* Manual certificate management overhead
+* Unencrypted service communication
+* Man-in-the-middle attacks
+* Certificate provisioning complexity
+
+== Understanding the Attack Surface
+[cols="1,2,2",options="header"]
+|===
+|Area | Risk Without mTLS | Mitigation
+|Service Communication | Interception | mTLS encryption
+|Certificate Expiration | Outages | Automated renewal
+|Key Management | Exposure | Secure storage
+|Identity Verification | Spoofing | Mutual authentication
+|===
+
+== How to Try It
+
+=== Check cert-manager installation
+[source,sh]
+----
+oc get pods -n openshift-cert-manager
+oc get crd certificates.cert-manager.io
+----
+
+=== Create ClusterIssuer
+[source,sh]
+----
+oc apply -f - <<'EOF'
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-issuer
+spec:
+  selfSigned: {}
+EOF
+----
+
+=== Create Certificate resource
+[source,sh]
+----
+oc apply -f - <<'EOF'
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: example-cert
+  namespace: 201-09-demo
+spec:
+  secretName: example-cert-tls
+  issuerRef:
+    name: selfsigned-issuer
+    kind: ClusterIssuer
+  dnsNames:
+  - example.201-09-demo.svc.cluster.local
+EOF
+----
+
+=== Verify certificate creation
+[source,sh]
+----
+oc get certificate -n 201-09-demo
+oc get secret example-cert-tls -n 201-09-demo
+----
+
+=== Cleanup
+[source,sh]
+----
+oc delete project 201-09-demo --wait=false
+----
+
+== Solutions / Controls
+
+* Cert-manager Operator
+* Automated certificate lifecycle
+* mTLS configuration
+* Certificate rotation
+* Key management
+
+== Summary Table
+[cols="1,2,2",options="header"]
+|===
+|Control | Purpose | Benefit
+|Cert-manager | Automation | Reduced overhead
+|mTLS | Mutual auth | Enhanced security
+|Auto-renewal | Continuity | No outages
+|Key Management | Security | Protected keys
+|===
+
+== FAQs
+What certificate authorities are supported?:: Let's Encrypt, self-signed, and custom CAs.
+How often are certificates renewed?:: Automatically before expiration.
+Does mTLS impact performance?:: Minimal overhead; benefits outweigh costs.
+
+== Closing Story
+Automated certificate management removes a common source of outages while mTLS adds defense-in-depth for service communication.
+
+== Next Step Ideas
+
+* Integrate with Let's Encrypt
+* Implement mTLS across all services
+* Monitor certificate expiration

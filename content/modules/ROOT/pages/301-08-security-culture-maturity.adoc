@@ -1,0 +1,91 @@
+= Lab: Drive Security Culture, Coaching Teams and Maturing Practices
+:role: Advanced Security Leadership & Enablement
+:skills: Enablement Programs, Documentation Standards, Internal Guilds, Maturity Roadmaps
+:labid: LAB-301-08
+:toc:
+:sectnums:
+:icons: font
+
+== Skill
+Lead organizational security culture transformation by developing enablement programs, establishing documentation standards, creating internal security guilds, and building maturity roadmaps that guide teams toward security excellence.
+
+== Objective
+
+* Design and implement security enablement programs
+* Establish documentation standards for security practices
+* Create and lead internal security guilds or communities
+* Develop maturity roadmaps for security practices
+* Coach teams on security best practices
+* Measure and improve security culture maturity
+
+== Why it Matters
+
+Security culture is foundational to effective security:
+
+* **Security by Design**: Teams build security into their work from the start
+* **Shared Responsibility**: Security becomes everyone's responsibility
+* **Continuous Improvement**: Teams continuously mature their security practices
+* **Knowledge Sharing**: Best practices spread across the organization
+* **Reduced Friction**: Security becomes an enabler, not a blocker
+* **Sustainable Security**: Security practices become self-sustaining
+
+== What it Solves
+
+Organizations face security culture challenges:
+
+* Security is seen as a separate team's responsibility
+* Teams lack security knowledge and skills
+* Security practices are inconsistent across teams
+* Documentation is missing or outdated
+* Security improvements happen in isolation
+* Maturity improvements lack structure and measurement
+
+This lab addresses these by:
+
+* Creating enablement programs that build security skills
+* Establishing standards that ensure consistency
+* Forming communities that share knowledge
+* Providing roadmaps that guide improvement
+* Coaching teams to adopt security practices
+* Measuring maturity to track progress
+
+== Understanding the Architecture
+
+[cols="1,2,2",options="header"]
+|===
+|Component | Purpose | Implementation Approach
+|Enablement Programs | Build security skills across teams | Training programs, workshops, hands-on labs, certifications
+|Documentation Standards | Ensure consistent security practices | Templates, style guides, best practices, runbooks
+|Internal Guilds | Create security communities | Security guilds, communities of practice, regular meetings
+|Maturity Roadmaps | Guide security improvement journey | Maturity models, assessment frameworks, improvement plans
+|Coaching | Support teams in security adoption | One-on-one coaching, team workshops, mentoring
+|Measurement | Track security culture maturity | Surveys, assessments, metrics, KPIs
+|===
+
+== Lab Content
+
+[NOTE]
+====
+This lab is currently under development. Content will include:
+
+* Security enablement program design and implementation
+* Documentation standards creation and enforcement
+* Internal security guild formation and management
+* Maturity roadmap development
+* Coaching strategies and techniques
+* Security culture measurement and improvement
+====
+
+== Prerequisites
+
+* Leadership and coaching experience
+* Understanding of organizational change management
+* Experience with training and enablement programs
+* Familiarity with maturity models and frameworks
+* Strong communication and facilitation skills
+* Understanding of security practices and principles
+
+== Next Steps
+
+This lab content is being developed. Check back soon for complete instructions and exercises.
+

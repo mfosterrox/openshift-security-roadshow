@@ -1,0 +1,98 @@
+= Lab: Etcd Encryption at Rest & Basic Control Plane Hardening
+:labid: LAB-101-08
+:cis-summary: "Enable etcd encryption at rest and implement basic control plane security hardening."
+:mitre-summary: "Prevents data exposure through encryption at rest and reduces control plane attack surface."
+:toc:
+:sectnums:
+:icons: font
+
+== Skill
+Learn how to enable etcd encryption at rest to protect sensitive data stored in the cluster's key-value store, and implement basic control plane hardening measures to reduce the attack surface of your OpenShift cluster.
+
+== Objective
+
+* Understand etcd encryption at rest requirements
+* Enable encryption for Kubernetes secrets
+* Verify encryption status
+* Implement basic control plane hardening
+* Understand encryption key management
+
+== Why it Matters
+Etcd stores all cluster data including secrets, configmaps, and other sensitive information. Without encryption at rest, anyone with access to etcd storage can read this data. Enabling encryption protects against unauthorized access to stored secrets and meets compliance requirements for data protection.
+
+== What it Solves
+
+* Unencrypted secret storage
+* Compliance requirements
+* Data breach prevention
+* Control plane security
+* Key management
+
+== Understanding the Attack Surface
+[cols="1,2,2",options="header"]
+|===
+|Area | Risk If Unencrypted | Mitigation
+|Etcd Storage | Secret exposure | Encryption at rest
+|Backup Files | Data leakage | Encrypted backups
+|Control Plane | Unauthorized access | Hardening measures
+|Key Management | Key compromise | Secure key storage
+|===
+
+== How to Try It
+
+=== Check current encryption status
+[source,sh]
+----
+oc get encryptionconfig cluster -o yaml
+----
+
+=== Verify API server encryption configuration
+[source,sh]
+----
+oc get apiserver cluster -o jsonpath='{.spec.encryption.type}'
+----
+
+NOTE: Enabling etcd encryption requires cluster-admin access and may require cluster restart. This is typically done during cluster installation or through cluster configuration updates.
+
+=== Basic control plane hardening check
+[source,sh]
+----
+oc get nodes -o wide
+oc get pods -n openshift-kube-apiserver
+oc get pods -n openshift-etcd
+----
+
+=== Cleanup
+No cleanup needed for this lab.
+
+== Solutions / Controls
+
+* Etcd encryption at rest
+* KMS integration for key management
+* Control plane node hardening
+* API server security configuration
+* Audit logging
+
+== Summary Table
+[cols="1,2,2",options="header"]
+|===
+|Control | Purpose | Benefit
+|Etcd Encryption | Data protection | Compliance & security
+|KMS Integration | Key management | Secure key storage
+|Node Hardening | Reduced attack surface | Fewer vulnerabilities
+|API Security | Access control | Authorized access only
+|===
+
+== FAQs
+When should encryption be enabled?:: During cluster installation or as part of security hardening.
+Does encryption impact performance?:: Minimal impact; encryption is hardware-accelerated.
+Can I enable encryption on existing clusters?:: Yes, but requires careful planning and may require downtime.
+
+== Closing Story
+Encryption at rest is like a safe for your cluster's secrets—essential for protecting sensitive data.
+
+== Next Step Ideas
+
+* Integrate with external KMS
+* Review control plane node security
+* Implement encryption key rotation

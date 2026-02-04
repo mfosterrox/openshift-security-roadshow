@@ -1,0 +1,76 @@
+= Lab: Architect Multi-Tenant Zero-Trust Network and Service Segmentation
+:role: Advanced Network Security Architecture
+:skills: Service Mesh mTLS, Layered NetworkPolicies, Multi-Network CNIs, Egress Governance, Zero-Trust Patterns
+:labid: LAB-301-03
+:toc:
+:sectnums:
+:icons: font
+
+== Skill
+Design and implement a comprehensive zero-trust network architecture for multi-tenant OpenShift environments. You will architect service mesh mutual TLS (mTLS), implement layered NetworkPolicies, configure multi-network CNIs, establish egress governance, and apply zero-trust patterns to ensure complete network segmentation and isolation.
+
+== Objective
+
+* Design service mesh architecture with mTLS for service-to-service communication
+* Implement layered NetworkPolicies for defense-in-depth network segmentation
+* Configure multi-network CNIs (Multus) for network isolation
+* Establish egress governance and control policies
+* Apply zero-trust patterns across the entire network architecture
+* Validate network segmentation and isolation effectiveness
+
+== Why it Matters
+
+Multi-tenant environments require strict network isolation to prevent lateral movement and data exfiltration. Zero-trust networking assumes no implicit trust between services, requiring verification for every connection. This lab demonstrates how to architect a comprehensive zero-trust network that protects against:
+
+* Lateral movement attacks
+* Unauthorized service-to-service communication
+* Data exfiltration through uncontrolled egress
+* Network-based privilege escalation
+* Cross-tenant data access
+
+== What it Solves
+
+Traditional network security relies on perimeter defense and implicit trust within the network. Zero-trust architecture eliminates these assumptions by:
+
+* Requiring authentication and authorization for every connection
+* Implementing micro-segmentation at the service level
+* Enforcing least-privilege network access
+* Providing visibility into all network flows
+* Enabling granular policy enforcement
+
+== Understanding the Architecture
+
+[cols="1,2,2",options="header"]
+|===
+|Component | Purpose | OpenShift/K8s Implementation
+|Service Mesh mTLS | Encrypt and authenticate all service-to-service traffic | Service Mesh (Istio/OSSM) with mTLS enabled
+|Layered NetworkPolicies | Defense-in-depth network segmentation | Multiple NetworkPolicy layers (namespace, pod, service)
+|Multi-Network CNIs | Isolated network planes for different workloads | Multus CNI with multiple network attachments
+|Egress Governance | Control and monitor outbound traffic | Egress NetworkPolicies, EgressIP, Egress Firewall
+|Zero-Trust Patterns | No implicit trust, verify everything | Policy-driven access control at every layer
+|===
+
+== Lab Content
+
+[NOTE]
+====
+This lab is currently under development. Content will include:
+
+* Service mesh configuration and mTLS setup
+* NetworkPolicy design patterns and implementation
+* Multus CNI configuration for multi-network scenarios
+* Egress governance policies and controls
+* Zero-trust architecture validation and testing
+====
+
+== Prerequisites
+
+* OpenShift cluster with cluster-admin access
+* Service Mesh Operator installed
+* Multus CNI plugin available
+* Understanding of NetworkPolicies and service mesh concepts
+
+== Next Steps
+
+This lab content is being developed. Check back soon for complete instructions and exercises.
+

@@ -1,0 +1,185 @@
+= Lab: Secure by Design – Rebuilding Images for OpenShift
+:labid: LAB-101-11
+:cis-summary: "Build images to run non-root on high ports with correct ownership—no special SCC required."
+:mitre-summary: "Prevents privilege escalation and drift by rebuilding images to run non-root on high ports under restricted SCC."
+:audit-evidence: "Rebuilt UBI image deploys under restricted SCC; id shows random non-root UID; service exposed without anyuid exception."
+:cis-mitre-codes: '{"cisMapping":{"primary":["5.2.6"]},"mitre":{"techniques":["T1611"],"tactics":["TA0004"],"mitigations":["M1026","M1048"]}}'
+:toc:
+:sectnums:
+:icons: font
+
+== Skill
+Learn to rebuild a container image so it runs under OpenShift’s restricted SCC by design: drop root, fix file ownership/permissions for random UIDs, and use an unprivileged port—no anyuid or special privileges required.
+
+== Objective
+
+* Use trusted UBI base
+* Create non-root user / correct perms
+* Use high unprivileged port
+* Build & deploy via OpenShift
+* Confirm no elevated SCC required
+
+== Why it Matters
+“Requires root” adds security debt, and every exception (like anyuid) makes it worse. Rebuild the image to be safe by default: run as non‑root, use a high port, and fix file ownership. Then it runs under the restricted SCC with no exceptions. Result: smaller blast radius, easier audits, and portability across secure clusters.
+
+== What it Solves
+
+* Root-only service → escalation path
+* Fixed ownership mismatch → UID failure
+* Privileged port dependency → root need
+* Unknown base provenance → hidden CVEs
+
+== Understanding the Attack Surface
+[cols="1,2,2",options="header"]
+|===
+|Weak Pattern | Risk | Hardened Alternative
+|USER root | Host probing | Non-root user + restrictive perms
+|Port 80 binding | Needs root | Use 8080+
+|Writable root filesystem | Tamper persistence | Minimal write paths
+|Unknown base image | Hidden CVEs | UBI base + scanning
+|===
+
+== How to Secure (Lifecycle View)
+* Build: Multi-stage; drop root early; fix permissions.
+* Registry: Only signed/scanned images.
+* Deploy: Restricted SCC success baseline.
+* Runtime: RHACS alert on root/capability reintroduction.
+
+== How to Try It
+
+=== Project setup
+[source,sh]
+----
+oc new-project 101-11-r-rebuild
+----
+
+=== Deploy external image (will fail under restricted SCC)
+[source,sh]
+----
+oc create deployment webapp --image=httpd
+oc logs -l app=webapp --tail=40 || true
+----
+Expected failure snippet:
+[source,text]
+----
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 10.128.2.191. Set the 'ServerName' directive globally to suppress this message
+(13)Permission denied: AH00072: make_sock: could not bind to address [::]:80
+(13)Permission denied: AH00072: make_sock: could not bind to address 0.0.0.0:80
+no listening sockets available, shutting down
+AH00015: Unable to open logs
+----
+Reason: Port 80 requires elevated privileges + root-owned log dirs + random non-root UID injection.
+
+Why this image fails (what’s “broken”):
+
+* It’s Apache httpd listening on port 80 (a privileged port that requires root)
+* It writes logs under root-owned paths (not writable by random non-root UIDs)
+* It’s not built for OpenShift’s defaults (restricted SCC runs containers as non-root)
+
+Result: it either gets denied at admission or crash loops at runtime with permission errors.
+
+NOTE: We’ll rebuild the app on top of a trusted base (UBI 9 httpd 2.4 from registry.access.redhat.com / registry.redhat.io). This image is designed for OpenShift: it runs as non‑root by default and listens on an unprivileged port (8080). Because this is a web server, we’ll copy a simple sample page (index.html) into the default document root; in a real app you’d place any site files (static assets, app output) that httpd should serve.
+
+=== Rebuild context (UBI 9 httpd 2.4 from a trusted registry)
+
+[source,sh]
+----
+mkdir -p build && cd build
+cat > index.html <<'EOF'
+<html><body><h1>Secure UBI httpd App</h1></body></html>
+EOF
+cat > Dockerfile <<'EOF'
+FROM registry.access.redhat.com/ubi9/httpd-24:latest
+COPY index.html /var/www/html/index.html
+
+USER 1001
+
+EXPOSE 8080
+EOF
+----
+
+=== Build with OpenShift
+[source,sh]
+----
+oc new-build --name webapp --binary --strategy=docker
+oc start-build webapp --from-dir=. --follow
+oc get is
+----
+
+=== Deploy
+[source,sh]
+----
+oc set image deployment/webapp *=image-registry.openshift-image-registry.svc:5000/101-11-r-rebuild/webapp:latest
+oc rollout status deployment/webapp
+oc logs -l app=webapp --tail=40 || true
+----
+
+=== Verify UID & SCC
+[source,sh]
+----
+oc exec deploy/webapp -- id -u
+oc get pod -l app=webapp -o jsonpath='{.items[0].metadata.annotations.openshift\.io/scc}{"\n"}'
+----
+Expected:
+
+* `id -u` prints a non-zero UID (NOT 0), e.g., random high UID
+* SCC annotation shows `restricted-v2`
+
+What “restricted-v2” means (in short):
+
+* Non-root only: containers must not run as UID 0
+* No privilege escalation; no privileged or host access (hostPID/IPC/Network disallowed)
+* ALL Linux capabilities dropped by default; adding extra caps is blocked
+* Default seccomp (runtime/default) and SELinux MCS isolation
+* Designed so well-built apps run safely without any special SCC
+
+=== Expose via Route
+[source,sh]
+----
+oc expose deployment webapp --port=8080 --target-port=8080
+oc expose service webapp
+ROUTE=$(oc get route webapp -o jsonpath='{.spec.host}')
+curl -s http://$ROUTE | head -3
+----
+
+NOTE: Keep project for LAB-B10 (TLS). Delete only if done.
+
+=== Cleanup (optional)
+[source,sh]
+----
+oc delete project 101-11-r-rebuild --wait=false
+----
+
+== Solutions / Controls
+
+* UBI base (maintained)
+* Non-root execution
+* High port selection
+* RHACS root/capability policies
+* GitOps Dockerfile history
+
+== Summary Table
+[cols="1,2,2,2",options="header"]
+|===
+|Design Element | Insecure Form | Secure Form | Benefit
+|User | root | non-root (random UID) | Reduced escalation
+|Port | 80 | 8080 | No privileged need
+|Base Image | Unknown | UBI Micro | Maintained & scanned
+|File Ownership | root-only | root:0 with g+rw | Random UID compat
+|===
+
+== FAQs
+Why not just grant anyuid?:: Short-term speed, long-term security debt. Rebuilds avoid exceptions and reduce blast radius.
+Is UBI required?:: No, but offers predictable updates & support.
+How small should images be?:: Smaller surface → fewer CVEs & faster pulls.
+
+== Closing Story
+Rebuilding is embedding security into the product lifecycle—fewer exceptions, faster approvals.
+
+== Next Step Ideas
+
+* Pipeline check: fail if USER root in final layer
+* Image signing before deployment
+* Compare CVE count before vs after
+
+
