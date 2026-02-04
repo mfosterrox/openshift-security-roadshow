@@ -12,6 +12,8 @@ asciidoc:
     page-links:
     - url: https://github.com/mfosterrox/openshift-security-roadshow/issues
       text: File a lab issue
+    - url: https://redhat.com
+      text: Red Hat
     openshift_admin_user: sample_user
     acs_portal_password: sample_password
     acs_portal_username: sameple_admin
@@ -68,6 +70,7 @@ asciidoc:
     tpa_password: sample_KQt21WpVVWzo
     tpa_username: sample_admin
     web_console_url: https://console-openshift-console.apps.cluster-sample.sample.sandboxsample.opentlc.com
+
 
   extensions:
     - ./content/lib/tab-block.js

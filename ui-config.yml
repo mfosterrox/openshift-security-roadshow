@@ -1,0 +1,18 @@
+---
+type: showroom
+
+# Set the left content column width to 30%
+default_width: 40
+# Persist the URL state so browser refresh doesn't reset the UI
+persist_url_state: true
+
+tabs:
+- name: OpenShift Console
+  url: 'https://console-openshift-console.${DOMAIN}'
+- name: Red Hat Advanced Cluster Security
+  url: 'https://central-stackrox.${DOMAIN}'
+# - name: Red Hat Quay
+#   url: 'https://quay.${DOMAIN}'
+- name: Bastion
+  path: /wetty
+  port: 443
