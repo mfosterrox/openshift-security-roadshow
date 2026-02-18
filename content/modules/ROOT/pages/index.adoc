@@ -8,7 +8,31 @@ Most of the lab will take place in this *Showroom* lab environment and between v
 
 Below, you can find all the URLs and passwords needed to complete the lab on the homepage. If you ever get lost simply click the home button at the top of the webpage to find the essentials.
 
-IMPORTANT: This is the *HOME* page. The modules can be found by clicking the table of contents on the left side of the screen or by scrolling to the bottom of the page and clicking 'Next'
+IMPORTANT: This is the *HOME* page. The modules can be found by clicking the table of contents on the left side of the screen or by scrolling to the bottom of each module and clicking *Next*.
+
+TIP: Always open console URLs in a new tab so you can keep this lab guide open. On a Mac, use *<cmd> click*; on Windows/Linux, use *<ctrl> click* or right-click and select "Open in new tab."
+
+== Before you begin
+
+* *Bookmark this page* — You will return here for credentials and links.
+* *Use the bastion host* — Many steps use the `oc`, `roxctl`, and `podman` CLIs; these run on the RHEL bastion. SSH access details are in the table below.
+* *Follow modules in order* — Start with xref:00-acs-setup-install-navigation.adoc[Lab Setup and Introduction] (module 00), then proceed through the modules in sequence. Each module builds on the previous one.
+
+== Lab modules (ACS roadshow)
+
+Complete the modules in this order:
+
+* xref:00-acs-setup-install-navigation.adoc[Lab Setup and Introduction] — Access consoles, deploy demo apps, build and push the frontend image
+* xref:01-acs-visibility-and-navigation.adoc[Navigating RHACS] — RHACS UI, search, and main use cases
+* xref:02-acs-vulnerability-management-lab.adoc[Vulnerability Management] — Reports, risk acceptance, and vulnerability reporting
+* xref:03-acs-risk-profiling.adoc[Risk Profiling] — Configuration management, risk ranking, and filters
+* xref:04-acs-policy-management.adoc[Policy Management] — Runtime, deploy-time, and build-time policies
+* xref:05-acs-cicd-and-automation.adoc[CI/CD and Automation] — Policy-as-code with GitOps and OpenShift Pipelines
+* xref:06-acs-compliance.adoc[Compliance] — Compliance Operator, scans, and dashboards
+* xref:07-acs-notifications.adoc[Notifications] — Slack and Microsoft Teams alerting
+* xref:08-acs-api.adoc[API Walkthrough] — RHACS API and token-based requests
+* xref:09-acs-network-security.adoc[Network Security] — Network graph and network policies
+* xref:10-acs-installation.adoc[Installation and RHACS Cloud Service] — ACS Cloud Service trial and Secured Cluster Services
 
 ---
 
@@ -30,6 +54,8 @@ During the roadshow, you will utilize the following applications to complete all
 |Username| {openshift_admin_user}
 |Password| {openshift_admin_password}
 |===
+
+Red Hat^(R)^ Advanced Cluster Management (RHACM) and OpenShift GitOps (ArgoCD) are accessed from the same OpenShift console (e.g. *Applications*, *Pipelines*, and GitOps from the left menu or cluster dropdown).
 
 === Red Hat^(R)^ Advanced Cluster Security (RHACS) console information
 [cols="1,1"]
@@ -56,6 +82,9 @@ During the roadshow, you will utilize the following applications to complete all
 |===
 
 === Red Hat^(R)^ Enterprise Linux (RHEL) bastion host information
+
+Use the bastion to run CLI commands required in the lab (`oc`, `roxctl`, `podman`, `curl`, etc.). SSH to the host below, then follow the steps in each module.
+
 [cols="1,1"]
 |===
 |Username@host| {bastion_ssh_user_name}@{bastion_public_hostname}
