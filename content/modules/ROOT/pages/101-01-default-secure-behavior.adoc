@@ -38,35 +38,74 @@ This lab exposes a chain of quiet assumptions: "root is fine," "port 80 is norma
 |Broad Exceptions (anyuid) | Normalizes long-term risk | Leaving fire door propped open
 |===
 
-== How to Try It
-Narrative: One deployment. First it fails (external image expecting root + port 80). We replace the image with a trusted UBI variant (non‑root, high port) and it succeeds, no privilege grants needed.
+== How to Try It (~15 minutes)
 
-=== Create a project
+Narrative: One deployment. First it fails (external image expecting root + port 80). You inspect why using the CLI, then replace the image with a trusted UBI variant (non‑root, high port), expose a Route, and verify end-to-end—all from the command line.
+
+=== Use case 1: Create project and deploy external image (~2 min)
+
+Create a dedicated project and deploy the public Docker Hub `httpd` image. OpenShift will accept the deployment but the container will fail at runtime due to default security guardrails.
+
 [source,sh]
 ----
 oc new-project 101-01-httpd-demo
+oc create deployment web --image=httpd
 ----
 
-=== Deploy external image (will fail under restricted SCC)
+Wait a few seconds for the pod to start (and then fail). Check pod status and restart count:
+
 [source,sh]
 ----
-oc create deployment web --image=httpd
-oc logs -l app=web --tail=40 || true
+oc get pods -l app=web
+oc get pods -l app=web -o wide
 ----
+
+You should see the pod in `CrashLoopBackOff` or `Error` with a non-zero restart count.
+
+=== Use case 2: Observe failure — logs and events (~3 min)
+
+Inspect why the container failed using logs and cluster events. These commands are your first line of evidence for "why didn't this work?"
+
+[source,sh]
+----
+oc logs -l app=web --tail=50 --all-containers=true
+----
+
 Expected failure snippet:
 [source,text]
 ----
-AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 10.128.2.191. Set the 'ServerName' directive globally to suppress this message
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name...
 (13)Permission denied: AH00072: make_sock: could not bind to address [::]:80
 (13)Permission denied: AH00072: make_sock: could not bind to address 0.0.0.0:80
 no listening sockets available, shutting down
 AH00015: Unable to open logs
 ----
-Reason: Port 80 requires elevated privileges + root-owned log dirs + random non-root UID injection.
 
-=== Replace the image in-place with trusted UBI httpd (listens on 8080)
+Check recent events for the deployment and pod (SCC, image pull, or runtime messages):
 
-Now deploy the webserver using a Red Hat UBI image that follows security best practices: runs as non-root, uses a non-privileged port (8080 instead of 80), and is curated, patched, and supported.
+[source,sh]
+----
+oc get events --sort-by='.lastTimestamp' | tail -20
+oc describe pod -l app=web | tail -30
+----
+
+Reason: Port 80 requires elevated privileges; log directories are root-owned; OpenShift injects a random non-root UID, so the process cannot bind to 80 or write to default log paths.
+
+=== Use case 3: Confirm runtime user and port assumption (~2 min)
+
+Inspect the pod spec to see that OpenShift has applied a non-root security context (runAsUser, etc.). The image expects root and port 80, but the platform overrides the user.
+
+[source,sh]
+----
+oc get pod -l app=web -o jsonpath='{.items[0].spec.securityContext}' ; echo
+oc get pod -l app=web -o jsonpath='Container port: {.items[0].spec.containers[0].ports[0].containerPort}{"\n"}' ; echo
+----
+
+You should see a numeric `runAsUser` (or similar) in the security context and port 80 in the container spec. The takeaway: the platform assigns a random non-root UID while the image was built assuming root and binding to port 80, so the process fails.
+
+=== Use case 4: Replace image with trusted UBI httpd (~2 min)
+
+Replace the image in-place with a Red Hat UBI image that is designed for non-root and listens on 8080. No privilege escalation or SCC changes required.
 
 [cols="1,2",options="header"]
 |===
@@ -79,13 +118,57 @@ Now deploy the webserver using a Red Hat UBI image that follows security best pr
 [source,sh]
 ----
 oc set image deployment/web *=registry.access.redhat.com/ubi9/httpd-24
-oc rollout status deployment/web
-oc logs -l app=web --tail=10 || true
+oc rollout status deployment/web --timeout=120s
+----
+
+Verify the new pod is running and check logs:
+
+[source,sh]
+----
+oc get pods -l app=web
+oc logs -l app=web --tail=15
+----
+
+=== Use case 5: Verify non-root UID and expose the service (~2 min)
+
+Confirm the running container has a random non-root UID, then expose the deployment via an OpenShift Route so you can reach it from outside the cluster.
+
+[source,sh]
+----
+oc exec deploy/web -- id
 oc exec deploy/web -- id -u
 ----
-Expect: Random non-root UID; container stable.
 
-=== Comparison
+Expect a numeric UID such as `1000690000` (not `0`). Then create a Route and note the hostname:
+
+[source,sh]
+----
+oc expose deployment web --port=8080
+oc get route web -o jsonpath='{.spec.host}{"\n"}'
+----
+
+=== Use case 6: Test the route from the command line (~2 min)
+
+Use `curl` (or `oc run` plus `curl` from inside the cluster) to hit the Route and confirm the UBI httpd response.
+
+[source,sh]
+----
+ROUTE=$(oc get route web -o jsonpath='{.spec.host}')
+curl -s -o /dev/null -w "%{http_code}" "http://$ROUTE/" && echo " OK"
+curl -s "http://$ROUTE/" | head -5
+----
+
+If you're running from a host that cannot resolve the cluster's internal DNS, use the cluster's default ingress or port-forward instead:
+
+[source,sh]
+----
+oc get route web -o jsonpath='{.spec.host}'
+# Then open that URL in a browser, or from a machine that can resolve it:
+# curl -s http://<route-host>/
+----
+
+=== Use case 7: Compare before/after (summary table)
+
 [cols="1,2,1,1,1,2",options="header"]
 |===
 |Scenario | Image | Port | UID | Result | Reason
@@ -94,7 +177,8 @@ Expect: Random non-root UID; container stable.
 |OpenShift (after swap) | registry.access.redhat.com/ubi9/httpd-24 | 8080 | random | Succeeds | Built for non-root + high port
 |===
 
-=== Cleanup
+=== Cleanup (~1 min)
+
 [source,sh]
 ----
 oc delete project 101-01-httpd-demo --wait=false

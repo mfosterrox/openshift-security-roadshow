@@ -1,4 +1,7 @@
 = Navigating RHACS
+:toc:
+:sectnums:
+:icons: font
 
 == Module Goals
 
@@ -132,7 +135,7 @@ video::01-acs-local.mp4[width=640,opts=autoplay, class="center"]
 As you can see, the content is only relevant to the violations tab, but the search capabilities, including the use of *r/*, remain the same.
 ====
 
-=== 2. Navigation Menu
+=== Navigation Menu
 
 image::01-acs-nav.png[link=self, window=blank, width=100%, Navigation Menu]
 
@@ -156,7 +159,7 @@ The left-hand navigation menu provides access to each of the security use cases,
 * Administration Events
 * System Health
 
-=== 3. Dashboard
+=== Dashboard
 
 The Red Hat Advanced Cluster Security for Kubernetes (RHACS) Dashboard provides quick access to the data you need. It contains additional navigation shortcuts and actionable widgets that are easy to filter and customize so that you can focus on the data that matters most to you. You can view information about levels of risk in your environment, compliance status, policy violations, and common vulnerabilities and exposures (CVEs) in images.
 
@@ -172,7 +175,7 @@ The dashboard can be broken down into three main sections:
 
 image::01-acs-dashboard-02.png[link=self, window=blank, width=100%, Three Dashboard Sections]
 
-==== 1. The Status Bar
+==== The Status Bar
 
 The status bar provides at-a-glance numerical counters for critical resources. The counters reflect what is visible with your current access scope, defined by the roles associated with your user profile.
 
@@ -188,7 +191,7 @@ These counters are clickable, providing fast access to the desired list view pag
 |Secrets|Configuration Management -> Applications & Infrastructure -> Secrets
 |============
 
-==== 2. The Dashboard Filter
+==== The Dashboard Filter
 
 The dashboard includes a top-level filter that applies simultaneously to all widgets. You can select clusters and one or more namespaces within selected clusters. Any change to the filter is immediately reflected by all widgets, limiting the data they present to the selected scope.
 
@@ -198,7 +201,7 @@ image::01-acs-dashboard-03.png[link=self, window=blank, width=100%, Dashboard Fi
 
 image::01-acs-dashboard-04.png[link=self, window=blank, width=100%, Dashboard Drop-down]
 
-==== 3. Actionable Widgets
+==== Actionable Widgets
 
 If you have time, adjust the dashboard filtering options and widgets to hone the filtering capabilities.
 

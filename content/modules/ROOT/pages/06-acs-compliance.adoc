@@ -1,4 +1,7 @@
 = Compliance
+:toc:
+:sectnums:
+:icons: font
 
 == Module Goals
 * Set up the Compliance Operator

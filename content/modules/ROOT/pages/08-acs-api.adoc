@@ -1,4 +1,7 @@
 = API Walkthrough
+:toc:
+:sectnums:
+:icons: font
 
 == Module Goals
 * Understand the basics of creating an API request in RHACS

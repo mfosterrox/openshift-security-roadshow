@@ -1,4 +1,7 @@
 = Installation and RHACS Cloud Service
+:toc:
+:sectnums:
+:icons: font
 
 == Module goals
 .Goals

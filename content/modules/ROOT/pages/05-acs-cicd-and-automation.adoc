@@ -1,4 +1,7 @@
 = CI/CD and Automation
+:toc:
+:sectnums:
+:icons: font
 
 == Module Goals
 

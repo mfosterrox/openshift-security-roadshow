@@ -1,4 +1,7 @@
 = Network Security
+:toc:
+:sectnums:
+:icons: font
 
 == Module Goals
 * Review the Network Dashboard

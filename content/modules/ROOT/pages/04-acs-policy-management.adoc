@@ -1,4 +1,7 @@
 = Policy Management
+:toc:
+:sectnums:
+:icons: font
 
 == Module Goals
 * Create build, deploy, and runtime policies 

@@ -1,4 +1,7 @@
 = Lab Setup and Introduction
+:toc:
+:sectnums:
+:icons: font
 
 == Module Goals
 

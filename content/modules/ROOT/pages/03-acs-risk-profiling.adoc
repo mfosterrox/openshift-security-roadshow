@@ -1,4 +1,7 @@
 = Risk Profiling
+:toc:
+:sectnums:
+:icons: font
 
 == Module Goals
 

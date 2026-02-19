@@ -1,4 +1,7 @@
 = Notifications
+:toc:
+:sectnums:
+:icons: font
 
 == Module Goals
 * Understanding how notification and alerting work in RHACS

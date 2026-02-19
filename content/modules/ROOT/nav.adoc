@@ -15,7 +15,7 @@
 * xref:tssc-00-intro.adoc[Trusted Software Supply Chain Introduction]
 
 .101 OpenShift Security Modules: Core Concepts & Foundations
-* xref:basic-INDEX.adoc[101 Labs Overview - Getting Started with OpenShift Security Defaults]
+* xref:basic-INDEX.adoc[101 Labs Overview]
 * xref:101-01-default-secure-behavior.adoc[101-01 - Default Secure Behavior & Why OpenShift Differs from Vanilla Kubernetes]
 * xref:101-02-projects-namespaces-boundaries.adoc[101-02 - Projects & Namespaces as Security Boundaries]
 * xref:101-03-rbac-basics.adoc[101-03 - Role-Based Access Control Basics]
@@ -30,7 +30,7 @@
 * xref:101-12-enforcing-tls-routes.adoc[101-12 - Enforcing TLS on Routes]
 
 .201 OpenShift Security Modules: Intermediate Hardening & Shift-Left
-* xref:intermediate-INDEX.adoc[201 Labs Overview – Operator-Driven Hardening & CI/CD Integration]
+* xref:intermediate-INDEX.adoc[201 Labs Overview]
 * xref:201-01-threat-modeling-control-mapping.adoc[201-01 - Threat Modeling & Control Mapping]
 * xref:201-02-custom-rbac.adoc[201-02 - Custom RBAC & ClusterRoles]
 * xref:201-03-workload-hardening.adoc[201-03 - Custom SCC, Seccomp, SELinux & User Namespaces Basics]
@@ -44,7 +44,7 @@
 * xref:201-11-admission-governance.adoc[201-11 - Admission Controllers & Policy Enforcement Basics]
 
 .301 OpenShift Security Modules: Advanced Enterprise & Zero-Trust
-* xref:advanced-INDEX.adoc[301 Labs Overview - GitOps-Driven Governance, Zero-Trust & Emerging Threats]
+* xref:advanced-INDEX.adoc[301 Labs Overview]
 * xref:301-01-platform-security-governance.adoc[301-01 - Platform-Wide Security Governance & Policy as Code]
 * xref:301-02-gitops-policy-compliance.adoc[301-02 - GitOps-Driven Policy and Compliance Pipelines]
 * xref:301-03-multi-tenant-zero-trust-network.adoc[301-03 - Multi-Tenant Zero-Trust Network Segmentation]
