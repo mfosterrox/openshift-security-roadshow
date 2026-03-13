@@ -35,7 +35,7 @@ image::04-policy-00.png[link=self, window=blank, width=100%, Policy Management D
 image::04-policy-01.png[link=self, window=blank, width=100%, Policy Management Search]
 
 [start=3]
-. Once you have found the policy *Alpine Linux Package Manager (apk) in Image*, click on it to learn more:
+. Once you have found the policy *Alpine Linux Package Manager Execution*, click on it to learn more:
 
 image::04-policy-02.png[link=self, window=blank, width=100%, Policy Management Details]
 

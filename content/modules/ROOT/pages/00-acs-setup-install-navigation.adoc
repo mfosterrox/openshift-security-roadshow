@@ -815,13 +815,13 @@ Next, swap the default image repo for the local Quay one containing the frontend
 
 [source,sh,subs="attributes",role=execute]
 ----
-sed -i "s|quay.io/mfoster/frontend:latest|$QUAY_URL/$QUAY_USER/frontend:0.1|g" $APP_HOME/skupper-demo/frontend.yml
+sed -i "s|quay.io/mfoster/patient-portal-frontend:1.0|$QUAY_URL/$QUAY_USER/frontend:0.1|g" $APP_HOME/skupper-demo/frontend.yml
 ----
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-[lab-user@bastion skupper-demo]$ sed -i "s|quay.io/mfoster/frontend:latest|$QUAY_URL/$QUAY_USER/frontend:0.1|g" $APP_HOME/skupper-demo/frontend.yml
+[lab-user@bastion skupper-demo]$ sed -i "s|quay.io/mfoster/patient-portal-frontend:1.0|$QUAY_URL/$QUAY_USER/frontend:0.1|g" $APP_HOME/skupper-demo/frontend.yml
 ----
 
 ====
