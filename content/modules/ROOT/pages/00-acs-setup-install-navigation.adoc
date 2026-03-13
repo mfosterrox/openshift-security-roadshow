@@ -280,7 +280,7 @@ The following command triggers a vulnerability scan by RHACS, roxctl filters the
 
 [source,sh,subs="attributes",role=execute]
 ----
-roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=quay.io/mfoster/dvwa --severity CRITICAL,IMPORTANT --force -o table
+roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=quay.io/mfoster/dvwa:0.1.0 --severity CRITICAL,IMPORTANT --force -o table
 ----
 
 TIP: The following output can be configured using flags. You can configure different outputs (table, CSV, JSON, and sarif) and filter for specific severities.
@@ -288,7 +288,7 @@ TIP: The following output can be configured using flags. You can configure diffe
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-[demo-user@bastion ~]$ roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=quay.io/mfoster/dvwa --severity CRITICAL,IMPORTANT --force -o table
+[demo-user@bastion ~]$ roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image scan --image=quay.io/mfoster/dvwa:0.1.0 --severity CRITICAL,IMPORTANT --force -o table
 Scan results for image: quay.io/mfoster/dvwa
 
 --------------------------+-------------------------+----------+---------------+
