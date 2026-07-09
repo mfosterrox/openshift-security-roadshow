@@ -83,6 +83,10 @@ This lab is currently under development. Content will include:
 * Familiarity with SIEM/SOAR platforms
 * Experience with incident response procedures
 
+
+:lab-cleanup-module: 301-04
+include::partial$lab-cleanup.adoc[]
+
 == Next Steps
 
 This lab content is being developed. Check back soon for complete instructions and exercises.

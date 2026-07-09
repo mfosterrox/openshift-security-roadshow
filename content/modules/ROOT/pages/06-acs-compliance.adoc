@@ -314,6 +314,56 @@ And for those wondering, review this link discussing link:https://www.perforce.c
 
 Your mission is completed with a successful run of a DISA STIG compliance run altering the compliance status of the *production* cluster.
 
+== Security Exercise: ACME Incident Response
+
+The audit log showed `cicd-pipeline-runner-sa` had exec permissions it should never have used in production. Map that gap to compliance controls.
+
+include::partial$acme-incident-context.adoc[]
+
+=== Scenario
+
+[quote, Morgan, Infosec]
+The pipeline service account had edit plus exec. Which compliance standards flag excessive RBAC and missing least privilege?
+
+=== Your task
+
+include::partial$security-exercise-task-intro.adoc[]
+
+.Step 1 — Review the compliance dashboard
+[%collapsible]
+====
+. In RHACS, open *Compliance* and review the cluster compliance dashboard.
+====
+
+.Step 2 — Identify RBAC-related failing controls
+[%collapsible]
+====
+. Note the overall compliance percentage and any failing controls related to RBAC or access management.
+====
+
+.Step 3 — Map the audit finding to compliance controls
+[%collapsible]
+====
+. Cross-reference with the audit finding: the `container-executor` Role granted `pods/exec` to `cicd-pipeline-runner-sa`.
+====
+
+.Step 4 — Discuss least-privilege gaps
+[%collapsible]
+====
+Discuss which controls would have flagged this before the breach:
+
+* Excessive permissions on automation service accounts
+* Lack of separation between CI/CD deploy and runtime exec capabilities
+* Missing audit review for privileged subresource access
+====
+
+=== What you learned
+
+* Compliance dashboards translate incident findings into control framework language.
+* The payment gateway breach violated least-privilege principles enshrined in CIS and STIG profiles.
+* Compliance monitoring complements audit forensics for post-incident remediation planning.
+
+
 == Summary
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMGh0OWkxemNoNmF4dG9lNHE4bncwOWpkdzR6NHJ6dDNuOW0xYnMwaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7auaKlfmip8gE/giphy.gif[link=self, window=blank, width=100%, class="center"]
@@ -323,3 +373,7 @@ What he said ^!
 In this lab, you installed the Compliance Operator and set up a daily scan that will report against OpenShift CIS benchmarks. You also reviewed workload compliance in the OpenShift Compliance dashboard. 
 
 On to *Notifications*!
+
+:lab-cleanup-module: 06
+include::partial$lab-cleanup.adoc[]
+

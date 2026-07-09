@@ -160,6 +160,10 @@ Q: Does this slow developers down?:: Properly documented Roles speed them up—l
 == Closing Story
 Losing a broad credential is like misplacing the building master key. Losing a precise RBAC key is like misplacing the supply closet key—annoying, not catastrophic. Precision today is cheaper than forensics tomorrow.
 
+
+:lab-cleanup-module: 201-02
+include::partial$lab-cleanup.adoc[]
+
 == Next Step Ideas
 * Add an admission policy forbidding new Roles with `*` verbs.
 * Generate a nightly report: subjects vs allowed sensitive verbs.

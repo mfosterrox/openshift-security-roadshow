@@ -295,6 +295,10 @@ Granting anyuid because an image fails is like removing a seatbelt because it's 
 
 Resource controls are the booking system preventing one team from reserving every room—fairness yields stability.
 
+
+:lab-cleanup-module: 101-04
+include::partial$lab-cleanup.adoc[]
+
 == Next Step Ideas
 
 * Add CI linting: warn on USER root

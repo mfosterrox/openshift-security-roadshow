@@ -225,6 +225,10 @@ oc label namespace 201-11-a-govern policy-tier=dev
 oc delete project 201-11-a-govern --wait=false
 ----
 
+
+:lab-cleanup-module: 201-11
+include::partial$lab-cleanup.adoc[]
+
 == Key Points
 * Admission prevents drift before runtime
 * Layered constraints: identity (non-root), network readiness, supply chain integrity

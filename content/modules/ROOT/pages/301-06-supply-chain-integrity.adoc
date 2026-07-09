@@ -85,6 +85,10 @@ This lab is currently under development. Content will include:
 * Experience with SBOM generation tools
 * Knowledge of SLSA and supply chain frameworks
 
+
+:lab-cleanup-module: 301-06
+include::partial$lab-cleanup.adoc[]
+
 == Next Steps
 
 This lab content is being developed. Check back soon for complete instructions and exercises.

@@ -64,92 +64,31 @@ def main():
     # Path to the output file on the bastion host
     output_folder = "/home/lab-user/tests/"
     output_file = "/home/lab-user/tests/bastion_output.log"
+    progress_file = "/home/lab-user/.acs-roadshow/progress"
 
     # Bash commands to run on the bastion host
     command = f"""
     mkdir -p {output_folder}
     touch {output_file}
-    sleep 1  # Add sleep to allow previous commands to finish
+    sleep 1
     echo "Starting script execution..." > {output_file}
-    sleep 1  # Add sleep to allow previous commands to finish
+    sleep 1
 
-    # Check if the Quay URL is available
-    curl -I "$QUAY_URL/repository/quayadmin/frontend/"
-    if [ $? -eq 0 ]; then
-        echo "Module 0 success" >> {output_file}
-    else
-        echo "Module 0 failed" >> {output_file}
+    progress="{progress_file}"
+    if [ ! -f "$progress" ]; then
+        echo "Progress file not found: $progress" >> {output_file}
     fi
 
-    # Check if the policy is finished
-    curl --insecure -X GET https://${{ROX_CENTRAL_ADDRESS}}/v1/policies \
-    -H "Authorization: Bearer ${{ROX_API_TOKEN}}" \
-    -H "Content-Type: application/json" | jq '.policies[] | select(.name == "finished-1-policy") | {{id: .id, name: .name}}'
-    if [ $? -eq 0 ]; then
-        echo "Module 1 success" >> {output_file}
-    else
-        echo "Module 1 failed" >> {output_file}
-    fi
+    for mod in 00 01 02 03 04 05 06 07 08 09 10; do
+        mod_num=$(echo "$mod" | sed 's/^0*//')
+        [ -z "$mod_num" ] && mod_num=0
+        if grep -q "^MODULE=${{mod}} COMPLETE" "$progress" 2>/dev/null; then
+            echo "Module $mod_num success" >> {output_file}
+        else
+            echo "Module $mod_num failed" >> {output_file}
+        fi
+    done
 
-    # Check if the colleciton has been created
-    curl --insecure -X GET "https://$ROX_CENTRAL_ADDRESS/v1/collections?name=frontend-collection" \
-    -H "Authorization: Bearer $ROX_API_TOKEN" \
-    -H "Content-Type: application/json"
-    if [ $? -eq 0 ]; then
-        echo "Module 2 success" >> {output_file}
-    else
-        echo "Module 2 failed" >> {output_file}
-    fi
-
-    # Check if the policy is finished
-    curl --insecure -X GET https://$ROX_CENTRAL_ADDRESS/v1/reports \
-    -H "Authorization: Bearer $ROX_API_TOKEN" \
-    -H "Content-Type: application/json"
-    if [ $? -eq 0 ]; then
-        echo "Module 3 success" >> {output_file}
-    else
-        echo "Module 3 failed" >> {output_file}
-    fi
-
-    # Check if the policy is finished
-    curl --insecure -X GET https://${{ROX_CENTRAL_ADDRESS}}/v1/policies \
-    -H "Authorization: Bearer ${{ROX_API_TOKEN}}" \
-    -H "Content-Type: application/json" | jq '.policies[] | select(.name == "Alpine Linux Package Manager in Image - Enforce Build") | {{id: .id, name: .name}}'
-    if [ $? -eq 0 ]; then
-        echo "Module 4 success" >> {output_file}
-    else
-        echo "Module 4 failed" >> {output_file}
-    fi
-
-
-    # Check TaskRun status for succeeded tasks
-    taskruns=$(oc get taskrun -n pipeline-demo -o json | jq '.items[] | select(.status.succeeded == true) | .metadata.name')
-    # If no succeeded TaskRun found, set eq=1
-    if [ -z "$taskruns" ]; then
-        eq=1
-    else
-        eq=0
-    fi
-
-    # Check the value of eq and log success/failure
-    if [ $eq -eq 0 ]; then
-        echo "Module 5 success" >> {output_file}
-    else
-        echo "Module 5 failed" >> {output_file}
-    fi
-
-    # Check if the compliance scan was created
-    curl --insecure -X GET "https://$ROX_CENTRAL_ADDRESS/v2/compliance/scan/results" \
-    -H "Authorization: Bearer $ROX_API_TOKEN" \
-    -H "Content-Type: application/json"
-    
-    if [ $? -eq 0 ]; then
-        echo "Module 6 success" >> {output_file}
-    else
-        echo "Module 6 failed" >> {output_file}
-    fi
-
-    # If all commands succeed, print completion
     echo "Completion" >> {output_file}
     """
 

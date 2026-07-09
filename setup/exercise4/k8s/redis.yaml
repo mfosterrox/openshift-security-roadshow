@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: message-broker
+  namespace: ${NAMESPACE}
+  labels:
+    app: message-broker
+    variant: community-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: message-broker
+  template:
+    metadata:
+      labels:
+        app: message-broker
+        variant: community-redis
+    spec:
+      containers:
+        - name: redis
+          image: docker.io/redis:7-alpine
+          args: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+          ports:
+            - containerPort: 6379
+          readinessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 256Mi
+              cpu: 250m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: message-broker
+  namespace: ${NAMESPACE}
+spec:
+  selector:
+    app: message-broker
+  ports:
+    - port: 6379
+      targetPort: 6379

@@ -81,6 +81,10 @@ Add cluster / namespace labels when forwarding audit to SIEM for simplified quer
 oc delete project 201-07-a-correlation --wait=false
 ----
 
+
+:lab-cleanup-module: 201-07
+include::partial$lab-cleanup.adoc[]
+
 == Key Points
 * Audit gives intent (API action) while pod logs/metrics give runtime context
 * Correlation fields: namespace, pod, user, verb, timestamp

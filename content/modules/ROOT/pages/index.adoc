@@ -17,6 +17,7 @@ TIP: Always open console URLs in a new tab so you can keep this lab guide open. 
 * *Bookmark this page* — You will return here for credentials and links.
 * *Use the bastion host* — Many steps use the `oc`, `roxctl`, and `podman` CLIs; these run on the RHEL bastion. SSH access details are in the table below.
 * *Follow modules in order* — Start with xref:00-acs-setup-install-navigation.adoc[Lab Setup and Introduction] (module 00), then proceed through the modules in sequence. Each module builds on the previous one.
+* *Security exercises* — Module 00 ends with a *Trusted Image Pulls from Quay* exercise. Modules 01–10 end with hands-on *ACME Incident Response* exercises (your administrator provisions `payment-gateway-{workshop_user_suffix}` using `setup/deploy-incident-env.sh`).
 
 == Lab modules (ACS roadshow)
 

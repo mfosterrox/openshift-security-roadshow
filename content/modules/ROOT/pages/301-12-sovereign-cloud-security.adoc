@@ -115,6 +115,10 @@ What regulations require sovereign cloud?:: GDPR, various national data protecti
 == Closing Story
 Sovereign cloud controls enable organizations to operate globally while meeting local regulatory requirements.
 
+
+:lab-cleanup-module: 301-12
+include::partial$lab-cleanup.adoc[]
+
 == Next Step Ideas
 
 * Integrate with corporate IdP

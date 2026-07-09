@@ -286,8 +286,85 @@ Review the API and come up with your own use case that can help automate your da
 
 We'll discuss after the module is done. 
 
+== Security Exercise: ACME Incident Response
+
+ACME has hundreds of deployments. Morgan wants every process baseline in the payment gateway namespace locked before end of day—automated via the RHACS API.
+
+include::partial$acme-incident-context.adoc[]
+
+=== Scenario
+
+[quote, Sarah, Platform Engineering]
+Manual baseline locking won't scale. Let's use the bulk lock endpoint for the whole namespace.
+
+=== Your task
+
+include::partial$security-exercise-task-intro.adoc[]
+
+.Step 1 — Confirm API credentials
+[%collapsible]
+====
+Ensure `ROX_API_TOKEN` and `ROX_CENTRAL_ADDRESS` are set (from earlier in this module).
+====
+
+.Step 2 — Retrieve the cluster ID
+[%collapsible]
+====
+Retrieve the cluster ID:
+
+[source,sh,subs="attributes",role=execute]
+----
+curl --silent --insecure \
+  --header "Authorization: Bearer ${ROX_API_TOKEN}" \
+  "https://${ROX_CENTRAL_ADDRESS}/v1/clusters" \
+  | jq -r '.clusters[] | "\(.id) \(.name)"'
+----
+====
+
+.Step 3 — Bulk-lock process baselines
+[%collapsible]
+====
+Bulk-lock all process baselines in your payment gateway namespace:
+
+[source,bash,subs="attributes",role=execute]
+----
+export NAMESPACE="payment-gateway-{workshop_user_suffix}"
+----
+
+[source,bash,role=execute]
+----
+export CLUSTER_ID="<your-cluster-id-from-above>"
+
+curl --silent --insecure \
+  --header "Authorization: Bearer ${ROX_API_TOKEN}" \
+  --header "Content-Type: application/json" \
+  --request PUT \
+  "https://${ROX_CENTRAL_ADDRESS}/v1/processbaselines/bulk/lock" \
+  --data "{\"cluster_id\": \"${CLUSTER_ID}\", \"namespaces\": [\"${NAMESPACE}\"]}" | jq .
+----
+
+Expected response: `{"success": true}`.
+====
+
+.Step 4 — Verify baselines are locked
+[%collapsible]
+====
+Verify in RHACS *Risk* that baselines for `payment-gateway` show as locked.
+====
+
+=== What you learned
+
+* The RHACS API automates runtime security operations at namespace scale.
+* Bulk baseline locking is practical for incident-driven hardening sprints.
+* API automation complements the manual UI workflow from modules 03 and 04.
+
+
 == Summary
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOWptdDZteGo5a3RheGc5ajc0bXh1bHNpYjN6NGJiY2NjajhsNDExayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/nbvFVPiEiJH6JOGIok/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
 Great work! On to the last module!
+
+:lab-cleanup-module: 08
+include::partial$lab-cleanup.adoc[]
+

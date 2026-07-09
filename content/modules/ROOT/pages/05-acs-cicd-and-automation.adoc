@@ -101,17 +101,9 @@ Let's run the check again to check if the policies were successful.
 roxctl -e $ROX_CENTRAL_ADDRESS:443 image check --image $QUAY_URL/$QUAY_USER/frontend:0.1
 ----
 
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-WARN:   A total of 4 policies have been violated
-ERROR:  failed policies found: 2 policies violated that are failing the check
-ERROR:  Policy "Alpine Linux Package Manager (apk) in Image - Build and Deploy - Enforce" - Possible remediation: "Run `apk --purge del apk-tools` in the image build for production containers."
-ERROR:  Policy "Alpine Linux Package Manager in Image - Enforce Build" - Possible remediation: "Run `apk --purge del apk-tools` in the image build for production containers."
-ERROR:  checking image failed: failed policies found: 2 policies violated that are failing the check
-----
+*Expected:* Two failing APK enforce policies plus GitOps-managed policies from the previous section.
 
-> You should see a second APK policy violation, as you have created a second "externally managed" policy in RHACS.
+> You should see a second APK policy violation from the externally managed GitOps policy.
 
 === Check on Your Policies
 
@@ -153,99 +145,31 @@ curl -X DELETE \
 
 == Implementing Security Checks into Your CI/CD Pipeline
 
-Implementing CI/CD security in container builds involves more than just securing your container images and your deployment manifests. There are several best practices to ensure that your containerized applications are secure throughout the development and deployment lifecycle.
-
-* Access Control: Use strong authentication and authorization mechanisms. Implement role-based access control (RBAC) to limit who can modify the pipeline and deploy applications.
-* Audit Logging: Enable and regularly review audit logs to monitor access and changes to the CI/CD pipeline.
-* Official and Verified Images: Always start with official images from trusted sources (e.g., Docker Hub, Red Hat, Ubuntu).
-* Minimal Base Images: Use minimal base images to reduce the attack surface (e.g., alpine).
-* Static Analysis: Integrate static code analysis tools (e.g., SonarQube, Snyk) into the pipeline to detect vulnerabilities in the code.
-* Image Scanning: Use tools like Clair, Anchore, or Trivy to scan container images for known vulnerabilities before deploying them.
-* Pin Dependencies: Specify exact versions of dependencies to avoid introducing unverified or vulnerable components.
-* Regular Updates: Keep dependencies and base images updated to their latest versions to benefit from security patches.
-* Environment Variables: Avoid hardcoding secrets in the source code. Use environment variables or secret management tools.
-* Secret Management Tools: Use tools like HashiCorp Vault, AWS Secrets Manager, or Kubernetes Secrets to securely manage and inject secrets.
-* Policy as Code: Use tools like Open Policy Agent (OPA) to define and enforce security policies as code within your CI/CD pipeline.
-* Compliance Checks: Automate compliance checks to ensure all deployments adhere to security standards and policies.
-
-Now, RHACS can be implemented into any CI/CD process as a step in the build-deploy-run lifecycle. RHACS is able to achieve this through the *roxctl CLI* and the *admission controller*. RHACS can implement those image scanning, environment variables, and compliance checks into those pipelines.  
-
-Let's take a look at a very simple CI/CD pipeline in OpenShift Pipelines.
+RHACS integrates into CI/CD via *roxctl* and the admission controller for image scanning, secret handling, and compliance checks. Best practices include RBAC on pipelines, minimal base images, dependency pinning, and policy-as-code.
 
 == Review a Basic CI/CD Pipeline
 
-In this section, we will review a simple pipeline that has been configured in Red Hat^(R)^ OpenShift Pipelines. 
-
-Red Hat^(R)^ OpenShift Pipelines is a Kubernetes-native CI/CD (Continuous Integration/Continuous Deployment) solution that automates the process of building, testing, and deploying applications. It leverages Tekton, a powerful and flexible open-source framework, to create cloud-native pipelines that integrate seamlessly with OpenShift and other Kubernetes environments. This enables developers to define and manage their build and deployment workflows as code, ensuring consistency, scalability, and repeatability across the software development lifecycle.
+Review a simple OpenShift Pipelines (Tekton) workflow that scans images with roxctl before deploy.
 
 *Procedure*
 
-. Head over to the OpenShift Console. If you don't have access, follow the steps below. If you do, proceed to the following section.
+. Log in to the OpenShift console at `{web_console_url}` (same credentials as earlier modules). Select *local-cluster*, then open *Pipelines*.
 
-=== Access the Red Hat^(R)^ OpenShift Container Platform (OCP) Web Console
-
-First, make sure you can access the Red Hat^(R)^ OCP console web console.
-
-*Procedure*
-
-[start=1]
-. Log into the OCP console at `{web_console_url}`:
-. Click the *rhsso* option
-
-image::01-ocp-login-admin.png[OpenShift console]
-
-[start=3]
-. Enter the OCP credentials: 
-
-[cols="1,1"]
-|===
-| *User:*| {openshift_admin_user} 
-| *Password:*| {openshift_admin_password} 
-|===
-
-
-[start=4]
-. Enter the OpenShift username *{openshift_admin_user}* and password: *{openshift_admin_password}*:
-
-image::01-ocp-login-password.png[OpenShift console login]
-
-====
-You should be directed to the RHACM dashboard. RHACM is integrated into the OpenShift dashboard.
-====
-
-[start=5]
-. To get to your cluster's local OpenShift dashboard, click the top dropdown and select *local-cluster*:
-
-image::05-cd-01.png[link=self, window=blank, width=100%]
-image::05-cd-02.png[link=self, window=blank, width=100%]
-
-[start=6]
-. Click on the *Pipelines* tab on the left side of the page and select "*Pipelines*": 
-. There's no pipeline currently. Let's apply it now:
+[start=2]
+. Apply the pipeline resources:
 
 [source,sh,subs="attributes",role=execute]
 ----
 oc apply -f $TUTORIAL_HOME/openshift-pipelines/ --recursive
 ----
 
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-[lab-user@bastion ~]$ oc apply -f $TUTORIAL_HOME/openshift-pipelines/ --recursive
-pipeline.tekton.dev/rox-pipeline created
-secret/roxsecrets created
-clustertask.tekton.dev/rox-deployment-check created
-clustertask.tekton.dev/rox-image-check created
-clustertask.tekton.dev/rox-image-scan created
-----
+*Expected:* `rox-pipeline`, `roxsecrets`, and Tekton tasks are created.
 
-> The pipeline we are looking for is called *rox-pipeline*, and you can either find it and select it or you can change the *Project to "pipeline-demo"*.
+> Find *rox-pipeline* in project *pipeline-demo*, or switch the project filter to *pipeline-demo*.
 
 image::05-cd-03.png[link=self, window=blank, width=100%]
 
-image::05-cd-04.png[link=self, window=blank, width=100%]
-
-> The pipeline has not been run yet, so start a pipeline run: 
+> Start a pipeline run:
 
 [start=8]
 . Click the three dots on the right side of the screen and select *start*:
@@ -279,37 +203,11 @@ Let's look at the logs.
 
 image::05-cd-09.png[link=self, window=blank, width=100%]
 
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-curl: (6) Could not resolve host: ROX_CENTRAL_ENDPOINT
-Getting roxctl
-chmod: cannot access './roxctl': No such file or directory
-/tekton/scripts/script-0-ftdft: line 5: ./roxctl: No such file or directory
-----
+*Expected:* Initial failure—`Could not resolve host: ROX_CENTRAL_ENDPOINT` and missing `roxctl` indicate incorrect pipeline secret variables.
 
-This snippet indicates that there are incorrect variables. With RHACS, API access is required to query Central for results.
-
-> Let's take a look at the secret file necessary for *OpenShift Pipelines*:
+> Inspect the pipeline secret template:
 
 [start=11]
-. Run the following in the terminal:
-
-[source,sh,subs="attributes",role=execute]
-----
-ls $TUTORIAL_HOME/openshift-pipelines
-----
-
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-[lab-user@bastion pipeline]$ ls $TUTORIAL_HOME/openshift-pipelines
-pipeline  secrets  tasks
-----
-
-As you can see, the pipelines are broken up into one pipeline, with three tasks that need a secret file. Let's take a look at what variables are needed for the pipeline.
-
-[start=12]
 . Run the following in the terminal:
 
 [source,sh,subs="attributes",role=execute]
@@ -317,26 +215,9 @@ As you can see, the pipelines are broken up into one pipeline, with three tasks 
 cat $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
 ----
 
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-[lab-user@bastion pipeline]$ cat $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
-apiVersion: v1
-stringData:
-  rox_central_endpoint: "$ROXCTL_CENTRAL_ENPOINT"
-  # The address:port tuple for StackRox Central (example - rox.stackrox.io:443)
-  rox_api_token: "$API_TOKEN"
-  # StackRox API token with CI permissions
-  # Refer to https://help.stackrox.com/docs/use-the-api/#generate-an-access-token
-kind: Secret
-metadata:
-  name: roxsecrets
-  namespace: pipeline-demo
-----
+The secret requires `rox_central_endpoint` and `rox_api_token`. Update placeholders with your Central route and API token:
 
-Ok. So we need the RHACS Central endpoint and an API token with the right permissions. Luckily we have the RHACS Central endpoint and an admin access token that we can use.
-
-[start=13]
+[start=12]
 . Run the following in the terminal to update the RHACS Central address and API Token:
 
 [source,sh,subs="attributes",role=execute]
@@ -348,42 +229,11 @@ sed -i "s|API_TOKEN|$ROX_API_TOKEN|g" $TUTORIAL_HOME/openshift-pipelines/secrets
 ----
 
 [start=14]
-. Verify by running the following command:
-
-[source,sh,subs="attributes",role=execute]
-----
-cat $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
-----
-
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-apiVersion: v1
-stringData:
-  rox_central_endpoint: "central-stackrox.apps.cluster-88k5s.88k5s.sandbox139.opentlc.com:443"
-  # The address:port tuple for StackRox Central (example - rox.stackrox.io:443)
-  rox_api_token: "YOUR NEW API TOKEN"
-  # StackRox API token with CI permissions
-  # Refer to https://help.stackrox.com/docs/use-the-api/#generate-an-access-token
-kind: Secret
-metadata:
-  name: roxsecrets
-----
-
-
-[start=15]
-. Lastly, apply the following and head over to the OpenShift Console:
+. Apply the updated secret:
 
 [source,sh,subs="attributes",role=execute]
 ----
 oc apply -f $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
-----
-
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-[lab-user@bastion pipeline]$ oc apply -f $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
-secret/roxsecrets configured
 ----
 
 === Let's Try Again
@@ -406,25 +256,78 @@ What happened? Did you expect this behavior?
 ====
 
 [start=3]
-. Check the log snippet in the bottom right of the page:
+. Check the log snippet in the bottom right of the page.
 
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
---------------------------------+
-WARN:	A total of 4 policies have been violated
-ERROR:	failed policies found: 1 policies violated that are failing the check
-ERROR:	Policy "Ubuntu Package Manager in Image - Build-time" - Possible remediation: "Run `dpkg -r --force-all apt apt-get && dpkg -r --force-all debconf dpkg` in the image build for production containers."
-ERROR:	checking image failed after 3 retries: failed policies found: 1 policies violated that are failing the check
-----
+*Expected:* Pipeline fails on enforced policy—`ERROR: failed policies found: 1 policies violated` (e.g. *Ubuntu Package Manager in Image - Build-time*).
 
-So it looks like our policy-as-code example blocked the pipeline from executing successfully. 
+So our policy-as-code example blocked the pipeline from executing successfully.
 
 == What Would You Do?
 
 * How would you implement roxctl into your pipelines?
 * Would you have enforcement off at the beginning?
 * Are there any organizational policies that should be enforced in all pipelines?
+
+== Security Exercise: ACME Incident Response
+
+At 02:14 AM Morgan paged Sarah to trace how the attacker got shell access. The answer is in the audit logs—and it implicates a CI/CD service account.
+
+include::partial$acme-incident-context.adoc[]
+
+=== Scenario
+
+[quote, Sarah, Platform Engineering]
+I'm querying control-plane audit logs for exec events in our namespace. Morgan needs to know if this is bigger than one pod.
+
+=== Your task
+
+include::partial$security-exercise-task-intro.adoc[]
+
+.Step 1 — Switch to your payment gateway namespace
+[%collapsible]
+====
+include::partial$payment-gateway-namespace.adoc[]
+====
+
+.Step 2 — Search audit logs for the compromised exec
+[%collapsible]
+====
+Search audit logs on control plane nodes for the compromised exec:
+
+[source,bash,role=execute]
+----
+namespace=$(oc project --short)
+
+for master in $(oc get nodes --selector node-role.kubernetes.io/master --output name); do
+  echo "=== Searching logs on ${master} ==="
+  oc adm node-logs "${master}" --path=kube-apiserver/audit.log \
+    | jq --arg ns "${namespace}" 'first(select(.objectRef.namespace == $ns
+          and .objectRef.name == "payment-gateway"
+          and .verb == "create"
+          and .objectRef.subresource == "exec"))'
+done
+----
+====
+
+.Step 3 — Interpret the audit log output
+[%collapsible]
+====
+Review the output. Key fields to identify:
+
+* `user.username` — should be `system:serviceaccount:payment-gateway-{workshop_user_suffix}:cicd-pipeline-runner-sa`
+* `requestURI` — URL-encoded payload with `SHADOW_PIVOT`, `/tmp/.hidden_toolkit/exfil.sh`
+* `responseStatus.code` — `101` (WebSocket upgrade = successful exec)
+* `annotations` — RBAC binding that allowed the exec
+
+image::fsi-security/sarah-call.png[Incident investigation,link=self, window=blank, width=100%]
+====
+
+=== What you learned
+
+* Audit logs attribute exec actions to the exact service account and source IP.
+* Over-permissioned CI/CD credentials are a common real-world attack path.
+* Pipeline automation accounts should not have live pod exec permissions in production.
+
 
 == Summary
 
@@ -435,3 +338,8 @@ THUMBS UP!
 In this lab, you reviewed a basic CI/CD use case that implemented the build policy from the previous module. You then adjusted the policy so the pipeline would succeed. 
 
 Congrats! On to Compliance!
+
+
+:lab-cleanup-module: 05
+include::partial$lab-cleanup.adoc[]
+

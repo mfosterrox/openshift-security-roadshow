@@ -8,6 +8,9 @@ asciidoc:
   attributes:
     lab_name: Red Hat OpenShift Security Roadshow
     release-version: master
+    workshop_user_suffix: "1"
+    payment_gateway_namespace: payment-gateway-{workshop_user_suffix}
+    vulnerable_workload_namespace: vulnerable-workload-{workshop_user_suffix}
     page-pagination: true
     page-links:
     - url: https://redhat.com

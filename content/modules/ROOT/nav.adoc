@@ -12,7 +12,9 @@
 * xref:10-acs-installation.adoc[Installation]
 
 .Software Supply Chain Security Modules
-* xref:tssc-00-intro.adoc[Trusted Software Supply Chain Introduction]
+* xref:tssc-00-intro.adoc[Trusted Artifact Signer — Container Signing]
+* xref:tssc-01-git-signing.adoc[Git Commit Signing]
+* xref:tssc-02-trusted-profile-analyzer.adoc[Trusted Profile Analyzer]
 
 // .101 OpenShift Security Modules: Core Concepts & Foundations
 // * xref:basic-INDEX.adoc[101 Labs Overview]

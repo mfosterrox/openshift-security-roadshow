@@ -71,6 +71,10 @@ This lab is currently under development. Content will include:
 * Understanding of encryption concepts and key management
 * Familiarity with observability tools (Prometheus, Grafana, etc.)
 
+
+:lab-cleanup-module: 301-09
+include::partial$lab-cleanup.adoc[]
+
 == Next Steps
 
 This lab content is being developed. Check back soon for complete instructions and exercises.

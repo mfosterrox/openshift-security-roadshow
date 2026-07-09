@@ -193,6 +193,10 @@ Where does Lab B1 fit?:: B1 covers runtime least privilege; B6 covers image prov
 == Closing Story
 Trusted registries act like approved aerospace suppliers: origin is verified, not guessed.
 
+
+:lab-cleanup-module: 101-07
+include::partial$lab-cleanup.adoc[]
+
 == Next Step Ideas
 
 * Extend policy to StatefulSets & DaemonSets

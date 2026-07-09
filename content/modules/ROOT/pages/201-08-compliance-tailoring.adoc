@@ -119,6 +119,10 @@ oc delete compliancescans baseline-scan tailored-scan -n openshift-compliance --
 oc delete tailoredprofile rhcos4-moderate-tailored -n openshift-compliance --ignore-not-found
 ----
 
+
+:lab-cleanup-module: 201-08
+include::partial$lab-cleanup.adoc[]
+
 == Key Points
 * Tailoring removes noise → signal clarity
 * Separate baseline vs tailored scans shows effect of exclusions

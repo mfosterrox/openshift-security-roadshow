@@ -1,0 +1,13 @@
+IMPORTANT: Use your assigned workshop namespace suffix `{workshop_user_suffix}`.
+
+* *Payment gateway (breached workload):* `payment-gateway-{workshop_user_suffix}`
+* *Vulnerable Socket.IO demo:* `vulnerable-workload-{workshop_user_suffix}`
+
+Switch to your payment gateway namespace before running commands:
+
+[source,sh,subs="attributes",role=execute]
+----
+oc project payment-gateway-{workshop_user_suffix}
+----
+
+If your administrator has not yet provisioned the environment, ask them to run `./setup/deploy-incident-env.sh` from the roadshow repository (see `setup/README.adoc`).
