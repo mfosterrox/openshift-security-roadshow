@@ -1,0 +1,35 @@
+[WARNING]
+====
+Do not order this item unless you are a developer and are working on the CI.
+====
+
+The OpenShift Security Roadshow is a hands-on lab for field and technical teams to demonstrate Kubernetes-native security on a pre-configured OpenShift cluster. Each module ends with a practical task so you apply what you learned before moving on.
+
+* 101 — *Foundations* — OpenShift secure-by-default posture
+* 201 — *Intermediate* — Hardening and shift-left
+* 301 — *Advanced* — Enterprise and zero trust
+* *RHACS (modules 00–10)* — Full application lifecycle with Advanced Cluster Security
+* *TSSC* — Trusted Software Supply Chain
+
+== Lab Guide
+
+Follow the interactive lab guide in the Showroom environment. All of the modules are self-contained so you can start anywhere. The modules can be found in this document:https://docs.google.com/document/d/12x5Mil2ifvJ-fg0t0Sut20H-GV-lSB05enndCYAzK0c/edit?usp=sharing[module tracker^].
+
+== Featured Technology and Products
+
+* Red Hat OpenShift Container Platform 4.20
+* Red Hat Advanced Cluster Management 2.16
+* Red Hat Advanced Cluster Security 4.10
+* Red Hat OpenShift GitOps
+* Red Hat Quay 3.16
+* Red Hat Trusted Artifact Signer
+* Red Hat Trusted Profile Analyzer
+
+== Support
+
+For questions about lab instructions or content, contact link:https://redhat.enterprise.slack.com/team/U01PMH71ACU[Michael Foster on Slack^].
+
+For problems with provisioning or environment stability:
+
+* Open an RHDP link:https://red.ht/rhdp-ticket[Support Ticket^]
+* Post a message in Slack channel: link:https://redhat.enterprise.slack.com/archives/C06QWD4A5TE[#forum-demo-redhat-com^]
