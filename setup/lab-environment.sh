@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Provision the ACS roadshow lab environment on the bastion host.
-# Persists workshop variables to ~/.bashrc and prints progress throughout.
+# Configures RHACS (Central address, password, API token), deploys demo apps,
+# and optionally builds/pushes Quay images. Persists variables to ~/.bashrc.
 #
 # Usage:
 #   bash setup/lab-environment.sh \
@@ -106,40 +107,91 @@ oc config use-context admin 2>/dev/null || oc config use-context "$(oc config ge
 oc whoami
 oc get nodes --no-headers | head -5
 
+step "Waiting for RHACS Central"
+if ! oc -n stackrox get route central >/dev/null 2>&1; then
+  echo "Error: RHACS Central route not found in namespace stackrox." >&2
+  echo "Showroom clusters should already run the RHACS demo basic-setup." >&2
+  exit 1
+fi
+oc -n stackrox wait --for=condition=available --timeout=300s deployment/central 2>/dev/null \
+  || echo "NOTE: Central deployment not yet Available; continuing with route lookup."
+
 step "Configuring RHACS CLI variables"
+# Host only (no scheme) — matches roxctl -e and https://$ROX_CENTRAL_ADDRESS lab commands
 ROX_CENTRAL_ADDRESS="$(oc -n stackrox get route central -o jsonpath='{.spec.host}')"
+ROX_CENTRAL_ADDRESS="${ROX_CENTRAL_ADDRESS#https://}"
+ROX_CENTRAL_ADDRESS="${ROX_CENTRAL_ADDRESS#http://}"
 persist_var ROX_CENTRAL_ADDRESS "${ROX_CENTRAL_ADDRESS}"
 
-if [[ -n "${ROX_API_TOKEN:-}" ]]; then
-  persist_var ROX_API_TOKEN "${ROX_API_TOKEN}"
-elif grep -q '^export ROX_API_TOKEN=' "${HOME}/.bashrc" 2>/dev/null; then
+# Prefer existing token; otherwise generate from Central admin password
+if [[ -z "${ROX_API_TOKEN:-}" ]] && grep -q '^export ROX_API_TOKEN=' "${HOME}/.bashrc" 2>/dev/null; then
   # shellcheck source=/dev/null
   source "${HOME}/.bashrc"
-else
-  echo "NOTE: ROX_API_TOKEN not set. roxctl API calls needing a token may fail until you configure one."
 fi
 
-step "Verifying roxctl access to RHACS Central"
+if [[ -z "${ROX_PASSWORD:-}" ]]; then
+  ROX_PASSWORD="$(oc -n stackrox get secret central-htpasswd -o jsonpath='{.data.password}' 2>/dev/null | base64 -d 2>/dev/null || true)"
+fi
+if [[ -n "${ROX_PASSWORD:-}" ]]; then
+  persist_var ROX_PASSWORD "${ROX_PASSWORD}"
+fi
+
+if [[ -z "${ROX_API_TOKEN:-}" ]]; then
+  if [[ -z "${ROX_PASSWORD:-}" ]]; then
+    echo "Error: ROX_API_TOKEN is unset and could not read ROX_PASSWORD from central-htpasswd." >&2
+    exit 1
+  fi
+  echo "Generating ROX_API_TOKEN via Central API..."
+  token_json="$(curl -ksS --connect-timeout 15 --max-time 60 \
+    -X POST \
+    -u "admin:${ROX_PASSWORD}" \
+    -H "Content-Type: application/json" \
+    "https://${ROX_CENTRAL_ADDRESS}/v1/apitokens/generate" \
+    -d "{\"name\":\"roadshow-bastion-$(date +%s)\",\"roles\":[\"Admin\"]}")"
+  ROX_API_TOKEN="$(printf '%s' "${token_json}" | jq -r '.token // empty')"
+  if [[ -z "${ROX_API_TOKEN}" || "${#ROX_API_TOKEN}" -lt 20 ]]; then
+    echo "Error: failed to generate ROX_API_TOKEN. Response:" >&2
+    echo "${token_json}" >&2
+    exit 1
+  fi
+  echo "✓ ROX_API_TOKEN generated (${#ROX_API_TOKEN} chars)"
+fi
+persist_var ROX_API_TOKEN "${ROX_API_TOKEN}"
+
+step "Verifying roxctl and API access to RHACS Central"
 roxctl --insecure-skip-tls-verify -e "${ROX_CENTRAL_ADDRESS}:443" central whoami
+curl -ksS -H "Authorization: Bearer ${ROX_API_TOKEN}" \
+  "https://${ROX_CENTRAL_ADDRESS}/v1/auth/status" | jq -r '.userId // .user // "ok"' >/dev/null
+echo "✓ RHACS Central reachable (roxctl + API token)"
 
 if [[ "${SKIP_DEMO_APPS}" != true ]]; then
   step "Deploying vulnerable workshop applications"
   cd "${WORK_DIR}"
   if [[ ! -d demo-apps ]]; then
     git clone "${DEMO_APPS_REPO}" demo-apps
+  else
+    git -C demo-apps pull --ff-only 2>/dev/null || true
   fi
   persist_var TUTORIAL_HOME "${WORK_DIR}/demo-apps"
+  if [[ ! -d "${TUTORIAL_HOME}/kubernetes-manifests" ]]; then
+    echo "Error: ${TUTORIAL_HOME}/kubernetes-manifests not found." >&2
+    exit 1
+  fi
   oc apply -f "${TUTORIAL_HOME}/kubernetes-manifests/" --recursive
   echo ""
-  echo "Waiting for roadshow deployments (Ctrl+C to skip wait)..."
-  for _ in $(seq 1 30); do
+  echo "Waiting for roadshow deployments..."
+  for _ in $(seq 1 36); do
     ready=$(oc get deployments -l demo=roadshow -A --no-headers 2>/dev/null | awk '$2 ~ /^[0-9]+\/[0-9]+$/ && $2 !~ /0\// {c++} END {print c+0}')
     total=$(oc get deployments -l demo=roadshow -A --no-headers 2>/dev/null | wc -l | tr -d ' ')
     echo "  Deployments ready: ${ready:-0}/${total:-0}"
-    [[ "${ready:-0}" -ge 1 && "${ready}" -eq "${total}" ]] && break
+    [[ "${total:-0}" -ge 1 && "${ready}" -eq "${total}" ]] && break
     sleep 5
   done
   oc get deployments -l demo=roadshow -A
+  if [[ "${total:-0}" -lt 1 ]]; then
+    echo "Error: no deployments with label demo=roadshow were found after apply." >&2
+    exit 1
+  fi
 
   step "Sample vulnerability scan (DVWA image)"
   roxctl --insecure-skip-tls-verify -e "${ROX_CENTRAL_ADDRESS}:443" image scan \
@@ -178,9 +230,10 @@ cat <<EOF
   QUAY_USER=${QUAY_USER}
   QUAY_URL=${QUAY_URL:-not set}
   ROX_CENTRAL_ADDRESS=${ROX_CENTRAL_ADDRESS}
+  ROX_API_TOKEN=<set in ~/.bashrc, ${#ROX_API_TOKEN} chars>
 
 NEXT STEPS:
-  1. Open the Quay console and browse the frontend repository (see module below).
+  1. Open the Quay console and browse the frontend repository (see module 00).
   2. Make the frontend repository PUBLIC under Repository Settings.
   3. Deploy the patient-portal application:
 

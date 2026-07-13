@@ -94,7 +94,7 @@ Variables persisted to `~/.bashrc`:
 
 * `TUTORIAL_HOME` — cloned `demo-apps` repository
 * `QUAY_USER` / `QUAY_URL` — your Quay registry credentials and hostname
-* `ROX_CENTRAL_ADDRESS` — RHACS Central route (and `ROX_API_TOKEN` if already available)
+* `ROX_CENTRAL_ADDRESS` / `ROX_PASSWORD` / `ROX_API_TOKEN` — RHACS Central host, admin password, and generated API token
 * `APP_HOME` — set when you deploy the patient-portal application (second script step)
 
 === Run the setup script
@@ -147,6 +147,7 @@ source ~/.bashrc
 echo "TUTORIAL_HOME=$TUTORIAL_HOME"
 echo "QUAY_URL=$QUAY_URL"
 echo "ROX_CENTRAL_ADDRESS=$ROX_CENTRAL_ADDRESS"
+test -n "$ROX_API_TOKEN" && echo "ROX_API_TOKEN is set" || echo "ROX_API_TOKEN is missing"
 ----
 
 [[quay]]

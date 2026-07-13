@@ -1,41 +1,38 @@
 = {lab_name}
 
-This course offers you hands-on experience working with the essential security use cases of Red Hat^(R)^ OpenShift Container Platform (OCP) with Red Hat Trusted Software Supply Chain (TSSC).
+This course offers hands-on experience with Kubernetes-native security on Red Hat^(R)^ OpenShift Container Platform—covering platform foundations, Advanced Cluster Security (RHACS), and Trusted Software Supply Chain (TSSC). Each module ends with a practical *task* so you apply what you learned before moving on.
 
-== Lab homepage
+== How this lab works
 
-Most of the lab will take place in this *Showroom* lab environment and between various Red Hat product user interfaces (UI).
+* *This page is home* — Credentials and console links live here. Use the home button anytime you get lost.
+* *Navigate with the TOC* — Modules are in the left table of contents, or use *Next* at the bottom of each page.
+* *Open consoles in a new tab* — Keep this guide open. On a Mac, use *<cmd> click*; on Windows/Linux, use *<ctrl> click* or right-click → "Open in new tab."
+* *Use the bastion* — Run `oc`, `roxctl`, and `podman` on the RHEL bastion (SSH details below).
+* *Pick a path* — Tracks are self-contained. Start with the path that matches your audience; each module ends with a hands-on scenario.
 
-Below, you can find all the URLs and passwords needed to complete the lab on the homepage. If you ever get lost simply click the home button at the top of the webpage to find the essentials.
+== Learning paths
 
-IMPORTANT: This is the *HOME* page. The modules can be found by clicking the table of contents on the left side of the screen or by scrolling to the bottom of each module and clicking *Next*.
+* *101 — Foundations* — OpenShift secure-by-default: RBAC, SCC/PSA, network policy, secrets, image provenance, audit logging, compliance basics, and route TLS.
+* *201 — Intermediate* — Hardening and shift-left: custom RBAC/SCC, Vault and External Secrets Operator, CI/CD scanning and signing, audit correlation, compliance tailoring, and admission governance.
+* *301 — Advanced* — Enterprise zero trust: platform governance, GitOps compliance pipelines, multi-tenant segmentation, runtime detection and forensics, supply chain integrity, and workload identity.
+* *RHACS* — Full Advanced Cluster Security lifecycle on realistic workloads: visibility, vulnerabilities, risk, runtime/deploy/build policy, CI/CD gates, compliance, notifications, API, network security, and installation. 
+* *TSSC* — Trusted Software Supply Chain: container and git signing with Trusted Artifact Signer, plus SBOM analysis in Trusted Profile Analyzer.
 
-TIP: Always open console URLs in a new tab so you can keep this lab guide open. On a Mac, use *<cmd> click*; on Windows/Linux, use *<ctrl> click* or right-click and select "Open in new tab."
+== Environment setup
 
-== Before you begin
+From the bastion, run the lab environment script. It configures RHACS CLI access (`ROX_CENTRAL_ADDRESS`, `ROX_PASSWORD`, and a generated `ROX_API_TOKEN`), deploys the vulnerable workshop demo applications, and builds/pushes the Quay frontend image used later in the labs.
 
-* *Bookmark this page* — You will return here for credentials and links.
-* *Use the bastion host* — Many steps use the `oc`, `roxctl`, and `podman` CLIs; these run on the RHEL bastion. SSH access details are in the table below.
-* *Follow modules in order* — Start with xref:00-acs-setup-install-navigation.adoc[Lab Setup and Introduction] (module 00), then proceed through the modules in sequence. Each module builds on the previous one.
-* *Security exercises* — Module 00 ends with a *Trusted Image Pulls from Quay* exercise. Modules 01–10 end with hands-on *ACME Incident Response* exercises (your administrator provisions `payment-gateway-{workshop_user_suffix}` using `setup/deploy-incident-env.sh`).
+Cluster-wide RHACS install and baseline settings come from the Showroom image (RHACS demo basic-setup)—this script does not reinstall Central.
 
-== Lab modules (ACS roadshow)
-
-Complete the modules in this order:
-
-* xref:00-acs-setup-install-navigation.adoc[Lab Setup and Introduction] — Access consoles, deploy demo apps, build and push the frontend image
-* xref:01-acs-visibility-and-navigation.adoc[Navigating RHACS] — RHACS UI, search, and main use cases
-* xref:02-acs-vulnerability-management-lab.adoc[Vulnerability Management] — Reports, risk acceptance, and vulnerability reporting
-* xref:03-acs-risk-profiling.adoc[Risk Profiling] — Configuration management, risk ranking, and filters
-* xref:04-acs-policy-management.adoc[Policy Management] — Runtime, deploy-time, and build-time policies
-* xref:05-acs-cicd-and-automation.adoc[CI/CD and Automation] — Policy-as-code with GitOps and OpenShift Pipelines
-* xref:06-acs-compliance.adoc[Compliance] — Compliance Operator, scans, and dashboards
-* xref:07-acs-notifications.adoc[Notifications] — Slack and Microsoft Teams alerting
-* xref:08-acs-api.adoc[API Walkthrough] — RHACS API and token-based requests
-* xref:09-acs-network-security.adoc[Network Security] — Network graph and network policies
-* xref:10-acs-installation.adoc[Installation and RHACS Cloud Service] — ACS Cloud Service trial and Secured Cluster Services
-
----
+[source,bash,subs="attributes",role=execute]
+----
+git clone https://github.com/mfosterrox/openshift-security-roadshow.git
+cd openshift-security-roadshow
+bash setup/lab-environment.sh \
+  --quay-user {quay_admin_username} \
+  --quay-password '{quay_admin_password}'
+source ~/.bashrc
+----
 
 == All lab components
 
@@ -45,7 +42,7 @@ During the roadshow, you will utilize the following applications to complete all
 * Red Hat^(R)^ Advanced Cluster Management (RHACM) console with OpenShift GitOps (ArgoCD)
 * Red Hat^(R)^ Advanced Cluster Security (RHACS) console
 * Red Hat^(R)^ Quay console
-* Red Hat^(R)^ Trusted Application Signer (RHTAS)
+* Red Hat^(R)^ Trusted Artifact Signer (RHTAS)
 * Red Hat^(R)^ Enterprise Linux (RHEL) bastion host (The "Showroom" lab environment)
 
 === Red Hat^(R)^ OpenShift Container Platform (OCP) console information
