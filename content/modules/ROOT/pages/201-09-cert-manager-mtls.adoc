@@ -118,6 +118,10 @@ Does mTLS impact performance?:: Minimal overhead; benefits outweigh costs.
 == Closing Story
 Automated certificate management removes a common source of outages while mTLS adds defense-in-depth for service communication.
 
+
+:lab-cleanup-module: 201-09
+include::partial$lab-cleanup.adoc[]
+
 == Next Step Ideas
 
 * Integrate with Let's Encrypt

@@ -213,6 +213,10 @@ How to avoid label sprawl mistakes?:: Minimal taxonomy: app, role, tier, env.
 == Closing Story
 Segmentation converts a wide-open warehouse into purposeful rooms; movement remains—but intentional.
 
+
+:lab-cleanup-module: 101-05
+include::partial$lab-cleanup.adoc[]
+
 == Next Step Ideas
 
 * Add egress example (allow DNS, block external)

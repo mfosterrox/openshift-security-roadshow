@@ -1,0 +1,79 @@
+= ACME Incident Workshop — Cluster Setup
+
+Run these scripts as *cluster-admin* before delivering the OpenShift Security Roadshow ACS modules with end-of-module incident exercises.
+
+== Prerequisites
+
+* OpenShift cluster with RHACS (StackRox) installed in the `stackrox` namespace
+* `oc` CLI logged in as cluster-admin
+* `envsubst` available (from `gettext` package)
+
+== One-time cluster configuration
+
+[source,bash]
+----
+./setup/cluster-prerequisites.sh
+----
+
+This configures:
+
+* `node-log-viewer` ClusterRole for audit log queries
+* Web Terminal operator subscription
+* RHACS collector external IP visibility
+* CRIU checkpoint RBAC for forensic exercises
+* Extended audit log retention
+
+== Deploy per-attendee environments
+
+[source,bash]
+----
+# Default: 30 attendee environments (payment-gateway-1 .. payment-gateway-30)
+./setup/deploy-incident-env.sh
+
+# Or specify attendee count:
+ATTENDEE_COUNT=10 ./setup/deploy-incident-env.sh
+----
+
+This creates for each attendee suffix `{N}`:
+
+* `payment-gateway-{N}` — compromised httpd pod with simulated `exfil.sh` beacon
+* `vulnerable-workload-{N}` — Socket.IO application for CVE discussion exercises
+
+Attendees use the Showroom attribute `{workshop_user_suffix}` matching their assigned number.
+
+== Attendee lab environment (bastion)
+
+Attendees clone the roadshow repository, then run `setup/lab-environment.sh`:
+
+[source,bash]
+----
+git clone https://github.com/mfosterrox/openshift-security-roadshow.git
+cd openshift-security-roadshow
+bash setup/lab-environment.sh --quay-user QUAYADMIN --quay-password 'password'
+bash setup/lab-environment.sh --deploy-skupper-only
+----
+
+Attendees record module completion by running `setup/lab-cleanup.sh` at the end of each module (documented as a routine cleanup step). Progress is written to `~/.acs-roadshow/progress` on the bastion for instructor verification.
+
+Supported module ids include ACS (`00`–`10`), OpenShift security tracks (`101-01`, `201-06`, `301-10`, etc.), and `tssc-00`:
+
+[source,bash]
+----
+cat ~/.acs-roadshow/progress
+----
+
+== Optional cluster theming
+
+To brand the console as ACME Financial Services, apply console customization from the upstream workshop:
+https://github.com/jmhbnz/workshops/tree/main/data/security-new[security-new README]
+
+== Verify deployment
+
+[source,bash]
+----
+oc get pods -n payment-gateway-1
+oc get pods -n vulnerable-workload-1
+oc exec -n payment-gateway-1 payment-gateway --container httpd -- ls /tmp/.hidden_toolkit/
+----
+
+The last command should show `exfil.sh` if weaponization succeeded.

@@ -254,6 +254,93 @@ while true; do oc exec deploy/leaderboard -n tailspin -c ubi -- curl -s -L https
 
 image::https://media.giphy.com/media/3ZP7udDbKKDS0/giphy.gif?cid=790b7611ag8xf2i0ectfchcasx9mo9vcym9l5v8gm96q7ub4&ep=v1_gifs_search&rid=giphy.gif&ct=g[link=self, window=blank, width=100%, class="center"]
 
+== Security Exercise: ACME Incident Response
+
+Morgan confirmed unexpected egress from `payment-gateway` to external IP `185.199.108.153`. Sarah must isolate the workload without killing the pod.
+
+include::partial$acme-incident-context.adoc[]
+
+=== Scenario
+
+[quote, Morgan, Infosec]
+Cut the egress now—but don't restart the pod. We still need the in-memory evidence.
+
+=== Your task
+
+include::partial$security-exercise-task-intro.adoc[]
+
+.Step 1 — Switch to your payment gateway namespace
+[%collapsible]
+====
+include::partial$payment-gateway-namespace.adoc[]
+====
+
+.Step 2 — Review external connections in Network Graph
+[%collapsible]
+====
+. In RHACS, open *Network Graph*.
+. Filter to namespace `payment-gateway-{workshop_user_suffix}` and deployment `payment-gateway`.
+. Click *External Entities* and confirm connections to the C2 IP address.
+
+image::fsi-security/rhacs-externalip.png[External connections in RHACS,link=self, window=blank, width=100%]
+====
+
+.Step 3 — Apply deny-all egress NetworkPolicy
+[%collapsible]
+====
+Apply a deny-all egress NetworkPolicy (break-glass during active incident):
+
+[source,yaml]
+----
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: payment-gateway-deny-egress
+  namespace: payment-gateway-{workshop_user_suffix}
+spec:
+  podSelector:
+    matchLabels:
+      app: payment-gateway
+  policyTypes:
+    - Egress
+  egress: []
+----
+
+Apply via the OpenShift console *Import YAML* or:
+
+[source,sh,subs="attributes",role=execute]
+----
+oc apply -f - <<EOF
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: payment-gateway-deny-egress
+  namespace: payment-gateway-{workshop_user_suffix}
+spec:
+  podSelector:
+    matchLabels:
+      app: payment-gateway
+  policyTypes:
+    - Egress
+  egress: []
+EOF
+----
+====
+
+.Step 4 — Confirm egress is blocked
+[%collapsible]
+====
+image::fsi-security/apply-networkpolicy.png[Apply network policy,link=self, window=blank, width=100%]
+
+Return to the Network Graph and confirm egress traffic is blocked while the pod keeps running.
+====
+
+=== What you learned
+
+* RHACS Network Graph visualizes external connections critical during active incidents.
+* NetworkPolicy provides immediate egress isolation without destroying forensic evidence in the pod.
+* Network segmentation is a break-glass control complementary to audit and runtime detection.
+
 
 == Summary
 
@@ -262,3 +349,7 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNx
 In this module, you got hands-on in the Network Graph UI and used the netpol generate command to create and apply network policies to the OpenShift cluster.
 
 Congrats!!!
+
+:lab-cleanup-module: 09
+include::partial$lab-cleanup.adoc[]
+

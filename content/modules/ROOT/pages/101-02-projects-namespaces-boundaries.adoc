@@ -94,6 +94,10 @@ Can namespaces communicate?:: By default yes; use NetworkPolicy to restrict.
 == Closing Story
 Namespaces are the foundation of multi-tenant security—proper boundaries enable safe collaboration.
 
+
+:lab-cleanup-module: 101-02
+include::partial$lab-cleanup.adoc[]
+
 == Next Step Ideas
 
 * Implement namespace naming conventions

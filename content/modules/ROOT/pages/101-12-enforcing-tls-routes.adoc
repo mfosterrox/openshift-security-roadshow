@@ -106,6 +106,10 @@ Re-encrypt vs passthrough difference?:: Re-encrypt terminates then re-establishe
 == Closing Story
 Enabling TLS + redirect is installing automatic door closers—connections don’t stay ajar.
 
+
+:lab-cleanup-module: 101-12
+include::partial$lab-cleanup.adoc[]
+
 == Next Step Ideas
 
 * Deny non-TLS routes in prod via policy

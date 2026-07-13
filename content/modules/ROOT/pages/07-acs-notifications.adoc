@@ -249,6 +249,61 @@ NOTE: If you see *tomcat@visa-processor...*, you've confirmed you have a shell a
 
 *Congrats!* 
 
+== Security Exercise: ACME Incident Response
+
+If process baselines had been locked and wired to notifications, the SOC would have been paged when the attacker ran `/bin/bash` during the payment gateway breach.
+
+include::partial$acme-incident-context.adoc[]
+
+=== Scenario
+
+[quote, Morgan, Infosec]
+We need alerts on Unauthorized Process Execution for payment gateway—same pattern we use for visa-processor in this module.
+
+=== Your task
+
+include::partial$security-exercise-task-intro.adoc[]
+
+.Step 1 — Configure a notifier integration
+[%collapsible]
+====
+. In RHACS, go to *Platform Configuration* → *Integrations*.
+. Create or reuse a notifier (Slack, Teams, or email) following the steps earlier in this module.
+====
+
+.Step 2 — Create a notification rule
+[%collapsible]
+====
+. Create a notification rule targeting:
+** Violation type: *Unauthorized Process Execution*
+** Severity: *High* or above
+** Scope: namespace `payment-gateway-{workshop_user_suffix}`
+====
+
+.Step 3 — Trigger a test violation
+[%collapsible]
+====
+. Trigger a test by running shell exec (if not already done in module 04):
+
+[source,sh,subs="attributes",role=execute]
+----
+oc exec -n payment-gateway-{workshop_user_suffix} -it pod/payment-gateway -- /bin/bash -c "echo notification test"
+----
+====
+
+.Step 4 — Confirm the alert fired
+[%collapsible]
+====
+. Confirm the violation appears in RHACS *Violations* and that your notifier fires.
+====
+
+=== What you learned
+
+* Runtime process violations can be routed to SOC channels alongside existing policy alerts.
+* Notification rules scoped by namespace target incident-specific workloads without noise cluster-wide.
+* Alerting closes the loop between detection (module 04) and operational response.
+
+
 == Summary
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjJmczc4MmswYmk1cnhvZ254ZXBiZ2M3bGJzbDV5eDQ3OGlqNWdwdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QSSA5Bd56W25ytLIwz/giphy.gif[link=self, window=blank, width=100%, class="center"]
@@ -258,3 +313,7 @@ Nice!
 You integrated webhooks into RHACS for both Slack and Microsoft Teams and configured notifications based on previous policies.
 
 Time to review the *RHACS API*!
+
+:lab-cleanup-module: 07
+include::partial$lab-cleanup.adoc[]
+

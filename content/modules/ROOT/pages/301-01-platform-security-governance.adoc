@@ -80,6 +80,10 @@ This lab is currently under development. Content will include:
 * Familiarity with security governance frameworks
 * Leadership and coordination skills
 
+
+:lab-cleanup-module: 301-01
+include::partial$lab-cleanup.adoc[]
+
 == Next Steps
 
 This lab content is being developed. Check back soon for complete instructions and exercises.

@@ -156,6 +156,10 @@ Does RBAC replace vulnerability management?:: No; it limits blast radius after c
 == Closing Story
 Default RBAC roles are the building’s standard badge templates. Consistency shrinks review effort, prevents “temporary” superuser drift, and turns access audits from archaeology into a glance.
 
+
+:lab-cleanup-module: 101-03
+include::partial$lab-cleanup.adoc[]
+
 == Next Step Ideas
 
 * Script a periodic “can-i” matrix for critical identities

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: socketio-server
+  namespace: ${NAMESPACE}
+  labels:
+    app: socketio-server
+    variant: hardened
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: socketio-server
+  template:
+    metadata:
+      labels:
+        app: socketio-server
+        variant: hardened
+    spec:
+      containers:
+        - name: socketio-server
+          image: quay.io/smileyfritz/socketio-server:0.1.0-hardened
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5000
+          env:
+            - name: BROKER_HOST
+              value: message-broker
+            - name: BROKER_PORT
+              value: "6379"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 256Mi
+              cpu: 250m

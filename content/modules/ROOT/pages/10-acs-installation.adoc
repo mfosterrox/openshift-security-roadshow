@@ -212,6 +212,97 @@ IMPORTANT: After a few minutes you should see everything light up green in the C
 
 image::11-cs-10.png[link=self, window=blank, width=100%]
 
+== Security Exercise: ACME Incident Response
+
+With egress blocked, Morgan needs a forensic checkpoint of the running `payment-gateway` pod before any restart destroys volatile evidence.
+
+include::partial$acme-incident-context.adoc[]
+
+=== Scenario
+
+[quote, Morgan, Infosec]
+If we restart that pod, the attacker's toolkit is gone forever. I need a CRIU checkpoint—the full runtime state.
+
+=== Your task
+
+include::partial$security-exercise-task-intro.adoc[]
+
+.Step 1 — Switch to your payment gateway namespace
+[%collapsible]
+====
+include::partial$payment-gateway-namespace.adoc[]
+====
+
+.Step 2 — Trigger a CRIU checkpoint
+[%collapsible]
+====
+Trigger a container checkpoint via the kubelet API:
+
+[source,bash,role=execute]
+----
+NODE_NAME=$(oc get pods -l app=payment-gateway -o jsonpath='{.items[0].spec.nodeName}')
+CURRENT_NS=$(oc project --short)
+
+echo "==> Triggering CRIU checkpoint on node: $NODE_NAME..."
+
+API_RESPONSE=$(curl --silent --insecure \
+  --header "Authorization: Bearer $(oc whoami --show-token)" \
+  --request POST "$(oc whoami --show-server)/api/v1/nodes/${NODE_NAME}/proxy/checkpoint/${CURRENT_NS}/payment-gateway/httpd")
+
+TARBALL_PATH=$(echo "$API_RESPONSE" | jq -r '.items[0] // empty')
+
+if [ -z "$TARBALL_PATH" ] || [ "$TARBALL_PATH" = "null" ]; then
+  echo "[!] ERROR: Checkpoint failed. API response was:"
+  echo "$API_RESPONSE"
+  exit 1
+fi
+
+CHECKPOINT_FILE=${TARBALL_PATH##*/}
+
+echo "==> Checkpoint created: $CHECKPOINT_FILE"
+echo "==> Streaming memory dump..."
+
+oc debug node/"$NODE_NAME" --to-namespace="$CURRENT_NS" -- \
+  chroot /host /bin/sh -c "cat $TARBALL_PATH" > "/tmp/$CHECKPOINT_FILE"
+
+ls -lah "/tmp/$CHECKPOINT_FILE"
+----
+
+image::fsi-security/criu-checkpoint.png[CRIU checkpoint archive,link=self, window=blank, width=100%]
+====
+
+.Step 3 — Inspect the checkpoint with checkpointctl
+[%collapsible]
+====
+Install and run `checkpointctl` to inspect the process tree:
+
+[source,bash,role=execute]
+----
+curl --silent --fail --location \
+  'https://raw.githubusercontent.com/jmhbnz/checkpointctl/main/bin/checkpointctl' \
+  --output /tmp/checkpointctl
+
+chmod +x /tmp/checkpointctl
+export PATH=/tmp:$PATH
+
+checkpointctl inspect --ps-tree-env /tmp/checkpoint-payment-gateway_payment-gateway*
+----
+
+Look for `exfil.sh` in the process tree—the smoking gun from the simulated intrusion.
+====
+
+=== What you learned
+
+* CRIU checkpoints preserve volatile runtime state for forensic analysis without killing the pod.
+* OpenShift supports checkpoint/restore for incident response on supported versions (4.17+).
+* Forensic collection completes the ACME incident arc: detect (modules 01–05), contain (module 09), preserve (this exercise).
+
+
 == Summary
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjJmczc4MmswYmk1cnhvZ254ZXBiZ2M3bGJzbDV5eDQ3OGlqNWdwdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QSSA5Bd56W25ytLIwz/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+
+:lab-cleanup-module: 10
+include::partial$lab-cleanup.adoc[]
+

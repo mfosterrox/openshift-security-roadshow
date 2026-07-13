@@ -335,6 +335,54 @@ IMPORTANT: While you can mute notifications or a CVE, you can never hide them in
 - What types of security configuration controls are you putting in place in your OpenShift and Kubernetes Clusters?
 - How would you make changes to your clusters?
 
+== Security Exercise: ACME Incident Response
+
+Morgan needs runtime context on the breached `payment-gateway` pod before locking down process execution.
+
+include::partial$acme-incident-context.adoc[]
+
+=== Scenario
+
+[quote, Sarah, Platform Engineering]
+RHACS has been observing the payment gateway since the page. Let's review Process Discovery before we enforce anything.
+
+=== Your task
+
+include::partial$security-exercise-task-intro.adoc[]
+
+.Step 1 — Switch to your payment gateway namespace
+[%collapsible]
+====
+include::partial$payment-gateway-namespace.adoc[]
+====
+
+.Step 2 — Open payment-gateway in Risk
+[%collapsible]
+====
+. In RHACS, go to *Risk* and search for `payment-gateway`.
+. Open the deployment in namespace `payment-gateway-{workshop_user_suffix}`.
+====
+
+.Step 3 — Review Process Discovery
+[%collapsible]
+====
+. Select the *Process Discovery* tab.
+. Review the observed process baseline (should include `httpd` workers and possibly `/bin/bash` or `exfil.sh` from the simulated attack).
+====
+
+.Step 4 — Note baseline lock state
+[%collapsible]
+====
+Note whether the baseline is *unlocked*—RHACS is still in its observation window and learning normal behavior.
+====
+
+=== What you learned
+
+* Process Discovery captures every process observed inside a container during the learning phase.
+* The payment gateway baseline may include attacker tooling (`exfil.sh`) if the intrusion occurred before observation ended.
+* Risk profiling connects runtime behavior to prioritization before enforcement.
+
+
 == Summary
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDR4amFzZ2ZiNGNkaTVwM3lscmxycDMzMnB4bTdwYWd0emlsOHJiYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/qunFC4tNsyA8y9M36d/giphy.gif[link=self, window=blank, width=100%, class="center"]
@@ -344,3 +392,8 @@ Great job!
 RHACS does not simply surface vulnerabilities. You learned the various risk priority justifications RHACS provides and filtered and searched through these vulnerabilities. RHACS reports the risk indicators, deployment details, and processes necessary to discover vulnerabilities for each deployment.
 
 Have fun with *Policy Management*!
+
+
+:lab-cleanup-module: 03
+include::partial$lab-cleanup.adoc[]
+

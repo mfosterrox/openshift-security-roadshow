@@ -1,0 +1,16 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: socketio-server
+  namespace: ${NAMESPACE}
+  labels:
+    app: socketio-server
+spec:
+  to:
+    kind: Service
+    name: socketio-server
+  port:
+    targetPort: 5000
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

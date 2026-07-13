@@ -210,6 +210,10 @@ Re-run with FAIL=1 env (edit scan task to export) and confirm sign task skipped.
 oc delete project 201-05-s-pipeline --wait=false
 ----
 
+
+:lab-cleanup-module: 201-05
+include::partial$lab-cleanup.adoc[]
+
 == Key Points
 * Pipeline enforces scan-before-sign
 * Conditional task (when clause) implements gate

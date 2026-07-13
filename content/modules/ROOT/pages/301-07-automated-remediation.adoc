@@ -85,6 +85,10 @@ This lab is currently under development. Content will include:
 * Knowledge of admission controllers and webhooks
 * Understanding of policy frameworks (OPA, Kyverno, etc.)
 
+
+:lab-cleanup-module: 301-07
+include::partial$lab-cleanup.adoc[]
+
 == Next Steps
 
 This lab content is being developed. Check back soon for complete instructions and exercises.

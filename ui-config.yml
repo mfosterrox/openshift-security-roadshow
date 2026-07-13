@@ -11,8 +11,8 @@ tabs:
   url: 'https://console-openshift-console.${DOMAIN}'
 - name: Red Hat Advanced Cluster Security
   url: 'https://central-stackrox.${DOMAIN}'
-# - name: Red Hat Quay
-#   url: 'https://quay.${DOMAIN}'
+- name: Red Hat Quay
+  url: 'https://quay.${DOMAIN}'
 - name: Bastion
   path: /wetty
   port: 443

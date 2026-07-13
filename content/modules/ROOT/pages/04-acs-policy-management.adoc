@@ -109,15 +109,7 @@ POD=$(oc get pod -l app=frontend -n patient-portal -o jsonpath="{.items[0].metad
 oc exec $POD -n patient-portal -i --tty -- /bin/bash
 ----
 
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-[demo-user@bastion ~]$ POD=$(oc get pod -l app=frontend -o jsonpath="{.items[0].metadata.name}")
-oc exec $POD -i --tty -- /bin/bash
-node@frontend-6db858448f-hz6j2:/app$
-----
-
-> If you see */home/fritz*, you've confirmed you have a shell and access to the Java application.
+> If you see */home/fritz*, you've confirmed shell access to the frontend container.
 
 [start=5]
 . Run the apk package manager in this shell:
@@ -127,39 +119,9 @@ node@frontend-6db858448f-hz6j2:/app$
 apk update
 ----
 
-*Sample output*
-[source,texinfo,subs="attributes"]
-----
-node@frontend-6db858448f-stwhq:/$ apt update
-Reading package lists... Done
-E: List directory /var/lib/apt/lists/partial is missing. - Acquire (13: Permission denied)
-node@frontend-6db858448f-stwhq:/$ command terminated with exit code 137
-----
+*Expected:* Package manager starts, then the shell terminates with exit code 137. In the events pane, RHACS *Killing* the pod and a replacement pod is *Created*.
 
-
-[start=6]
-. Examine the output and expect to see that the package manager attempts to perform an update operation:
-. Examine the oc get events tmux pane (the pane on the bottom), and note that it shows that RHACS detected the package manager invocation and deleted the pod:
-
-[source,texinfo,subs="attributes"]
-----
-0s          Normal    Killing                pod/frontend-78795c75fc-7nhs4             Stopping container frontend
-0s          Normal    SuccessfulCreate       replicaset/frontend-78795c75fc            Created pod: frontend-78795c75fc-8q9fn
-0s          Normal    Scheduled              pod/frontend-78795c75fc-8q9fn             Successfully assigned patient-portal/frontend-78795c75fc-8q9fn to ip-10-0-108-51.us-east-2.compute.internal
-0s          Normal    AddedInterface         pod/frontend-78795c75fc-8q9fn             Add eth0 [10.129.3.148/23] from ovn-kubernetes
-0s          Normal    Pulling                pod/frontend-78795c75fc-8q9fn             Pulling image "quay-88k5s.apps.cluster-88k5s.88k5s.sandbox139.opentlc.com/quayadmin/frontend:0.1"
-0s          Normal    Pulled                 pod/frontend-78795c75fc-8q9fn             Successfully pulled image "quay-88k5s.apps.cluster-88k5s.88k5s.sandbox139.opentlc.com/quayadmin/frontend:0.1" in 61ms (61ms including waiting). Image size: 119108884 bytes.
-0s          Normal    Created                pod/frontend-78795c75fc-8q9fn             Created container: frontend
-0s          Normal    Started                pod/frontend-78795c75fc-8q9fn             Started container frontend
-----
-
-NOTE: After a few seconds, you can see the pod is deleted and recreated. In your tmux shell pane, note that your shell session has terminated and that you are returned to the Bastion VM command-line.
-
-*Congrats!* 
-
-The security investigative process continues, as you have now raised a flag that must be triaged! We will triage our violations later in this module.
-
-NOTE: Type *exit* in the terminal, use *ctrl+c* to stop the 'watch' command, and type exit one more time to get back to the default terminal.
+NOTE: After a few seconds, the pod is deleted and recreated and your exec session ends. Type *exit*, press *Ctrl+c* to stop the watch, and exit tmux.
 
 == Introduction to Deploy-Time Policy Enforcement
 
@@ -183,20 +145,6 @@ Next, we'll set up a Deploy-Time policy to block applications from deploying int
 [source,sh,subs="attributes",role=execute]
 ----
 oc delete -f $APP_HOME/skupper-demo/frontend.yml
-----
-
-*Sample output*
-[source,texinfo,subs="attributes"]
-----
-[lab-user@bastion ~]$ oc delete -f $APP_HOME/skupper-demo/
-namespace "patient-portal" deleted
-deployment.apps "database" deleted
-service "database" deleted
-deployment.apps "frontend" deleted
-route.route.openshift.io "frontend-patient-route" deleted
-service "frontend-service" deleted
-deployment.apps "payment-processor" deleted
-service "payment-service" deleted
 ----
 
 [start=2]
@@ -266,30 +214,7 @@ oc delete -f $APP_HOME/skupper-demo/frontend.yml
 oc apply -f $APP_HOME/skupper-demo/frontend.yml
 ----
 
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-route.route.openshift.io/frontend-patient-route created
-service/frontend-service created
-Error from server (Failed currently enforced policies from RHACS): error when creating "/home/lab-user/skupper-app/skupper-demo/frontend.yml": admission webhook "policyeval.stackrox.io" denied the request: 
-The attempted operation violated 1 enforced policy, described below:
-
-Policy: Alpine Linux Package Manager in Image - Enforce Deploy
-- Description:
-    ↳ Alert on deployments with the Alpine Linux package manager (apk) present
-- Rationale:
-    ↳ Package managers make it easier for attackers to use compromised containers,
-      since they can easily add software.
-- Remediation:
-    ↳ Run `apk --purge del apk-tools` in the image build for production containers.
-- Violations:
-    - Container 'frontend' includes component 'apk-tools' (version 2.14.6-r2)
-
-
-In case of emergency, add the annotation {"admission.stackrox.io/break-glass": "ticket-1234"} to your deployment with an updated ticket number
-----
-
-> Another option for enforcement is to use the "deployment check" CLI command:
+*Expected:* Admission webhook denies the deployment—policy *Alpine Linux Package Manager in Image - Enforce Deploy* violated because container `frontend` includes `apk-tools`.
 
 [start=15]
 . Verify the frontend application against the policies you've created:
@@ -309,20 +234,7 @@ You're now enforcing against the Alpine Linux package manager at runtime and dep
 
 == Introduction to Build-Time Policy Enforcement
 
-Build-time policies for container images are guidelines that define how container images should be constructed. These policies aim to achieve several goals, including:
-
-* *Security:* Minimizing vulnerabilities and ensuring images are built with secure practices.
-* *Efficiency:* Reducing image size and build times for faster deployments.
-* *Consistency:* Maintaining a uniform structure and content across all images.
-
-Here are some key areas covered by build-time policies:
-* *Base Image:* Specifying a minimal base image that only contains essential components.
-* *Package Management:* Encouraging the use of package managers for dependency installation and updates.
-* *File Copying:* Limiting what gets copied into the image to only required files and avoiding unnecessary bloat.
-* *User Management:* Defining a non-root user for the application process to run as.
-* *Environment Variables:* Storing sensitive information in environment variables outside the image.
-
-In RHACS, build-time policies apply to image fields such as CVEs and Dockerfile instructions.
+Build-time policies define how images should be constructed—minimizing vulnerabilities, limiting package managers, and enforcing non-root users. In RHACS, they apply to image CVEs and Dockerfile instructions.
 
 === Prevent the Alpine Linux Package Manager in the Frontend Image from Being Pushed to Quay
 
@@ -359,20 +271,7 @@ podman pull $QUAY_URL/$QUAY_USER/frontend:0.1
 roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image check --image=$QUAY_URL/$QUAY_USER/frontend:0.1
 ----
 
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-+--------------------------------+----------+--------------+--------------------------------+--------------------------------+--------------------------------+
-|  Alpine Linux Package Manager  |   LOW    |      -       | Alert on deployments with the  |   - Image includes component   |      Run `apk --purge del      |
-|         (apk) in Image         |          |              |  Alpine Linux package manager  |      'apk-tools' (version      | apk-tools` in the image build  |
-|                                |          |              |         (apk) present          |           2.14.6-r3)           |   for production containers.   |
-+--------------------------------+----------+--------------+--------------------------------+--------------------------------+--------------------------------+
-|  Alpine Linux Package Manager  |   LOW    |      -       | Alert on deployments with the  |   - Image includes component   |      Run `apk --purge del      |
-|    in Image - Enforce Build    |          |              |  Alpine Linux package manager  |      'apk-tools' (version      | apk-tools` in the image build  |
-|                                |          |              |         (apk) present          |           2.14.6-r3)           |   for production containers.   |
-+--------------------------------+----------+--------------+--------------------------------+--------------------------------+--------------------------------+
-WARN:   A total of 3 policies have been violated
-----
+*Expected:* `WARN: A total of 3 policies have been violated` (inform-only policies).
 
 > With the *Image Check* CLI command, you can check against the created policies:
 
@@ -382,21 +281,9 @@ podman tag $QUAY_URL/$QUAY_USER/frontend:0.1 $QUAY_URL/$QUAY_USER/frontend:0.2
 podman push $QUAY_URL/$QUAY_USER/frontend:0.2 --remove-signatures
 ----
 
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-[lab-user@bastion ~]$ podman tag $QUAY_URL/$QUAY_USER/frontend:1.0 $QUAY_URL/$QUAY_USER/frontend:1.1
-podman push $QUAY_URL/$QUAY_USER/frontend:1.1 --remove-signatures
-Copying blob 308102f44919 skipped: already exists  
-Copying blob b8d9a96d44df skipped: already exists  
-....
-Copying config 1cbb2b7908 done   | 
-Writing manifest to image destination
-----
+NOTE: Push succeeds because build enforcement is not yet enabled.
 
-NOTE: Now RHACS hasn't broken the command since there is no enforcement of any build policies. Letting the developer build, tag, and push a new image.
-
-> Let's make a copy of the build & deploy-time policy and enforce it during the build phase.
+> Let's clone the build policy and enforce it during the build phase.
 
 *Procedure*
 
@@ -442,16 +329,66 @@ podman pull $QUAY_URL/$QUAY_USER/frontend:0.1
 roxctl image check --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443"  --image=$QUAY_URL/$QUAY_USER/frontend:0.1 
 ----
 
-[.console-output]
-[source,bash,subs="+macros,+attributes"]
-----
-WARN:   A total of 3 policies have been violated
-ERROR:  failed policies found: 1 policies violated that are failing the check
-ERROR:  Policy "Alpine Linux Package Manager in Image - Enforce Build" - Possible remediation: "Run `apk --purge del apk-tools` in the image build for production containers."
-ERROR:  checking image failed: failed policies found: 1 policies violated that are failing the check
-----
+*Expected:* `ERROR: failed policies found: 1 policies violated` for *Alpine Linux Package Manager in Image - Enforce Build*—this would fail a CI/CD pipeline step.
 
-IMPORTANT: You should see the same violations from the previous command EXCEPT now you have a failed policy check. This would send an exit 0 command if this was run in any pipeline. 
+IMPORTANT: You should see a failed policy check where inform-only checks previously only warned.
+
+== Security Exercise: ACME Incident Response
+
+With the payment gateway still running, Morgan wants runtime enforcement: lock the process baseline and prove RHACS detects shell execution.
+
+include::partial$acme-incident-context.adoc[]
+
+=== Scenario
+
+[quote, Morgan, Infosec]
+If we'd had a locked baseline during the incident, the SOC would have been alerted the moment the attacker ran their shell.
+
+=== Your task
+
+include::partial$security-exercise-task-intro.adoc[]
+
+.Step 1 — Open Process Discovery for payment-gateway
+[%collapsible]
+====
+include::partial$payment-gateway-namespace.adoc[]
+
+. In RHACS *Risk*, open `payment-gateway` in namespace `payment-gateway-{workshop_user_suffix}`.
+. Go to *Process Discovery*.
+====
+
+.Step 2 — Lock the process baseline
+[%collapsible]
+====
+. Remove `/bin/bash` or shell processes from the baseline if present (click **X** next to the entry).
+. Click the **Lock** icon to lock the baseline.
+
+image::fsi-security/locked4.png[Locked process baseline violation,link=self, window=blank, width=100%]
+====
+
+.Step 3 — Simulate attacker shell execution
+[%collapsible]
+====
+Simulate the attacker executing a shell:
+
+[source,sh,subs="attributes",role=execute]
+----
+oc exec -n payment-gateway-{workshop_user_suffix} -it pod/payment-gateway -- /bin/bash -c "whoami && hostname && echo 'Arbitrary process execution successful'"
+----
+====
+
+.Step 4 — Find the violation in RHACS
+[%collapsible]
+====
+. Return to RHACS *Violations* and find **Unauthorized Process Execution** for `payment-gateway`.
+====
+
+=== What you learned
+
+* Locked process baselines turn observed behavior into an enforceable runtime control.
+* RHACS detects shell execution even when the command itself succeeds (detect, not block by default).
+* Policy management extends from build/deploy policies to runtime process baselines during incident response.
+
 
 == Summary
 
@@ -459,26 +396,8 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzMyaHRsNTdwZWRlejRycGtp
 
 AMAZING!
 
-Before you head to the next module, make sure to run the following commands to redeploy our example app: 
+You crafted runtime, deploy, and build-time policies with RHACS. On to *CI/CD and Automation*!
 
-[source,sh,subs="attributes",role=execute]
-----
-POLICY_ID=$(curl -X GET \
-  -H "Authorization: Bearer $ROX_API_TOKEN" \
-  -H "Content-Type: application/json" \
-  https://$ROX_CENTRAL_ADDRESS/v1/policies | jq -r '.policies[] | select(.name=="Alpine Linux Package Manager in Image - Enforce Deploy") | .id')
+:lab-cleanup-module: 04
+include::partial$lab-cleanup.adoc[]
 
-curl -X DELETE \
-  -H "Authorization: Bearer $ROX_API_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-        "id": "$POLICY_ID"
-      }' \
-  https://$ROX_CENTRAL_ADDRESS/v1/policies/$POLICY_ID
-
-oc apply -f $APP_HOME/skupper-demo/
-----
-
-In summary, we made use of the features provided by Red Hat Advanced Cluster Security for Kubernetes to display potential security violations in your cluster in a central dashboard. You crafted both deploy-time and runtime policies to help prevent malicious events from occurring in our cluster. Hopefully this lab has helped demonstrate to you the immense value provided by RHACS and OpenShift Platform Plus. Please feel free to continue and explore the RHACS lab environment.
-
-On to *CI/CD and Automation*!

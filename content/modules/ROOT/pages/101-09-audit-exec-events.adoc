@@ -120,6 +120,10 @@ Does this replace runtime detection?:: No—complements container-level signals.
 == Closing Story
 Audit logs are a time machine—without them investigation is guesswork, not evidence.
 
+
+:lab-cleanup-module: 101-09
+include::partial$lab-cleanup.adoc[]
+
 == Next Step Ideas
 
 * Daily exec counts per user summary

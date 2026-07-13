@@ -87,6 +87,10 @@ Measure startup time or simple CPU benchmark difference for awareness.
 oc delete project 201-10-s-sandbox --wait=false
 ----
 
+
+:lab-cleanup-module: 201-10
+include::partial$lab-cleanup.adoc[]
+
 == Key Points
 * Kata adds VM boundary to container security model
 * Still benefits from SCC, seccomp, quotas, NetworkPolicy

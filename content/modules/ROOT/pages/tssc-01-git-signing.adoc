@@ -1,0 +1,104 @@
+= Git Commit Signing with Trusted Artifact Signer
+:toc:
+:sectnums:
+:icons: font
+
+== Prerequisites
+
+. Clone the workshop apps repo: xref:00-acs-setup-install-navigation.adoc#deploy-the-workshop-apps[Deploy the Workshop Applications]
+. Complete xref:tssc-00-intro.adoc[Container Signing setup] (environment variables + `cosign initialize`) unless already done.
+
+== Setting up gitsign
+
+Configure `git` to sign commits with `gitsign` using the same Fulcio/Rekor/OIDC endpoints as container signing.
+
+[source,sh,subs="attributes",role=execute]
+----
+cd /home/lab-user/demo-apps
+git status
+----
+
+Push the repo to the cluster GitLab instance ({gitlab_url}) using credentials `{gitlab_user}` / `{gitlab_user_password}`:
+
+[source,sh,subs="attributes",role=execute]
+----
+export GITLAB_REPO_URL=https://$(oc get route gitlab -n gitlab | tail -n 1 | awk '{print $2}')/user1/demo-apps.git
+git remote remove origin 2>/dev/null || true
+git remote add origin $GITLAB_REPO_URL
+git push --set-upstream origin main
+----
+
+Configure local git for X509/gitsign signing:
+
+[source,sh,subs="attributes",role=execute]
+----
+git config --local commit.gpgsign true
+git config --local tag.gpgsign true
+git config --local gpg.x509.program gitsign
+git config --local gpg.format x509
+git config --local gitsign.fulcio $SIGSTORE_FULCIO_URL
+git config --local gitsign.rekor $SIGSTORE_REKOR_URL
+git config --local gitsign.issuer $SIGSTORE_OIDC_ISSUER
+git config --local gitsign.clientID trusted-artifact-signer
+----
+
+== Sign and push a commit
+
+[source,sh,subs="attributes",role=execute]
+----
+touch make-a-commit.txt
+git add .
+git commit -m "added an empty file"
+----
+
+Complete Keycloak browser authentication when prompted (copy the full verification code from the success page).
+
+image::11-signing-sso-login.png[keycloak login]
+image::11-signing-successcode.png[copy the success code]
+
+IMPORTANT: The *committer* name in git metadata can be set locally; the cryptographic *signer* identity (e.g. `jdoe@redhat.com`) comes from OIDC and is recorded in Rekor.
+
+[source,sh,subs="attributes",role=execute]
+----
+git push
+----
+
+GitLab may show an "unverified" badge—it detects a signature but does not yet validate keyless Sigstore signatures natively.
+
+image::11-gitlab-signature.png[unverified badge]
+
+== Verify the commit signature
+
+Inspect the signature metadata:
+
+[source,sh,subs="attributes",role=execute]
+----
+gitsign show
+----
+
+Verify against Rekor and the trust root for a specific identity:
+
+[source,sh,subs="attributes",role=execute]
+----
+gitsign verify --certificate-identity=jdoe@redhat.com --certificate-oidc-issuer $OIDC_ISSUER_URL
+----
+
+Or verify any Red Hat signer authenticated via your cluster OIDC domain:
+
+[source,sh,subs="attributes",role=execute]
+----
+gitsign verify --certificate-identity-regexp ^[a-zA-Z0-9._%+-]+@redhat\.com$ --certificate-oidc-issuer-regexp \.opentlc\.com
+----
+
+*Expected:* Certificate claims validate against Fulcio and the Rekor transparency log.
+
+== Summary
+
+Keyless signing works for git commits the same way as container images: Sigstore clients sign, Fulcio binds identity, Rekor witnesses the event—no long-lived GPG key pairs to distribute.
+
+== Next module
+
+Continue to xref:tssc-02-trusted-profile-analyzer.adoc[Trusted Profile Analyzer].
+
+:lab-cleanup-module: tssc-01
+include::partial$lab-cleanup.adoc[]

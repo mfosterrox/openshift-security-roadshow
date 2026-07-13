@@ -176,6 +176,10 @@ How small should images be?:: Smaller surface → fewer CVEs & faster pulls.
 == Closing Story
 Rebuilding is embedding security into the product lifecycle—fewer exceptions, faster approvals.
 
+
+:lab-cleanup-module: 101-11
+include::partial$lab-cleanup.adoc[]
+
 == Next Step Ideas
 
 * Pipeline check: fail if USER root in final layer

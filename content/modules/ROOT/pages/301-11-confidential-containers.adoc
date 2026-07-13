@@ -114,6 +114,10 @@ When should I use confidential containers?:: For sensitive data, regulatory comp
 == Closing Story
 Confidential containers extend trust boundaries to hardware, protecting sensitive workloads even from privileged host access.
 
+
+:lab-cleanup-module: 301-11
+include::partial$lab-cleanup.adoc[]
+
 == Next Step Ideas
 
 * Evaluate hardware support

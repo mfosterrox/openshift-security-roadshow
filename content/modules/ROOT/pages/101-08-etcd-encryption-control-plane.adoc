@@ -91,6 +91,10 @@ Can I enable encryption on existing clusters?:: Yes, but requires careful planni
 == Closing Story
 Encryption at rest is like a safe for your cluster's secrets—essential for protecting sensitive data.
 
+
+:lab-cleanup-module: 101-08
+include::partial$lab-cleanup.adoc[]
+
 == Next Step Ideas
 
 * Integrate with external KMS

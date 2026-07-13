@@ -148,6 +148,10 @@ Are scans disruptive?:: Low-impact; schedule off-peak for large estates.
 == Closing Story
 The cluster is a campus: locks (SCC), guards (RHACS), inspectors (Compliance), custom gear (SPO). Overlapping layers prevent single-point failure.
 
+
+:lab-cleanup-module: 101-10
+include::partial$lab-cleanup.adoc[]
+
 == Next Step Ideas
 
 * Weekly scan diff reporting

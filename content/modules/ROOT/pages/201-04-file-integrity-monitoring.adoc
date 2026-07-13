@@ -111,6 +111,10 @@ Does this impact node performance?:: Minimal; monitoring is lightweight.
 == Closing Story
 File integrity monitoring is like a security camera for your nodes—detecting changes before they become problems.
 
+
+:lab-cleanup-module: 201-04
+include::partial$lab-cleanup.adoc[]
+
 == Next Step Ideas
 
 * Configure alerting for integrity violations

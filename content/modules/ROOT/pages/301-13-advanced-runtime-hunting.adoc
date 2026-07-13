@@ -107,6 +107,10 @@ What response actions are available?:: Network isolation, pod termination, polic
 == Closing Story
 Advanced threat hunting and automated response transform security from reactive to proactive, reducing risk and improving resilience.
 
+
+:lab-cleanup-module: 301-13
+include::partial$lab-cleanup.adoc[]
+
 == Next Step Ideas
 
 * Develop custom hunting queries

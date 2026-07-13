@@ -219,6 +219,10 @@ What if I must run root?:: Create a documented exception with justification, sco
 == Closing Story
 OpenShift's model is "secure-by-default through skepticism." It behaves like a facilities team that locks doors and limits master keys because experience shows not every tenant configures safety correctly the first time. By embracing those guardrails, rather than bypassing them, you convert invisible risk into durable engineering hygiene.
 
+
+:lab-cleanup-module: 101-01
+include::partial$lab-cleanup.adoc[]
+
 == Next Step Ideas
 
 * Add pipeline policy: reject Dockerfiles ending with USER 0

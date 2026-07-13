@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eso-vault-test
+  namespace: vault
+  labels:
+    app: eso-read-vault-secret
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eso-read-vault-secret
+  template:
+    metadata:
+      labels:
+        app: eso-read-vault-secret
+    spec:
+      containers:
+        - name: app
+          image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+          command: ["sleep", "infinity"]
+          env:
+            - name: USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: my-second-secret-sync
+                  key: username
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: my-second-secret-sync
+                  key: password

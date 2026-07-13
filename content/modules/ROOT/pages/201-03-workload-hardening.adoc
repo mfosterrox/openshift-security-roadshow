@@ -206,6 +206,10 @@ Q: How do I detect privilege drift?:: Daily export of SCC assignments + RHACS po
 == Closing Story
 Generic armor protects, but tailored armor removes gaps a spear tip could find. Hardened runtime policy is that tailoring—subtle adjustments that make a huge difference when stress hits.
 
+
+:lab-cleanup-module: 201-03
+include::partial$lab-cleanup.adoc[]
+
 == Next Step Ideas
 * Admission: reject pods in “critical” namespaces not using hardened SCC.
 * SPO record/enforce cycle to craft a truly minimal seccomp profile.

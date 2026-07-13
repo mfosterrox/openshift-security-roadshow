@@ -176,6 +176,10 @@ Is STRIDE mandatory?:: No, use any framework that ensures balanced coverage (PAS
 == Closing Story
 The threat model is the cluster’s security blueprint: once drawn, each control placed feels intentional. Without it, defenses accumulate like random furniture—cluttered and still missing a front door lock.
 
+
+:lab-cleanup-module: 201-01
+include::partial$lab-cleanup.adoc[]
+
 == Next Step Ideas
 * Automate a risk score column and generate markdown → ticket sync
 * Add Mermaid diagram to your stored model file
