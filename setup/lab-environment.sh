@@ -179,15 +179,9 @@ if [[ "${SKIP_DEMO_APPS}" != true ]]; then
   fi
   oc apply -f "${TUTORIAL_HOME}/kubernetes-manifests/" --recursive
   echo ""
-  echo "Waiting for roadshow deployments..."
-  for _ in $(seq 1 36); do
-    ready=$(oc get deployments -l demo=roadshow -A --no-headers 2>/dev/null | awk '$2 ~ /^[0-9]+\/[0-9]+$/ && $2 !~ /0\// {c++} END {print c+0}')
-    total=$(oc get deployments -l demo=roadshow -A --no-headers 2>/dev/null | wc -l | tr -d ' ')
-    echo "  Deployments ready: ${ready:-0}/${total:-0}"
-    [[ "${total:-0}" -ge 1 && "${ready}" -eq "${total}" ]] && break
-    sleep 5
-  done
+  echo "Demo app manifests applied (Showroom often already has these running):"
   oc get deployments -l demo=roadshow -A
+  total=$(oc get deployments -l demo=roadshow -A --no-headers 2>/dev/null | wc -l | tr -d ' ')
   if [[ "${total:-0}" -lt 1 ]]; then
     echo "Error: no deployments with label demo=roadshow were found after apply." >&2
     exit 1

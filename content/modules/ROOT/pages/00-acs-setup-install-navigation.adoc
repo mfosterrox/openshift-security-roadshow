@@ -5,49 +5,21 @@
 
 == Module Goals
 
-* Access all applications in the lab environment
-* Deploy default insecure applications
-* Build and deploy a "Developer" image for the workshop
+* Access the OpenShift, RHACS, and Quay consoles used throughout the roadshow
+* Run the bastion setup script to configure RHACS CLI access and deploy vulnerable demo apps
+* Build and push workshop images to Quay, then deploy the patient-portal application
+* Complete the Trusted Image Pulls from Quay security exercise
 
 == Accessing the Workshop Components
 
-Ensure you can access all necessary resources to complete this lab.
-
-TIP: Always open URLs in a new tab. For example, on a Mac, use *<cmd> click*.
-
-=== Access the Red Hat^(R)^ OpenShift Container Platform (OCP) UI
-
-First, make sure you can access the Red Hat^(R)^ OCP console user interface.
-
-*Procedure*
-
-[start=1]
-. Log into the OCP console at `{web_console_url}[{web_console_url}^]`.
-. Click the *rhsso* option.
-
-IMPORTANT: If variables on the screen are unavailable, inform your workshop administrator.
-
-image::01-ocp-login-admin.png[OpenShift console,link=self, window=blank, width=100%]
-
-[start=3]
-. Enter the OCP credentials.
-
-[cols="1,1"]
-|===
-| *User:* | {openshift_admin_user}
-| *Password:* | {openshift_admin_password}
-|===
-
-image::01-ocp-login-password.png[OpenShift console login,link=self, window=blank, width=100%]
-
 === Access the Red Hat^(R)^ Advanced Cluster Security (RHACS) User Interface
 
-Ensure that you have access to the RHACS user interface.
+Ensure that you have access to the RHACS user interface using the tab in the right side of the UI or go to {acs_route}.
 
 *Procedure*
 
 [start=1]
-. Log into the RHACS console at `{acs_route}[{acs_route}^]`.
+. Log into the RHACS console using the RHACS tab to the right or go to `{acs_route}[{acs_route}^]`.
 
 image::01-rhacs-login.png[RHACS console,link=self, window=blank, width=100%]
 

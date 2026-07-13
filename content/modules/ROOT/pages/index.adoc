@@ -2,7 +2,7 @@
 
 This course offers hands-on experience with Kubernetes-native security on Red Hat^(R)^ OpenShift Container Platform—covering platform foundations, Advanced Cluster Security (RHACS), and Trusted Software Supply Chain (TSSC). Each module ends with a practical *task* so you apply what you learned before moving on.
 
-== How this lab works
+== How this Roadshow works
 
 * *This page is home* — Credentials and console links live here. Use the home button anytime you get lost.
 * *Navigate with the TOC* — Modules are in the left table of contents, or use *Next* at the bottom of each page.
@@ -15,7 +15,7 @@ This course offers hands-on experience with Kubernetes-native security on Red Ha
 * *101 — Foundations* — OpenShift secure-by-default: RBAC, SCC/PSA, network policy, secrets, image provenance, audit logging, compliance basics, and route TLS.
 * *201 — Intermediate* — Hardening and shift-left: custom RBAC/SCC, Vault and External Secrets Operator, CI/CD scanning and signing, audit correlation, compliance tailoring, and admission governance.
 * *301 — Advanced* — Enterprise zero trust: platform governance, GitOps compliance pipelines, multi-tenant segmentation, runtime detection and forensics, supply chain integrity, and workload identity.
-* *RHACS* — Full Advanced Cluster Security lifecycle on realistic workloads: visibility, vulnerabilities, risk, runtime/deploy/build policy, CI/CD gates, compliance, notifications, API, network security, and installation. 
+* *RHACS* — Complete Advanced Cluster Security walkthrough with on realistic examples covering: visibility, vulnerabilities, risk, runtime/deploy/build policy, CI/CD gates, compliance, notifications, API, network security, and installation. 
 * *TSSC* — Trusted Software Supply Chain: container and git signing with Trusted Artifact Signer, plus SBOM analysis in Trusted Profile Analyzer.
 
 == Environment setup
@@ -36,26 +36,29 @@ source ~/.bashrc
 
 == All lab components
 
-During the roadshow, you will utilize the following applications to complete all of the lab tasks:
+Before you start a path, confirm you can open each Showroom tab (right side of the lab UI) and sign in. Use these credentials anytime you return to this homepage.
 
-* Red Hat^(R)^ OpenShift Container Platform (RHOCP) console
-* Red Hat^(R)^ Advanced Cluster Management (RHACM) console with OpenShift GitOps (ArgoCD)
-* Red Hat^(R)^ Advanced Cluster Security (RHACS) console
-* Red Hat^(R)^ Quay console
-* Red Hat^(R)^ Trusted Artifact Signer (RHTAS)
-* Red Hat^(R)^ Enterprise Linux (RHEL) bastion host (The "Showroom" lab environment)
+TIP: Prefer the Showroom tabs so you keep this guide open. You can also open the console URL in a new browser tab.
 
-=== Red Hat^(R)^ OpenShift Container Platform (OCP) console information
+=== Red Hat^(R)^ OpenShift Container Platform (OCP)
+
+. Open the *OpenShift* tab (or go to `{openshift_cluster_console_url}`).
+. Sign in with the credentials below.
+
 [cols="1,1"]
 |===
-|Console URL| {web_console_url}[{web_console_url}^]
-|Username| {openshift_admin_user}
-|Password| {openshift_admin_password}
+|Console URL| {openshift_cluster_console_url}
+|Username| {openshift_cluster_admin_username}
+|Password| {openshift_cluster_admin_password}
 |===
 
-Red Hat^(R)^ Advanced Cluster Management (RHACM) and OpenShift GitOps (ArgoCD) are accessed from the same OpenShift console (e.g. *Applications*, *Pipelines*, and GitOps from the left menu or cluster dropdown).
+RHACM and OpenShift GitOps (ArgoCD) are available from the same OpenShift console (*Applications*, *Pipelines*, and GitOps in the left menu or cluster dropdown).
 
-=== Red Hat^(R)^ Advanced Cluster Security (RHACS) console information
+=== Red Hat^(R)^ Advanced Cluster Security (RHACS)
+
+. Open the *RHACS* tab to the right (or go to `{acs_route}[{acs_route}^]`).
+. Sign in with the credentials below.
+
 [cols="1,1"]
 |===
 |Console URL| {acs_route}[{acs_route}^]
@@ -64,6 +67,10 @@ Red Hat^(R)^ Advanced Cluster Management (RHACM) and OpenShift GitOps (ArgoCD) a
 |===
 
 === Red Hat^(R)^ Quay
+
+. Open the *Quay* tab (or go to `{quay_console_url}[{quay_console_url}^]`).
+. Sign in with the credentials below.
+
 [cols="1,1"]
 |===
 |Console URL| {quay_console_url}[{quay_console_url}^]
@@ -71,7 +78,11 @@ Red Hat^(R)^ Advanced Cluster Management (RHACM) and OpenShift GitOps (ArgoCD) a
 |Password| {quay_admin_password}
 |===
 
-=== Red Hat^(R)^ Trusted Profile Analyzer (RHTAP) information
+=== Red Hat^(R)^ Trusted Profile Analyzer (RHTPA)
+
+. Open the *Trusted Profile Analyzer* tab (or go to `{tpa_console_url}[{tpa_console_url}^]`).
+. Sign in with the credentials below.
+
 [cols="1,1"]
 |===
 |Console URL| {tpa_console_url}[{tpa_console_url}^]
@@ -79,12 +90,14 @@ Red Hat^(R)^ Advanced Cluster Management (RHACM) and OpenShift GitOps (ArgoCD) a
 |Password| {tpa_password}
 |===
 
-=== Red Hat^(R)^ Enterprise Linux (RHEL) bastion host information
+=== Red Hat^(R)^ Enterprise Linux (RHEL) bastion
 
-Use the bastion to run CLI commands required in the lab (`oc`, `roxctl`, `podman`, `curl`, etc.). SSH to the host below, then follow the steps in each module.
+Use the *Terminal* / bastion tab (or SSH) for CLI work (`oc`, `roxctl`, `podman`, `curl`, etc.).
 
 [cols="1,1"]
 |===
-|Username@host| {bastion_ssh_user_name}@{bastion_public_hostname}
+|SSH Command| {bastion_ssh_command}
 |Password| {bastion_ssh_password}
 |===
+
+

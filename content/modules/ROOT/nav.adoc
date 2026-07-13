@@ -1,21 +1,3 @@
-.Advanced Cluster Security Modules
-* xref:00-acs-setup-install-navigation.adoc[Setup and Introduction]
-* xref:01-acs-visibility-and-navigation.adoc[Visibility & Navigation]
-* xref:02-acs-vulnerability-management-lab.adoc[Vulnerability Management]
-* xref:03-acs-risk-profiling.adoc[Risk profiling]
-* xref:04-acs-policy-management.adoc[Policy Management]
-* xref:05-acs-cicd-and-automation.adoc[CI/CD Automation and Integration]
-* xref:06-acs-compliance.adoc[Compliance]
-* xref:07-acs-notifications.adoc[Notifications and Alerting]
-* xref:08-acs-api.adoc[API Walkthrough]
-* xref:09-acs-network-security.adoc[Network Security]
-* xref:10-acs-installation.adoc[Installation]
-
-.Software Supply Chain Security Modules
-* xref:tssc-00-intro.adoc[Trusted Artifact Signer — Container Signing]
-* xref:tssc-01-git-signing.adoc[Git Commit Signing]
-* xref:tssc-02-trusted-profile-analyzer.adoc[Trusted Profile Analyzer]
-
 .101 OpenShift Security Modules: Core Concepts & Foundations
 * xref:basic-INDEX.adoc[101 Labs Overview]
 * xref:101-01-default-secure-behavior.adoc[101-01 - Default Secure Behavior & Why OpenShift Differs from Vanilla Kubernetes]
@@ -60,3 +42,21 @@
 * xref:301-11-confidential-containers.adoc[301-11 - Confidential Containers & Secure Enclaves (Kata/Sandboxed + HW Support)]
 * xref:301-12-sovereign-cloud-security.adoc[301-12 - Sovereign Cloud & Digital Sovereignty Controls (BYO IdP, Data Residency)]
 * xref:301-13-advanced-runtime-hunting.adoc[301-13 - Advanced Runtime Threat Hunting, Response & ACS Automation]
+
+.Advanced Cluster Security Modules
+* xref:00-acs-setup-install-navigation.adoc[Setup and Introduction]
+* xref:01-acs-visibility-and-navigation.adoc[Visibility & Navigation]
+* xref:02-acs-vulnerability-management-lab.adoc[Vulnerability Management]
+* xref:03-acs-risk-profiling.adoc[Risk profiling]
+* xref:04-acs-policy-management.adoc[Policy Management]
+* xref:05-acs-cicd-and-automation.adoc[CI/CD Automation and Integration]
+* xref:06-acs-compliance.adoc[Compliance]
+* xref:07-acs-notifications.adoc[Notifications and Alerting]
+* xref:08-acs-api.adoc[API Walkthrough]
+* xref:09-acs-network-security.adoc[Network Security]
+* xref:10-acs-installation.adoc[Installation]
+
+.Software Supply Chain Security Modules
+* xref:tssc-00-intro.adoc[Trusted Artifact Signer — Container Signing]
+* xref:tssc-01-git-signing.adoc[Git Commit Signing]
+* xref:tssc-02-trusted-profile-analyzer.adoc[Trusted Profile Analyzer]
