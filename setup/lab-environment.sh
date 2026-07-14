@@ -110,7 +110,7 @@ oc get nodes --no-headers | head -5
 step "Waiting for RHACS Central"
 if ! oc -n stackrox get route central >/dev/null 2>&1; then
   echo "Error: RHACS Central route not found in namespace stackrox." >&2
-  echo "Showroom clusters should already run the RHACS demo basic-setup." >&2
+  echo "Instructors should run setup/cluster-prerequisites.sh (or setup/rhacs-configure.sh) first." >&2
   exit 1
 fi
 oc -n stackrox wait --for=condition=available --timeout=300s deployment/central 2>/dev/null \

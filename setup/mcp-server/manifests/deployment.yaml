@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stackrox-mcp
+  namespace: __MCP_NAMESPACE__
+  labels:
+    app.kubernetes.io/name: stackrox-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: stackrox-mcp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: stackrox-mcp
+    spec:
+      serviceAccountName: stackrox-mcp
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: stackrox-mcp
+          image: quay.io/stackrox-io/mcp:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - --config
+            - /config/config.yaml
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env: []  # Injected by install.sh when ROX_API_TOKEN is set
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 200m
+              memory: 500Mi
+            limits:
+              memory: 500Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: stackrox-mcp-config
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: stackrox-mcp
+                topologyKey: kubernetes.io/hostname

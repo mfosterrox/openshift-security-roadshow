@@ -1,0 +1,28 @@
+= OpenShift Lightspeed helpers
+
+Showroom is assumed to already install the OpenShift Lightspeed Operator and `openshift-lightspeed` namespace.
+
+== What roadshow configure does
+
+* `setup/mcp-server/install.sh` — deploy StackRox MCP and merge-patch `OLSConfig` with `MCPServer` + MCP endpoint (default).
+* `setup/lightspeed/configure-claude-default.sh` — optional LLM defaults / Claude provider (non-interactive).
+
+== Non-interactive LLM configure
+
+[source,bash]
+----
+# Defaults only (provider already in OLSConfig)
+export LIGHTSPEED_DEFAULT_PROVIDER=Anthropic
+export LIGHTSPEED_DEFAULT_MODEL=claude-sonnet-4-20250514
+bash setup/lightspeed/configure-claude-default.sh
+
+# Or add a BAM-style provider
+export LIGHTSPEED_BACKEND=bam
+export LIGHTSPEED_BAM_URL='https://your-gateway/v1'
+export ANTHROPIC_API_KEY='...'
+bash setup/lightspeed/configure-claude-default.sh
+----
+
+Interactive walkthrough: `bash setup/lightspeed/configure-claude-default.sh --interactive`
+
+If OLSConfig is missing or no credentials are set, the script skips with a warning (exit 0) so instructor configure can continue.

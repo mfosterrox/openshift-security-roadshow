@@ -1,0 +1,43 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: sample-stackrox-prometheus-server
+  namespace: stackrox
+spec:
+  serviceAccountName: sample-stackrox-prometheus-server
+  serviceMonitorSelector: {}
+  podMonitorSelector: {}
+  resources:
+    requests:
+      memory: 400Mi
+      cpu: 100m
+    limits:
+      memory: 2Gi
+      cpu: 1
+  retention: 30d
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: standard-rwo
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 65534
+    fsGroup: 65534
+  volumes:
+    - name: prometheus-token
+      projected:
+        sources:
+          - serviceAccountToken:
+              path: token
+              expirationSeconds: 3600
+  volumeMounts:
+    - name: prometheus-token
+      mountPath: /var/run/secrets/tokens
+      readOnly: true
+  additionalScrapeConfigs:
+    name: sample-stackrox-prometheus-additional-scrape-configs
+    key: prometheus-additional.yaml

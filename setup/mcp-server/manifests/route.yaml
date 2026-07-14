@@ -1,0 +1,18 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: stackrox-mcp
+  namespace: __MCP_NAMESPACE__
+  labels:
+    app.kubernetes.io/name: stackrox-mcp
+  annotations:
+    haproxy.router.openshift.io/balance: source
+spec:
+  to:
+    kind: Service
+    name: stackrox-mcp
+    port:
+      targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

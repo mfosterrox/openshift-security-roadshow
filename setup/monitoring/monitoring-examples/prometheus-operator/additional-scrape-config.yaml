@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sample-stackrox-prometheus-additional-scrape-configs
+  namespace: stackrox
+stringData:
+  prometheus-additional.yaml: |
+    - job_name: 'sample-stackrox-metrics'
+      scheme: https
+      metrics_path: /metrics
+      bearer_token_file: /var/run/secrets/tokens/token
+      tls_config:
+        insecure_skip_verify: true
+      static_configs:
+      - targets: ['central.stackrox.svc.cluster.local:443']

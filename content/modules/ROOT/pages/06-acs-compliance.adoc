@@ -18,6 +18,17 @@ Red Hat Advanced Cluster Security for Kubernetes (RHACS) supports OpenShift Cont
 
 == Install the Compliance Operator
 
+Many Showroom / roadshow clusters already have the Compliance Operator installed by instructor setup (`setup/rhacs-configure.sh`). Check first:
+
+[source,sh,subs="attributes",role=execute]
+----
+oc get pods -n openshift-compliance
+----
+
+*If the operator pods are Running*, skip the OperatorHub install and sensor restart below and continue with *Execute Your First Compliance Scan* (or review the existing daily schedule named `acs-catch-all` under *Compliance → Schedules*).
+
+*If the operator is not installed*, follow this procedure:
+
 *Procedure*
 . Log into the OCP console at `{web_console_url}`:
 . Click the *rhsso* option

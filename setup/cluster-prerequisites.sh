@@ -99,4 +99,8 @@ spec:
         - "3"
 EOF
 
+echo "==> Running RHACS demo configure (01–08, monitoring, MCP, Lightspeed helpers)..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+bash "${SCRIPT_DIR}/rhacs-configure.sh"
+
 echo "==> Cluster prerequisites applied."

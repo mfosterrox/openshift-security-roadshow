@@ -20,9 +20,7 @@ This course offers hands-on experience with Kubernetes-native security on Red Ha
 
 == Environment setup
 
-From the bastion, run the lab environment script. It configures RHACS CLI access (`ROX_CENTRAL_ADDRESS`, `ROX_PASSWORD`, and a generated `ROX_API_TOKEN`), deploys the vulnerable workshop demo applications, and builds/pushes the Quay frontend image used later in the labs.
-
-Cluster-wide RHACS install and baseline settings come from the Showroom image (RHACS demo basic-setup)—this script does not reinstall Central.
+From the bastion terminal tab, run the lab environment script. It configures RHACS CLI access (`ROX_CENTRAL_ADDRESS`, `ROX_PASSWORD`, and a generated `ROX_API_TOKEN`), deploys the vulnerable workshop demo applications, and builds/pushes the Quay frontend image used later in the labs.
 
 [source,bash,subs="attributes",role=execute]
 ----
@@ -76,18 +74,6 @@ RHACM and OpenShift GitOps (ArgoCD) are available from the same OpenShift consol
 |Console URL| {quay_console_url}[{quay_console_url}^]
 |Username| {quay_admin_username}
 |Password| {quay_admin_password}
-|===
-
-=== Red Hat^(R)^ Trusted Profile Analyzer (RHTPA)
-
-. Open the *Trusted Profile Analyzer* tab (or go to `{tpa_console_url}[{tpa_console_url}^]`).
-. Sign in with the credentials below.
-
-[cols="1,1"]
-|===
-|Console URL| {tpa_console_url}[{tpa_console_url}^]
-|Username| {tpa_username}
-|Password| {tpa_password}
 |===
 
 === Red Hat^(R)^ Enterprise Linux (RHEL) bastion

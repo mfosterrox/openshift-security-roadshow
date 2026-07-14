@@ -5,8 +5,9 @@ Run these scripts as *cluster-admin* before delivering the OpenShift Security Ro
 == Prerequisites
 
 * OpenShift cluster with RHACS (StackRox) installed in the `stackrox` namespace
+* OpenShift Lightspeed installed (for MCP ↔ OLSConfig wiring; LLM secrets optional)
 * `oc` CLI logged in as cluster-admin
-* `envsubst` available (from `gettext` package)
+* `jq`, `curl`, `openssl`, and `envsubst` (from `gettext`) available
 
 == One-time cluster configuration
 
@@ -15,13 +16,44 @@ Run these scripts as *cluster-admin* before delivering the OpenShift Security Ro
 ./setup/cluster-prerequisites.sh
 ----
 
-This configures:
+This configures ACME incident prerequisites, then runs `setup/rhacs-configure.sh`:
+
+*ACME extras*
 
 * `node-log-viewer` ClusterRole for audit log queries
 * Web Terminal operator subscription
 * RHACS collector external IP visibility
 * CRIU checkpoint RBAC for forensic exercises
 * Extended audit log retention
+
+*RHACS demo configure* (roadshow-native port of rhacs-demo basic-setup 01–08 + add-ons)
+
+* Verify/align RHACS (console plugin, route TLS, channel)
+* Collector `ROX_NON_AGGREGATED_NETWORKS` for non-RFC1918 CIDRs
+* Compliance Operator + daily `acs-catch-all` schedule + classic compliance runs
+* Central API settings, metrics, base-image registration
+* RHACS 4.11 TP flags + Attach-to-Pod policy check
+* Monitoring stack (COO / Perses / RHACS Monitoring auth)
+* StackRox MCP server + Lightspeed `OLSConfig` MCPServer wiring
+* Optional Lightspeed LLM defaults when credentials/env vars are set
+
+RHACS configure alone (skip ACME extras):
+
+[source,bash]
+----
+./setup/rhacs-configure.sh
+# Optional: --skip-monitoring --skip-mcp --skip-lightspeed --skip-compliance
+----
+
+Optional Lightspeed LLM credentials before configure:
+
+[source,bash]
+----
+export LIGHTSPEED_DEFAULT_PROVIDER=Anthropic
+export LIGHTSPEED_DEFAULT_MODEL=claude-sonnet-4-20250514
+# or: LIGHTSPEED_BACKEND=bam LIGHTSPEED_BAM_URL=https://... ANTHROPIC_API_KEY=...
+./setup/cluster-prerequisites.sh
+----
 
 == Deploy per-attendee environments
 
@@ -43,7 +75,7 @@ Attendees use the Showroom attribute `{workshop_user_suffix}` matching their ass
 
 == Attendee lab environment (bastion)
 
-Attendees clone the roadshow repository, then run `setup/lab-environment.sh`:
+Attendees clone the roadshow repository, then run `setup/lab-environment.sh` (CLI token, demo-apps, Quay images — not full RHACS configure):
 
 [source,bash]
 ----
@@ -74,6 +106,11 @@ https://github.com/jmhbnz/workshops/tree/main/data/security-new[security-new REA
 oc get pods -n payment-gateway-1
 oc get pods -n vulnerable-workload-1
 oc exec -n payment-gateway-1 payment-gateway --container httpd -- ls /tmp/.hidden_toolkit/
+
+# RHACS add-ons
+oc get pods -n stackrox-mcp
+oc get monitoringstack -A
+oc get olsconfig cluster -o yaml | head
 ----
 
-The last command should show `exfil.sh` if weaponization succeeded.
+The last incident command should show `exfil.sh` if weaponization succeeded.

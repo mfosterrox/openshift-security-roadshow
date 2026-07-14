@@ -1,0 +1,31 @@
+apiVersion: monitoring.rhobs/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: sample-stackrox-scrape-config
+  namespace: stackrox
+  labels:
+    app: central
+spec:
+  jobName: sample-stackrox-metrics
+  scheme: HTTPS
+  metricRelabelConfigs:
+    - sourceLabels: [__name__]
+      regex: 'go_.*|process_.*|promhttp_.*'
+      action: drop
+  metricsPath: /metrics
+  staticConfigs:
+    - targets:
+        - "central.stackrox.svc.cluster.local:443"
+  tlsConfig:
+    insecureSkipVerify: true
+    ca:
+      secret:
+        key: ca.pem
+        name: service-ca
+    cert:
+      secret:
+        key: tls.crt
+        name: sample-stackrox-prometheus-tls
+    keySecret:
+      key: tls.key
+      name: sample-stackrox-prometheus-tls
