@@ -3,16 +3,21 @@
 # Ports rhacs-demo basic-setup 01–08 (skip 04 app deploy), plus monitoring,
 # StackRox MCP, and OpenShift Lightspeed helpers — with no rhacs-demo dependency.
 #
+# Quiet by default (progress bar + current step). Use --verbose for full logs.
+# Independent jobs run in parallel after sequential prerequisites.
+#
 # Usage (cluster-admin):
 #   ./setup/rhacs-configure.sh
 #   ./setup/rhacs-configure.sh --skip-monitoring --skip-mcp
 #
-# Invoked automatically at the end of setup/cluster-prerequisites.sh.
+# Invoked by setup/lab-environment.sh and setup/cluster-prerequisites.sh.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/rhacs/lib/common.sh"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/rhacs/lib/progress.sh"
 
 RHACS_NAMESPACE="${RHACS_NAMESPACE:-stackrox}"
 
@@ -23,10 +28,17 @@ SKIP_MONITORING=false
 SKIP_MCP=false
 SKIP_LIGHTSPEED=false
 REQUIRE_LIGHTSPEED=false
+VERBOSE=false
 
 usage() {
   cat <<'EOF'
 Usage: rhacs-configure.sh [options]
+
+Phases:
+  1) Sequential: API token, RHACS verify/upgrade
+  2) Parallel:   collector networks + Compliance Operator install
+  3) Parallel:   settings, scans, 4.11, monitoring, MCP (+ demo-apps check)
+  4) Sequential: Lightspeed helpers (after MCP)
 
 Options:
   --skip-upgrade       Skip RHACS operator channel upgrade in 01
@@ -36,6 +48,7 @@ Options:
   --skip-mcp           Skip setup/mcp-server
   --skip-lightspeed    Skip setup/lightspeed LLM helpers
   --require-lightspeed Fail if OpenShift Lightspeed OLSConfig is missing (MCP path)
+  --verbose            Stream full child-script output for sequential steps
   -h, --help           Show help
 EOF
 }
@@ -49,6 +62,7 @@ while [[ $# -gt 0 ]]; do
     --skip-mcp) SKIP_MCP=true; shift ;;
     --skip-lightspeed) SKIP_LIGHTSPEED=true; shift ;;
     --require-lightspeed) REQUIRE_LIGHTSPEED=true; shift ;;
+    --verbose|-v) VERBOSE=true; shift ;;
     -h|--help) usage; exit 0 ;;
     *)
       print_error "Unknown option: $1"
@@ -58,124 +72,109 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-run_step() {
-  local label="$1"
-  shift
-  print_step "${label}"
-  echo "------------------------------------------------------------------------"
-  "$@"
-}
+PROGRESS_VERBOSE="${VERBOSE}"
 
 require_cmd oc jq curl || exit 1
 require_oc || exit 1
 
-print_step "Resolving RHACS Central + API token"
-resolve_rox_central_address || exit 1
-ensure_rox_api_token || exit 1
-export ROX_CENTRAL_ADDRESS ROX_API_TOKEN RHACS_NAMESPACE
-# Persist host-only for bastion/lab compatibility
-HOST_ONLY="$(rox_central_host)"
-if [[ -f "${HOME}/.bashrc" ]]; then
-  for name in ROX_CENTRAL_ADDRESS ROX_API_TOKEN; do
-    if grep -qE "^(export[[:space:]]+)?${name}=" "${HOME}/.bashrc" 2>/dev/null; then
-      sed -i.bak "/^export ${name}=/d;/^${name}=/d" "${HOME}/.bashrc" 2>/dev/null || \
-        sed -i '' "/^export ${name}=/d;/^${name}=/d" "${HOME}/.bashrc" 2>/dev/null || true
-    fi
-  done
-  {
-    printf 'export ROX_CENTRAL_ADDRESS=%q\n' "${HOST_ONLY}"
-    printf 'export ROX_API_TOKEN=%q\n' "${ROX_API_TOKEN}"
-  } >> "${HOME}/.bashrc"
-fi
-print_info "ROX_CENTRAL_ADDRESS=${HOST_ONLY} (host-only in ~/.bashrc)"
-print_info "ROX_API_TOKEN set (${#ROX_API_TOKEN} chars)"
-
-# Child scripts that call get_central_url tolerate host-only; monitoring normalize to https://
-export ROX_CENTRAL_ADDRESS="${HOST_ONLY}"
-
 RHACS_DIR="${SCRIPT_DIR}/rhacs"
 
-if [[ "${SKIP_UPGRADE}" == true ]]; then
-  print_warn "Skipping RHACS verify/upgrade (01) — --skip-upgrade"
-else
-  run_step "01 Verify / align RHACS install" bash "${RHACS_DIR}/01-verify-rhacs-install.sh"
+# Count progress units (each parallel job counts as one unit)
+TOTAL=1 # resolve token
+[[ "${SKIP_UPGRADE}" != true ]] && TOTAL=$((TOTAL + 1))
+# phase 2 parallel units
+PHASE2=1 # collector always
+[[ "${SKIP_COMPLIANCE}" != true ]] && PHASE2=$((PHASE2 + 1))
+TOTAL=$((TOTAL + PHASE2))
+# phase 3 parallel units
+PHASE3=1 # demo apps check always
+PHASE3=$((PHASE3 + 1)) # settings always
+[[ "${SKIP_COMPLIANCE}" != true ]] && PHASE3=$((PHASE3 + 2)) # 06 + 07
+[[ "${SKIP_411}" != true ]] && PHASE3=$((PHASE3 + 1))
+[[ "${SKIP_MONITORING}" != true ]] && PHASE3=$((PHASE3 + 1))
+[[ "${SKIP_MCP}" != true ]] && PHASE3=$((PHASE3 + 1))
+TOTAL=$((TOTAL + PHASE3))
+[[ "${SKIP_LIGHTSPEED}" != true ]] && TOTAL=$((TOTAL + 1))
+
+LOG_DIR="${HOME}/.acs-roadshow"
+mkdir -p "${LOG_DIR}"
+LOG_FILE="${LOG_DIR}/rhacs-configure-$(date +%Y%m%d-%H%M%S).log"
+progress_init "${TOTAL}" "${LOG_FILE}" "RHACS configure"
+
+resolve_token_step() {
+  resolve_rox_central_address || return 1
+  ensure_rox_api_token || return 1
+  export ROX_CENTRAL_ADDRESS ROX_API_TOKEN RHACS_NAMESPACE
+  HOST_ONLY="$(rox_central_host)"
+  if [[ -f "${HOME}/.bashrc" ]]; then
+    for name in ROX_CENTRAL_ADDRESS ROX_API_TOKEN; do
+      if grep -qE "^(export[[:space:]]+)?${name}=" "${HOME}/.bashrc" 2>/dev/null; then
+        sed -i.bak "/^export ${name}=/d;/^${name}=/d" "${HOME}/.bashrc" 2>/dev/null || \
+          sed -i '' "/^export ${name}=/d;/^${name}=/d" "${HOME}/.bashrc" 2>/dev/null || true
+      fi
+    done
+    {
+      printf 'export ROX_CENTRAL_ADDRESS=%q\n' "${HOST_ONLY}"
+      printf 'export ROX_API_TOKEN=%q\n' "${ROX_API_TOKEN}"
+    } >> "${HOME}/.bashrc"
+  fi
+  export ROX_CENTRAL_ADDRESS="${HOST_ONLY}"
+  echo "ROX_CENTRAL_ADDRESS=${HOST_ONLY}"
+  echo "ROX_API_TOKEN set (${#ROX_API_TOKEN} chars)"
+}
+
+# ---- Phase 1: sequential prerequisites ----
+progress_run "Resolve RHACS API access" resolve_token_step
+
+if [[ "${SKIP_UPGRADE}" != true ]]; then
+  progress_run "Verify and align RHACS install" \
+    bash "${RHACS_DIR}/01-verify-rhacs-install.sh"
 fi
 
-run_step "02 Configure collector non-aggregated networks" \
-  bash "${RHACS_DIR}/02-configure-collector-networks.sh"
-
-if [[ "${SKIP_COMPLIANCE}" == true ]]; then
-  print_warn "Skipping Compliance Operator + scans (03/06/07)"
-else
-  run_step "03 Install Compliance Operator" \
-    bash "${RHACS_DIR}/03-compliance-operator-install.sh"
-fi
-
-# 04: demo apps are owned by lab-environment.sh (demo-apps), not demo-applications
-print_step "04 Demo applications (verify only)"
-echo "------------------------------------------------------------------------"
-if oc get deployments -l demo=roadshow -A --no-headers 2>/dev/null | grep -q .; then
-  print_info "✓ Found deployments with label demo=roadshow"
-  oc get deployments -l demo=roadshow -A
-else
-  print_warn "No demo=roadshow deployments yet. Attendees deploy via setup/lab-environment.sh."
-fi
-
-run_step "05 Configure RHACS settings + base images" \
-  bash "${RHACS_DIR}/05-configure-rhacs-settings.sh"
-
+# ---- Phase 2: collector + Compliance Operator in parallel ----
+phase2_args=()
+phase2_args+=("Collector networks" "bash '${RHACS_DIR}/02-configure-collector-networks.sh'")
 if [[ "${SKIP_COMPLIANCE}" != true ]]; then
-  run_step "06 Compliance Operator scan schedule" \
-    bash "${RHACS_DIR}/06-setup-co-scan-schedule.sh"
-  run_step "07 Trigger classic compliance scans" \
-    bash "${RHACS_DIR}/07-trigger-compliance-scan.sh"
+  phase2_args+=("Compliance Operator" "bash '${RHACS_DIR}/03-compliance-operator-install.sh'")
 fi
+progress_run_parallel "${phase2_args[@]}"
 
-if [[ "${SKIP_411}" == true ]]; then
-  print_warn "Skipping 4.11 features (08)"
-else
-  run_step "08 Configure RHACS 4.11 features" \
-    bash "${RHACS_DIR}/08-configure-rhacs-411-features.sh"
+# ---- Phase 3: independent config jobs in parallel ----
+phase3_args=()
+phase3_args+=("Demo apps check" "oc get deployments -l demo=roadshow -A 2>/dev/null || echo 'No demo=roadshow deployments yet'")
+phase3_args+=("RHACS settings" "bash '${RHACS_DIR}/05-configure-rhacs-settings.sh'")
+if [[ "${SKIP_COMPLIANCE}" != true ]]; then
+  phase3_args+=("Compliance schedule" "bash '${RHACS_DIR}/06-setup-co-scan-schedule.sh'")
+  phase3_args+=("Compliance scans" "bash '${RHACS_DIR}/07-trigger-compliance-scan.sh'")
 fi
-
-if [[ "${SKIP_MONITORING}" == true ]]; then
-  print_warn "Skipping monitoring setup"
-else
-  run_step "Monitoring (certs + COO + RHACS auth)" \
-    bash "${SCRIPT_DIR}/monitoring/install.sh"
+if [[ "${SKIP_411}" != true ]]; then
+  phase3_args+=("RHACS 4.11 features" "bash '${RHACS_DIR}/08-configure-rhacs-411-features.sh'")
 fi
-
-if [[ "${SKIP_MCP}" == true ]]; then
-  print_warn "Skipping MCP server setup"
-else
+if [[ "${SKIP_MONITORING}" != true ]]; then
+  phase3_args+=("Monitoring stack" "bash '${SCRIPT_DIR}/monitoring/install.sh'")
+fi
+if [[ "${SKIP_MCP}" != true ]]; then
   if [[ "${REQUIRE_LIGHTSPEED}" == true ]]; then
     export LIGHTSPEED_VALIDATE=true
   fi
-  run_step "StackRox MCP server (+ Lightspeed OLSConfig MCP wiring)" \
-    bash "${SCRIPT_DIR}/mcp-server/install.sh"
+  phase3_args+=("StackRox MCP" "bash '${SCRIPT_DIR}/mcp-server/install.sh'")
 fi
+progress_run_parallel "${phase3_args[@]}"
 
-if [[ "${SKIP_LIGHTSPEED}" == true ]]; then
-  print_warn "Skipping Lightspeed LLM helpers"
-else
-  run_step "Lightspeed LLM helpers (non-interactive; skip if no credentials)" \
+# ---- Phase 4: Lightspeed after MCP ----
+if [[ "${SKIP_LIGHTSPEED}" != true ]]; then
+  progress_run "Configure Lightspeed helpers" \
     bash "${SCRIPT_DIR}/lightspeed/configure-claude-default.sh"
 fi
 
-print_step "RHACS configure complete"
+HOST_ONLY="$(rox_central_host)"
+progress_done "RHACS configure complete"
+
 cat <<EOF
 
-Demo-ready RHACS configuration applied.
+Done. Log: ${LOG_FILE}
 
   ROX_CENTRAL_ADDRESS=${HOST_ONLY}
   ROX_API_TOKEN=<in ~/.bashrc>
-
-Attendee bastion next:
-  bash setup/lab-environment.sh --quay-user USER --quay-password 'secret'
-
-Optional Lightspeed LLM (if not already set):
-  export LIGHTSPEED_DEFAULT_PROVIDER=... LIGHTSPEED_DEFAULT_MODEL=...
-  # or LIGHTSPEED_BACKEND=bam LIGHTSPEED_BAM_URL=... ANTHROPIC_API_KEY=...
-  bash setup/lightspeed/configure-claude-default.sh
 
 EOF
