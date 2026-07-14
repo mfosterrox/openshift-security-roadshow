@@ -58,6 +58,29 @@ progress_done() {
   fi
 }
 
+# Clear success banner for workshop viewers (TTY and log-friendly).
+progress_success_banner() {
+  local title="${1:-Setup completed successfully}"
+  shift || true
+  local green="" nc=""
+  if [[ -t 1 ]]; then
+    green=$'\033[0;32m'
+    nc=$'\033[0m'
+  fi
+  echo ""
+  echo "${green}================================================================${nc}"
+  echo "${green}  SUCCESS: ${title}${nc}"
+  echo "${green}================================================================${nc}"
+  if [[ $# -gt 0 ]]; then
+    echo ""
+    local line
+    for line in "$@"; do
+      echo "  ✓ ${line}"
+    done
+  fi
+  echo ""
+}
+
 # Run a command as the next progress step. On failure, dump log tail and exit.
 progress_run() {
   local label="$1"

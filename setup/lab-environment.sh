@@ -336,22 +336,25 @@ fi
 
 progress_done "Lab environment setup complete"
 
+progress_success_banner "Lab environment setup completed successfully" \
+  "RHACS CLI ready (ROX_CENTRAL_ADDRESS / ROX_API_TOKEN in ~/.bashrc)" \
+  "Workshop demo applications deployed" \
+  "Quay images ready (golden base + frontend, when image steps ran)" \
+  "Detailed log: ${LOG_FILE}"
+
 cat <<EOF
-
-Done. Log: ${LOG_FILE}
-
+Environment summary
   TUTORIAL_HOME=${TUTORIAL_HOME:-not set}
   QUAY_USER=${QUAY_USER}
   QUAY_URL=${QUAY_URL:-not set}
   ROX_CENTRAL_ADDRESS=${ROX_CENTRAL_ADDRESS}
   ROX_API_TOKEN=<set in ~/.bashrc, ${#ROX_API_TOKEN} chars>
 
-NEXT STEPS:
-  1. Open the Quay console and browse the frontend repository (see module 00).
-  2. Make the frontend repository PUBLIC under Repository Settings.
-  3. Deploy the patient-portal application:
+NEXT STEPS
+  1. Reload your shell:  source ~/.bashrc
+  2. Open the Quay console and browse the frontend repository (see module 00).
+  3. Make the frontend repository PUBLIC under Repository Settings.
+  4. Deploy the patient-portal application:
 
      bash setup/lab-environment.sh --deploy-skupper-only
-
-Reload your shell to pick up variables:  source ~/.bashrc
 EOF

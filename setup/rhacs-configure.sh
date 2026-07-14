@@ -170,11 +170,12 @@ fi
 HOST_ONLY="$(rox_central_host)"
 progress_done "RHACS configure complete"
 
+progress_success_banner "RHACS configure completed successfully" \
+  "Central API access configured" \
+  "Compliance, monitoring, MCP, and Lightspeed helpers applied (per selected options)" \
+  "Detailed log: ${LOG_FILE}"
+
 cat <<EOF
-
-Done. Log: ${LOG_FILE}
-
   ROX_CENTRAL_ADDRESS=${HOST_ONLY}
   ROX_API_TOKEN=<in ~/.bashrc>
-
 EOF
