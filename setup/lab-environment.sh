@@ -204,20 +204,67 @@ do_demo_apps() {
   fi
 }
 
+# Resolve Quay registry hostname. Showroom clusters commonly use namespace "quay"
+# (route quay-quay); some older labs used "quay-enterprise".
+detect_quay_url() {
+  local ns route host
+  for ns in quay quay-enterprise; do
+    for route in quay-quay quay; do
+      host="$(oc -n "${ns}" get route "${route}" -o jsonpath='{.spec.host}' 2>/dev/null || true)"
+      if [[ -n "${host}" ]]; then
+        echo "${host}"
+        return 0
+      fi
+    done
+  done
+  # Last resort: any route whose name/host contains "quay"
+  host="$(oc get routes -A -o jsonpath='{range .items[*]}{.metadata.namespace}{"\t"}{.metadata.name}{"\t"}{.spec.host}{"\n"}{end}' 2>/dev/null \
+    | awk -F'\t' 'tolower($2) ~ /quay/ || tolower($3) ~ /quay/ { print $3; exit }')"
+  if [[ -n "${host}" ]]; then
+    echo "${host}"
+    return 0
+  fi
+  return 1
+}
+
+# Labs expect podman; install it when missing (common on minimal bastions).
+ensure_podman() {
+  if command -v podman >/dev/null 2>&1; then
+    return 0
+  fi
+  echo "podman not found; attempting install..."
+  if command -v dnf >/dev/null 2>&1; then
+    sudo dnf install -y podman
+  elif command -v yum >/dev/null 2>&1; then
+    sudo yum install -y podman
+  else
+    echo "Error: podman is required but could not be installed (no dnf/yum)." >&2
+    return 1
+  fi
+  command -v podman >/dev/null 2>&1
+}
+
 do_quay_login() {
-  QUAY_URL="$(oc -n quay-enterprise get route quay-quay -o jsonpath='{.spec.host}')"
+  ensure_podman || return 1
+  QUAY_URL="$(detect_quay_url)" || {
+    echo "Error: could not find a Quay route (tried namespaces quay, quay-enterprise)." >&2
+    return 1
+  }
   persist_var QUAY_USER "${QUAY_USER}"
   persist_var QUAY_URL "${QUAY_URL}"
+  echo "Using Quay at ${QUAY_URL}"
   podman login "${QUAY_URL}" -u "${QUAY_USER}" -p "${QUAY_PASSWORD}"
 }
 
 do_golden_image() {
+  ensure_podman || return 1
   podman pull python:3.12-alpine
   podman tag docker.io/library/python:3.12-alpine "${QUAY_URL}/${QUAY_USER}/python-alpine-golden:0.1"
   podman push "${QUAY_URL}/${QUAY_USER}/python-alpine-golden:0.1"
 }
 
 do_frontend_image() {
+  ensure_podman || return 1
   # shellcheck source=/dev/null
   source "${HOME}/.bashrc"
   sed -i "s|^FROM python:3\.12-alpine AS \(\w\+\)|FROM ${QUAY_URL}/${QUAY_USER}/python-alpine-golden:0.1 AS \1|" \
