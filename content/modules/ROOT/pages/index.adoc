@@ -20,7 +20,7 @@ This course offers hands-on experience with Kubernetes-native security on Red Ha
 
 == Environment setup
 
-From the bastion terminal tab, run the lab environment script. It configures RHACS CLI access (`ROX_CENTRAL_ADDRESS`, `ROX_PASSWORD`, and a generated `ROX_API_TOKEN`), deploys the vulnerable workshop demo applications, and builds/pushes the Quay frontend image used later in the labs.
+From the bastion terminal tab, clone this repository and run the lab environment script. This is the attendee setup path: it applies RHACS demo configuration (compliance, monitoring, MCP, Lightspeed helpers), configures RHACS CLI access (`ROX_CENTRAL_ADDRESS`, `ROX_PASSWORD`, and a generated `ROX_API_TOKEN`), deploys the vulnerable workshop demo applications, and builds/pushes the Quay golden base and frontend images used later in the labs.
 
 [source,bash,subs="attributes",role=execute]
 ----

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Provision the ACS roadshow lab environment on the bastion host.
-# Configures RHACS (Central address, password, API token), deploys demo apps,
-# and optionally builds/pushes Quay images. Persists variables to ~/.bashrc.
+# Runs RHACS demo configure (settings, compliance, monitoring, MCP, Lightspeed),
+# then configures CLI access, deploys demo apps, and builds/pushes Quay images.
 #
 # Usage:
 #   bash setup/lab-environment.sh \
@@ -12,11 +12,14 @@
 #   bash setup/lab-environment.sh --deploy-skupper-only
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 QUAY_USER=""
 QUAY_PASSWORD=""
 DEPLOY_SKUPPER_ONLY=false
 SKIP_DEMO_APPS=false
 SKIP_IMAGES=false
+SKIP_RHACS_CONFIGURE=false
 WORK_DIR="${HOME}"
 
 DEMO_APPS_REPO="${DEMO_APPS_REPO:-https://github.com/mfosterrox/demo-apps.git}"
@@ -51,6 +54,7 @@ Options:
   --deploy-skupper-only     Deploy patient-portal after frontend repo is public in Quay
   --skip-demo-apps          Skip cloning and applying vulnerable demo manifests
   --skip-images             Skip golden image and frontend build/push
+  --skip-rhacs-configure    Skip setup/rhacs-configure.sh (RHACS/monitoring/MCP)
   --work-dir DIR            Base directory for clones (default: $HOME)
   -h, --help                Show this help
 EOF
@@ -63,6 +67,7 @@ while [[ $# -gt 0 ]]; do
     --deploy-skupper-only) DEPLOY_SKUPPER_ONLY=true; shift ;;
     --skip-demo-apps) SKIP_DEMO_APPS=true; shift ;;
     --skip-images) SKIP_IMAGES=true; shift ;;
+    --skip-rhacs-configure) SKIP_RHACS_CONFIGURE=true; shift ;;
     --work-dir) WORK_DIR=$2; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown option: $1" >&2; usage; exit 1 ;;
@@ -110,11 +115,18 @@ oc get nodes --no-headers | head -5
 step "Waiting for RHACS Central"
 if ! oc -n stackrox get route central >/dev/null 2>&1; then
   echo "Error: RHACS Central route not found in namespace stackrox." >&2
-  echo "Instructors should run setup/cluster-prerequisites.sh (or setup/rhacs-configure.sh) first." >&2
+  echo "Ensure RHACS is installed (Central route in namespace stackrox) before running this script." >&2
   exit 1
 fi
 oc -n stackrox wait --for=condition=available --timeout=300s deployment/central 2>/dev/null \
   || echo "NOTE: Central deployment not yet Available; continuing with route lookup."
+
+if [[ "${SKIP_RHACS_CONFIGURE}" != true ]]; then
+  step "RHACS demo configure (settings, compliance, monitoring, MCP, Lightspeed)"
+  bash "${SCRIPT_DIR}/rhacs-configure.sh"
+  # shellcheck source=/dev/null
+  source "${HOME}/.bashrc" 2>/dev/null || true
+fi
 
 step "Configuring RHACS CLI variables"
 # Host only (no scheme) — matches roxctl -e and https://$ROX_CENTRAL_ADDRESS lab commands
@@ -186,11 +198,6 @@ if [[ "${SKIP_DEMO_APPS}" != true ]]; then
     echo "Error: no deployments with label demo=roadshow were found after apply." >&2
     exit 1
   fi
-
-  step "Sample vulnerability scan (DVWA image)"
-  roxctl --insecure-skip-tls-verify -e "${ROX_CENTRAL_ADDRESS}:443" image scan \
-    --image=quay.io/mfoster/dvwa:0.1.0 --severity CRITICAL,IMPORTANT --force -o table | head -20
-  echo "... (truncated)"
 fi
 
 if [[ "${SKIP_IMAGES}" != true ]]; then

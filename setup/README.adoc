@@ -75,7 +75,7 @@ Attendees use the Showroom attribute `{workshop_user_suffix}` matching their ass
 
 == Attendee lab environment (bastion)
 
-Attendees clone the roadshow repository, then run `setup/lab-environment.sh` (CLI token, demo-apps, Quay images — not full RHACS configure):
+Attendees clone the roadshow repository, then run `setup/lab-environment.sh`. That script runs `rhacs-configure.sh` (RHACS settings, compliance, monitoring, MCP, Lightspeed helpers), then CLI token setup, demo-apps, and Quay images:
 
 [source,bash]
 ----
@@ -84,6 +84,8 @@ cd openshift-security-roadshow
 bash setup/lab-environment.sh --quay-user QUAYADMIN --quay-password 'password'
 bash setup/lab-environment.sh --deploy-skupper-only
 ----
+
+Use `--skip-rhacs-configure` if an instructor already ran configure and attendees should only refresh CLI/apps/images.
 
 Attendees record module completion by running `setup/lab-cleanup.sh` at the end of each module (documented as a routine cleanup step). Progress is written to `~/.acs-roadshow/progress` on the bastion for instructor verification.
 
