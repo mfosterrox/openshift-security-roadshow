@@ -8,15 +8,27 @@ This course offers hands-on experience with Kubernetes-native security on Red Ha
 * *Navigate with the TOC* — Modules are in the left table of contents, or use *Next* at the bottom of each page.
 * *Open consoles in a new tab* — Keep this guide open. On a Mac, use *<cmd> click*; on Windows/Linux, use *<ctrl> click* or right-click → "Open in new tab."
 * *Use the bastion* — Run `oc`, `roxctl`, and `podman` on the RHEL bastion (SSH details below).
-* *Pick a path* — Tracks are self-contained. Start with the path that matches your audience; each module ends with a hands-on scenario.
+* *Pick a role* — Choose the track that matches your job. Each track lists only the labs that role owns in the https://ralvares.github.io/openshift-security-framework/[OpenShift Security Skills Framework^].
 
-== Learning paths
+[[choose-your-role]]
+== Choose your role
 
-* *101 — Foundations* — OpenShift secure-by-default: RBAC, SCC/PSA, network policy, secrets, image provenance, audit logging, compliance basics, and route TLS.
-* *201 — Intermediate* — Hardening and shift-left: custom RBAC/SCC, Vault and External Secrets Operator, CI/CD scanning and signing, audit correlation, compliance tailoring, and admission governance.
-* *301 — Advanced* — Enterprise zero trust: platform governance, GitOps compliance pipelines, multi-tenant segmentation, runtime detection and forensics, supply chain integrity, and workload identity.
-* *RHACS* — Complete Advanced Cluster Security walkthrough with on realistic examples covering: visibility, vulnerabilities, risk, runtime/deploy/build policy, CI/CD gates, compliance, notifications, API, network security, and installation. 
-* *TSSC* — Trusted Software Supply Chain: container and git signing with Trusted Artifact Signer, plus SBOM analysis in Trusted Profile Analyzer.
+Start here. Open the track for your role, then follow the recommended sequence (Basic → Intermediate → Advanced).
+
+* xref:track-application-developer.adoc[Application Developer] — Build and ship secure workloads: least privilege, secrets, trusted images, and baseline pipeline hygiene.
+* xref:track-platform-operator.adoc[Platform Operator] — Operate and harden clusters: SCCs, quotas, network baselines, audit, compliance, and day-2 guardrails.
+* xref:track-devsecops-engineer.adoc[DevSecOps Engineer] — Embed security in delivery: CI/CD gates, signing, admission policy, runtime feedback, and supply chain controls.
+* xref:track-security-architect.adoc[Security Architect] — Design governance and zero-trust strategy across teams, clusters, identity, and exceptions.
+* xref:track-network-infrastructure.adoc[Network & Infrastructure Engineer] — Secure the data plane: segmentation, encryption in transit, mTLS patterns, and traffic-focused observability.
+
+Browse full catalogs by skill level: xref:basic-INDEX.adoc[101 Foundations], xref:intermediate-INDEX.adoc[201 Intermediate], xref:advanced-INDEX.adoc[301 Advanced].
+
+== Optional product deep-dives
+
+Use these after (or alongside) the role track that owns the capability—especially DevSecOps, Platform Operator, and Security Architect.
+
+* xref:00-acs-setup-install-navigation.adoc[RHACS] — Visibility, vulnerabilities, risk, policy, CI/CD gates, compliance, network security, and installation.
+* xref:tssc-00-intro.adoc[TSSC] — Trusted Artifact Signer (container and git signing) and Trusted Profile Analyzer (SBOM analysis).
 
 == Environment setup
 

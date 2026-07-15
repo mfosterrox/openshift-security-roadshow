@@ -1,60 +1,124 @@
-= Advanced Labs Index (Skills A1–A10)
+= 301 Labs Overview (Advanced skills A1–A10)
 :toc:
 :icons: font
 
+xref:index.adoc[← Back to home] · Start from a role: xref:track-application-developer.adoc[Application Developer] · xref:track-platform-operator.adoc[Platform Operator] · xref:track-devsecops-engineer.adoc[DevSecOps] · xref:track-security-architect.adoc[Security Architect] · xref:track-network-infrastructure.adoc[Network & Infrastructure]
+
+Skills and role ownership follow the https://ralvares.github.io/openshift-security-framework/[OpenShift Security Skills Framework^].
+
 == Overview
 
-These advanced labs cover enterprise-grade security architectures and patterns for OpenShift environments. You'll learn to design and implement zero-trust networking, advanced cryptography, and confidential computing solutions.
+These advanced labs cover enterprise security architecture and zero-trust patterns: governance, GitOps policy, multi-tenant networking, runtime detection, forensics, supply chain integrity, remediation automation, culture, cryptography, and workload identity.
 
-Advanced capabilities covered:
+Canonical Advanced skills:
 
-* Platform-wide security governance and multi-team architecture - A1
-* GitOps-driven policy and compliance pipelines - A2
-* Multi-tenant zero-trust network segmentation - A3
-* Runtime threat detection and response workflows - A4
-* Incident response and forensic investigation - A5
-* End-to-end supply chain integrity and provenance - A6
-* Automated remediation and policy enforcement - A7
-* Security culture and maturity programs - A8
-* Advanced cryptography and encryption strategies - A9
-* Zero-trust workload identity and confidential computing - A10
+* *A1* — Platform-wide security governance
+* *A2* — GitOps-driven policy and compliance pipelines
+* *A3* — Multi-tenant zero-trust network and service segmentation
+* *A4* — Runtime threat detection pipelines and response integration
+* *A5* — Coordinated incident response and forensics
+* *A6* — End-to-end supply chain integrity and provenance
+* *A7* — Automated remediation and policy enforcement
+* *A8* — Security culture and maturity
+* *A9* — Advanced cryptography and encryption strategies
+* *A10* — Zero-trust workload identity and confidential computing
 
-What you'll practice:
-
-* Leading platform-wide security governance and architecture decisions
-* Implementing GitOps-driven policy and compliance pipelines
-* Architecting service mesh mTLS and layered NetworkPolicies
-* Engineering runtime threat detection and response workflows
-* Leading incident response and forensic investigations
-* Establishing supply chain integrity and artifact provenance
-* Automating remediation and policy enforcement
-* Driving security culture and maturity improvements
-* Integrating key management and encryption strategies
-* Configuring workload identity and confidential computing
+Application Developer has no Advanced skills in the framework—use Intermediate completion, then DevSecOps or Architect.
 
 Audience and prerequisites:
 
-* Red Hat OpenShift cluster with cluster-admin access
-* For security architects, platform engineers, and senior security practitioners
-* Requires deep understanding of OpenShift networking, security, and architecture
-* Advanced knowledge of cryptography, key management, and confidential computing concepts
+* OpenShift cluster with cluster-admin (or delegated) access for most labs
+* Deep OpenShift networking, security, and architecture familiarity
+* Follow a xref:index.adoc#choose-your-role[role track] for the labs your role owns
 
 == Advanced Labs Index
 
-[cols="1,4,5,1",options="header"]
+[cols="1,2,3,2,1",options="header"]
 |===
-| Skill | Lab File | Title | Status
-| A1 | a1-platform-security-governance.adoc | Lead Platform-Wide Security Governance and Multi-Team Architecture Decisions | PLANNED
-| A2 | a2-gitops-policy-compliance.adoc | Implement GitOps-Driven Policy and Compliance Pipelines at Scale | PLANNED
-| A3 | a3-multi-tenant-zero-trust-network.adoc | Architect Multi-Tenant Zero-Trust Network and Service Segmentation | PLANNED
-| A4 | a4-runtime-threat-detection.adoc | Engineer Runtime Threat Detection Pipelines and Integrate into Response Workflows | PLANNED
-| A5 | a5-incident-response-forensics.adoc | Lead Coordinated Incident Response and Forensic Investigation on the Platform | PLANNED
-| A6 | a6-supply-chain-integrity.adoc | Establish End-to-End Supply Chain Integrity and Artifact Provenance | PLANNED
-| A7 | a7-automated-remediation.adoc | Automate Remediation and Policy Enforcement Using Controllers and Operators | PLANNED
-| A8 | a8-security-culture-maturity.adoc | Drive Security Culture, Coaching Teams and Maturing Practices | PLANNED
-| A9 | a9-advanced-cryptography-encryption.adoc | Design Advanced Cryptography, Observability, and Encryption Strategies | PLANNED
-| A10 | a10-zero-trust-workload-identity.adoc | Implement Zero-Trust Workload Identity and Confidential Computing | PLANNED
+|Skill | Lab | Title | Roles | Status
+
+|A1
+|xref:301-01-platform-security-governance.adoc[301-01]
+|Platform-Wide Security Governance & Policy as Code
+|Platform, Architect
+|Planned
+
+|A2
+|xref:301-02-gitops-policy-compliance.adoc[301-02]
+|GitOps-Driven Policy and Compliance Pipelines
+|DevSecOps, Architect
+|Planned
+
+|A3
+|xref:301-03-multi-tenant-zero-trust-network.adoc[301-03]
+|Multi-Tenant Zero-Trust Network Segmentation
+|Architect, Network
+|Planned
+
+|A4
+|xref:301-04-runtime-threat-detection.adoc[301-04]
+|Runtime Threat Detection with ACS Deep Dive
+|DevSecOps
+|Planned
+
+|A5
+|xref:301-05-incident-response-forensics.adoc[301-05]
+|Incident Response, Forensics & ACS Integration
+|Architect
+|Planned
+
+|A6
+|xref:301-06-supply-chain-integrity.adoc[301-06]
+|Supply Chain Integrity, Provenance & Trusted Artifact Signer
+|DevSecOps, Architect
+|Planned
+
+|A7
+|xref:301-07-automated-remediation.adoc[301-07]
+|Automated Remediation, Policy Enforcement & ACS Response
+|Platform, DevSecOps, Architect
+|Planned
+
+|A8
+|xref:301-08-security-culture-maturity.adoc[301-08]
+|Building Security Culture & Maturity Models
+|Platform, Architect
+|Planned
+
+|A9
+|xref:301-09-advanced-cryptography.adoc[301-09]
+|Advanced Cryptography: Post-Quantum mTLS, Encryption Strategies
+|DevSecOps, Architect, Network
+|Planned
+
+|A10
+|xref:301-10-zero-trust-workload-identity.adoc[301-10]
+|Zero-Trust Workload Identity, Federation & SPIFFE/SPIRE
+|DevSecOps, Architect, Network
+|Planned
+
+|A10
+|xref:301-11-confidential-containers.adoc[301-11]
+|Confidential Containers & Secure Enclaves
+|DevSecOps, Architect, Network
+|Planned
 |===
 
-Legend: Implemented = fully written; Planned = initial content may need expansion; WORK IN PROGRESS = Content being actively developed.
+== Related advanced labs
 
+[cols="2,3,2,1",options="header"]
+|===
+|Lab | Title | Roles | Notes
+
+|xref:301-12-sovereign-cloud-security.adoc[301-12]
+|Sovereign Cloud & Digital Sovereignty Controls
+|Architect
+|Governance / residency adjacency
+
+|xref:301-13-advanced-runtime-hunting.adoc[301-13]
+|Advanced Runtime Threat Hunting & ACS Automation
+|DevSecOps
+|Extends A4 hunting and response automation
+|===
+
+Role abbreviations: App Dev = Application Developer; Platform = Platform Operator; DevSecOps = DevSecOps Engineer; Architect = Security Architect; Network = Network & Infrastructure Engineer.

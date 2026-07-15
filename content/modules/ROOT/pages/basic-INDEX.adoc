@@ -1,51 +1,108 @@
+= 101 Labs Overview (Basic skills B0–B10)
+:toc:
+:icons: font
+
+xref:index.adoc[← Back to home] · Start from a role: xref:track-application-developer.adoc[Application Developer] · xref:track-platform-operator.adoc[Platform Operator] · xref:track-devsecops-engineer.adoc[DevSecOps] · xref:track-security-architect.adoc[Security Architect] · xref:track-network-infrastructure.adoc[Network & Infrastructure]
+
+Skills and role ownership follow the https://ralvares.github.io/openshift-security-framework/[OpenShift Security Skills Framework^].
+
 == Overview
 
-These basic labs are a hands-on introduction to OpenShift’s secure-by-default posture. You’ll see how to run apps without weakening the platform by aligning workloads to built-in guardrails instead of bypassing them.
+These basic labs introduce OpenShift’s secure-by-default posture. Align workloads to built-in guardrails instead of bypassing them.
 
-Built-in capabilities covered (where to see them):
+Canonical Basic skills covered:
 
-- Least privilege by default (restricted SCC/PSA: non-root, drop caps, high ports) - B1, B3
-- RBAC tiers (view/edit/admin) and impersonation - B2
-- Network segmentation (NetworkPolicies) - B4
-- Secret management (env vs file mounts; rotation behavior) - B5
-- Image provenance gates (allow-listed registries, admission policies) - B6
-- API audit trails (exec/port-forward forensics) - B7
-- Secure-by-design images (UBI, non-root, high ports) - B9
-- Transport security on routes (TLS with redirect) - B10
-- Resource controls (LimitRange + ResourceQuota) - B3
+* *B0* — Container security fundamentals (shared via projects/namespaces labs)
+* *B1* — Default OpenShift platform security layers — 101-01
+* *B2* — Basic RBAC — 101-03
+* *B3* — Workload guardrails (SCC/PSA, quotas, limits) — 101-02, 101-04
+* *B4* — Least privilege (non-root, minimal capabilities) — 101-01, 101-04, 101-11
+* *B5* — NetworkPolicies — 101-05
+* *B6* — Secrets basics — 101-06
+* *B7* — Trusted images / vulnerability awareness — 101-07, 101-11
+* *B8* — Encryption in transit and at rest — 101-08, 101-12
+* *B9* — Audit and cluster logs — 101-09
+* *B10* — Security extension operators (awareness) — 101-10
 
-What you’ll practice:
+Audience: any of the five framework roles. Prefer a xref:index.adoc#choose-your-role[role track] so you only take the labs your role owns (for example, Application Developer skips B9/B10).
 
-- Deploy something that “worked on a laptop” and learn why guardrails block it
-- Fix the workload (not the platform) to run non-root on high ports
-- Limit who can do what with built-in RBAC roles
-- Lock down pod-to-pod traffic with default deny + target allows
-- Use Secrets properly and understand rotation trade-offs
-- Enforce trusted registries and verify image digests
-- Query audit logs to answer who/what/when/where
-- Rebuild images to pass restricted SCC without exceptions
-- Force HTTPS on app routes
+== Basic Labs Index
 
-Audience and prerequisites:
-
-- OpenShift Local or Red Hat OpenShift cluster
-- For platform admins, app teams, and security engineers
-- Requires oc CLI and a sandbox namespace; most labs need only project-level access
-- Cluster-admin (or delegated) is needed for specific steps: B3’s anyuid exercise, B6’s admission policies
-
-== Basic Labs Index (Skills B1–B10)
-
-[cols="1,2,3,1",options="header"]
+[cols="1,2,3,2,1",options="header"]
 |===
-|Skill | Lab File | Title | Status
-|B1 | b1.adoc | It Works on My Laptop (Default Secure Behavior) | Work in Progress
-|B2 | b2.adoc | Who Really Has Access? (RBAC Basics) | Work in Progress
-|B3 | b3-scc-limits-resource-guardrails.adoc | SCC Limits & Resource Guardrails | Work in Progress
-|B4 | b4.adoc | You Shall Not Pass – NetworkPolicy Basics | Work in Progress
-|B5 | b5.adoc | Don’t Hardcode – Managing Secrets Properly | Work in Progress
-|B6 | b6.adoc | Trusted Sources Only – Image Provenance Guardrails | Work in Progress
-|B7 | b7.adoc | Logs Don’t Lie – Audit & Exec Events | Work in Progress
-|B8 | b8.adoc | Security & Compliance Add‑Ons Overview | Work in Progress
-|B9 | b9.adoc | Secure by Design – Rebuilding Images | Work in Progress
-|B10 | b10.adoc | Enforcing TLS on Routes | Work in Progress
+|Skill | Lab | Title | Roles | Status
+
+|B1, B4
+|xref:101-01-default-secure-behavior.adoc[101-01]
+|Default Secure Behavior
+|App Dev, Platform, DevSecOps, Architect, Network
+|Available
+
+|B0, B1, B3
+|xref:101-02-projects-namespaces-boundaries.adoc[101-02]
+|Projects & Namespaces as Security Boundaries
+|App Dev, Platform, DevSecOps, Architect, Network
+|Available
+
+|B2
+|xref:101-03-rbac-basics.adoc[101-03]
+|Role-Based Access Control Basics
+|App Dev, Platform, DevSecOps, Architect
+|Available
+
+|B3, B4
+|xref:101-04-scc-resource-guardrails.adoc[101-04]
+|SCC Limits, Resource Guardrails & Pod Security
+|App Dev, Platform, DevSecOps, Architect (Network: B3)
+|Available
+
+|B5
+|xref:101-05-network-policy-basics.adoc[101-05]
+|NetworkPolicy Basics
+|App Dev, Platform, DevSecOps, Architect, Network
+|Available
+
+|B6
+|xref:101-06-secrets-management.adoc[101-06]
+|Secrets Management
+|App Dev, Platform, DevSecOps, Architect
+|Available
+
+|B7
+|xref:101-07-image-provenance-guardrails.adoc[101-07]
+|Image Provenance Guardrails
+|App Dev, Platform, DevSecOps, Architect
+|Available
+
+|B8
+|xref:101-08-etcd-encryption-control-plane.adoc[101-08]
+|Etcd Encryption at Rest & Control Plane Hardening
+|App Dev, Platform, DevSecOps, Architect, Network
+|Available
+
+|B9
+|xref:101-09-audit-exec-events.adoc[101-09]
+|Audit Logging & Exec Events
+|Platform, DevSecOps, Architect, Network
+|Available
+
+|B10
+|xref:101-10-security-compliance-addons.adoc[101-10]
+|Security & Compliance Add-Ons Overview
+|Platform, Architect
+|Available
+
+|B4, B7
+|xref:101-11-rebuilding-images.adoc[101-11]
+|Rebuilding & Hardening Images
+|App Dev, DevSecOps (Platform secondary)
+|Available
+
+|B8
+|xref:101-12-enforcing-tls-routes.adoc[101-12]
+|Enforcing TLS on Routes
+|App Dev, Platform, DevSecOps, Architect, Network
+|Available
 |===
+
+Role abbreviations: App Dev = Application Developer; Platform = Platform Operator; DevSecOps = DevSecOps Engineer; Architect = Security Architect; Network = Network & Infrastructure Engineer.

@@ -1,20 +1,113 @@
-= Intermediate Labs Index (Skills I1–I10)
+= 201 Labs Overview (Intermediate skills I1–I11)
 :toc:
 :icons: font
 
-[cols="1,4,5,1",options="header"]
+xref:index.adoc[← Back to home] · Start from a role: xref:track-application-developer.adoc[Application Developer] · xref:track-platform-operator.adoc[Platform Operator] · xref:track-devsecops-engineer.adoc[DevSecOps] · xref:track-security-architect.adoc[Security Architect] · xref:track-network-infrastructure.adoc[Network & Infrastructure]
+
+Skills and role ownership follow the https://ralvares.github.io/openshift-security-framework/[OpenShift Security Skills Framework^].
+
+== Overview
+
+These intermediate labs move from knowing defaults to integrating and adapting controls: custom RBAC/SCC, shift-left pipelines, external secrets, audit correlation, compliance tailoring, and admission governance.
+
+Canonical Intermediate skills:
+
+* *I1* — Practical threat modeling
+* *I2* — Advanced RBAC and service account hardening
+* *I3* — Custom workload security controls (SCC/PSA, SELinux, seccomp)
+* *I4* — Tighter isolation / restriction profiles
+* *I5* — Advanced network segmentation and egress/ingress controls
+* *I6* — CI/CD scanning and policy checks
+* *I7* — Secure, reproducible images with signing/attestation
+* *I8* — Secret lifecycle (rotation, externalization)
+* *I9* — Audit/monitoring correlation
+* *I10* — Automated compliance assessment and remediation
+* *I11* — Admission and policy controllers
+
+Audience: follow a xref:index.adoc#choose-your-role[role track] for the ordered subset your role owns.
+
+== Intermediate Labs Index
+
+[cols="1,2,3,2,1",options="header"]
 |===
-| Skill | Lab File(s) | Title | Status
-| I1 | i1-threat-modeling-control-mapping.adoc | Threat Modeling & Control Mapping | WORK IN PROGRESS
-| I2 | i2-custom-rbac.adoc | Write Your Own Keycard: Custom RBAC | WORK IN PROGRESS
-| I3 | i3-workload-hardening.adoc | Custom SCC + Seccomp + SELinux Basics | WORK IN PROGRESS
-| I4 | i4a-egressip.adoc, i4b-anp-tiers.adoc, i4c-udn.adoc, i4d-vlan-multus.adoc | Segmentation & Egress/Ingress Controls | WORK IN PROGRESS
-| I5 | i5-shift-left-pipeline.adoc | CI/CD Scanning & Signing | WORK IN PROGRESS
-| I6 | i6-vault-csi.adoc | Secret Lifecycle Externalization | WORK IN PROGRESS
-| I7 | i7-audit-monitoring-correlation.adoc | Audit Correlation & Anomaly Alerts | WORK IN PROGRESS
-| I8 | i8-compliance-tailoring.adoc | Scan, Remediate, Tailor (Compliance Operator) | WORK IN PROGRESS
-| I9 | i9-sandboxed-containers.adoc | Advanced Workload Restriction | WORK IN PROGRESS
-| I10 | i10-admission-governance.adoc | Admission / Policy Controllers | WORK IN PROGRESS
+|Skill | Lab | Title | Roles | Status
+
+|I1
+|xref:201-01-threat-modeling-control-mapping.adoc[201-01]
+|Threat Modeling & Control Mapping
+|App Dev, DevSecOps, Architect
+|Work in progress
+
+|I2
+|xref:201-02-custom-rbac.adoc[201-02]
+|Custom RBAC & ClusterRoles
+|Platform, DevSecOps, Architect
+|Work in progress
+
+|I3
+|xref:201-03-workload-hardening.adoc[201-03]
+|Custom SCC, Seccomp, SELinux & User Namespaces
+|Platform, DevSecOps
+|Work in progress
+
+|I4
+|xref:201-10-sandboxed-containers-intro.adoc[201-10]
+|Sandboxed Containers & Workload Isolation
+|Platform, Architect (DevSecOps adjacent)
+|Work in progress
+
+|I5
+|xref:201-09-cert-manager-mtls.adoc[201-09] (+ xref:101-05-network-policy-basics.adoc[101-05] foundation)
+|Certificate Management & mTLS / segmentation bridge
+|Platform, Architect, Network
+|Work in progress
+
+|I6, I7
+|xref:201-05-shift-left-pipeline.adoc[201-05]
+|CI/CD Scanning, Image Signing & Cosign/Sigstore
+|App Dev, DevSecOps
+|Work in progress
+
+|I8
+|xref:201-06-vault-csi.adoc[201-06]
+|Secret Lifecycle Externalization (Vault, ESO, CSI)
+|App Dev, Platform, DevSecOps, Architect
+|Work in progress
+
+|I9
+|xref:201-07-audit-monitoring-correlation.adoc[201-07]
+|Audit Log Correlation & Anomaly Detection
+|Platform, DevSecOps, Architect, Network
+|Work in progress
+
+|I10
+|xref:201-08-compliance-tailoring.adoc[201-08]
+|Advanced Compliance Operator Usage & Tailoring
+|Platform, DevSecOps, Architect
+|Work in progress
+
+|I11
+|xref:201-11-admission-governance.adoc[201-11]
+|Admission Controllers & Policy Enforcement
+|Platform, DevSecOps, Architect, Network
+|Work in progress
 |===
 
-Legend: Implemented = fully written; Planned = initial content may need expansion; WORK IN PROGRESS = Ignnore the content for now.
+== Related labs (not forced into an I-number)
+
+[cols="2,3,2,1",options="header"]
+|===
+|Lab | Title | Roles | Notes
+
+|xref:201-04-file-integrity-monitoring.adoc[201-04]
+|File Integrity Monitoring & Node Hardening
+|Platform
+|Platform hardening adjacency (R9); use with Platform Operator track
+
+|xref:201-09-cert-manager-mtls.adoc[201-09]
+|Certificate Management & mTLS Basics
+|Network, Architect, Platform
+|Also listed under I5 as the trust-fabric bridge
+|===
+
+Role abbreviations: App Dev = Application Developer; Platform = Platform Operator; DevSecOps = DevSecOps Engineer; Architect = Security Architect; Network = Network & Infrastructure Engineer.

@@ -1,0 +1,57 @@
+= Role track: Network & Infrastructure Engineer
+:toc:
+:icons: font
+
+xref:index.adoc[← Back to home] · Framework: https://ralvares.github.io/openshift-security-framework/[OpenShift Security Skills Framework^]
+
+== Role overview
+
+Specialize in data-plane security: segmentation strategy, encryption patterns, service-to-service trust, identity-aware routing, and traffic anomaly foundations.
+
+Core responsibilities (framework):
+
+* Advanced network segmentation, ingress, and egress boundaries
+* Encryption for data in transit and at rest (as it intersects the network fabric)
+* Monitor and help mitigate anomalous or denial-style traffic
+* Multi-cluster posture from the network perspective
+* Runtime workload / service identity trust integration
+* Service-to-service trust fabric (mTLS layering, certificate lifecycle)
+
+Not owning: compliance scanning automation, supply-chain gates, or organization-wide artifact provenance (Platform, DevSecOps, Architect).
+
+== Recommended sequence
+
+=== Basic (skills B0, B1, B3, B5, B8, B9)
+
+. xref:101-01-default-secure-behavior.adoc[101-01 — Default Secure Behavior] (B1)
+. xref:101-02-projects-namespaces-boundaries.adoc[101-02 — Projects & Namespaces] (B0 / B1 / B3)
+. xref:101-04-scc-resource-guardrails.adoc[101-04 — SCC & Resource Guardrails] (B3)
+. xref:101-05-network-policy-basics.adoc[101-05 — NetworkPolicy Basics] (B5)
+. xref:101-08-etcd-encryption-control-plane.adoc[101-08 — Etcd Encryption & Control Plane] (B8)
+. xref:101-09-audit-exec-events.adoc[101-09 — Audit Logging & Exec Events] (B9)
+. xref:101-12-enforcing-tls-routes.adoc[101-12 — Enforce TLS on Routes] (B8)
+
+Skip for this role (unless cross-training): RBAC deep dive (B2), Secrets (B6), image provenance (B7), compliance add-ons (B10), and image rebuild (101-11).
+
+=== Intermediate (skills I5, I9, I11)
+
+. xref:101-05-network-policy-basics.adoc[101-05 — NetworkPolicy Basics] (I5 foundation) and xref:201-09-cert-manager-mtls.adoc[201-09 — Certificate Management & mTLS] (I5 / trust fabric)
+. xref:201-07-audit-monitoring-correlation.adoc[201-07 — Audit Correlation & Anomaly Detection] (I9)
+. xref:201-11-admission-governance.adoc[201-11 — Admission & Policy Enforcement] (I11)
+
+=== Advanced (skills A3, A9, A10)
+
+. xref:301-03-multi-tenant-zero-trust-network.adoc[301-03 — Multi-Tenant Zero-Trust Network] (A3)
+. xref:301-09-advanced-cryptography.adoc[301-09 — Advanced Cryptography] (A9)
+. xref:301-10-zero-trust-workload-identity.adoc[301-10 — Zero-Trust Workload Identity] (A10)
+. xref:301-11-confidential-containers.adoc[301-11 — Confidential Containers] (A10)
+
+== Related modules
+
+* xref:09-acs-network-security.adoc[RHACS — Network Security] for visualization and enforcement patterns after the 101/201 network labs
+
+== Catalogs
+
+* xref:basic-INDEX.adoc[101 Labs Overview]
+* xref:intermediate-INDEX.adoc[201 Labs Overview]
+* xref:advanced-INDEX.adoc[301 Labs Overview]

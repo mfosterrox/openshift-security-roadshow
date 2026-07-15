@@ -1,3 +1,10 @@
+.Role tracks
+* xref:track-application-developer.adoc[Application Developer]
+* xref:track-platform-operator.adoc[Platform Operator]
+* xref:track-devsecops-engineer.adoc[DevSecOps Engineer]
+* xref:track-security-architect.adoc[Security Architect]
+* xref:track-network-infrastructure.adoc[Network & Infrastructure Engineer]
+
 .101 OpenShift Security Modules: Core Concepts & Foundations
 * xref:basic-INDEX.adoc[101 Labs Overview]
 * xref:101-01-default-secure-behavior.adoc[101-01 - Default Secure Behavior & Why OpenShift Differs from Vanilla Kubernetes]

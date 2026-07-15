@@ -1,0 +1,77 @@
+= Role track: Security Architect
+:toc:
+:icons: font
+
+xref:index.adoc[← Back to home] · Framework: https://ralvares.github.io/openshift-security-framework/[OpenShift Security Skills Framework^]
+
+== Role overview
+
+Define platform-wide security strategy: governance, multi-cluster posture, identity architecture, zero-trust patterns, and exception lifecycle.
+
+Core responsibilities (framework):
+
+* Secure platform architecture patterns
+* Governance and zero-trust policy definition
+* Automation strategy for vulnerability and assurance workflows
+* Mentoring and maturity uplift
+* Admission / policy strategy
+* Security infrastructure portfolio (identity, logging, runtime, policy)
+* Align security with product and delivery goals
+* Multi-cluster policy propagation
+* Govern control exceptions
+* Workload identity and trust issuance design
+
+== Recommended sequence
+
+=== Basic (skills B0–B10)
+
+. xref:101-01-default-secure-behavior.adoc[101-01 — Default Secure Behavior] (B1, B4)
+. xref:101-02-projects-namespaces-boundaries.adoc[101-02 — Projects & Namespaces] (B0 / B1 / B3)
+. xref:101-03-rbac-basics.adoc[101-03 — RBAC Basics] (B2)
+. xref:101-04-scc-resource-guardrails.adoc[101-04 — SCC & Resource Guardrails] (B3, B4)
+. xref:101-05-network-policy-basics.adoc[101-05 — NetworkPolicy Basics] (B5)
+. xref:101-06-secrets-management.adoc[101-06 — Secrets Management] (B6)
+. xref:101-07-image-provenance-guardrails.adoc[101-07 — Image Provenance] (B7)
+. xref:101-08-etcd-encryption-control-plane.adoc[101-08 — Etcd Encryption & Control Plane] (B8)
+. xref:101-09-audit-exec-events.adoc[101-09 — Audit Logging & Exec Events] (B9)
+. xref:101-10-security-compliance-addons.adoc[101-10 — Security & Compliance Add-Ons] (B10)
+. xref:101-11-rebuilding-images.adoc[101-11 — Rebuild & Harden Images] (B4, B7)
+. xref:101-12-enforcing-tls-routes.adoc[101-12 — Enforce TLS on Routes] (B8)
+
+=== Intermediate (skills I1, I2, I4, I5, I8–I11)
+
+. xref:201-01-threat-modeling-control-mapping.adoc[201-01 — Threat Modeling & Control Mapping] (I1)
+. xref:201-02-custom-rbac.adoc[201-02 — Custom RBAC & ClusterRoles] (I2)
+. xref:201-10-sandboxed-containers-intro.adoc[201-10 — Sandboxed Containers & Isolation] (I4)
+. xref:101-05-network-policy-basics.adoc[101-05 — NetworkPolicy Basics] (I5 foundation) and xref:201-09-cert-manager-mtls.adoc[201-09 — cert-manager & mTLS] (I5 / trust fabric bridge)
+. xref:201-06-vault-csi.adoc[201-06 — Secret Lifecycle Externalization] (I8)
+. xref:201-07-audit-monitoring-correlation.adoc[201-07 — Audit Correlation & Anomaly Detection] (I9)
+. xref:201-08-compliance-tailoring.adoc[201-08 — Compliance Operator Tailoring] (I10)
+. xref:201-11-admission-governance.adoc[201-11 — Admission & Policy Enforcement] (I11)
+
+=== Advanced (skills A1–A3, A5–A10)
+
+. xref:301-01-platform-security-governance.adoc[301-01 — Platform Security Governance] (A1)
+. xref:301-02-gitops-policy-compliance.adoc[301-02 — GitOps Policy & Compliance] (A2)
+. xref:301-03-multi-tenant-zero-trust-network.adoc[301-03 — Multi-Tenant Zero-Trust Network] (A3)
+. xref:301-05-incident-response-forensics.adoc[301-05 — Incident Response & Forensics] (A5)
+. xref:301-06-supply-chain-integrity.adoc[301-06 — Supply Chain Integrity] (A6)
+. xref:301-07-automated-remediation.adoc[301-07 — Automated Remediation] (A7)
+. xref:301-08-security-culture-maturity.adoc[301-08 — Security Culture & Maturity] (A8)
+. xref:301-09-advanced-cryptography.adoc[301-09 — Advanced Cryptography] (A9)
+. xref:301-10-zero-trust-workload-identity.adoc[301-10 — Zero-Trust Workload Identity] (A10)
+. xref:301-11-confidential-containers.adoc[301-11 — Confidential Containers] (A10)
+. xref:301-12-sovereign-cloud-security.adoc[301-12 — Sovereign Cloud Security] (related governance)
+
+Runtime detection engineering (A4) is owned by xref:track-devsecops-engineer.adoc[DevSecOps]; review xref:301-04-runtime-threat-detection.adoc[301-04] when designing the detection portfolio.
+
+== Optional product deep-dives
+
+* xref:00-acs-setup-install-navigation.adoc[RHACS] — runtime, policy, and compliance architecture context
+* xref:tssc-00-intro.adoc[TSSC] — supply-chain provenance stack
+
+== Catalogs
+
+* xref:basic-INDEX.adoc[101 Labs Overview]
+* xref:intermediate-INDEX.adoc[201 Labs Overview]
+* xref:advanced-INDEX.adoc[301 Labs Overview]
