@@ -3,15 +3,15 @@
 :skills: Vault CSI, Dynamic Secrets, Rotation
 :labid: LAB-201-06
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~25 minutes
 
 == Overview
 Wire HashiCorp Vault (and optionally External Secrets Operator) so pods get secrets at runtime without baking static copies into Git or images—dev-mode Vault for learning only.
 
 include::partial$console-access.adoc[]
 
-**Duration:** ~25 minutes · **Audience:** Platform Engineers, Security Engineers, IT Operations
 
 == Why it matters
 Static credentials in images, manifests, and long-lived Kubernetes Secrets are prime loot after a foothold. Vault keeps the source of truth off the cluster disk and issues access on demand so a stolen YAML file is no longer enough.
@@ -383,14 +383,16 @@ bash setup/lab-cleanup.sh --module 201-06
 
 Expected output ends with `[vault-lab-cleanup] Done.` and no `vault` or `external-secrets` namespaces remaining.
 
-== What you learned
 
-* **Vault on OpenShift** centralizes secrets outside etcd while the **Agent Injector** delivers them to pods at runtime.
-* **Kubernetes auth** ties Vault access to a namespace and service account (`vault-serviceaccount` → role `vault-role`).
-* The **Vault Agent Injector** writes secrets to files under `/vault/secrets/` inside the pod.
-* **External Secrets Operator** syncs Vault data into native Kubernetes `Secret` objects for use with `env`, `envFrom`, or volume mounts.
-* You deployed two consumption patterns: Agent Injector (`vault-secrets-app`) and ESO-backed Kubernetes Secrets (`eso-vault-test`).
+== Debrief
 
-image::https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3ODhkZThkZXVxb2twdHloazAzc2VhNWJpeWowenRpeTJoczY3MTAyZyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/RIjVnmAtOD4l4c2Ert/giphy.gif[Fun celebration, link=self, window=blank, width=400]
+You consumed Vault secrets two ways—Agent Injector files under `/vault/secrets/` and External Secrets Operator sync into a native Secret—so credentials are not baked into Git or images.
 
-**Great job!** For zero-trust patterns, see the https://github.com/validatedpatterns/layered-zero-trust[Layered Zero Trust Validated Pattern] on GitHub.
+What breaks without this:
+
+* Static Secrets in etcd/Git/images → long-lived loot after a foothold
+* No rotation path → stolen credentials stay valid
+
+Controls that matter: Vault (or equivalent) as source of truth, Kubernetes auth bound to namespace/SA, injector for file delivery, ESO when apps need native Secret mounts, and least-privilege Vault roles.
+
+Quick facts: prefer short-lived, identity-bound access over copied passwords. Lab cleanup uses the Vault workshop scripts plus `lab-cleanup.sh --module 201-06`.

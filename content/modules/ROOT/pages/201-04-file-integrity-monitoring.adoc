@@ -3,8 +3,9 @@
 :cis-summary: "Implement file integrity monitoring and node-level security hardening using the File Integrity Operator."
 :mitre-summary: "Detects unauthorized file system changes and implements node-level security controls."
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~20 minutes
 
 == Overview
 Learn how to deploy and configure the File Integrity Operator to monitor file system integrity on OpenShift nodes, detect unauthorized changes, and implement node-level security hardening measures.
@@ -70,48 +71,19 @@ oc get fileintegrityreports -n openshift-file-integrity -o yaml | grep -A 10 "re
 oc delete fileintegrity worker-file-integrity -n openshift-file-integrity
 ----
 
-== Understanding the Attack Surface
-[cols="1,2,2",options="header"]
-|===
-|Area | Risk If Unmonitored | Mitigation
-|System Files | Tampering | File integrity monitoring
-|Node Configuration | Drift | Hardening policies
-|Binary Changes | Malware | Integrity checks
-|Config Files | Unauthorized edits | Continuous monitoring
-|===
+== Debrief
 
-== Solutions / Controls
+File Integrity Operator is a camera for node-critical paths—catch unexpected file and config changes before they become incidents.
 
-* File Integrity Operator
-* Node hardening policies
-* Continuous monitoring
-* Alerting on changes
-* Compliance reporting
+What breaks without this:
 
-== Summary Table
-[cols="1,2,2",options="header"]
-|===
-|Control | Purpose | Benefit
-|File Integrity Monitoring | Detect changes | Early threat detection
-|Node Hardening | Reduce attack surface | Fewer vulnerabilities
-|Continuous Monitoring | Ongoing security | Compliance & detection
-|Alerting | Rapid response | Faster remediation
-|===
+* Silent binary or config drift on nodes → malware or misconfig with no early signal
+* Compliance asks for FIM with no operator story
 
-== FAQs
-What files are monitored?:: Critical system files, binaries, and configuration files.
-How often are checks performed?:: Configurable; typically every few minutes.
-Does this impact node performance?:: Minimal; monitoring is lightweight.
+Controls that matter: File Integrity Operator, clear monitored paths, alerting into your ops channel, and pairing with node hardening baselines.
 
-== Closing Story
-File integrity monitoring is like a security camera for your nodes—detecting changes before they become problems.
-
+Quick facts: focus on critical system/bin/config files; overhead is usually light; intervals are configurable.
 
 :lab-cleanup-module: 201-04
 include::partial$lab-cleanup.adoc[]
 
-== Next Step Ideas
-
-* Configure alerting for integrity violations
-* Integrate with compliance reporting
-* Expand monitoring to application nodes

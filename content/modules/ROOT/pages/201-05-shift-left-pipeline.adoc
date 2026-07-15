@@ -3,8 +3,9 @@
 :skills: Tekton, Image Scanning, Signing, Admission Gating
 :labid: LAB-201-05
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~25 minutes
 
 == Overview
 Integrate security scanning and policy checks into pipelines.
@@ -215,12 +216,19 @@ Re-run with FAIL=1 env (edit scan task to export) and confirm sign task skipped.
 oc delete project 201-05-s-pipeline --wait=false
 ----
 
+== Debrief
+
+Your pipeline enforced scan-before-sign, skipped signing on failure, and deployed by digest so mutable tags cannot sneak into production.
+
+What breaks without this:
+
+* Unscanned or unsigned images → known-bad artifacts reach the cluster
+* Tag-based deploys → non-reproducible, retaggable runtime
+
+Controls that matter: Tekton (or equivalent) gates, conditional sign tasks, digest pins, and admission that extends trust (signatures/SBOM) at deploy time.
+
+Quick facts: the when-clause is the gate; admission and SBOM checks are the natural next layers.
 
 :lab-cleanup-module: 201-05
 include::partial$lab-cleanup.adoc[]
 
-== Key Points
-* Pipeline enforces scan-before-sign
-* Conditional task (when clause) implements gate
-* Digest pin ensures immutability; admission can extend trust policies
-* Extensible to SBOM generation & policy-as-code checks

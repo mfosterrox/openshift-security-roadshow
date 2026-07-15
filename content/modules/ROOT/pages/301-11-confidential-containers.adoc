@@ -3,8 +3,9 @@
 :cis-summary: "Implement confidential containers using Kata containers and secure enclaves with hardware support."
 :mitre-summary: "Protects workload data and code from host-level access through hardware-backed isolation."
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~25 minutes
 
 == Overview
 Learn how to deploy confidential containers using Kata containers and secure enclaves with hardware support. You'll understand how confidential computing protects workload data and code from host-level access, meeting requirements for sensitive workloads and regulatory compliance.
@@ -73,48 +74,19 @@ oc get pod confidential-app -n 301-11-demo -o jsonpath='{.spec.runtimeClassName}
 oc delete project 301-11-demo --wait=false
 ----
 
-== Understanding the Attack Surface
-[cols="1,2,2",options="header"]
-|===
-|Area | Risk Without Confidential Computing | Mitigation
-|Host Access | Data exposure | Hardware isolation
-|Multi-tenancy | Cross-tenant access | Enclave isolation
-|Memory Access | Unauthorized reads | Encrypted memory
-|Code Execution | Host inspection | Protected execution
-|===
+== Debrief
 
-== Solutions / Controls
+Confidential containers push trust toward hardware-backed isolation so a privileged host or noisy neighbor is a weaker attacker.
 
-* Kata containers
-* Secure enclaves
-* Hardware-backed isolation
-* Encrypted memory
-* Protected execution
+What breaks without this:
 
-== Summary Table
-[cols="1,2,2",options="header"]
-|===
-|Control | Purpose | Benefit
-|Kata Containers | VM-level isolation | Stronger boundaries
-|Secure Enclaves | Hardware protection | Data confidentiality
-|Encrypted Memory | Data protection | Runtime security
-|Protected Execution | Code protection | IP protection
-|===
+* Shared-host visibility into memory/process for sensitive workloads
+* Regulatory need for stronger isolation than cgroups alone
 
-== FAQs
-What hardware is required?:: Intel TDX, AMD SEV, or ARM TrustZone support.
-What's the performance impact?:: Some overhead due to VM isolation; acceptable for sensitive workloads.
-When should I use confidential containers?:: For sensitive data, regulatory compliance, or untrusted host environments.
+Controls that matter: Kata/confidential runtimes, hardware support (TDX/SEV/etc.), encrypted memory patterns, and still stacking SCC/NetworkPolicy.
 
-== Closing Story
-Confidential containers extend trust boundaries to hardware, protecting sensitive workloads even from privileged host access.
-
+Quick facts: expect some overhead; select for sensitive or regulated workloads on less-trusted hosts.
 
 :lab-cleanup-module: 301-11
 include::partial$lab-cleanup.adoc[]
 
-== Next Step Ideas
-
-* Evaluate hardware support
-* Implement for sensitive workloads
-* Monitor performance impact

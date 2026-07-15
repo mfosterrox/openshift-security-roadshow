@@ -3,8 +3,9 @@
 :skills: Security Operating Model, RBAC & Namespace Strategy, Segmentation Blueprints, Multi-Team Architecture
 :labid: LAB-301-01
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~30 minutes
 
 == Overview
 Lead the design and implementation of platform-wide security governance frameworks and multi-team architecture decisions. You will establish security operating models, design RBAC and namespace strategies, create segmentation blueprints, and coordinate security architecture across multiple teams and organizations.
@@ -76,11 +77,19 @@ This lab is currently under development. Content will include:
 * Familiarity with security governance frameworks
 * Leadership and coordination skills
 
+== Debrief
+
+Platform security governance is the operating model so teams cannot freestyle privilege, namespaces, or segmentation—decisions become reusable blueprints, not one-off exceptions.
+
+What this module targets:
+
+* Security operating model and approval paths
+* Scalable RBAC and namespace strategy
+* Segmentation blueprints others can copy
+* Multi-team coordination (reviews, guilds, docs)
+
+Until full exercises land: map your org’s exception path today—who can grant `cluster-admin` or open NetworkPolicy holes, and how those grants expire.
 
 :lab-cleanup-module: 301-01
 include::partial$lab-cleanup.adoc[]
-
-== Next Steps
-
-This lab content is being developed. Check back soon for complete instructions and exercises.
 

@@ -5,8 +5,9 @@
 :audit-evidence: "Root-based httpd on port 80 fails; UBI httpd on 8080 runs with random non-root UID and accessible route."
 :cis-mitre-codes: '{"cisMapping":{"primary":["5.2.5","5.2.6"],"related":["5.2.1","5.2.10"]},"mitre":{"techniques":["T1611"],"tactics":["TA0004"],"mitigations":["M1026","M1048"]}}'
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~15 minutes
 
 == Overview
 OpenShift assumes many container images were built for permissive environments. By default it runs containers as non-root and blocks privileged ports such as 80. Images that already follow those rules—non-root user, listen on 8080 or higher—deploy cleanly. Images that expect root or port 80 fail until you fix them or accept a risky exception.
@@ -24,7 +25,7 @@ Common assumptions break on a shared cluster: root is fine, port 80 is normal, d
 == Your Mission
 A developer just pushed a public Docker Hub `httpd` image that expects *root* and *port 80*—the same pattern attackers love after they land a foothold. Your job is to prove the platform blocks that move, then restore a hardened path that still serves traffic without widening privilege.
 
-=== Example 1: The attacker deploys an untrusted root-friendly image (~2 min)
+=== The attacker deploys an untrusted root-friendly image
 
 Simulate the break-in attempt: create a project and deploy the public Docker Hub `httpd` image. Admission may accept it, but OpenShift’s defaults should stop it from running with root-like power.
 
@@ -44,7 +45,7 @@ oc get pods -l app=web -o wide
 
 Mission check: the pod should land in `CrashLoopBackOff` or `Error` with a rising restart count—the cluster refused to hand the attacker a working root-style process.
 
-=== Example 2: Investigate how the platform stopped the break-in (~3 min)
+=== Investigate how the platform stopped the break-in
 
 Collect evidence before anyone asks for `anyuid`. Logs and events are your first proof that the fail was intentional hardening, not a flaky image pull.
 
@@ -73,7 +74,7 @@ oc describe pod -l app=web | tail -30
 
 What you just defeated: privileged port 80, root-owned log paths, and an image that assumed UID 0. OpenShift injected a random non-root UID, so the process could neither bind nor write where it wanted.
 
-=== Example 3: Confirm the UID and port the attacker depended on (~2 min)
+=== Confirm the UID and port the attacker depended on
 
 Inspect the runtime security context. The attacker’s image still claims port 80; the platform already forced a non-root user. That mismatch is the kill switch you want to keep.
 
@@ -85,7 +86,7 @@ oc get pod -l app=web -o jsonpath='Container port: {.items[0].spec.containers[0]
 
 Mission check: a numeric `runAsUser` (not 0) plus container port 80. Do not "fix" this by granting extra SCC power—that is exactly the privilege the attacker wanted you to unlock.
 
-=== Example 4: Counter with a hardened UBI image (~2 min)
+=== Counter with a hardened UBI image
 
 Replace the break-in payload with a Red Hat UBI image built for non-root on port 8080. No SCC escalation. You restore service while denying the attacker’s privilege assumptions.
 
@@ -111,7 +112,7 @@ oc get pods -l app=web
 oc logs -l app=web --tail=15
 ----
 
-=== Example 5: Prove non-root still holds, then expose safely (~2 min)
+=== Prove non-root still holds, then expose safely
 
 Before publishing the app, confirm the running process is still not UID 0. Then expose it with a Route so users get service—without relaxing the UID guard that just stopped the attacker.
 
@@ -129,7 +130,7 @@ oc expose deployment web --port=8080
 oc get route web -o jsonpath='{.spec.host}{"\n"}'
 ----
 
-=== Example 6: Verify the defended service answers (~2 min)
+=== Verify the defended service answers
 
 Hit the Route and confirm the hardened image serves traffic. Success means the business still works while the privilege path the attacker needed remains closed.
 
@@ -148,7 +149,7 @@ oc get route web -o jsonpath='{.spec.host}'
 # curl -s http://<route-host>/
 ----
 
-=== Example 7: Debrief — attack path vs defended path
+=== Attack path vs defended path
 
 [cols="1,2,1,1,1,2",options="header"]
 |===
@@ -158,65 +159,28 @@ oc get route web -o jsonpath='{.spec.host}'
 |OpenShift (after swap) | registry.access.redhat.com/ubi9/httpd-24 | 8080 | random | Succeeds | Service restored without privilege growth
 |===
 
-=== Cleanup (~1 min)
+=== Cleanup
 
 [source,sh]
 ----
 oc delete project 101-01-httpd-demo --wait=false
 ----
 
-== Understanding the Attack Surface
-[cols="1,2",options="header"]
-|===
-|Area | Risk If Misconfigured
-|Root user in container | Easier path to node compromise after a breakout
-|Privileged port 80 | Forces elevation or capability grants
-|Fixed UID / ownership | Teams reach for `anyuid` instead of fixing the image
-|Unvetted external image | Unknown CVEs and supply-chain risk
-|Broad `anyuid` exceptions | Long-lived privilege that is hard to roll back
-|===
+== Debrief
 
-== Solutions / Controls
-[cols="1,2",options="header"]
-|===
-|Control | Purpose
-|SCC restricted | Default least privilege for pods
-|UBI base images | Maintained images built for OpenShift norms
-|High ports | Avoid privileged bind and root
-|Image scanning / signing | Know what you run and that it was not altered
-|RHACS policies | Ongoing policy and runtime checks
-|Digest pinning | Immutable versions instead of floating tags
-|===
+You proved OpenShift blocks a root-friendly image on port 80, then restored service with UBI on a high port under a random non-root UID—without widening privilege.
 
-== Summary Table
-[cols="1,2,2",options="header"]
-|===
-|What to Secure | Problem If Ignored | How to Secure
-|Container User | Root misuse risk | Accept random non-root; avoid anyuid
-|Listening Port | Privileged bind needs root | Use 8080+
-|File Ownership | Crash / log failures | Pre-create + group-write dirs
-|Image Provenance | Hidden vulns/backdoors | Curated UBI + scanning/signing
-|Version Drift | Inconsistent rollbacks | Pin image digests
-|Privilege Exceptions | Normalized risk | Track & review exceptions
-|===
+What breaks without this:
 
-== FAQs
-Why did it work locally?:: Local tools often allow root and port 80. OpenShift does not.
-Does OpenShift distrust my image?:: It applies safe defaults until the image proves it can run without root and privileged ports.
-Is granting anyuid easier?:: For a quick demo, yes. In production it becomes debt. Prefer fixing the image.
-Why avoid privileged ports?:: They usually need elevated capability. High ports avoid that.
-How do curated images help?:: Permissions and maintenance are already aligned with the platform.
-What if I must run as root?:: Document an exception: why, who owns it, and when it expires.
+* Root in the container → easier host breakout after compromise
+* Privileged port 80 → pressure for elevation or `anyuid`
+* Fixed UID ownership → teams reach for SCC exceptions instead of fixing the image
+* Unvetted public images → unknown CVEs and supply-chain risk
 
-== Closing Story
-Prefer images that already match OpenShift defaults. Fix the image when you can; treat SCC exceptions as temporary and tracked—not the normal path.
+Controls that matter: restricted SCC defaults, UBI (or equivalent) bases, high ports, scanning/signing, digest pins, and tracked exceptions only when you must run as root.
 
+Quick facts: local Docker often allows root and port 80—OpenShift does not. Prefer fixing the image; treat `anyuid` as temporary debt with an owner and expiry.
 
 :lab-cleanup-module: 101-01
 include::partial$lab-cleanup.adoc[]
 
-== Next Step Ideas
-
-* Add pipeline policy: reject Dockerfiles ending with USER 0
-* Integrate cosign + RHACS to enforce signature presence
-* Track KPIs: % non-root, % digest-pinned, mean time to remediate root exceptions

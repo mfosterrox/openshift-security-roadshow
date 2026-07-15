@@ -3,8 +3,9 @@
 :skills: Runtime Detection Rulesets, Streaming Telemetry Enrichment, Alert Routing Design, Pre-Incident Response Playbooks
 :labid: LAB-301-04
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~30 minutes
 
 == Overview
 Design and implement comprehensive runtime threat detection pipelines that continuously monitor workloads, enrich telemetry data, route alerts effectively, and integrate seamlessly into incident response workflows with pre-defined playbooks.
@@ -79,11 +80,18 @@ This lab is currently under development. Content will include:
 * Familiarity with SIEM/SOAR platforms
 * Experience with incident response procedures
 
+== Debrief
+
+Runtime threat detection closes the gap between “admitted” and “behaving”—rules, telemetry enrichment, and alert routing so you can contain fast.
+
+What this module targets:
+
+* Runtime rulesets (ACS / Falco-class signals)
+* Streaming enrichment and SIEM/SOAR handoff
+* Pre-built response playbooks
+
+Until full exercises land: list which process or network behaviors in prod would be high-signal if alerted within minutes.
 
 :lab-cleanup-module: 301-04
 include::partial$lab-cleanup.adoc[]
-
-== Next Steps
-
-This lab content is being developed. Check back soon for complete instructions and exercises.
 

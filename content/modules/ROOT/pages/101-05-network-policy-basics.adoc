@@ -5,8 +5,9 @@
 :audit-evidence: "Default connectivity works; default-deny blocks both clients; allow policy restores access only for labeled allowed client (200 vs timeout)."
 :cis-mitre-codes: '{"cisMapping":{"primary":["5.3.2"]},"mitre":{"techniques":["T1046"],"tactics":["TA0007"],"mitigations":["M1030","M1042"]}}'
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~15 minutes
 
 == Overview
 Move from open pod-to-pod traffic to NetworkPolicies that deny by default and allow only the flows you need.
@@ -26,7 +27,7 @@ By default, pods in a namespace can usually reach each other. If one pod is comp
 == Your Mission
 A foothold in any pod can scan sideways to databases and internal APIs when east–west traffic is open. Your mission: prove the open path exists, slam the door with default deny, then reopen only the client you trust.
 
-=== Example 1: Stage the flat network the attacker wants
+=== Stage the flat network the attacker wants
 Spin up an API plus two clients—one “allowed,” one “denied”—before any policy exists.
 
 [source,sh]
@@ -39,7 +40,7 @@ oc run client-denied  --image=registry.access.redhat.com/ubi9/ubi -l role=denied
 SVC=$(oc get svc api -o jsonpath='{.spec.clusterIP}')
 ----
 
-=== Example 2: Confirm lateral movement works with no policy
+=== Confirm lateral movement works with no policy
 Both clients should reach the API. That is the blast radius you must shrink.
 
 [source,sh]
@@ -61,7 +62,7 @@ flowchart LR
   end
 ----
 
-=== Example 3: Drop the blast radius — default deny ingress
+=== Drop the blast radius — default deny ingress
 Close every inbound door. Compromised pods should time out instead of probing freely.
 
 [source,sh]
@@ -78,7 +79,7 @@ spec:
 EOF
 ----
 
-=== Example 4: Verify the attacker’s pivots now fail
+=== Verify the attacker’s pivots now fail
 Both clients should time out. Good—lateral movement is blocked until you explicitly reopen a path.
 
 [source,sh]
@@ -100,7 +101,7 @@ flowchart LR
   end
 ----
 
-=== Example 5: Reopen only the trusted client’s path
+=== Reopen only the trusted client’s path
 Allow TCP/8080 solely from pods labeled `role=allowed`. Everything else stays locked out.
 
 [source,sh]
@@ -127,7 +128,7 @@ spec:
 EOF
 ----
 
-=== Example 6: Prove allow vs block (mission complete when denied stays dark)
+=== Prove allow vs block (mission complete when denied stays dark)
 Allowed client returns 200; denied client times out. Business traffic works; the attacker-shaped client does not.
 
 [source,sh]
@@ -149,83 +150,29 @@ flowchart LR
   end
 ----
 
-=== Cleanup (optional)
+=== Cleanup
 [source,sh]
 ----
 oc delete project 101-05-n-netpol-demo --wait=false
 ----
 
-== Understanding the Attack Surface
-[cols="1,2,2",options="header"]
-|===
-|Surface | Risk When Open | Example Abuse
-|East-West Traffic | Lateral movement | Probe creds service from frontend
-|Lack of Egress Control | Data exfiltration | Leak secrets externally
-|Overbroad Labels | Wide unintended allowance | Label matches many pods
-|Missing Default Deny | Hidden gaps persist | Sensitive svc reachable
-|===
+== Debrief
 
-== How to Secure (Lifecycle View)
-* Build: Standardize labels (app, role, tier).
-* Registry: Harden images to reduce footholds.
-* Deploy: Default deny early; allowlists per service.
-* Runtime: RHACS network graph to refine policy.
+You started from a flat, open namespace network, applied default-deny ingress, then reopened only the trusted client path—shrinking east-west blast radius.
 
-== How it Works (Labels 101)
-NetworkPolicies are label-driven and namespace-scoped. You control two sides with labels:
+What breaks without this:
 
-- Target pods: spec.podSelector selects the pods this policy applies to.
-  - {} means “all pods in this namespace.”
-- Allowed sources (Ingress): spec.ingress[].from lists who may talk to targets.
-  - podSelector: pods in the same namespace that match these labels
-  - namespaceSelector: pods from namespaces that match these labels
-  - ipBlock: allow specific CIDRs (ingress only)
-- Direction: policyTypes: [Ingress, Egress] controls which directions are enforced.
+* No NetworkPolicy → every pod can reach every other pod by default
+* Over-broad labels → accidental allows for the wrong workloads
+* Missing egress rules when needed → exfil or C2 paths stay open
 
-Matching semantics you’ll use most:
+Controls that matter: default-deny in sensitive namespaces, smallest allow set that keeps the app working, consistent app/role/tier/env labels, and validation of allow vs deny paths.
 
-- AND within matchLabels (all keys must match); OR across list items:
-  - Multiple labels under matchLabels must all match.
-  - Multiple entries in from or ports act like OR rules.
-- Default deny emerges when a pod is selected by any Ingress policy and no rule allows a given flow; the explicit pattern is a “default-deny” policy with podSelector: {} and no from rules.
-
-Tip: For cross-namespace access, add namespace labels (e.g., env=clients) and use namespaceSelector with those labels. See “Your Mission” for YAML examples.
-
-== Solutions / Controls
-
-* NetworkPolicies for microsegmentation
-* Standard labels as controlled vocabulary
-* RHACS network graph for visualization
-* Zero trust mindset: default deny + explicit allow
-
-== Summary Table
-[cols="1,2,2",options="header"]
-|===
-|What to Secure | Risk | Control
-|East-West Traffic | Lateral expansion | Default deny + allowlist
-|Labeling Consistency | Policy gaps | Enforced taxonomy
-|High-Sensitivity Services | Data exposure | Targeted ingress policies
-|Drift Over Time | Stale rules | Periodic review + RHACS
-|===
-
-== FAQs
-Do NetworkPolicies block egress by default?:: Only if egress types specified.
-Why start with default deny?:: Reveals necessary connections.
-Are they node firewalls?:: Enforced at pod interfaces via CNI.
-How to avoid label sprawl mistakes?:: Minimal taxonomy: app, role, tier, env.
-
-== Closing Story
-Start with default-deny in sensitive namespaces, then add the smallest set of allow rules that keep the app working.
-
+Quick facts: policies select pods; once selected, only explicit allows pass. CNI enforces at the pod interface—not a substitute for node firewalls. Pattern references below help you design the next rules.
 
 :lab-cleanup-module: 101-05
 include::partial$lab-cleanup.adoc[]
 
-== Next Step Ideas
-
-* Add egress example (allow DNS, block external)
-* Bundle policies into a single manifest
-* Visualize flows pre/post with RHACS
 
 == Extra: Network Policy Patterns (Reading)
 The following reference patterns are adapted from docs/network-policies.adoc. Use them to reason about design choices; keep YAML only in the hands-on section above.

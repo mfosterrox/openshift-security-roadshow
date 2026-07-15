@@ -5,8 +5,9 @@
 :audit-evidence: "Policy denies docker.io nginx; UBI image admitted and provenance (Image and digest) verified."
 :cis-mitre-codes: '{"cisMapping":{"primary":["5.5.1"],"related":[]},"mitre":{"techniques":["T1195"],"tactics":["TA0001","TA0003"],"mitigations":["M1016"]}}'
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~15 minutes
 
 == Overview
 Limit which registries the cluster may pull from, then confirm what you ran by registry host and sha256 digest.
@@ -26,14 +27,14 @@ Pulls from arbitrary registries mean unknown builders and unvetted contents. An 
 == Your Mission
 Supply-chain attackers ship malware through any registry that will take a tag. Your mission: put an allow-list on the door, prove an untrusted image is denied, then run only a trusted UBI workload you can fingerprint by host and digest.
 
-=== Example 1: Mark the namespace as under registry lockdown
+=== Mark the namespace as under registry lockdown
 [source,sh]
 ----
 oc new-project 101-07-i-trusted
 oc label namespace 101-07-i-trusted trusted-registry-enforce=true --overwrite
 ----
 
-=== Example 2: Install the allow-list (cluster-admin) — close arbitrary pulls
+=== Install the allow-list (cluster-admin) — close arbitrary pulls
 [source,sh]
 ----
 oc apply -f - <<'EOF'
@@ -97,20 +98,20 @@ spec:
 EOF
 ----
 
-=== Example 3: Launch the untrusted payload — expect Deny
+=== Launch the untrusted payload — expect Deny
 [source,sh]
 ----
 oc -n 101-07-i-trusted create deployment bad --image=docker.io/library/nginx:latest || true
 ----
 
-=== Example 4: Deploy only from an approved registry
+=== Deploy only from an approved registry
 [source,sh]
 ----
 oc -n 101-07-i-trusted create deployment good --image=registry.access.redhat.com/ubi9/ubi:9.6 -- sleep infinity
 oc -n 101-07-i-trusted wait --for=condition=Available deployment/good --timeout=60s
 ----
 
-=== Example 5: Fingerprint provenance — host + digest
+=== Fingerprint provenance — host + digest
 Prove what actually runs so a floated `:latest` tag cannot quietly swap in attacker content.
 
 [source,sh]
@@ -130,7 +131,7 @@ Example (UBI 9.6):
 - Image: registry.redhat.io/ubi9/ubi:9.6 (trusted source)
 - Image ID: …@sha256:dbc1e98d14a022542e45b5f22e0206d3f86b5bdf237b58ee7170c9ddd1b3a283 (immutable digest)
 
-=== Cleanup (optional)
+=== Cleanup
 [source,sh]
 ----
 oc delete project 101-07-i-trusted --wait=false
@@ -140,64 +141,20 @@ oc delete validatingadmissionpolicy allow-trusted-registries-pods || true
 oc delete validatingadmissionpolicy allow-trusted-registries-deployments || true
 ----
 
-== Understanding the Attack Surface
-[cols="1,2",options="header"]
-|===
-|Area | Risk If Ignored
-|Unknown registry | Untrusted builders and unexpected content
-|Unmaintained base image | Growing CVE backlog
-|Floating `:latest` tag | You never know what you actually ran
-|No allow-list | Any public registry can feed production
-|Missing digest / signature | Weak ability to prove integrity
-|===
+== Debrief
 
-== Summary Table
-[cols="1,2,2,2",options="header"]
-|===
-|Aspect | DockerHub nginx:latest (Blocked) | Red Hat UBI (Allowed) | Quay.io Org Image (Allowed)
-|Provenance | Unknown | Certified & curated | Org-governed
-|Patch Cadence | Unclear | Documented errata | Varies
-|Policy Result | Denied | Admitted | Admitted
-|Vulnerability Noise | Higher | Lower baseline | Medium
-|Default Hygiene | Often root | Non-root friendly | Varies
-|Audit Confidence | Weak | Strong | Moderate
-|===
+You marked a namespace for registry lockdown, blocked an untrusted pull, allowed an approved source, and fingerprinted host plus digest for provenance.
 
-== FAQs
-Why block DockerHub?:: Default registry fallback; weaker provenance guarantees.
-Can I still use public images?:: Mirror/import them into a trusted registry first.
-How to add another internal registry?:: Extend the CEL expression with another `startsWith`.
-Why namespace label scoping?:: Progressive opt-in reduces outage risk.
+What breaks without this:
 
-[[control-mapping-detail]]
-== Appendix: Control Mapping Detail (CIS ↔ MITRE)
+* Arbitrary registries → unknown base images and supply-chain risk
+* Floating tags like `:latest` → non-reproducible, mutable runtime
+* No allow-list → policy gaps between teams and clusters
 
-Only CIS 5.5.1 (image provenance & policy) is asserted.
+Controls that matter: trusted-registry allow-lists (admission), digest pins for important workloads, progressive labels for opt-in, and later signature verification.
 
-[cols="1,3",options="header"]
-|===
-|Aspect | Explanation
-|Primary CIS Control (5.5.1) | Demonstrated by admission denial of unapproved registry image and success of trusted UBI; provenance (image + digest) verified post-admission.
-|ATT&CK Technique | T1195 (Supply Chain Compromise) – reducing ingress of unvetted artifacts.
-|Mitigation | M1016 (Vulnerability / Patch Management) by gating to curated, maintained sources.
-|Observed Evidence | Denied nginx pull; allowed UBI deployment; describe output shows registry + digest.
-|Learner Outcome | Implement allow‑list policies rather than ad hoc manual reviews.
-|Audit Use | Admission policy manifests + denied event + successful trusted deployment form traceable enforcement.
-|===
-Where does Lab B1 fit?:: B1 covers runtime least privilege; B6 covers image provenance.
-
-== Closing Story
-Allow only registries you trust, pin digests for important workloads, and treat `:latest` as a demo habit—not a production practice.
-
+Quick facts: mirror public images into a registry you control; treat `:latest` as a demo habit, not production practice.
 
 :lab-cleanup-module: 101-07
 include::partial$lab-cleanup.adoc[]
-
-== Next Step Ideas
-
-* Extend policy to StatefulSets & DaemonSets
-* Add warn-only binding for dev
-* Integrate signature (cosign) verification
-* Track denied attempts KPI
-
 

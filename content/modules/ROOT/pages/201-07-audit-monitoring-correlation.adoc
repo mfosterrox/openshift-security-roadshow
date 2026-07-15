@@ -3,8 +3,9 @@
 :skills: Audit Logs, Correlation, Monitoring, Threat Detection
 :labid: LAB-201-07
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~20 minutes
 
 == Overview
 Correlate audit logs & monitoring signals.
@@ -85,11 +86,19 @@ Add cluster / namespace labels when forwarding audit to SIEM for simplified quer
 oc delete project 201-07-a-correlation --wait=false
 ----
 
+== Debrief
+
+Audit shows API intent; logs and metrics show runtime. Correlate on namespace, pod, user, verb, and time to spot pivots that neither stream alone catches.
+
+What breaks without this:
+
+* Siloed audit vs runtime → missed exec campaigns and privilege grants
+* No join keys → alerts without investigation context
+
+Controls that matter: ship audit immutably, align clocks, query by identity and verb, and build anomaly rules (for example non-admin exec in prod).
+
+Quick facts: this lab is the foundation for later ACS/IR correlation—not a replacement for runtime sensors.
 
 :lab-cleanup-module: 201-07
 include::partial$lab-cleanup.adoc[]
 
-== Key Points
-* Audit gives intent (API action) while pod logs/metrics give runtime context
-* Correlation fields: namespace, pod, user, verb, timestamp
-* Foundation for anomaly & policy-based detections

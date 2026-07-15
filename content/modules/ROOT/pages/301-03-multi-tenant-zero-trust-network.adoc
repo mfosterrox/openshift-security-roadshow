@@ -3,8 +3,9 @@
 :skills: Service Mesh mTLS, Layered NetworkPolicies, Multi-Network CNIs, Egress Governance, Zero-Trust Patterns
 :labid: LAB-301-03
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~30 minutes
 
 == Overview
 Design and implement a comprehensive zero-trust network architecture for multi-tenant OpenShift environments. You will architect service mesh mutual TLS (mTLS), implement layered NetworkPolicies, configure multi-network CNIs, establish egress governance, and apply zero-trust patterns to ensure complete network segmentation and isolation.
@@ -66,11 +67,18 @@ This lab is currently under development. Content will include:
 * Multus CNI plugin available
 * Understanding of NetworkPolicies and service mesh concepts
 
+== Debrief
+
+Multi-tenant zero-trust networking assumes a foothold and designs layered stop-points: NetworkPolicies, mesh mTLS, Multus/egress governance—not a single flat allow.
+
+What this module targets:
+
+* Tenant segmentation blueprints
+* Service mesh mTLS and identity-aware paths
+* Egress and multi-network controls
+
+Until full exercises land: draw your east-west trust zones and mark where default-deny already exists versus open namespaces.
 
 :lab-cleanup-module: 301-03
 include::partial$lab-cleanup.adoc[]
-
-== Next Steps
-
-This lab content is being developed. Check back soon for complete instructions and exercises.
 

@@ -5,8 +5,9 @@
 :audit-evidence: "Rebuilt UBI image deploys under restricted SCC; id shows random non-root UID; service exposed without anyuid exception."
 :cis-mitre-codes: '{"cisMapping":{"primary":["5.2.6"]},"mitre":{"techniques":["T1611"],"tactics":["TA0004"],"mitigations":["M1026","M1048"]}}'
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~20 minutes
 
 == Overview
 Rebuild an image so it runs under the restricted SCC: non-root, permissions that tolerate a random UID, and an unprivileged listen port—without `anyuid`.
@@ -26,13 +27,13 @@ Shipping an image that needs root pushes teams toward `anyuid` and other SCC exc
 == Your Mission
 The public `httpd` image just crashed because it wants root and port 80—the same privilege attackers hope you unlock with `anyuid`. Rebuild on UBI so the app serves under restricted SCC, prove the UID stays non-root, and expose it without widening the blast radius.
 
-=== Example 1: Open the rebuild sandbox
+=== Open the rebuild sandbox
 [source,sh]
 ----
 oc new-project 101-11-r-rebuild
 ----
 
-=== Example 2: Reproduce the attack-friendly image failure
+=== Reproduce the attack-friendly image failure
 [source,sh]
 ----
 oc create deployment webapp --image=httpd
@@ -59,7 +60,7 @@ Result: admission deny or crash-loop—do not “fix” with `anyuid`. Rebuild i
 
 NOTE: Rebuild on trusted UBI 9 httpd 2.4 (registry.access.redhat.com / registry.redhat.io). It runs non-root and listens on 8080. We copy a sample `index.html`; real apps place their site files the same way.
 
-=== Example 3: Build the defended image context
+=== Build the defended image context
 [source,sh]
 ----
 mkdir -p build && cd build
@@ -76,7 +77,7 @@ EXPOSE 8080
 EOF
 ----
 
-=== Example 4: Build inside OpenShift (no laptop privilege shortcuts)
+=== Build inside OpenShift (no laptop privilege shortcuts)
 [source,sh]
 ----
 oc new-build --name webapp --binary --strategy=docker
@@ -84,7 +85,7 @@ oc start-build webapp --from-dir=. --follow
 oc get is
 ----
 
-=== Example 5: Roll the defended image into production position
+=== Roll the defended image into production position
 [source,sh]
 ----
 oc set image deployment/webapp *=image-registry.openshift-image-registry.svc:5000/101-11-r-rebuild/webapp:latest
@@ -92,7 +93,7 @@ oc rollout status deployment/webapp
 oc logs -l app=webapp --tail=40 || true
 ----
 
-=== Example 6: Prove non-root and restricted SCC still hold
+=== Prove non-root and restricted SCC still hold
 [source,sh]
 ----
 oc exec deploy/webapp -- id -u
@@ -110,7 +111,7 @@ What `restricted-v2` denies the attacker:
 * Capabilities dropped; extra caps blocked
 * Default seccomp + SELinux MCS isolation
 
-=== Example 7: Expose the service without privilege growth
+=== Expose the service without privilege growth
 [source,sh]
 ----
 oc expose deployment webapp --port=8080 --target-port=8080
@@ -121,62 +122,25 @@ curl -s http://$ROUTE | head -3
 
 NOTE: Keep the project for the TLS lab (101-12). Delete only when finished with both.
 
-=== Cleanup (optional)
+=== Cleanup
 [source,sh]
 ----
 oc delete project 101-11-r-rebuild --wait=false
 ----
 
-== Understanding the Attack Surface
-[cols="1,2,2",options="header"]
-|===
-|Weak Pattern | Risk | Hardened Alternative
-|USER root | Host probing | Non-root user + restrictive perms
-|Port 80 binding | Needs root | Use 8080+
-|Writable root filesystem | Tamper persistence | Minimal write paths
-|Unknown base image | Hidden CVEs | UBI base + scanning
-|===
+== Debrief
 
-== How to Secure (Lifecycle View)
-* Build: Multi-stage; drop root early; fix permissions.
-* Registry: Only signed/scanned images.
-* Deploy: Restricted SCC success baseline.
-* Runtime: RHACS alert on root/capability reintroduction.
+You rebuilt for restricted SCC—non-root, high port, ownership that tolerates a random UID—then deployed without negotiating `anyuid`.
 
-== Solutions / Controls
+What breaks without this:
 
-* UBI base (maintained)
-* Non-root execution
-* High port selection
-* RHACS root/capability policies
-* GitOps Dockerfile history
+* `USER root` / port 80 / fixed ownership → every cluster becomes an SCC exception negotiation
+* Unknown bases → hidden CVEs and drift from what you tested
 
-== Summary Table
-[cols="1,2,2,2",options="header"]
-|===
-|Design Element | Insecure Form | Secure Form | Benefit
-|User | root | non-root (random UID) | Reduced escalation
-|Port | 80 | 8080 | No privileged need
-|Base Image | Unknown | UBI Micro | Maintained & scanned
-|File Ownership | root-only | root:0 with g+rw | Random UID compat
-|===
+Controls that matter: UBI (or maintained) bases, non-root, high ports, group-writable dirs, RHACS root policies, and Dockerfile history in GitOps.
 
-== FAQs
-Why not just grant anyuid?:: Short-term speed, long-term security debt. Rebuilds avoid exceptions and reduce blast radius.
-Is UBI required?:: No, but offers predictable updates & support.
-How small should images be?:: Smaller surface → fewer CVEs & faster pulls.
-
-== Closing Story
-Fix the Dockerfile once; stop negotiating SCC exceptions for every environment.
-
+Quick facts: fix the image once across environments; `anyuid` is long-term debt. Smaller images usually mean fewer CVEs.
 
 :lab-cleanup-module: 101-11
 include::partial$lab-cleanup.adoc[]
-
-== Next Step Ideas
-
-* Pipeline check: fail if USER root in final layer
-* Image signing before deployment
-* Compare CVE count before vs after
-
 

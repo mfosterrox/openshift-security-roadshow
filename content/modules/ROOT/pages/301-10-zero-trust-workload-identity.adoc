@@ -3,16 +3,16 @@
 :skills: Workload Identity Frameworks, Confidential Execution Runtimes, Hardware-Backed Attestation
 :labid: LAB-301-10
 :toc:
-:sectnums:
 :icons: font
 :page-toclevels: 1
+
+**Duration:** ~20 minutes
 
 == Overview
 Replace shared database passwords with SPIFFE workload identity and mutual TLS via the Zero Trust Workload Identity Manager (ZTWIM)—short-lived certificates tied to Kubernetes service accounts instead of static Secrets.
 
 include::partial$console-access.adoc[]
 
-**Duration:** ~20 minutes · **Audience:** Security Engineers, Platform Engineers, IT Operations
 
 Your payment-processing service needs PostgreSQL. The database team refuses another shared password in a Kubernetes `Secret`—and they are right. Static credentials in Git, images, or long-lived Secrets are exactly what attackers hunt after a breach. Here you use no database password at all: ZTWIM issues short-lived X.509 certificates bound to each workload identity, and PostgreSQL trusts those certificates.
 
@@ -309,18 +309,17 @@ cd ~/openshift-security-roadshow
 bash setup/lab-cleanup.sh --module 301-10
 ----
 
-== Wrap-up
 
-**Great job!** You secured database access with cryptographic workload identity and mutual TLS. 
+== Debrief
 
-To summarize:
+You replaced shared database passwords with SPIFFE workload identity and mTLS via ZTWIM—short-lived certs bound to namespace and ServiceAccount.
 
-* *ZTWIM* on this cluster provides SPIRE server, agents, CSI driver, and OIDC discovery for workload identity.
-* *SPIFFE workload identity* binds X.509 certificates to Kubernetes namespace and service account, replacing static database passwords.
-* *Mutual TLS* enforces bidirectional certificate verification—both client and server prove cryptographic identity.
-* *Short-lived certificates* (approximately 1 hour) limit exposure windows and rotate automatically via `spiffe-helper` sidecars.
-* *Zero-trust enforcement*: connections without valid SPIFFE certificates are rejected regardless of network access.
+What you proved:
 
-This is one step in a larger Zero-trust architecture. At Red Hat, we have a framework for building secure clusters called the https://github.com/validatedpatterns/layered-zero-trust[Layered Zero Trust Validated Pattern]. You can learn more about the pattern and how to build your own secure clusters by following the link.
+* Reachability without a valid SVID still fails
+* Unauthorized pods cannot present the right identity
+* Certificates rotate on a short lifetime via `spiffe-helper`
 
-Continue when you are ready for the next topic in the workshop.
+Controls that matter: SPIRE/ZTWIM issuance, mutual TLS on the data path, and identity-based authorization instead of static Secrets.
+
+Quick facts: this is one layer of a larger zero-trust stack—pair with NetworkPolicy and admission so stolen network access alone is not enough.

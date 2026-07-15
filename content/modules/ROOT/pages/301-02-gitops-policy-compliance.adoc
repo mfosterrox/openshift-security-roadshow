@@ -3,8 +3,9 @@
 :skills: GitOps Reconciliation, Policy-as-Code Repositories, Automated Drift Detection, Compliance Pipelines
 :labid: LAB-301-02
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~30 minutes
 
 == Overview
 Design and implement GitOps-driven policy and compliance pipelines that automatically reconcile desired state, detect configuration drift, and enforce compliance at scale across multiple clusters and environments.
@@ -77,11 +78,18 @@ This lab is currently under development. Content will include:
 * Familiarity with policy engines and admission controllers
 * Experience with CI/CD pipelines
 
+== Debrief
+
+GitOps-driven policy makes desired security state reviewable and drift visible—silent console exceptions stop being invisible.
+
+What this module targets:
+
+* Policy-as-code in Git
+* Reconciliation (Argo CD / Flux) for continuous enforcement
+* Compliance pipelines and multi-cluster consistency
+
+Until full exercises land: note one control you only enforce by click-ops today and sketch the Git path that would own it.
 
 :lab-cleanup-module: 301-02
 include::partial$lab-cleanup.adoc[]
-
-== Next Steps
-
-This lab content is being developed. Check back soon for complete instructions and exercises.
 

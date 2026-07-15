@@ -3,8 +3,9 @@
 :skills: Enablement Programs, Documentation Standards, Internal Guilds, Maturity Roadmaps
 :labid: LAB-301-08
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~20 minutes
 
 == Overview
 Lead organizational security culture transformation by developing enablement programs, establishing documentation standards, creating internal security guilds, and building maturity roadmaps that guide teams toward security excellence.
@@ -81,11 +82,18 @@ This lab is currently under development. Content will include:
 * Strong communication and facilitation skills
 * Understanding of security practices and principles
 
+== Debrief
+
+Security culture beats security theater: enablement, guilds, maturity roadmaps, and measured coaching so controls stick after the workshop ends.
+
+What this module targets:
+
+* Enablement programs and documentation standards
+* Internal guilds and review rituals
+* Maturity measurement over checkbox compliance
+
+Until full exercises land: name one practice your teams skip under deadline pressure and how you will coach it weekly.
 
 :lab-cleanup-module: 301-08
 include::partial$lab-cleanup.adoc[]
-
-== Next Steps
-
-This lab content is being developed. Check back soon for complete instructions and exercises.
 

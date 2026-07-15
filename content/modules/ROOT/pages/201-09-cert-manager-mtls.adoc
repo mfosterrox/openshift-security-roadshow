@@ -3,8 +3,9 @@
 :cis-summary: "Implement automated certificate management and mutual TLS (mTLS) using cert-manager Operator."
 :mitre-summary: "Prevents man-in-the-middle attacks and ensures secure service-to-service communication through automated certificate lifecycle management."
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~20 minutes
 
 == Overview
 Learn how to deploy and configure cert-manager Operator for automated certificate provisioning, renewal, and management. You'll implement mutual TLS (mTLS) between services to ensure authenticated and encrypted communication.
@@ -77,48 +78,19 @@ oc get secret example-cert-tls -n 201-09-demo
 oc delete project 201-09-demo --wait=false
 ----
 
-== Understanding the Attack Surface
-[cols="1,2,2",options="header"]
-|===
-|Area | Risk Without mTLS | Mitigation
-|Service Communication | Interception | mTLS encryption
-|Certificate Expiration | Outages | Automated renewal
-|Key Management | Exposure | Secure storage
-|Identity Verification | Spoofing | Mutual authentication
-|===
+== Debrief
 
-== Solutions / Controls
+cert-manager automates issuance and renewal so expiry outages disappear; mTLS adds service-to-service identity beyond perimeter TLS.
 
-* Cert-manager Operator
-* Automated certificate lifecycle
-* mTLS configuration
-* Certificate rotation
-* Key management
+What breaks without this:
 
-== Summary Table
-[cols="1,2,2",options="header"]
-|===
-|Control | Purpose | Benefit
-|Cert-manager | Automation | Reduced overhead
-|mTLS | Mutual auth | Enhanced security
-|Auto-renewal | Continuity | No outages
-|Key Management | Security | Protected keys
-|===
+* Manual certs → outages at expiry and rushed key handling
+* Cleartext or one-way TLS only → lateral sniffing and spoofing between services
 
-== FAQs
-What certificate authorities are supported?:: Let's Encrypt, self-signed, and custom CAs.
-How often are certificates renewed?:: Automatically before expiration.
-Does mTLS impact performance?:: Minimal overhead; benefits outweigh costs.
+Controls that matter: ClusterIssuer/Certificate CRs, auto-renew before expiry, mTLS where trust boundaries need mutual proof, and protected key material.
 
-== Closing Story
-Automated certificate management removes a common source of outages while mTLS adds defense-in-depth for service communication.
-
+Quick facts: use public CA, private CA, or self-signed to match your trust model; renewal timing is the reliability win.
 
 :lab-cleanup-module: 201-09
 include::partial$lab-cleanup.adoc[]
 
-== Next Step Ideas
-
-* Integrate with Let's Encrypt
-* Implement mTLS across all services
-* Monitor certificate expiration

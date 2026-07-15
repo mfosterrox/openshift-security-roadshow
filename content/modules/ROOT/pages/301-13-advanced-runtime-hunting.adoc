@@ -3,8 +3,9 @@
 :cis-summary: "Implement advanced runtime threat hunting, automated response, and ACS integration for security operations."
 :mitre-summary: "Detects and responds to advanced threats through proactive hunting, automated response, and security orchestration."
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~30 minutes
 
 == Overview
 Learn advanced techniques for runtime threat hunting, automated threat response, and integration with Advanced Cluster Security (ACS) for comprehensive security operations. You'll implement proactive hunting strategies, automated response playbooks, and security orchestration workflows.
@@ -66,49 +67,19 @@ echo "Review ACS policies and violations through console or API"
 === Cleanup
 No cleanup needed for this lab.
 
-== Understanding the Attack Surface
-[cols="1,2,2",options="header"]
-|===
-|Area | Risk Without Hunting | Mitigation
-|Advanced Threats | Undetected compromise | Proactive hunting
-|Response Time | Extended dwell time | Automated response
-|Visibility Gaps | Blind spots | ACS integration
-|Manual Processes | Delayed response | Automation
-|===
+== Debrief
 
-== Solutions / Controls
+Advanced hunting plus automated response shortens dwell time—you query for weak signals, then act (isolate, policy, terminate) without waiting on a ticket.
 
-* Advanced Cluster Security (ACS)
-* Threat hunting queries
-* Automated response playbooks
-* Security orchestration
-* Incident response automation
+What breaks without this:
 
-== Summary Table
-[cols="1,2,2",options="header"]
-|===
-|Control | Purpose | Benefit
-|Threat Hunting | Proactive detection | Early threat discovery
-|Automated Response | Rapid containment | Reduced impact
-|ACS Integration | Comprehensive visibility | Unified security ops
-|Playbooks | Standardized response | Consistent handling
-|===
+* Alert-only monitoring → known TTPs missed between dashboards
+* Manual response lag → attackers finish lateral movement first
 
-== FAQs
-What makes threat hunting different from monitoring?:: Hunting is proactive search for threats; monitoring reacts to alerts.
-How do I create effective hunting queries?:: Start with known attack patterns and adapt based on your environment.
-What response actions are available?:: Network isolation, pod termination, policy enforcement, and custom actions.
+Controls that matter: ACS hunting queries, playbooks, orchestration hooks, and clear human-approve vs auto-act boundaries.
 
-== Closing Story
-Advanced threat hunting and automated response transform security from reactive to proactive, reducing risk and improving resilience.
-
+Quick facts: hunting is proactive search, not just triage of fired alerts. Measure MTTD/MTTR as you automate.
 
 :lab-cleanup-module: 301-13
 include::partial$lab-cleanup.adoc[]
 
-== Next Step Ideas
-
-* Develop custom hunting queries
-* Create response playbooks
-* Integrate with SIEM systems
-* Measure and improve MTTD/MTTR

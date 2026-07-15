@@ -3,8 +3,9 @@
 :skills: Artifact Signing Frameworks, SBOM Generation & Attestation, Supply Chain Assurance Levels, Policy Enforcement
 :labid: LAB-301-06
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~30 minutes
 
 == Overview
 Design and implement comprehensive supply chain security frameworks that ensure end-to-end integrity of artifacts, provide complete provenance tracking, generate Software Bills of Materials (SBOMs), and enforce supply chain policies throughout the development and deployment lifecycle.
@@ -81,11 +82,18 @@ This lab is currently under development. Content will include:
 * Experience with SBOM generation tools
 * Knowledge of SLSA and supply chain frameworks
 
+== Debrief
+
+Supply chain integrity is unbroken provenance from source to runtime: sign, attest, admit only what you can verify.
+
+What this module targets:
+
+* Cosign/Sigstore and Trusted Artifact Signer patterns
+* SBOM and attestation
+* Admission enforcement of provenance
+
+Until full exercises land: decide which registry paths must be signed tomorrow versus still tag-mutable today.
 
 :lab-cleanup-module: 301-06
 include::partial$lab-cleanup.adoc[]
-
-== Next Steps
-
-This lab content is being developed. Check back soon for complete instructions and exercises.
 

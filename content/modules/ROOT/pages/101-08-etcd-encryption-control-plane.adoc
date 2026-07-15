@@ -3,8 +3,9 @@
 :cis-summary: "Enable etcd encryption at rest and implement basic control plane security hardening."
 :mitre-summary: "Prevents data exposure through encryption at rest and reduces control plane attack surface."
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~10 minutes
 
 == Overview
 Enable etcd encryption at rest so Secrets and similar data are not readable as plaintext on disk, and review basic control-plane hardening options.
@@ -21,13 +22,13 @@ Etcd holds Secrets, ConfigMaps, and other API objects. If someone gets raw etcd 
 == Your Mission
 If an attacker (or stolen backup) can read raw etcd disks, unencrypted Secrets become free credentials. Confirm encryption posture and that control-plane components are present and healthy—deny the “steal the volume, read the cluster” path.
 
-=== Example 1: Check whether encryption is already defending Secrets at rest
+=== Check whether encryption is already defending Secrets at rest
 [source,sh]
 ----
 oc get encryptionconfig cluster -o yaml
 ----
 
-=== Example 2: Verify the API server encryption type
+=== Verify the API server encryption type
 [source,sh]
 ----
 oc get apiserver cluster -o jsonpath='{.spec.encryption.type}'
@@ -35,7 +36,7 @@ oc get apiserver cluster -o jsonpath='{.spec.encryption.type}'
 
 NOTE: Enabling etcd encryption requires cluster-admin access and may require a cluster restart. Typically done at install or via cluster config updates.
 
-=== Example 3: Quick control-plane health sweep
+=== Quick control-plane health sweep
 [source,sh]
 ----
 oc get nodes -o wide
@@ -46,48 +47,19 @@ oc get pods -n openshift-etcd
 === Cleanup
 No cleanup needed for this lab.
 
-== Understanding the Attack Surface
-[cols="1,2,2",options="header"]
-|===
-|Area | Risk If Unencrypted | Mitigation
-|Etcd Storage | Secret exposure | Encryption at rest
-|Backup Files | Data leakage | Encrypted backups
-|Control Plane | Unauthorized access | Hardening measures
-|Key Management | Key compromise | Secure key storage
-|===
+== Debrief
 
-== Solutions / Controls
+You checked whether etcd encryption at rest is defending Secrets on disk and swept basic control-plane health so plaintext storage is not a silent gap.
 
-* Etcd encryption at rest
-* KMS integration for key management
-* Control plane node hardening
-* API server security configuration
-* Audit logging
+What breaks without this:
 
-== Summary Table
-[cols="1,2,2",options="header"]
-|===
-|Control | Purpose | Benefit
-|Etcd Encryption | Data protection | Compliance & security
-|KMS Integration | Key management | Secure key storage
-|Node Hardening | Reduced attack surface | Fewer vulnerabilities
-|API Security | Access control | Authorized access only
-|===
+* Unencrypted etcd / backups → Secrets readable if storage is stolen
+* Weak control-plane posture → larger blast radius when the API plane is probed
 
-== FAQs
-When should encryption be enabled?:: During cluster installation or as part of security hardening.
-Does encryption impact performance?:: Minimal impact; encryption is hardware-accelerated.
-Can I enable encryption on existing clusters?:: Yes, but requires careful planning and may require downtime.
+Controls that matter: etcd encryption at rest, key management, node/API hardening, and audit so you can prove the control is on.
 
-== Closing Story
-Turn on etcd encryption before you have a storage-access scare, and verify the status after you enable it.
-
+Quick facts: enable at install when you can; enabling later needs careful planning. Performance impact is usually minimal versus the data-protection win.
 
 :lab-cleanup-module: 101-08
 include::partial$lab-cleanup.adoc[]
 
-== Next Step Ideas
-
-* Integrate with external KMS
-* Review control plane node security
-* Implement encryption key rotation

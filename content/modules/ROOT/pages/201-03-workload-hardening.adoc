@@ -5,6 +5,8 @@
 :compliance: NIST 800-53 CM-6 / SC-7, CIS Kubernetes 5.x, ISO 27001 A.12, PCI DSS 6.5
 :labid: LAB-201-03
 
+**Duration:** ~25 minutes
+
 == Overview
 You’ll author and apply a hardened SecurityContextConstraints object, combine it with seccomp and SELinux context discipline, and prove it works through positive and negative deployment tests.
 
@@ -155,59 +157,19 @@ oc exec good -- unshare -m true || echo "Blocked or not permitted (expected)"
 oc delete project 201-03-w-harden --wait=false
 ----
 
-== Understanding the Attack Surface
-[options="header"]
-|===
-| Element | Over-Broad Posture Risk | Hardened Outcome
-| Capabilities | Kernel abuse primitives available | ALL dropped; add none
-| Root UID | Direct escalation stepping stone | Enforced non-root range
-| SELinux Context | Ambient cross-label access | Predictable confined label
-| Syscalls | Escape / privilege chain surface | Minimal allow list
-| Priv Escalation | `allowPrivilegeEscalation=true` defaults | Explicitly false by default
-|===
+== Debrief
 
-== How to Secure (Lifecycle View)
-* Build: Refactor apps so they do not require legacy capabilities (replace ping with HTTP health, etc.).
-* Registry: Label images that (temporarily) still need elevated SCC—create a burn‑down list.
-* Deploy: Bind hardened SCC only where required; default others to restricted.
-* Runtime: Alert when a hardened namespace pod is scheduled under an unexpected SCC annotation.
+Hardened SCC, seccomp, capability drops, and SELinux close gaps that restricted defaults alone leave for sophisticated workloads.
 
-== Solutions/Controls
-* Hardened SCC: Governs UID ranges, privilege escalation, allowed volumes.
-* Seccomp (runtime/default or SPO profile): Removes unused syscall gadgets.
-* Capability Drop (ALL): Eliminates latent kernel features.
-* SELinux Mandatory Context: Enforces multi‑category separation.
-* RHACS Policy: Detect unexpected added caps or privileged pods.
+What breaks without this:
 
-== Summary Table
-[options="header"]
-|===
-| What to Secure | How | Outcome
-| UID / Priv Esc | SCC MustRunAsRange + no escalation | Stops silent root runs
-| Kernel Capabilities | requiredDrop=ALL | Strips abuse primitives
-| Syscalls | Seccomp runtime/default or minimal | Smaller exploit chain surface
-| SELinux Domain | Fixed context | Predictable isolation
-| Drift | Audit SCC annotation & RHACS alerts | Early detection
-|===
+* Leftover capabilities / loose syscalls → privilege escalation after container compromise
+* Invented custom SCCs everywhere → unmaintainable exception sprawl
 
-== FAQs
-Q: Why a UID range instead of a single UID?:: Provides diversity (harder to predict) while constraining to an acceptable bucket.
+Controls that matter: hardened SCC only when needed, SPO/seccomp profiles, drop ALL then add back, SELinux types, and RHACS drift detection.
 
-Q: When NOT to create a custom SCC?:: If the built‑in restricted SCC already denies what you don’t need—avoid duplicating for vanity.
-
-Q: How do I know if an app still “needs” a capability?:: Run without it and observe failures; then redesign the feature rather than granting the capability.
-
-Q: How do I detect privilege drift?:: Daily export of SCC assignments + RHACS policy on unexpected elevated privileges.
-
-== Closing Story
-Generic armor protects, but tailored armor removes gaps a spear tip could find. Hardened runtime policy is that tailoring—subtle adjustments that make a huge difference when stress hits.
-
+Quick facts: do not invent a custom SCC if restricted (plus image fixes) already fits. Detect capability drift continuously.
 
 :lab-cleanup-module: 201-03
 include::partial$lab-cleanup.adoc[]
-
-== Next Step Ideas
-* Admission: reject pods in “critical” namespaces not using hardened SCC.
-* SPO record/enforce cycle to craft a truly minimal seccomp profile.
-* RHACS policy: alert if any new capability appears in hardened namespaces.
 

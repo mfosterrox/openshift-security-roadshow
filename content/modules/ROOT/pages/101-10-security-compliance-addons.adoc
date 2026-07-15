@@ -5,8 +5,9 @@
 :audit-evidence: "Commands list compliance profiles, schedule scan, and map components to hardening/detection roles."
 :cis-mitre-codes: '{"cisMapping":{"primary":["5.7.2"]},"mitre":{"techniques":["T1611","T1195"],"tactics":["TA0004","TA0001"],"mitigations":["M1048","M1016"]}}'
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~10 minutes
 
 == Overview
 Use platform add-ons for continuous security work: Compliance Operator for benchmark scans, Security Profiles Operator for seccomp and SELinux profiles, and RHACS for image and runtime policy. This lab focuses on Compliance Operator; the others are covered for orientation.
@@ -27,17 +28,17 @@ SCC and RBAC cover a lot, but they do not schedule CIS-style scans, manage secco
 == Your Mission
 Attackers move while humans scramble for last-minute audit evidence. Wire continuous controls: prove Compliance Operator is ready, inventory profiles, and schedule a CIS-style suite so posture gaps surface on a cadence—not under deadline panic.
 
-=== Example 1: Confirm Compliance Operator is on the field
+=== Confirm Compliance Operator is on the field
 [source,sh]
 ----
 oc get pods -n openshift-compliance 2>/dev/null || echo 'Compliance Operator not installed'
 ----
-=== Example 2: Inventory the benchmarks you can run
+=== Inventory the benchmarks you can run
 [source,sh]
 ----
 oc get profiles.compliance.openshift.io -n openshift-compliance 2>/dev/null || true
 ----
-=== Example 3: Schedule a sample CIS scan (adjust names if needed)
+=== Schedule a sample CIS scan (adjust names if needed)
 On a shared roadshow cluster, prefer previewing YAML over applying unless instructors cleared it.
 
 [source,sh]
@@ -56,7 +57,7 @@ spec:
 EOF
 ----
 
-=== Example 4: Review check results when the scan lands
+=== Review check results when the scan lands
 [source,sh]
 ----
 oc get compliancecheckresults.compliance.openshift.io -n openshift-compliance | head
@@ -64,91 +65,19 @@ oc get compliancecheckresults.compliance.openshift.io -n openshift-compliance | 
 
 NOTE: SPO manages recording & enforcing seccomp / SELinux profiles; deeper commands appear in advanced labs.
 
-== Understanding the Ecosystem
-[cols="1,2,2",options="header"]
-|===
-|Component | Primary Focus | Outcome
-|Compliance Operator | Benchmark scans and remediations | Ongoing evidence of posture
-|Security Profiles Operator | Seccomp and SELinux profiles | Smaller kernel attack surface
-|RHACS | Image, runtime, and network policy | Gates and detection in one place
-|SCC / PSA | Admission privilege checks | Unsafe pod specs blocked
-|GitOps | Desired state and drift | Changes stay reviewable
-|===
+== Debrief
 
-== How to Secure (Lifecycle View)
-* Build: RHACS scan + policy score gates; SPO profile recording.
-* Registry: Signed & scanned images (Quay+RHACS).
-* Deploy: SCC/PSA + admission policies; scheduled Compliance scans.
-* Runtime: RHACS anomaly + network; SPO enforced profiles.
+You inventoried Compliance Operator benchmarks and saw how add-ons (Compliance, SPO, RHACS) cover different blind spots on top of platform defaults.
 
-== Component Examples (Informational)
+What breaks without this:
 
-Compliance Operator:
+* Defaults alone → no continuous CIS-style evidence
+* One tool for everything → gaps between config compliance, runtime, and image risk
 
-* Use to produce audit-ready compliance evidence across supported profiles and run scheduled posture checks
-* Schedule scans and apply remediations to reduce manual audit prep
-* Outcome: Continuous, audit-ready compliance evidence and scheduled posture checks per cluster/node/profile
+Controls that matter: layer Compliance Operator for benchmarks, SPO for runtime profiles, RHACS for image/runtime/network policy, plus SCC/PSA and GitOps drift detection.
 
-Security Profiles Operator (SPO):
-
-* Use when workloads should be restricted to only the syscalls/labels they need
-* Record a baseline in dev; enforce in prod to shrink kernel attack surface
-* Outcome: Fewer risky syscalls/contexts; clearer exceptions when needed
-
-Red Hat Advanced Cluster Security (RHACS):
-
-* Use to scan images, enforce deploy‑time policies (e.g., block :latest), and detect risky runtime behavior
-* Place policies across build → deploy → runtime for end‑to‑end coverage
-* Risk profiling to prioritize what to fix first (CVEs + deploy exposure + runtime context)
-* Network visibility and flow graphs to see namespace/service communications
-* NetworkPolicy generation suggestions from observed traffic to start least‑privilege
-* Vulnerability scanning for images and running deployments with fix guidance
-* CI/CD and registry integration to shift‑left scans and enforce policy before cluster
-* Configuration/hardening checks for K8s/RBAC privileges and risky settings
-* Outcome: Known‑bad images blocked before prod; faster detection/triage of anomalies
-
-== Success Criteria (What you should learn)
-
-* You can name what each add-on covers (Compliance vs SPO vs RHACS)
-* You can find compliance profiles and understand what a suite does (without running it)
-* You can explain seccomp/SELinux profiles at a high level and where they apply
-* You can describe where RHACS policies act (build, deploy, runtime) and why layering matters
-
-== Solutions / Controls
-
-* Continuous scanning & remediation
-* Hardened runtime via seccomp/SELinux
-* Policy gates pre-runtime
-* Drift detection with GitOps
-* Correlated analytics (process, network, API)
-
-== Summary Table
-[cols="1,2,2",options="header"]
-|===
-|Goal | Tooling | Business Benefit
-|Regulatory Evidence | Compliance Operator | Faster audits
-|Syscall Least Privilege | SPO | Reduced kernel surface
-|Vulnerability Gate | RHACS + Quay | Blocks known-bad deploys
-|Privilege Enforcement | SCC/PSA | Fewer escalation paths
-|Change Traceability | GitOps | Accountability & rollback clarity
-|===
-
-== FAQs
-Do I need everything day one?:: Start with RBAC/SCC/NetworkPolicies; add scanning & compliance iteratively.
-How do SPO profiles get created?:: Recorded baselines or curated templates.
-Difference between Compliance vs RHACS scan?:: Benchmark config vs image/runtime risk & behavior.
-Are scans disruptive?:: Low-impact; schedule off-peak for large estates.
-
-== Closing Story
-Defaults, compliance scans, hardening profiles, and ACS each cover different blind spots. Use them together; do not expect one layer to do every job.
-
+Quick facts: you do not need every operator on day one—start with a benchmark scan, then add runtime and policy gates where risk is highest. Compliance scan ≠ RHACS vulnerability focus.
 
 :lab-cleanup-module: 101-10
 include::partial$lab-cleanup.adoc[]
-
-== Next Step Ideas
-
-* Weekly scan diff reporting
-* Enforce signed images only (cosign + admission)
-* Gradual seccomp rollout starting with low-risk apps
 

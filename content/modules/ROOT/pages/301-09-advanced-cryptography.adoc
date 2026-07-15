@@ -3,8 +3,9 @@
 :skills: Key Management Integration, Service-to-Service Encryption, Observability Pipeline Design, Audit Telemetry
 :labid: LAB-301-09
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~25 minutes
 
 == Overview
 Design and implement comprehensive encryption strategies for OpenShift environments, including key management integration, service-to-service encryption architecture, and observability/audit telemetry pipeline design. You will learn to architect encryption at rest, in transit, and in use across the entire platform.
@@ -67,11 +68,18 @@ This lab is currently under development. Content will include:
 * Understanding of encryption concepts and key management
 * Familiarity with observability tools (Prometheus, Grafana, etc.)
 
+== Debrief
+
+Advanced cryptography closes cleartext and weak-key paths—KMS, transit encryption architecture, rotation, and observability that proves crypto is actually on.
+
+What this module targets:
+
+* Key management integration
+* Service-to-service and storage encryption strategies
+* Crypto observability and audit telemetry
+
+Until full exercises land: inventory where TLS terminates today and where secrets still sit unencrypted at rest.
 
 :lab-cleanup-module: 301-09
 include::partial$lab-cleanup.adoc[]
-
-== Next Steps
-
-This lab content is being developed. Check back soon for complete instructions and exercises.
 

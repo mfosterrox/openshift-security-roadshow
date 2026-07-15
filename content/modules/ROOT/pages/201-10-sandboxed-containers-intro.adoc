@@ -3,8 +3,9 @@
 :skills: Kata Containers, RuntimeClass, Sandboxed Workloads
 :labid: LAB-201-10
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~20 minutes
 
 == Overview
 Advanced workload restriction (runtime isolation enhancements).
@@ -92,11 +93,19 @@ Measure startup time or simple CPU benchmark difference for awareness.
 oc delete project 201-10-s-sandbox --wait=false
 ----
 
+== Debrief
+
+Kata (sandboxed) containers add a VM boundary for high-risk workloads—but they do not replace SCC, seccomp, quotas, or NetworkPolicy.
+
+What breaks without this:
+
+* Shared-kernel assumptions alone → breakout impact is larger for untrusted code
+* Sandbox everywhere → operational overhead without risk-based selection
+
+Controls that matter: RuntimeClass for Kata where justified, still stack platform hardening, and measure performance cost against sensitivity.
+
+Quick facts: use selectively for untrusted or high-value isolation needs; keep the rest of the control stack.
 
 :lab-cleanup-module: 201-10
 include::partial$lab-cleanup.adoc[]
 
-== Key Points
-* Kata adds VM boundary to container security model
-* Still benefits from SCC, seccomp, quotas, NetworkPolicy
-* Use selectively (higher overhead) for high-risk workloads

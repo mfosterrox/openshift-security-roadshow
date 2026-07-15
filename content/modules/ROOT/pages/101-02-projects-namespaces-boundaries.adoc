@@ -3,8 +3,9 @@
 :cis-summary: "Use OpenShift projects and namespaces as security boundaries for multi-tenancy and resource isolation."
 :mitre-summary: "Prevents unauthorized access and resource conflicts by establishing namespace-level security boundaries."
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~10 minutes
 
 == Overview
 Projects and namespaces draw hard lines between teams and apps. Use them to keep RBAC, quotas, and network rules scoped so one tenant cannot casually reach another.
@@ -25,7 +26,7 @@ On a shared cluster, a single flat namespace becomes everyone’s problem: share
 == Your Mission
 Without project boundaries, one compromised identity or runaway workload can reach every tenant’s Secrets, CPU, and pods. Draw hard lines—labels, RBAC, and quotas—so a break-in stays trapped in one namespace instead of becoming a cluster-wide outage.
 
-=== Example 1: Claim a defended territory with security labels
+=== Claim a defended territory with security labels
 Stand up a dedicated project and label it so policy engines know this is a controlled tenant, not shared free-for-all space.
 
 [source,sh]
@@ -35,7 +36,7 @@ oc label namespace 101-02-demo security-tier=basic environment=dev
 oc get namespace 101-02-demo --show-labels
 ----
 
-=== Example 2: Stop casual privilege sprawl with namespace RBAC
+=== Stop casual privilege sprawl with namespace RBAC
 Bind a team to `edit` only inside this project, then prove the default service account cannot create pods until you say so. That closes the “any SA can do anything” attack path.
 
 [source,sh]
@@ -44,7 +45,7 @@ oc create rolebinding dev-team --clusterrole=edit --group=dev-team -n 101-02-dem
 oc auth can-i create pods --as=system:serviceaccount:101-02-demo:default -n 101-02-demo
 ----
 
-=== Example 3: Cap a noisy-neighbor DoS with ResourceQuota
+=== Cap a noisy-neighbor DoS with ResourceQuota
 Attackers (and buggy apps) burn the cluster with oversized requests. Put a ceiling on CPU, memory, and pods so one namespace cannot starve the rest.
 
 [source,sh]
@@ -59,48 +60,20 @@ oc describe quota demo-quota -n 101-02-demo
 oc delete project 101-02-demo --wait=false
 ----
 
-== Understanding the Attack Surface
-[cols="1,2,2",options="header"]
-|===
-|Area | Risk If Misconfigured | Mitigation
-|Namespace Overlap | Unauthorized access | Clear RBAC boundaries
-|Resource Conflicts | Noisy neighbors | ResourceQuota per namespace
-|Network Isolation | Lateral movement | NetworkPolicy per namespace
-|Label Inconsistency | Policy gaps | Standardized labeling
-|===
+== Debrief
 
-== Solutions / Controls
+You drew a project boundary, scoped `edit` RBAC inside it, and capped CPU/memory/pods with a ResourceQuota. That is the pattern: trap a compromise or a runaway workload in one namespace instead of the whole cluster.
 
-* Namespace-based RBAC
-* ResourceQuota per namespace
-* NetworkPolicy boundaries
-* Standardized labeling strategy
-* Namespace lifecycle management
+What breaks without this:
 
-== Summary Table
-[cols="1,2,2",options="header"]
-|===
-|Control | Purpose | Benefit
-|Projects | Logical grouping | Team organization
-|RBAC | Access boundaries | Least privilege
-|ResourceQuota | Resource isolation | Fair multi-tenancy
-|NetworkPolicy | Network boundaries | Segmentation
-|===
+* No RBAC scope → lateral access and Secret theft across teams
+* No ResourceQuota → noisy-neighbor DoS
+* No NetworkPolicy (next labs) → open east-west traffic by default
+* Inconsistent labels → policy engines miss the tenant
 
-== FAQs
-What's the difference between project and namespace?:: In OpenShift, a project is a namespace with additional metadata and access controls.
-How many namespaces should I create?:: One per team/environment/application boundary—balance isolation with management overhead.
-Can namespaces communicate?:: By default yes; use NetworkPolicy to restrict.
+Controls that matter: projects for ownership, namespace RBAC for least privilege, ResourceQuota for fair multi-tenancy, NetworkPolicy for segmentation, consistent labels for targeting.
 
-== Closing Story
-Give each team or environment its own project, attach RBAC and quotas there, and keep shared cluster-wide admin rare.
-
+Quick facts: an OpenShift *project* is a namespace plus metadata/access controls; create one boundary per team/environment/app; namespaces can talk by default—restrict with NetworkPolicy.
 
 :lab-cleanup-module: 101-02
 include::partial$lab-cleanup.adoc[]
-
-== Next Step Ideas
-
-* Implement namespace naming conventions
-* Automate namespace provisioning with GitOps
-* Monitor namespace resource usage

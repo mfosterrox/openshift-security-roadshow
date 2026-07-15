@@ -3,8 +3,9 @@
 :skills: Admission Control, Gatekeeper, Policy Layering, Governance
 :labid: LAB-201-11
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~25 minutes
 
 == Overview
 Admission governance & policy layering. Enforce baseline safety gates before insecure workloads enter the cluster.
@@ -230,11 +231,19 @@ oc label namespace 201-11-a-govern policy-tier=dev
 oc delete project 201-11-a-govern --wait=false
 ----
 
+== Debrief
+
+Admission governance blocks drift before runtime: constraints for non-root, required NetworkPolicy, digest/signing—and exemptions only via explicit, auditable labels.
+
+What breaks without this:
+
+* Policy-only-at-runtime → bad configs already scheduled
+* Silent exceptions → untracked risk across teams
+
+Controls that matter: Gatekeeper/Kyverno (or equivalent) constraint sets, progressive enforce, and labeled exemptions with owners and expiry.
+
+Quick facts: admission is the last gate before the API persists the object—pair it with CI scanning so developers fail earlier.
 
 :lab-cleanup-module: 201-11
 include::partial$lab-cleanup.adoc[]
 
-== Key Points
-* Admission prevents drift before runtime
-* Layered constraints: identity (non-root), network readiness, supply chain integrity
-* Exemptions require explicit labeling → audit trail of risk acceptance

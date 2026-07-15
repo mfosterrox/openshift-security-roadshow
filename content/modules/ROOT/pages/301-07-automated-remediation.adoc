@@ -3,8 +3,9 @@
 :skills: Custom Controller/Operator Patterns, Policy Mutation Strategies, Automated Remediation Actions
 :labid: LAB-301-07
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~25 minutes
 
 == Overview
 Design and implement custom Kubernetes controllers and operators that automatically detect policy violations, mutate resources to enforce policies, and execute remediation actions without manual intervention.
@@ -81,11 +82,18 @@ This lab is currently under development. Content will include:
 * Knowledge of admission controllers and webhooks
 * Understanding of policy frameworks (OPA, Kyverno, etc.)
 
+== Debrief
+
+Automated remediation turns known-bad drift into controller action—mutate or reject instead of ticket queues that lag attackers.
+
+What this module targets:
+
+* Policy engines and custom controllers
+* Mutating admission strategies
+* Safe automation bounds (what never auto-remediates)
+
+Until full exercises land: pick one recurring misconfig (latest tag, missing NetworkPolicy) and define the auto-fix versus human-only path.
 
 :lab-cleanup-module: 301-07
 include::partial$lab-cleanup.adoc[]
-
-== Next Steps
-
-This lab content is being developed. Check back soon for complete instructions and exercises.
 

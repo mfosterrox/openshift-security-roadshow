@@ -3,8 +3,9 @@
 :skills: Compliance Operator, Tailored Profiles, Remediation
 :labid: LAB-201-08
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~25 minutes
 
 == Overview
 Compliance tailoring & remediation pipeline.
@@ -116,18 +117,26 @@ oc annotate complianceremediation <name> compliance.openshift.io/apply=true -n o
 == (Optional) AutoApply
 Enable auto-apply with caution in non-prod for iterative hardening.
 
-== Cleanup (Optional)
+== Cleanup
 [source,sh]
 ----
 oc delete compliancescans baseline-scan tailored-scan -n openshift-compliance --ignore-not-found
 oc delete tailoredprofile rhcos4-moderate-tailored -n openshift-compliance --ignore-not-found
 ----
 
+== Debrief
+
+Tailoring turns Compliance Operator from noise into signal: compare baseline vs tailored results, then use ComplianceRemediation as a controlled harden path.
+
+What breaks without this:
+
+* Untailored profiles → alert fatigue and ignored findings
+* Manual one-off fixes → undocumentable drift from the benchmark
+
+Controls that matter: tailored profiles, scan comparison, remediation CRs, and cautious AutoApply (prefer non-prod first).
+
+Quick facts: document why a check is disabled; re-scan after remediation to prove the close.
 
 :lab-cleanup-module: 201-08
 include::partial$lab-cleanup.adoc[]
 
-== Key Points
-* Tailoring removes noise → signal clarity
-* Separate baseline vs tailored scans shows effect of exclusions
-* Remediation CRs provide controlled hardening pipeline

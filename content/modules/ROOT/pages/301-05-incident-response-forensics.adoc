@@ -3,8 +3,9 @@
 :skills: Forensic Data Collection, Timeline Reconstruction, Threat Intel Correlation, Root Cause Analysis
 :labid: LAB-301-05
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~30 minutes
 
 == Overview
 Lead comprehensive incident response and forensic investigations on OpenShift platforms. You will collect forensic data, reconstruct attack timelines, correlate threat intelligence, perform root cause analysis, and coordinate response efforts across teams.
@@ -81,11 +82,18 @@ This lab is currently under development. Content will include:
 * Experience with threat intelligence platforms
 * Leadership and coordination skills
 
+== Debrief
+
+Incident response and forensics need named owners, evidence preservation, and a timeline—before the heat of an event.
+
+What this module targets:
+
+* Forensic collection and chain of custody on OpenShift
+* Timeline reconstruction with audit + ACS
+* RCA and coordinated roles
+
+Until full exercises land: write a one-page IR card—who freezes namespaces, who pulls audit, who talks to app owners.
 
 :lab-cleanup-module: 301-05
 include::partial$lab-cleanup.adoc[]
-
-== Next Steps
-
-This lab content is being developed. Check back soon for complete instructions and exercises.
 

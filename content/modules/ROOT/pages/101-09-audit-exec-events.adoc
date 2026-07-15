@@ -5,8 +5,9 @@
 :audit-evidence: "jq filters extract exec and portforward entries with user, pod, namespace, commands, and source IPs for incident summary."
 :cis-mitre-codes: '{"cisMapping":{"primary":["3.2.1"]},"mitre":{"techniques":["T1543"],"tactics":["TA0003","TA0004"],"mitigations":["M1026","M1047"]}}'
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~15 minutes
 
 == Overview
 Read API audit logs for risky verbs such as exec, port-forward, Secret get, and RBAC changes, then write a short report that names who did what and when.
@@ -27,13 +28,13 @@ Someone may already have exec’d into a pod or opened a port-forward tunnel. Yo
 
 Assuming `audit.json` file (JSON lines).
 
-=== Example 1: Confirm the evidence file is present
+=== Confirm the evidence file is present
 [source,sh]
 ----
 ls -l audit.json
 ----
 
-=== Example 2: Hunt every pod/exec — classic post-compromise foothold
+=== Hunt every pod/exec — classic post-compromise foothold
 [source,sh]
 ----
 jq 'select(.objectRef.subresource=="exec") | {time:.requestReceivedTimestamp,user:.user.username,ns:.objectRef.namespace,pod:.objectRef.name,cmd:.requestObject.command}' audit.json
@@ -44,85 +45,50 @@ Fallback:
 grep -F '"exec"' audit.json | head
 ----
 
-=== Example 3: Hunt port-forward tunnels — internal services exposed out
+=== Hunt port-forward tunnels — internal services exposed out
 [source,sh]
 ----
 jq 'select(.objectRef.subresource=="portforward") | {time:.requestReceivedTimestamp,user:.user.username,ns:.objectRef.namespace,pod:.objectRef.name}' audit.json
 ----
 
-=== Example 4: Focus the investigation on a suspected identity
+=== Focus the investigation on a suspected identity
 [source,sh]
 ----
 USER=suspect@example.com
 jq --arg U "$USER" 'select(.user.username==$U and (.objectRef.subresource=="exec" or .objectRef.subresource=="portforward")) | {time:.requestReceivedTimestamp,sub:.objectRef.subresource,pod:.objectRef.name,ns:.objectRef.namespace,sourceIPs:.sourceIPs}' audit.json
 ----
 
-=== Example 5: Stage distribution — did stages complete or abort?
+=== Stage distribution — did stages complete or abort?
 [source,sh]
 ----
 jq 'select(.objectRef.subresource=="exec") | .stage' audit.json | sort | uniq -c
 ----
 
-=== Example 6: Unique exec actors — who is pivoting live?
+=== Unique exec actors — who is pivoting live?
 [source,sh]
 ----
 jq 'select(.objectRef.subresource=="exec") | .user.username' audit.json | sort | uniq -c
 ----
 
-=== Example 7: Commands captured — what did they run?
+=== Commands captured — what did they run?
 [source,sh]
 ----
 jq 'select(.objectRef.subresource=="exec") | .requestObject.command' audit.json | sort | uniq -c
 ----
 
-== Understanding the Attack Surface
-[cols="1,2,2",options="header"]
-|===
-|Event Type | Risk | Example
-|pod/exec | Command injection / exfil | Insider dumps DB
-|pod/portforward | Tunneling internal svc | Expose admin console
-|Privilege Grant (rolebinding) | Escalation | Enables later exec
-|Secrets get/list | Credential harvest | Stage follow-on attack
-|===
+== Debrief
 
-== How to Secure (Lifecycle View)
-* Build: IaC RBAC—drift stands out.
-* Registry: Harden images → fewer live debug execs.
-* Deploy: Restrict who can exec/port-forward.
-* Runtime: Ship audit logs to SIEM; alert on anomalies.
+You queried audit evidence for `pod/exec`, port-forward, actors, and captured commands—the forensics baseline when someone pivots inside a namespace.
 
-== Solutions / Controls
+What breaks without this:
 
-* Central log aggregation (immutability)
-* RHACS correlation with runtime
-* Least privilege RBAC
-* Alert rules on unusual volume/time
+* No retention or shipping → you cannot answer who/what/when after an incident
+* Ignoring exec/port-forward → classic post-compromise footholds stay invisible
 
-== Summary Table
-[cols="1,2,2",options="header"]
-|===
-|What to Track | Why | Tooling
-|exec Events | Potential tampering | jq / SIEM search
-|portforward | Data channel creation | Alert on frequency
-|RoleBinding Changes | Escalation path | GitOps diff + audit
-|Secret Access | Credential theft | SIEM correlation
-|===
+Controls that matter: keep OpenShift audit on, aggregate immutably, correlate with RHACS/runtime signals, and alert on anomalous verbs for sensitive namespaces.
 
-== FAQs
-Are audit logs enabled by default?:: OpenShift enables them; verify retention & shipping.
-Why might a command not appear?:: Request object detail may be trimmed.
-How long keep logs?:: Align with compliance (90–365d typical).
-Does this replace runtime detection?:: No—complements container-level signals.
-
-== Closing Story
-Keep audit collection on and know how to query it before you need it in an emergency.
-
+Quick facts: audit shows API intent; it complements (does not replace) runtime detection. Confirm retention and SIEM forwarding before you need them.
 
 :lab-cleanup-module: 101-09
 include::partial$lab-cleanup.adoc[]
 
-== Next Step Ideas
-
-* Daily exec counts per user summary
-* Correlate events with workload restarts
-* Integrate RHACS alerts into incident pipeline

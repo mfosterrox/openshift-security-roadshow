@@ -5,8 +5,9 @@
 :audit-evidence: "'oc auth can-i' shows view read-only, edit mutates without RBAC changes, admin adds RoleBinding and secret management."
 :cis-mitre-codes: '{"cisMapping":{"primary":["5.1.1"],"supporting":["5.1.2","5.1.5","5.1.8"]},"mitre":{"techniques":["T1078","T1098"],"tactics":["TA0001","TA0003","TA0004"],"mitigations":["M1026","M1012","M1018"]}}'
 :toc:
-:sectnums:
 :icons: font
+
+**Duration:** ~15 minutes
 
 == Overview
 OpenShift ships useful built-in roles: `view`, `edit`, and `admin`. Learn what each can do with `oc auth can-i` and impersonation, and escalate only as far as the task requires—without writing custom Roles or handing out `cluster-admin`.
@@ -37,13 +38,13 @@ What the built-ins actually mean:
 == Your Mission
 Attackers harvest over-permissioned accounts: one leaked token with `cluster-admin` ends the game. Impersonate `dev-user`, climb only through built-in `view` → `edit` → `admin`, and prove what each tier can and cannot break—without ever handing out cluster-wide power.
 
-=== Example 1: Build a sandbox the attacker would try to escalate from
+=== Build a sandbox the attacker would try to escalate from
 [source,sh]
 ----
 oc new-project 101-03-r-rbac
 ----
 
-=== Example 2: Limit to view — block writes and Secret theft
+=== Limit to view — block writes and Secret theft
 Bind `view` and verify the attacker-shaped identity cannot deploy malware or read Secret data.
 
 [source,sh]
@@ -55,7 +56,7 @@ oc auth can-i get secret/mysecret --as=dev-user || true
 ----
 Mission check: get pods = yes; create deployment = no; secret contents denied.
 
-=== Example 3: Grant edit — allow app changes, still block RBAC self-escalation
+=== Grant edit — allow app changes, still block RBAC self-escalation
 `edit` lets someone mutate workloads. It must *not* let them forge RoleBindings—that is how footholds become permanent.
 
 [source,sh]
@@ -67,7 +68,7 @@ oc auth can-i create rolebinding --as=dev-user
 ----
 Mission check: create deployment = yes; create rolebinding = no.
 
-=== Example 4: Admin only when stewardship is required
+=== Admin only when stewardship is required
 Namespace `admin` is powerful inside the project (RoleBindings and Secrets). Treat it as deliberate, auditable elevation—not a default developer badge.
 
 [source,sh]
@@ -79,7 +80,7 @@ oc auth can-i delete secret --as=dev-user
 ----
 Mission check: both permitted *within the namespace only*.
 
-=== Example 5: Confirm the defended app is still operable
+=== Confirm the defended app is still operable
 Prove legitimate work still functions under the roles you chose—security without locking the team out.
 
 [source,sh]
@@ -88,7 +89,7 @@ oc create deployment sample --image=registry.access.redhat.com/ubi9/ubi -- sleep
 oc get deploy --as=dev-user
 ----
 
-=== Example 6: Keep the default ServiceAccount powerless
+=== Keep the default ServiceAccount powerless
 A compromised pod’s SA should not list Secrets until you explicitly bind that power. Confirm the default deny holds.
 
 [source,sh]
@@ -98,72 +99,26 @@ oc auth can-i list secrets --as=system:serviceaccount:101-03-r-rbac:app-sa
 ----
 Mission check: denied until bound.
 
-=== Cleanup (optional)
+=== Cleanup
 [source,sh]
 ----
 oc delete project 101-03-r-rbac --wait=false
 ----
 
-== Understanding the Attack Surface
-[cols="1,2,2",options="header"]
-|===
-|Vector | Over-Permission Risk | Example Outcome
-|Human User | Namespace deletion, secret exposure | Accidental wipe of workloads
-|Service Account | Silent privilege creep | Backdoor pod / lateral move
-|CI/CD Identity | Supply chain tampering | Deploys unsigned image
-|RoleBinding Sprawl | Hidden stale grants | Former contractor retains edit
-|cluster-admin Overuse | Full cluster blast radius | Global outage from one command
-|===
+== Debrief
 
-== How to Secure (Lifecycle View)
+You used built-in `view` / `edit` / `admin` at namespace scope and proved what each role can and cannot do—including that the default ServiceAccount stays powerless until you bind it.
 
-* Build: CI service accounts: just what’s needed to apply manifests (often edit) — never admin.
-* Registry: Quay robot accounts limited to push OR pull (not both) to prevent repurposing.
-* Deploy: Prefer binding built-in ClusterRoles (view/edit/admin) at namespace scope rather than authoring custom Roles prematurely.
-* Runtime: Monitor audit logs or RHACS for privilege jumps (view → admin unexpectedly) and new RoleBindings.
-* Governance: Periodically export bindings; compare against team roster. Remove drift quickly.
+What breaks without this:
 
-== Solutions / Controls
-[cols="1,2,2",options="header"]
-|===
-|Control | Purpose | Analogy
-|Built-in view/edit/admin | Standardized least privilege tiers | Pre-printed ID badge levels
-|RoleBinding per namespace | Limits scope & improves audit clarity | Key to a single floor
-|Avoid cluster-admin bindings | Shrinks blast radius | Master key in vault, not on lanyard
-|RHACS & Audit Logs | Detect unexpected verb usage | Security cameras + access logs
-|GitOps-managed RBAC | Versioned, reviewable changes | Change tickets for keys
-|Periodic Binding Review | Remove stale access | Quarterly key audit
-|===
+* Over-broad RoleBindings → humans or CI wipe namespaces or steal Secrets
+* ServiceAccount privilege creep → persistent foothold after a pod compromise
+* Habitual `cluster-admin` → cluster-wide blast radius for routine work
 
-== Summary Table
-[cols="1,2,2,2,2",options="header"]
-|===
-|Built-in Role | Grants | Excludes | Primary Use | Risk If Overused
-|view | Read/list most objects | Mutations, RBAC mgmt, secret data | Observability / dashboards | False sense secrets are readable
-|edit | Create/update/delete app resources | RBAC changes, some cluster ops | Dev & CI workload changes | Accidental destructive edits
-|admin | All namespace + RBAC mgmt | Cluster-wide operations | Namespace owner / team lead | Local “root” misuse
-|basic-user | Self & project discovery | Workload mutation | User info queries | Minimal risk
-|cluster-admin (avoid) | Everything | — | Break-glass ops only | Total cluster compromise
-|===
+Controls that matter: start with built-in roles, bind at namespace scope, keep Secrets out of `view`, and review bindings so temporary grants do not stick.
 
-== FAQs
-How do I quickly test a permission?:: `oc auth can-i <verb> <resource> --as=<user>` (add `-n <ns>` if needed).
-Why use ClusterRole (view/edit/admin) instead of writing a Role?:: They are predefined, maintained by the platform, and widely recognized—fewer bespoke policies to audit.
-Why can’t view read secret contents?:: Protects sensitive configuration; grant only when necessary.
-Why can edit not change RBAC?:: Prevents silent privilege elevation by identities that can already mutate apps.
-When is admin appropriate?:: When a team needs full stewardship of its namespace including RoleBindings—but still not cluster-wide control.
-Should I ever bind cluster-admin to a user?:: Avoid; reserve for break-glass operations with logging and time-bound justification.
-Does RBAC replace vulnerability management?:: No; it limits blast radius after compromise.
-
-== Closing Story
-Reach for `view`, `edit`, and `admin` first. Save `cluster-admin` for break-glass. Review RoleBindings regularly so temporary grants do not become permanent.
-
+Quick facts: use `oc auth can-i` to verify; `view` cannot read Secret data; `edit` cannot change RBAC. Reserve `cluster-admin` for break-glass.
 
 :lab-cleanup-module: 101-03
 include::partial$lab-cleanup.adoc[]
 
-== Next Step Ideas
-
-* Script a periodic “can-i” matrix for critical identities
-* Enforce a rule: no direct ClusterRoleBinding unless justified in Git
-* Add RHACS policy: alert when service account gains admin-level verbs
