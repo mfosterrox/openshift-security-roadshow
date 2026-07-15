@@ -1,4 +1,4 @@
-= Lab: Lead Coordinated Incident Response and Forensic Investigation on the Platform
+= Lead Coordinated Incident Response and Forensic Investigation on the Platform
 :role: Advanced Incident Response & Forensics
 :skills: Forensic Data Collection, Timeline Reconstruction, Threat Intel Correlation, Root Cause Analysis
 :labid: LAB-301-05
@@ -6,19 +6,12 @@
 :sectnums:
 :icons: font
 
-== Skill
+== Overview
 Lead comprehensive incident response and forensic investigations on OpenShift platforms. You will collect forensic data, reconstruct attack timelines, correlate threat intelligence, perform root cause analysis, and coordinate response efforts across teams.
 
-== Objective
+Lead a coordinated OpenShift incident response with clear roles, evidence capture, and forensic steps that hold up after the fact.
 
-* Execute forensic data collection procedures for OpenShift incidents
-* Reconstruct attack timelines from multiple data sources
-* Correlate threat intelligence with observed activities
-* Perform root cause analysis to understand attack vectors
-* Coordinate incident response across multiple teams
-* Document findings and create post-incident reports
-
-== Why it Matters
+== Why it matters
 
 Effective incident response and forensics are essential for:
 
@@ -29,7 +22,7 @@ Effective incident response and forensics are essential for:
 * **Compliance**: Meet regulatory requirements for incident handling
 * **Continuous Improvement**: Use lessons learned to enhance security
 
-== What it Solves
+== What does it solve
 
 Incident response challenges include:
 
@@ -48,6 +41,9 @@ This lab addresses these by:
 * Using structured root cause analysis methodologies
 * Establishing clear coordination processes
 * Creating standardized documentation templates
+
+== Your Mission
+Lead a response that preserves evidence and names owners. An attacker counts on chaos; your playbook removes it.
 
 == Understanding the Architecture
 

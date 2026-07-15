@@ -1,4 +1,4 @@
-= Lab: Architect Multi-Tenant Zero-Trust Network and Service Segmentation
+= Architect Multi-Tenant Zero-Trust Network and Service Segmentation
 :role: Advanced Network Security Architecture
 :skills: Service Mesh mTLS, Layered NetworkPolicies, Multi-Network CNIs, Egress Governance, Zero-Trust Patterns
 :labid: LAB-301-03
@@ -6,19 +6,12 @@
 :sectnums:
 :icons: font
 
-== Skill
+== Overview
 Design and implement a comprehensive zero-trust network architecture for multi-tenant OpenShift environments. You will architect service mesh mutual TLS (mTLS), implement layered NetworkPolicies, configure multi-network CNIs, establish egress governance, and apply zero-trust patterns to ensure complete network segmentation and isolation.
 
-== Objective
+Design layered zero-trust networking with NetworkPolicies, mTLS, and egress controls, then validate that tenants and services stay isolated.
 
-* Design service mesh architecture with mTLS for service-to-service communication
-* Implement layered NetworkPolicies for defense-in-depth network segmentation
-* Configure multi-network CNIs (Multus) for network isolation
-* Establish egress governance and control policies
-* Apply zero-trust patterns across the entire network architecture
-* Validate network segmentation and isolation effectiveness
-
-== Why it Matters
+== Why it matters
 
 Multi-tenant environments require strict network isolation to prevent lateral movement and data exfiltration. Zero-trust networking assumes no implicit trust between services, requiring verification for every connection. This lab demonstrates how to architect a comprehensive zero-trust network that protects against:
 
@@ -28,7 +21,7 @@ Multi-tenant environments require strict network isolation to prevent lateral mo
 * Network-based privilege escalation
 * Cross-tenant data access
 
-== What it Solves
+== What does it solve
 
 Traditional network security relies on perimeter defense and implicit trust within the network. Zero-trust architecture eliminates these assumptions by:
 
@@ -37,6 +30,9 @@ Traditional network security relies on perimeter defense and implicit trust with
 * Enforcing least-privilege network access
 * Providing visibility into all network flows
 * Enabling granular policy enforcement
+
+== Your Mission
+Assume a foothold will try lateral movement. Build layered NetworkPolicies, mTLS, and egress controls that keep tenants and services isolated even when one pod is owned.
 
 == Understanding the Architecture
 

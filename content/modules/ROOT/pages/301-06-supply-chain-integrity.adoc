@@ -1,4 +1,4 @@
-= Lab: Establish End-to-End Supply Chain Integrity and Artifact Provenance
+= Establish End-to-End Supply Chain Integrity and Artifact Provenance
 :role: Advanced Supply Chain Security
 :skills: Artifact Signing Frameworks, SBOM Generation & Attestation, Supply Chain Assurance Levels, Policy Enforcement
 :labid: LAB-301-06
@@ -6,19 +6,12 @@
 :sectnums:
 :icons: font
 
-== Skill
+== Overview
 Design and implement comprehensive supply chain security frameworks that ensure end-to-end integrity of artifacts, provide complete provenance tracking, generate Software Bills of Materials (SBOMs), and enforce supply chain policies throughout the development and deployment lifecycle.
 
-== Objective
+Establish end-to-end artifact provenance so builds, signatures, and deployments can be trusted from source to runtime.
 
-* Implement artifact signing frameworks for images and binaries
-* Generate and attest SBOMs for all artifacts
-* Establish supply chain assurance levels and policies
-* Enforce supply chain policies at admission and runtime
-* Track artifact provenance from source to deployment
-* Integrate supply chain security into CI/CD pipelines
-
-== Why it Matters
+== Why it matters
 
 Supply chain attacks are increasingly common and dangerous:
 
@@ -29,7 +22,7 @@ Supply chain attacks are increasingly common and dangerous:
 * **Vulnerability Management**: Track vulnerabilities through supply chain
 * **Compliance**: Meet supply chain security standards (SLSA, NIST SSDF)
 
-== What it Solves
+== What does it solve
 
 Supply chain security challenges include:
 
@@ -48,6 +41,9 @@ This lab addresses these by:
 * Enforcing policies at multiple enforcement points
 * Integrating supply chain security throughout the lifecycle
 * Creating audit trails for compliance
+
+== Your Mission
+Prove builds, signatures, and deployments form a chain an attacker cannot quietly splice. From source to runtime, unbroken provenance is the mission.
 
 == Understanding the Architecture
 

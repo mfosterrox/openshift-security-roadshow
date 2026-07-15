@@ -1,4 +1,4 @@
-= Lab: Automate Remediation and Policy Enforcement Using Controllers and Operators
+= Automate Remediation and Policy Enforcement Using Controllers and Operators
 :role: Advanced Automation & Policy
 :skills: Custom Controller/Operator Patterns, Policy Mutation Strategies, Automated Remediation Actions
 :labid: LAB-301-07
@@ -6,19 +6,12 @@
 :sectnums:
 :icons: font
 
-== Skill
+== Overview
 Design and implement custom Kubernetes controllers and operators that automatically detect policy violations, mutate resources to enforce policies, and execute remediation actions without manual intervention.
 
-== Objective
+Automate remediation and policy enforcement with controllers and operators so drift and known-bad states are corrected without manual fire drills.
 
-* Develop custom controllers and operators for policy enforcement
-* Implement policy mutation strategies for automatic compliance
-* Create automated remediation actions for common violations
-* Design controller patterns for scalable policy enforcement
-* Integrate controllers with existing policy frameworks
-* Validate automated remediation effectiveness
-
-== Why it Matters
+== Why it matters
 
 Automated remediation provides:
 
@@ -29,7 +22,7 @@ Automated remediation provides:
 * **Compliance**: Ensure continuous policy compliance automatically
 * **Efficiency**: Free security teams from repetitive remediation tasks
 
-== What it Solves
+== What does it solve
 
 Manual policy enforcement faces challenges:
 
@@ -48,6 +41,9 @@ Automated controllers solve these by:
 * Responding in seconds rather than hours or days
 * Maintaining continuous compliance
 * Freeing teams for higher-value work
+
+== Your Mission
+Turn known-bad drift into automatic correction so attackers cannot rely on humans forgetting to re-apply a policy.
 
 == Understanding the Architecture
 

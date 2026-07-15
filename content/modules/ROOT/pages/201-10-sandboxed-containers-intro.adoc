@@ -1,4 +1,4 @@
-= Lab: Not All Pods Are Equal – Running Sandboxed Workloads (Kata)
+= Not All Pods Are Equal – Running Sandboxed Workloads (Kata)
 :role: Intermediate Runtime Isolation
 :skills: Kata Containers, RuntimeClass, Sandboxed Workloads
 :labid: LAB-201-10
@@ -6,17 +6,22 @@
 :sectnums:
 :icons: font
 
-== Skill
+== Overview
 Advanced workload restriction (runtime isolation enhancements).
 
-== Scenario
-Untrusted or high-risk code (plugins, user uploads) should execute in stronger isolation. Sandboxed Containers (Kata) run pods inside lightweight VMs while retaining Kubernetes orchestration semantics.
+Run a workload with sandboxed containers and contrast isolation trade-offs against standard pods.
 
-== Objectives
-* Verify / install Sandboxed Containers Operator
-* Ensure `RuntimeClass` for kata exists
-* Deploy standard vs kata pod and compare runtime isolation
-* Confirm SCC + non-root still enforced
+== Why it matters
+Standard containers share a kernel with the node. A breakout from a high-risk workload can reach everything else on that host. Sandboxed runtimes raise the wall when that risk is unacceptable.
+
+== What does it solve
+
+* Shared-kernel blast radius for untrusted or multi-tenant workloads
+* Weak isolation for CI runners or customer code
+* Ambiguity about when stronger runtime isolation is worth the cost
+
+== Your Mission
+Run a sandboxed workload and contrast it with a normal pod so you know when stronger isolation is the right defense—not just a novelty.
 
 == Prerequisites
 * Worker nodes with virtualization support (VT-x/AMD-V)

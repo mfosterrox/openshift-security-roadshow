@@ -1,4 +1,4 @@
-= Lab: Friends Don’t Let Friends Use HTTP – Enforcing TLS End-to-End
+= Friends Don’t Let Friends Use HTTP – Enforcing TLS End-to-End
 :labid: LAB-101-12
 :cis-summary: "Enforce TLS on application routes with automatic HTTP→HTTPS redirects."
 :mitre-summary: "Prevents credential theft and data tampering by enforcing TLS and redirecting all plaintext route access."
@@ -8,25 +8,62 @@
 :sectnums:
 :icons: font
 
-== Skill
-Learn to secure OpenShift routes with TLS, enforce HTTPS-only access with automatic redirects, and choose the right termination mode (edge, re-encrypt, or passthrough).
+== Overview
+Put TLS on OpenShift Routes, force HTTPS with redirects, and pick the right termination mode: edge, re-encrypt, or passthrough.
 
-== Objective
+Expose an app over HTTP, add TLS edge termination with redirect to HTTPS, and validate the result while comparing re-encrypt and passthrough options.
 
-* Expose over HTTP
-* Add TLS (edge) + redirect
-* Validate HTTPS & cert
-* Understand re-encrypt vs passthrough
+== Why it matters
+Plain HTTP leaves credentials, cookies, and API bodies open on the wire. TLS protects them in transit and proves the server identity. Redirecting HTTP to HTTPS stops casual downgrade to cleartext and is a common audit requirement.
 
-== Why it Matters
-HTTP is a postcard; TLS is a sealed envelope with a signature. Without TLS, credentials, cookies, and API payloads can be read or altered in transit. Enforcing HTTPS with automatic redirects ensures confidentiality, integrity, and server identity while closing downgrade paths—often a compliance requirement.
-
-== What it Solves
+== What does it solve
 
 * Credential theft
 * Session hijacking
 * Compliance failures
 * Undetectable tampering
+
+== Your Mission
+Plain HTTP is free surveillance for anyone on the path—credentials, cookies, API bodies. Force TLS with redirect so downgrade and sniff attempts bounce to HTTPS.
+
+Prereq: project from 101-11 (`101-11-r-rebuild`) with `webapp` still running. If that project was renamed for TLS, adjust below.
+
+=== Example 1: Locate the exposed Route (attack surface today)
+[source,sh]
+----
+oc project 101-11-r-rebuild
+ROUTE=$(oc get route webapp -o jsonpath='{.spec.host}' 2>/dev/null)
+echo $ROUTE
+----
+
+=== Example 2: Baseline the insecure cleartext path
+Confirm HTTP works—this is what an attacker on-path can read today.
+
+[source,sh]
+----
+curl http://$ROUTE
+----
+
+=== Example 3: Enforce edge TLS + HTTP→HTTPS redirect
+Close the plaintext door. Edge termination plus redirect makes cleartext a hop to HTTPS, not a usable channel.
+
+[source,sh]
+----
+oc delete route webapp
+oc create route edge webapp --service=webapp --port=8080 --insecure-policy=Redirect
+----
+
+=== Example 4: Verify the defended HTTPS path
+[source,sh]
+----
+curl -k https://$ROUTE
+----
+
+=== Cleanup (optional)
+[source,sh]
+----
+oc delete project 101-11-r-rebuild --wait=false
+----
 
 == Understanding the Attack Surface
 [cols="1,2,2",options="header"]
@@ -43,42 +80,6 @@ HTTP is a postcard; TLS is a sealed envelope with a signature. Without TLS, cred
 * Registry: Base images with current TLS libs.
 * Deploy: Routes with TLS + redirect; manage cert rotation.
 * Runtime: Monitor expiry & cipher posture.
-
-== How to Try It
-Prereq: LAB-B9 `101-12-e-rebuild` project with `webapp` exists.
-
-=== Switch project & get host
-[source,sh]
-----
-oc project 101-12-e-rebuild
-ROUTE=$(oc get route webapp -o jsonpath='{.spec.host}' 2>/dev/null)
-echo $ROUTE
-----
-
-=== Baseline HTTP
-[source,sh]
-----
-curl http://$ROUTE
-----
-
-=== Replace route with HTTPS (edge + redirect)
-[source,sh]
-----
-oc delete route webapp
-oc create route edge webapp --service=webapp --port=8080 --insecure-policy=Redirect
-----
-
-=== Test HTTPS
-[source,sh]
-----
-curl -k https://$ROUTE
-----
-
-=== Cleanup (optional)
-[source,sh]
-----
-oc delete project 101-12-e-rebuild --wait=false
-----
 
 == Solutions / Controls
 
@@ -104,7 +105,7 @@ Manage cert renewals manually?:: Cluster certs rotate automatically; custom cert
 Re-encrypt vs passthrough difference?:: Re-encrypt terminates then re-establishes TLS; passthrough leaves TLS untouched to app.
 
 == Closing Story
-Enabling TLS + redirect is installing automatic door closers—connections don’t stay ajar.
+Default new Routes to HTTPS with redirect. Treat cleartext edges as exceptions with an owner and an end date.
 
 
 :lab-cleanup-module: 101-12

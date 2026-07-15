@@ -7,40 +7,29 @@
 :icons: font
 :page-toclevels: 1
 
-== Module Overview
-
-**Duration:** 20 minutes +
-**Format:** Hands-on lab +
-**Audience:** Security Engineers, Platform Engineers, IT Operations
+== Overview
+Replace shared database passwords with SPIFFE workload identity and mutual TLS via the Zero Trust Workload Identity Manager (ZTWIM)—short-lived certificates tied to Kubernetes service accounts instead of static Secrets.
 
 include::partial$console-access.adoc[]
 
-Your payment-processing service needs to reach PostgreSQL. The database team refuses to hand out another shared password in a Kubernetes `Secret`—and they're right to push back. Static credentials in Git, images, or long-lived Secrets are exactly what attackers hunt for after a breach.
+**Duration:** ~20 minutes · **Audience:** Security Engineers, Platform Engineers, IT Operations
 
-In the previous module you centralized secrets with Vault. Here you go one step further: **no database password at all**. The **Zero Trust Workload Identity Manager (ZTWIM)** issues short-lived X.509 certificates bound to each workload's Kubernetes identity. PostgreSQL trusts those certificates instead of a password vault entry.
+Your payment-processing service needs PostgreSQL. The database team refuses another shared password in a Kubernetes `Secret`—and they are right. Static credentials in Git, images, or long-lived Secrets are exactly what attackers hunt after a breach. Here you use no database password at all: ZTWIM issues short-lived X.509 certificates bound to each workload identity, and PostgreSQL trusts those certificates.
 
-By the end of this lab you will:
+== Why it matters
+Network reachability alone is not trust. Password spray, stolen Secret mounts, and forgotten shared credentials keep working until rotation catches up. Cryptographic workload identity makes every connection prove *who* is calling, not just *that* TLS is on.
 
-* Configure ZTWIM for the lab using the workshop setup scripts
-* Deploy PostgreSQL with SPIFFE-issued certificates and a separate client workload identity
-* Establish mutual TLS (mTLS) database connections using short-lived SPIFFE certificates instead of passwords
-* Inspect certificate properties, identity binding, and automatic certificate rotation
-* Confirm that connections without valid certificates are rejected
+== What does it solve
 
-Zero-trust principles require cryptographic proof of workload identity. SPIFFE (Secure Production Identity Framework for Everyone) is the open standard behind this approach; ZTWIM brings SPIRE—the SPIFFE runtime—to OpenShift so every pod gets a cryptographic identity without you managing a private CA by hand.
+* Static database passwords that enable persistence after theft
+* Password-only auth that invites spray and reuse
+* Network-only isolation that fails after a lateral foothold
+* Manual cert rotation that leaves stale credentials valid
+* Missing mutual authentication (server cannot verify client)
 
-[cols="1,2,2",options="header"]
-|===
-|Area | Risk If Ignored | Analogy
-|Static Database Passwords | Credential theft enables persistence | Master key copies floating everywhere
-|Password-Based Auth | Brute force / spray attacks | Guessable combination lock
-|Network-Only Security | Lateral movement after breach | Locked front door, open internal doors
-|Manual Cert Rotation | Stale credentials remain valid | Expired building access badges still work
-|No Mutual Authentication | Server cannot verify client | One-way ID check at secure facility
-|===
+== Your Mission
+Wire ZTWIM and PostgreSQL so only cert-bearing workloads connect—then prove bare connections are rejected and certificates rotate without another shared password to steal.
 
-[[configure-ztwim-platform]]
-[[deploy-postgresql]]
 == Prepare the platform and deploy PostgreSQL
 
 ZTWIM is already installed on this cluster. You'll register the trust domain and SPIRE configuration, then deploy PostgreSQL and a client workload—each in its own namespace with its own service account so the database can enforce *who* connects, not just *that* TLS is enabled.

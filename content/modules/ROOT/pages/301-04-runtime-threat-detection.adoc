@@ -1,4 +1,4 @@
-= Lab: Engineer Runtime Threat Detection Pipelines and Integrate into Response Workflows
+= Engineer Runtime Threat Detection Pipelines and Integrate into Response Workflows
 :role: Advanced Detection & Response
 :skills: Runtime Detection Rulesets, Streaming Telemetry Enrichment, Alert Routing Design, Pre-Incident Response Playbooks
 :labid: LAB-301-04
@@ -6,19 +6,12 @@
 :sectnums:
 :icons: font
 
-== Skill
+== Overview
 Design and implement comprehensive runtime threat detection pipelines that continuously monitor workloads, enrich telemetry data, route alerts effectively, and integrate seamlessly into incident response workflows with pre-defined playbooks.
 
-== Objective
+Build runtime threat detection that feeds response workflows so suspicious pod behavior is caught and acted on quickly.
 
-* Develop runtime detection rulesets for common attack patterns
-* Implement streaming telemetry enrichment and correlation
-* Design alert routing and escalation workflows
-* Create pre-incident response playbooks
-* Integrate detection pipelines with SIEM/SOAR platforms
-* Validate detection effectiveness through testing
-
-== Why it Matters
+== Why it matters
 
 Runtime threat detection is critical for identifying active attacks:
 
@@ -29,7 +22,7 @@ Runtime threat detection is critical for identifying active attacks:
 * **Investigation Readiness**: Pre-defined playbooks accelerate response
 * **Threat Intelligence**: Integrate external threat feeds
 
-== What it Solves
+== What does it solve
 
 Traditional security monitoring faces limitations:
 
@@ -46,6 +39,9 @@ Advanced detection pipelines solve these by:
 * Implementing intelligent alert routing and filtering
 * Automating response through playbooks
 * Integrating seamlessly with existing security tools
+
+== Your Mission
+Wire runtime detection so suspicious process and network behavior is raised fast enough to contain—not discover after the exfil.
 
 == Understanding the Architecture
 

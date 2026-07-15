@@ -1,4 +1,4 @@
-= Lab: Secure by Design – Rebuilding Images for OpenShift
+= Secure by Design – Rebuilding Images for OpenShift
 :labid: LAB-101-11
 :cis-summary: "Build images to run non-root on high ports with correct ownership—no special SCC required."
 :mitre-summary: "Prevents privilege escalation and drift by rebuilding images to run non-root on high ports under restricted SCC."
@@ -8,52 +8,31 @@
 :sectnums:
 :icons: font
 
-== Skill
-Learn to rebuild a container image so it runs under OpenShift’s restricted SCC by design: drop root, fix file ownership/permissions for random UIDs, and use an unprivileged port—no anyuid or special privileges required.
+== Overview
+Rebuild an image so it runs under the restricted SCC: non-root, permissions that tolerate a random UID, and an unprivileged listen port—without `anyuid`.
 
-== Objective
+Rebuild an image on UBI so it runs non-root on a high port under restricted SCC, then build and deploy it on OpenShift without `anyuid`.
 
-* Use trusted UBI base
-* Create non-root user / correct perms
-* Use high unprivileged port
-* Build & deploy via OpenShift
-* Confirm no elevated SCC required
+== Why it matters
+Shipping an image that needs root pushes teams toward `anyuid` and other SCC exceptions. Rebuild instead: non-root, high port, writable paths that work with a random UID. The same image then runs on restricted clusters without special cases.
 
-== Why it Matters
-“Requires root” adds security debt, and every exception (like anyuid) makes it worse. Rebuild the image to be safe by default: run as non‑root, use a high port, and fix file ownership. Then it runs under the restricted SCC with no exceptions. Result: smaller blast radius, easier audits, and portability across secure clusters.
-
-== What it Solves
+== What does it solve
 
 * Root-only service → escalation path
 * Fixed ownership mismatch → UID failure
 * Privileged port dependency → root need
 * Unknown base provenance → hidden CVEs
 
-== Understanding the Attack Surface
-[cols="1,2,2",options="header"]
-|===
-|Weak Pattern | Risk | Hardened Alternative
-|USER root | Host probing | Non-root user + restrictive perms
-|Port 80 binding | Needs root | Use 8080+
-|Writable root filesystem | Tamper persistence | Minimal write paths
-|Unknown base image | Hidden CVEs | UBI base + scanning
-|===
+== Your Mission
+The public `httpd` image just crashed because it wants root and port 80—the same privilege attackers hope you unlock with `anyuid`. Rebuild on UBI so the app serves under restricted SCC, prove the UID stays non-root, and expose it without widening the blast radius.
 
-== How to Secure (Lifecycle View)
-* Build: Multi-stage; drop root early; fix permissions.
-* Registry: Only signed/scanned images.
-* Deploy: Restricted SCC success baseline.
-* Runtime: RHACS alert on root/capability reintroduction.
-
-== How to Try It
-
-=== Project setup
+=== Example 1: Open the rebuild sandbox
 [source,sh]
 ----
 oc new-project 101-11-r-rebuild
 ----
 
-=== Deploy external image (will fail under restricted SCC)
+=== Example 2: Reproduce the attack-friendly image failure
 [source,sh]
 ----
 oc create deployment webapp --image=httpd
@@ -68,20 +47,19 @@ AH00558: httpd: Could not reliably determine the server's fully qualified domain
 no listening sockets available, shutting down
 AH00015: Unable to open logs
 ----
-Reason: Port 80 requires elevated privileges + root-owned log dirs + random non-root UID injection.
+Reason: Port 80 needs elevated privileges, root-owned log dirs, and clashes with random non-root UID injection.
 
-Why this image fails (what’s “broken”):
+Why this image is a defender’s problem:
 
-* It’s Apache httpd listening on port 80 (a privileged port that requires root)
-* It writes logs under root-owned paths (not writable by random non-root UIDs)
-* It’s not built for OpenShift’s defaults (restricted SCC runs containers as non-root)
+* Apache httpd on port 80 (privileged; pushes teams toward root)
+* Writes under root-owned paths (fails for random UIDs)
+* Not built for OpenShift restricted SCC
 
-Result: it either gets denied at admission or crash loops at runtime with permission errors.
+Result: admission deny or crash-loop—do not “fix” with `anyuid`. Rebuild instead.
 
-NOTE: We’ll rebuild the app on top of a trusted base (UBI 9 httpd 2.4 from registry.access.redhat.com / registry.redhat.io). This image is designed for OpenShift: it runs as non‑root by default and listens on an unprivileged port (8080). Because this is a web server, we’ll copy a simple sample page (index.html) into the default document root; in a real app you’d place any site files (static assets, app output) that httpd should serve.
+NOTE: Rebuild on trusted UBI 9 httpd 2.4 (registry.access.redhat.com / registry.redhat.io). It runs non-root and listens on 8080. We copy a sample `index.html`; real apps place their site files the same way.
 
-=== Rebuild context (UBI 9 httpd 2.4 from a trusted registry)
-
+=== Example 3: Build the defended image context
 [source,sh]
 ----
 mkdir -p build && cd build
@@ -98,7 +76,7 @@ EXPOSE 8080
 EOF
 ----
 
-=== Build with OpenShift
+=== Example 4: Build inside OpenShift (no laptop privilege shortcuts)
 [source,sh]
 ----
 oc new-build --name webapp --binary --strategy=docker
@@ -106,7 +84,7 @@ oc start-build webapp --from-dir=. --follow
 oc get is
 ----
 
-=== Deploy
+=== Example 5: Roll the defended image into production position
 [source,sh]
 ----
 oc set image deployment/webapp *=image-registry.openshift-image-registry.svc:5000/101-11-r-rebuild/webapp:latest
@@ -114,26 +92,25 @@ oc rollout status deployment/webapp
 oc logs -l app=webapp --tail=40 || true
 ----
 
-=== Verify UID & SCC
+=== Example 6: Prove non-root and restricted SCC still hold
 [source,sh]
 ----
 oc exec deploy/webapp -- id -u
 oc get pod -l app=webapp -o jsonpath='{.items[0].metadata.annotations.openshift\.io/scc}{"\n"}'
 ----
-Expected:
+Mission check:
 
-* `id -u` prints a non-zero UID (NOT 0), e.g., random high UID
+* `id -u` is non-zero (NOT 0)
 * SCC annotation shows `restricted-v2`
 
-What “restricted-v2” means (in short):
+What `restricted-v2` denies the attacker:
 
-* Non-root only: containers must not run as UID 0
-* No privilege escalation; no privileged or host access (hostPID/IPC/Network disallowed)
-* ALL Linux capabilities dropped by default; adding extra caps is blocked
-* Default seccomp (runtime/default) and SELinux MCS isolation
-* Designed so well-built apps run safely without any special SCC
+* Non-root only (no UID 0)
+* No privilege escalation; no hostPID/IPC/Network
+* Capabilities dropped; extra caps blocked
+* Default seccomp + SELinux MCS isolation
 
-=== Expose via Route
+=== Example 7: Expose the service without privilege growth
 [source,sh]
 ----
 oc expose deployment webapp --port=8080 --target-port=8080
@@ -142,13 +119,29 @@ ROUTE=$(oc get route webapp -o jsonpath='{.spec.host}')
 curl -s http://$ROUTE | head -3
 ----
 
-NOTE: Keep project for LAB-B10 (TLS). Delete only if done.
+NOTE: Keep the project for the TLS lab (101-12). Delete only when finished with both.
 
 === Cleanup (optional)
 [source,sh]
 ----
 oc delete project 101-11-r-rebuild --wait=false
 ----
+
+== Understanding the Attack Surface
+[cols="1,2,2",options="header"]
+|===
+|Weak Pattern | Risk | Hardened Alternative
+|USER root | Host probing | Non-root user + restrictive perms
+|Port 80 binding | Needs root | Use 8080+
+|Writable root filesystem | Tamper persistence | Minimal write paths
+|Unknown base image | Hidden CVEs | UBI base + scanning
+|===
+
+== How to Secure (Lifecycle View)
+* Build: Multi-stage; drop root early; fix permissions.
+* Registry: Only signed/scanned images.
+* Deploy: Restricted SCC success baseline.
+* Runtime: RHACS alert on root/capability reintroduction.
 
 == Solutions / Controls
 
@@ -174,7 +167,7 @@ Is UBI required?:: No, but offers predictable updates & support.
 How small should images be?:: Smaller surface → fewer CVEs & faster pulls.
 
 == Closing Story
-Rebuilding is embedding security into the product lifecycle—fewer exceptions, faster approvals.
+Fix the Dockerfile once; stop negotiating SCC exceptions for every environment.
 
 
 :lab-cleanup-module: 101-11

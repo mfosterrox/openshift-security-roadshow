@@ -1,4 +1,4 @@
-= Lab: Secrets Without Static Copies – Vault CSI Integration
+= Secrets Without Static Copies – Vault CSI Integration
 :role: Intermediate Secret Management
 :skills: Vault CSI, Dynamic Secrets, Rotation
 :labid: LAB-201-06
@@ -6,33 +6,31 @@
 :sectnums:
 :icons: font
 
-== Module Overview 
-
-**Duration:** 25 minutes +
-**Format:** Hands-on lab +
-**Audience:** Platform Engineers, Security Engineers, IT Operations
+== Overview
+Wire HashiCorp Vault (and optionally External Secrets Operator) so pods get secrets at runtime without baking static copies into Git or images—dev-mode Vault for learning only.
 
 include::partial$console-access.adoc[]
 
-== Learning Objectives
+**Duration:** ~25 minutes · **Audience:** Platform Engineers, Security Engineers, IT Operations
 
-By the end of this module, you will:
+== Why it matters
+Static credentials in images, manifests, and long-lived Kubernetes Secrets are prime loot after a foothold. Vault keeps the source of truth off the cluster disk and issues access on demand so a stolen YAML file is no longer enough.
 
-* Deploy HashiCorp Vault on OpenShift using the official Helm chart
-* Configure Vault policies, Kubernetes authentication, and KV secrets
-* Deploy a pod that consumes Vault secrets through the Vault Agent Injector
-* Deploy the External Secrets Operator to fetch secrets from Vault and inject them into Kubernetes Secrets
+== What does it solve
 
-== Why use Vault on Kubernetes?
+* Secrets committed to Git or baked into images
+* Long-lived cluster Secrets with no rotation story
+* Apps that cannot prove where credentials came from
 
-HashiCorp Vault stores and brokers access to secrets, certificates, and encryption keys. Instead of embedding credentials in container images, Git repositories, or long-lived Kubernetes `Secret` objects, Vault keeps sensitive data in a dedicated secrets store and issues short-lived access on demand. The official https://github.com/hashicorp/vault-helm[Vault Helm chart] installs Vault on Kubernetes or OpenShift and can optionally deploy the Vault Agent Injector for pod secret injection. The injector mutates pod specifications at admission time so an init container can authenticate to Vault and render secrets into a volume before your application starts. 
-
-This lab covers secrets management from the https://github.com/validatedpatterns/layered-zero-trust[Layered Zero Trust Validated Pattern]—Vault as the secrets store with optional External Secrets Operator (ESO) for native Kubernetes `Secret` sync.
+== Your Mission
+Stand up Vault, configure Kubernetes auth and policies, then prove a pod can consume secrets without carrying static copies—an attacker who clones the app repo still does not get the database password.
 
 [NOTE]
 ====
-This lab runs Vault in **dev mode** (auto-unsealed, root token `root`). Dev mode is for learning only—data is lost when the Vault pod restarts. Do not use dev mode in production.
+This lab runs Vault in *dev mode* (auto-unsealed, root token `root`). Dev mode is for learning only—data is lost when the Vault pod restarts. Do not use it in production.
 ====
+
+This lab tracks the https://github.com/validatedpatterns/layered-zero-trust[Layered Zero Trust Validated Pattern] pattern for secrets (Vault, optional External Secrets Operator).
 
 == Deploy Vault
 

@@ -1,4 +1,4 @@
-= Lab: Meaningful Compliance – Tailoring a Profile
+= Meaningful Compliance – Tailoring a Profile
 :role: Intermediate Compliance
 :skills: Compliance Operator, Tailored Profiles, Remediation
 :labid: LAB-201-08
@@ -6,18 +6,22 @@
 :sectnums:
 :icons: font
 
-== Skill
+== Overview
 Compliance tailoring & remediation pipeline.
 
-== Scenario
-A default compliance profile flags findings not relevant to your environment. You will run a scan, interpret results, tailor (exclude/modify) a rule, re-run, and generate remediation.
+Tailor a Compliance Operator profile so scans match your environment instead of treating every upstream rule as equally required.
 
-== Objectives
-* Launch a ComplianceScan
-* Review raw and summarized results
-* Create TailoredProfile excluding a noisy rule
-* Re-scan and compare
-* Generate & (optionally) apply remediation
+== Why it matters
+Raw upstream Compliance profiles flag noise your environment cannot fix today. Tailoring keeps scans honest—required controls stay red until fixed; documented exceptions stay visible instead of ignored.
+
+== What does it solve
+
+* Alert fatigue from irrelevant CIS findings
+* “Waived forever” exceptions with no ownership
+* Audits that cannot explain why a rule was skipped
+
+== Your Mission
+Tailor a Compliance profile so attackers and auditors alike face a scan set that matches your real platform—not a one-size-fits-nobody checklist.
 
 == Prerequisites
 * Compliance Operator installed (`openshift-compliance` namespace)

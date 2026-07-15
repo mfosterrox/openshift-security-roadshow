@@ -1,4 +1,4 @@
-= Lab: Sovereign Cloud & Digital Sovereignty Controls (BYO IdP, Data Residency)
+= Sovereign Cloud & Digital Sovereignty Controls (BYO IdP, Data Residency)
 :labid: LAB-301-12
 :cis-summary: "Implement sovereign cloud controls including BYO identity provider and data residency requirements."
 :mitre-summary: "Meets regulatory requirements for data sovereignty, residency, and identity management."
@@ -6,21 +6,15 @@
 :sectnums:
 :icons: font
 
-== Skill
+== Overview
 Learn how to implement sovereign cloud controls including bring-your-own identity provider (BYO IdP), data residency requirements, and digital sovereignty controls to meet regulatory and compliance requirements.
 
-== Objective
+Apply digital-sovereignty controls such as bring-your-own identity and data residency constraints on a sovereign cloud pattern.
 
-* Configure external identity provider
-* Implement data residency controls
-* Configure geographic restrictions
-* Verify sovereignty controls
-* Understand compliance implications
-
-== Why it Matters
+== Why it matters
 Sovereign cloud requirements mandate that data remains within specific geographic boundaries and that identity management meets local regulations. Implementing these controls enables organizations to operate in regulated markets while maintaining security and compliance.
 
-== What it Solves
+== What does it solve
 
 * Data residency compliance
 * Regulatory requirements
@@ -28,17 +22,8 @@ Sovereign cloud requirements mandate that data remains within specific geographi
 * Geographic restrictions
 * Sovereignty controls
 
-== Understanding the Attack Surface
-[cols="1,2,2",options="header"]
-|===
-|Area | Risk Without Controls | Mitigation
-|Data Residency | Regulatory violations | Geographic restrictions
-|Identity Management | Compliance gaps | BYO IdP integration
-|Data Location | Unauthorized access | Residency policies
-|Cross-border Transfer | Legal violations | Data localization
-|===
-
-== How to Try It
+== Your Mission
+Complete the examples below to close the attack paths this lab covers—treat each step as defending the cluster, not just clicking through commands.
 
 === Configure OAuth identity provider
 [source,sh]
@@ -88,6 +73,16 @@ NOTE: Data residency is typically configured at the cluster installation level o
 
 === Cleanup
 No cleanup needed for this lab.
+
+== Understanding the Attack Surface
+[cols="1,2,2",options="header"]
+|===
+|Area | Risk Without Controls | Mitigation
+|Data Residency | Regulatory violations | Geographic restrictions
+|Identity Management | Compliance gaps | BYO IdP integration
+|Data Location | Unauthorized access | Residency policies
+|Cross-border Transfer | Legal violations | Data localization
+|===
 
 == Solutions / Controls
 

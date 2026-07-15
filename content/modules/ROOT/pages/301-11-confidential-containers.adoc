@@ -1,4 +1,4 @@
-= Lab: Confidential Containers & Secure Enclaves (Kata/Sandboxed + HW Support)
+= Confidential Containers & Secure Enclaves (Kata/Sandboxed + HW Support)
 :labid: LAB-301-11
 :cis-summary: "Implement confidential containers using Kata containers and secure enclaves with hardware support."
 :mitre-summary: "Protects workload data and code from host-level access through hardware-backed isolation."
@@ -6,21 +6,15 @@
 :sectnums:
 :icons: font
 
-== Skill
+== Overview
 Learn how to deploy confidential containers using Kata containers and secure enclaves with hardware support. You'll understand how confidential computing protects workload data and code from host-level access, meeting requirements for sensitive workloads and regulatory compliance.
 
-== Objective
+Explore confidential container and enclave options on OpenShift and identify which workloads justify the stronger isolation model.
 
-* Understand confidential computing concepts
-* Deploy Kata containers
-* Configure secure enclaves
-* Verify hardware-backed isolation
-* Implement confidential workloads
-
-== Why it Matters
+== Why it matters
 Confidential containers provide hardware-backed isolation that protects workload data and code even from privileged host access. This is critical for sensitive workloads, multi-tenant environments, and regulatory compliance where data must remain protected throughout its lifecycle.
 
-== What it Solves
+== What does it solve
 
 * Host-level data access
 * Multi-tenant data protection
@@ -28,17 +22,8 @@ Confidential containers provide hardware-backed isolation that protects workload
 * Sensitive workload isolation
 * Trust boundary extension
 
-== Understanding the Attack Surface
-[cols="1,2,2",options="header"]
-|===
-|Area | Risk Without Confidential Computing | Mitigation
-|Host Access | Data exposure | Hardware isolation
-|Multi-tenancy | Cross-tenant access | Enclave isolation
-|Memory Access | Unauthorized reads | Encrypted memory
-|Code Execution | Host inspection | Protected execution
-|===
-
-== How to Try It
+== Your Mission
+Complete the examples below to close the attack paths this lab covers—treat each step as defending the cluster, not just clicking through commands.
 
 === Check Kata container support
 [source,sh]
@@ -87,6 +72,16 @@ oc get pod confidential-app -n 301-11-demo -o jsonpath='{.spec.runtimeClassName}
 ----
 oc delete project 301-11-demo --wait=false
 ----
+
+== Understanding the Attack Surface
+[cols="1,2,2",options="header"]
+|===
+|Area | Risk Without Confidential Computing | Mitigation
+|Host Access | Data exposure | Hardware isolation
+|Multi-tenancy | Cross-tenant access | Enclave isolation
+|Memory Access | Unauthorized reads | Encrypted memory
+|Code Execution | Host inspection | Protected execution
+|===
 
 == Solutions / Controls
 

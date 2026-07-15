@@ -1,4 +1,4 @@
-= Lab: Drive Security Culture, Coaching Teams and Maturing Practices
+= Drive Security Culture, Coaching Teams and Maturing Practices
 :role: Advanced Security Leadership & Enablement
 :skills: Enablement Programs, Documentation Standards, Internal Guilds, Maturity Roadmaps
 :labid: LAB-301-08
@@ -6,19 +6,12 @@
 :sectnums:
 :icons: font
 
-== Skill
+== Overview
 Lead organizational security culture transformation by developing enablement programs, establishing documentation standards, creating internal security guilds, and building maturity roadmaps that guide teams toward security excellence.
 
-== Objective
+Stand up a practical security enablement approach—docs, coaching, and a maturity roadmap—so teams improve practices without security becoming theater.
 
-* Design and implement security enablement programs
-* Establish documentation standards for security practices
-* Create and lead internal security guilds or communities
-* Develop maturity roadmaps for security practices
-* Coach teams on security best practices
-* Measure and improve security culture maturity
-
-== Why it Matters
+== Why it matters
 
 Security culture is foundational to effective security:
 
@@ -29,7 +22,7 @@ Security culture is foundational to effective security:
 * **Reduced Friction**: Security becomes an enabler, not a blocker
 * **Sustainable Security**: Security practices become self-sustaining
 
-== What it Solves
+== What does it solve
 
 Organizations face security culture challenges:
 
@@ -48,6 +41,9 @@ This lab addresses these by:
 * Providing roadmaps that guide improvement
 * Coaching teams to adopt security practices
 * Measuring maturity to track progress
+
+== Your Mission
+Build enablement and maturity that outlast one security hero. Theater does not stop attackers—practices that teams actually run do.
 
 == Understanding the Architecture
 

@@ -1,4 +1,4 @@
-= Lab: Implement GitOps-Driven Policy and Compliance Pipelines at Scale
+= Implement GitOps-Driven Policy and Compliance Pipelines at Scale
 :role: Advanced Automation & Compliance
 :skills: GitOps Reconciliation, Policy-as-Code Repositories, Automated Drift Detection, Compliance Pipelines
 :labid: LAB-301-02
@@ -6,19 +6,12 @@
 :sectnums:
 :icons: font
 
-== Skill
+== Overview
 Design and implement GitOps-driven policy and compliance pipelines that automatically reconcile desired state, detect configuration drift, and enforce compliance at scale across multiple clusters and environments.
 
-== Objective
+Manage policy and compliance as GitOps-managed code with drift detection, enforcement, and auditable change history across environments.
 
-* Set up GitOps reconciliation for policy and compliance configurations
-* Create policy-as-code repositories with version control
-* Implement automated drift detection and remediation
-* Design compliance pipelines that validate and enforce policies
-* Scale GitOps patterns across multiple clusters and environments
-* Integrate compliance reporting and audit trails
-
-== Why it Matters
+== Why it matters
 
 GitOps-driven policy and compliance provide:
 
@@ -29,7 +22,7 @@ GitOps-driven policy and compliance provide:
 * **Scalability**: Consistent policy enforcement across multiple clusters
 * **Collaboration**: Policy changes through pull requests and code review
 
-== What it Solves
+== What does it solve
 
 Traditional policy management faces challenges:
 
@@ -46,6 +39,9 @@ GitOps-driven pipelines solve these by:
 * Providing continuous compliance validation
 * Enabling policy-as-code with version control
 * Ensuring consistency across all environments
+
+== Your Mission
+Put policy and compliance in Git so drift and silent exceptions cannot hide. Treat every unauthorized change as something reconciliation should expose.
 
 == Understanding the Architecture
 

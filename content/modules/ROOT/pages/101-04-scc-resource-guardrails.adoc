@@ -1,4 +1,4 @@
-= Lab: SCC Limits & Resource Guardrails
+= SCC Limits & Resource Guardrails
 :labid: LAB-101-04
 :cis-summary: "Restrict granting of privileged SCCs like anyuid—prefer fixing images to run under restricted defaults. Set default container requests/limits and namespace quotas to cap usage and prevent noisy neighbors."
 :mitre-summary: "Prevents container privilege escalation by denying root/privileged assumptions and discouraging anyuid exceptions. Prevents resource exhaustion and noisy-neighbor denial by enforcing default requests and namespace quotas."
@@ -8,106 +8,63 @@
 :sectnums:
 :icons: font
 
-== Skill
-Learn that third-party applications (like vendor or legacy software) often can't be rebuilt or modified to fit OpenShift's security requirements, such as running without root privileges or binding to privileged ports. In these real-world scenarios, the key skill is to analyze the specific security risks and make an informed decision to accept those risks, rather than automatically weakening platform security by granting broad permissions like anyuid. You'll diagnose why such an image fails on OpenShift, understand the security implications, and learn responsible risk management with proper documentation.
+== Overview
+Some vendor or legacy images cannot be rebuilt for non-root or high ports. Learn to see why they fail under restricted SCC, what `anyuid` actually allows, and when a documented risk acceptance is safer than silencing the failure with a broad SCC grant.
 
-Additionally, master the ability to enforce resource controls in OpenShift by setting per-container defaults and namespace-wide ceilings. This ensures fair resource distribution, prevents noisy neighbors from disrupting other workloads, and avoids unexpected cost spikes. You'll learn to use LimitRange for container-level defaults and ResourceQuota for namespace-level boundaries, creating a predictable and balanced multi-tenant environment.
+Also apply LimitRange and ResourceQuota so namespaces get defaults and ceilings for CPU and memory, instead of unbounded requests that starve neighbors.
 
-== Objective
+Prove why privileged ports and root fail under restricted SCC, then see what `anyuid` unlocks—and apply LimitRange plus ResourceQuota to bound CPU and memory.
 
-* Attempt to run a container binding privileged port 80 and observe failure
-* Attempt to force root (runAsUser=0) and see SCC block it
-* Grant anyuid and observe the container now runs as root on port 80
-* Explain why this is insecure and when the proper alternative is to analyze and accept the risk (for third-party apps where rebuilding is not feasible)
-* Apply a LimitRange (defaults + min/max + maxLimitRequestRatio)
-* Apply a ResourceQuota (namespace aggregate ceilings)
-* Deploy a pod with no resources and verify injected defaults
-* Override resources within bounds (allowed)
-* Attempt to exceed max (admission rejection)
-* Attempt to scale beyond quota (quota denial event)
-* Read events / jsonpath outputs to confirm enforcement
+== Why it matters
+OpenShift assigns a random non-root UID. Images that hard-code root or fixed ownership fail until someone grants `anyuid` or rebuilds the image. Granting `anyuid` gets the pod running, and it also makes root-in-container normal again. Prefer fixing or replacing the image; if you cannot, record why the exception exists and who owns it.
 
-== Why it Matters
-Using an image that insists on a fixed user or root is like a touring band demanding to rewire your venue's electrical system before playing. You could say yes (faster "win"), but you inherit fire risk, insurance issues, and future lock-in. Granting anyuid is the platform equivalent: a convenience that normalizes bypassing guardrails.
-
-OpenShift injects a random non-root UID so containers can't rely on root. Images built without flexible ownership (root:0 with group write) break, flushing out insecure design early. The business upside: fewer "surprise" escalations, simpler compliance ("all workloads non-root by default"), and faster production readiness.
-
-Without resource controls, containers can request unlimited CPU and memory, much like an all-you-can-eat buffet with no portion control. This leads to "noisy neighbor" problems where one application starves others of resources, causing unexpected workload evictions and runaway cloud costs.
-
-In shared OpenShift environments, this chaos is prevented through two complementary mechanisms: LimitRange sets sensible defaults for individual containers (ensuring every workload has minimum guarantees and maximum caps), while ResourceQuota establishes namespace-wide boundaries (preventing any single team from monopolizing cluster capacity). Together, they create predictable multi-tenancy, fair resource distribution, and early warning signals when capacity limits are approaching—turning potential resource conflicts into manageable, observable events.
-
-Business value: Resource controls translate to cost predictability, performance stability, and tenant isolation. Without them, one misconfigured deployment can cascade into cluster-wide degradation and emergency spending.
+Without LimitRange and ResourceQuota, a single workload can request huge CPU and memory and push others out. LimitRange sets per-container defaults and maxes. ResourceQuota caps the namespace. Together they keep shared clusters predictable and make capacity problems show up as events instead of mystery outages.
 
 NOTE: Permission Requirements for This Lab
 Most steps require only project-level access. Granting the `anyuid` SCC needs cluster-admin (or delegated). LimitRange & ResourceQuota creation usually needs elevated (cluster-admin or delegated) rights. Forbidden errors are expected guardrails.
 
-== What it Solves
-* Eliminates silent privilege creep (running as root "just because")
-* Discourages shipping rigid vendor images with hard-coded UIDs
-* Prevents broad SCC sprawl (exception fatigue)
-* Forces reusable, multi-tenant safe image patterns
-* Eliminates silent resource starvation
-* Stops accidental over-scaling
-* Provides cost & capacity signal (events)
-* Sets baseline for autoscaling fairness
+== What does it solve
 
-Attackers look for root-running containers or SCC exceptions. By refusing them upfront, you reduce accessible pathways before an exploit even runs.
+* Root-by-default workloads creeping into production
+* Habitual `anyuid` grants instead of image fixes
+* Hard-coded UIDs that only work with SCC exceptions
+* Namespaces with no CPU/memory ceilings
+* Silent neighbor starvation and surprise scale-outs
 
-== Understanding the Attack Surface
-[cols="1,2,2",options="header"]
-|===
-|Area | Risk If Ignored | Analogy
-|Privileged Port (80) Requirement | Forces elevation; encourages anyuid grant | Band demands rewiring venue power
-|Hard-Coded Root Expectation | Normalizes high-privilege baseline | Always giving guests master keys
-|Fixed UID Ownership in Image | Leads to permission hacks / SCC exceptions | Furniture bolted for one resident
-|Granting anyuid Broadly | Expands blast radius for compromise | Removing door locks for convenience
-|Missing Writable Group Ownership | Ops weaken guardrails to "make it work" | Disabling smoke alarm to stop beeping
-|Running as Root + Writable FS | Host / kernel probing path | Car left idling with doors unlocked
-|Lack of Audit on SCC Exceptions | Drift accumulates | Untracked temporary badges pile up
-|No Education on High Ports | Repeated privileged port asks | Insisting on vault door, not side entrance
-|No Defaults | Unbounded grabs, neighbor starvation | Open buffet no portions
-|Inflated Limits vs Requests | Illusory capacity, waste | Reserved empty parking spots
-|Missing ResourceQuota | Single tenant monopolizes | One team books all rooms
-|Understated Requests | Over-density → throttling | Small room for big workshop
-|Overstated Requests | Fragmentation & waste | 20-seat room for 2 people
-|Ignoring Quota Events | Late saturation discovery | Ignoring low-fuel light
-|No Ratio Guard | Spiky bursts unfair | Hogging 5 treadmills
-|===
+Attackers prefer pods that already run as root. Refusing that by default removes an easy foothold.
 
-== How to Secure (Lifecycle View)
-* Build: Ensure writable dirs are group-writable; avoid USER root in final stage. Annotate images with sizing guidance.
-* Registry: Store only images passing a non-root readiness check. Store performance baseline docs.
-* Deploy: For third‑party apps, analyze risks and register acceptance with annotations; rely on restricted SCC otherwise. Enforce LimitRange early; quotas per env.
-* Runtime: RHACS policy flags root or privileged UID usage. Monitor denial events as leading signals.
+== Your Mission
+Refuse the privilege ladder attackers want (`anyuid`, UID 0, port 80) and stop noisy-neighbor resource grabs with LimitRange and ResourceQuota. Complete Part A, then Part B.
 
-== Part A: SCC Limits & Non-Root Realities
+=== Part A: SCC Limits & Non-Root Realities
+An unpatched vendor image wants root and port 80—exactly the privilege ladder attackers climb after breakout. Prove restricted SCC blocks it, see what `anyuid` would unlock if you caved, and document any unavoidable exception instead of silently normalizing root.
 
-=== How to Try It
-
-==== Project
+==== Example 1: Open a sandbox for the privilege test
 [source,sh]
 ----
 oc new-project 101-04-s-scc-demo
 ----
 
-==== Deploy (attempting privileged port 80)
+==== Example 2: Attacker-shaped deploy — bind privileged port 80
 [source,sh]
 ----
 oc create deployment vendor-app --image=registry.access.redhat.com/ubi9/python-311 -- python3 -m http.server 80
 oc logs -l app=vendor-app --tail=50
 ----
-Expected: CrashLoopBackOff with PermissionError (binding port 80).
+Mission check: CrashLoopBackOff with PermissionError (binding port 80).
 
-==== Attempt to force root (runAsUser=0) – expect denial
+==== Example 3: Force UID 0 — expect the platform to refuse
 [source,sh]
 ----
 oc patch deployment vendor-app --type='json' -p='[{"op":"add","path":"/spec/template/spec/securityContext","value":{"runAsUser":0}}]'
 oc rollout restart deployment/vendor-app
 oc get events --sort-by=.lastTimestamp | grep vendor-app | tail -n 5 || true
 ----
-Look for invalid UID range / runAsUser errors.
+Look for invalid UID range / runAsUser errors. That refusal is the win.
 
-==== Grant anyuid (anti-pattern, requires cluster-admin)
+==== Example 4: `anyuid` is the trap — try it only to understand the cost (cluster-admin)
+Granting `anyuid` is how teams accidentally gift attackers root-in-container. Observe what it unlocks, then treat it as an anti-pattern.
+
 [source,sh]
 ----
 oc adm policy add-scc-to-user anyuid -z default || echo 'Expected Forbidden if not admin'
@@ -115,14 +72,12 @@ oc rollout restart deployment/vendor-app
 oc exec deploy/vendor-app -- id -u || true
 oc logs -l app=vendor-app --tail=10 || true
 ----
-If succeeded (not recommended): id -u = 0 and server listens on 80.
+If it succeeded (not recommended): `id -u` = 0 and the server listens on 80 — privilege restored for whoever owns the pod next.
 
-==== Register Risk Acceptance (namespace annotation)
-For third‑party apps where rebuilding is not possible, analyze the risk and formally register the acceptance so it's discoverable and auditable.
+==== Example 5: If you must accept risk, make the exception loud
+For third-party apps you cannot rebuild, register a discoverable risk acceptance instead of a silent, forever grant.
 
-Multiple deployments? Use one of these patterns:
-* Preferred: annotate each Deployment with its own risk-acceptance metadata
-* Optional index: annotate the namespace with per-deployment keys to avoid overlap (suffix the key with the deployment name)
+Multiple deployments? Prefer per-Deployment annotations; optionally index on the namespace with keys suffixed by deployment name.
 
 [source,sh]
 ----
@@ -132,7 +87,7 @@ oc annotate namespace 101-04-s-scc-demo \
 	--overwrite
 ----
 
-==== Verify annotation
+==== Example 6: Prove the exception is audited
 [source,sh]
 ----
 oc get ns 101-04-s-scc-demo -o yaml | grep -E 'openshift.io/risk-accepted'
@@ -146,19 +101,19 @@ NOTE: Keep this for exceptional cases. The preferred path is to rebuild images s
 oc delete project 101-04-s-scc-demo --wait=false
 ----
 
-== Part B: Resource Usage (Quotas & Limits)
+=== Part B: Resource Usage (Quotas & Limits)
+Without quotas, one runaway or attacker-controlled scale-up eats the node’s CPU and memory—classic noisy-neighbor denial. Apply LimitRange and ResourceQuota so oversized grabs fail loudly.
 
-=== How to Try It
 Namespace: `101-04-s-resources-demo`. Image: UBI `sleep infinity`.
 
-==== Namespace setup
+==== Example 1: Claim the capacity sandbox
 [source,sh]
 ----
 oc new-project 101-04-s-resources-demo
 oc project
 ----
 
-==== LimitRange (defaults + bounds + ratios)
+==== Example 2: LimitRange — default and cap every container
 [source,sh]
 ----
 oc apply -f - <<'EOF'
@@ -187,13 +142,13 @@ spec:
       memory: "4"
 EOF
 ----
-==== Verify
+==== Example 3: Verify defaults are now enforced
 [source,sh]
 ----
 oc get limitrange default-limits -o jsonpath='{.spec.limits[0]}' | sed 's/,/\n/g'
 ----
 
-==== ResourceQuota (namespace ceilings)
+==== Example 4: ResourceQuota — stop cluster-wide resource theft
 [source,sh]
 ----
 oc create quota compute-quota \
@@ -205,16 +160,16 @@ oc create quota compute-quota \
 oc describe quota compute-quota | sed -n '1,25p'
 ----
 
-==== Deploy unbounded workload (inherits defaults)
+==== Example 5: Deploy without oversized requests — defaults fill in
 [source,sh]
 ----
 oc create deployment stress --image=registry.access.redhat.com/ubi9/ubi -- /bin/sh -c "sleep infinity"
 oc wait --for=condition=Available deployment/stress --timeout=90s
 oc get pod -l app=stress -o jsonpath='{.items[0].spec.containers[0].resources}{"\n"}'
 ----
-Expected: requests 100m/128Mi; limits 500m/256Mi.
+Mission check: requests 100m/128Mi; limits 500m/256Mi.
 
-==== Override within bounds
+==== Example 6: Resize within the allowed envelope
 [source,sh]
 ----
 oc set resources deploy/stress --requests=cpu=300m,memory=256Mi --limits=cpu=800m,memory=512Mi
@@ -223,7 +178,7 @@ oc wait --for=condition=Available deployment/stress --timeout=90s
 oc get pod -l app=stress -o jsonpath='{.items[0].spec.containers[0].resources}{"\n"}'
 ----
 
-==== Exceed max (admission rejects new pods)
+==== Example 7: Reject the oversize grab (admission stops the DoS path)
 [source,sh]
 ----
 oc set resources deployment/stress --limits=cpu=2,memory=1Gi
@@ -233,7 +188,7 @@ oc get pod -l app=stress -o jsonpath='{.items[0].spec.containers[0].resources}{"
 oc get deploy stress -o jsonpath='{.spec.template.spec.containers[0].resources.limits}{"\n"}'
 ----
 
-==== Scale beyond quota (pods limit)
+==== Example 8: Reject replica flood beyond pod quota
 [source,sh]
 ----
 oc scale deployment stress --replicas=25 || true
@@ -246,6 +201,25 @@ oc get quota compute-quota
 ----
 oc delete project 101-04-s-resources-demo --wait=false
 ----
+
+== Understanding the Attack Surface
+[cols="1,2",options="header"]
+|===
+|Area | Risk If Ignored
+|Privileged port 80 | Encourages elevation or `anyuid`
+|Hard-coded root | Normalizes high privilege
+|Fixed UID ownership | Forces SCC exceptions
+|Broad `anyuid` | Larger blast radius on compromise
+|No LimitRange | Unbounded container grabs
+|Missing ResourceQuota | One tenant can monopolize the cluster
+|Ignoring quota events | Capacity problems show up late
+|===
+
+== How to Secure (Lifecycle View)
+* Build: Ensure writable dirs are group-writable; avoid USER root in final stage. Annotate images with sizing guidance.
+* Registry: Store only images passing a non-root readiness check. Store performance baseline docs.
+* Deploy: For third‑party apps, analyze risks and register acceptance with annotations; rely on restricted SCC otherwise. Enforce LimitRange early; quotas per env.
+* Runtime: RHACS policy flags root or privileged UID usage. Monitor denial events as leading signals.
 
 == Solutions / Controls
 
@@ -291,9 +265,7 @@ Can limits harm performance?:: Too tight → throttling; measure realistic peaks
 What if workload is bursty?:: Typical usage as request; safe burst upper bound as limit.
 
 == Closing Story
-Granting anyuid because an image fails is like removing a seatbelt because it's "too tight." Fix the workload; keep the safety system.
-
-Resource controls are the booking system preventing one team from reserving every room—fairness yields stability.
+If an image fails restricted SCC, fix or replace it when you can. Treat `anyuid` as a tracked exception. Put LimitRange and ResourceQuota on shared namespaces so capacity fights stay visible and bounded.
 
 
 :lab-cleanup-module: 101-04

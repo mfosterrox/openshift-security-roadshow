@@ -1,4 +1,4 @@
-= Lab: Security & Compliance Add‑Ons – Building the Layered Defense
+= Security & Compliance Add‑Ons – Building the Layered Defense
 :labid: LAB-101-10
 :cis-summary: "Layer scanning, profiles, and security contexts (Compliance, SPO, RHACS) for continuous hardening."
 :mitre-summary: "Prevents undetected runtime and supply chain risks through layered scanning, enforced profiles, and policy-driven detection."
@@ -8,61 +8,38 @@
 :sectnums:
 :icons: font
 
-== Skill
-Learn how to layer OpenShift security add‑ons—Compliance Operator (benchmark scans and evidence), Security Profiles Operator (seccomp/SELinux hardening), and RHACS (image/runtime/network policies and detection)—to deliver continuous scanning, hardening, detection, and compliance proof.
+== Overview
+Use platform add-ons for continuous security work: Compliance Operator for benchmark scans, Security Profiles Operator for seccomp and SELinux profiles, and RHACS for image and runtime policy. This lab focuses on Compliance Operator; the others are covered for orientation.
 
-== Objective
+Orient on Compliance Operator, SPO, and RHACS roles, then list Compliance profiles and preview a sample ComplianceSuite without applying it on a shared cluster.
 
-Hands‑on: Compliance Operator only. SPO and RHACS are informational in this lab.
+== Why it matters
+SCC and RBAC cover a lot, but they do not schedule CIS-style scans, manage seccomp profiles, or watch runtime signals alone. Compliance Operator, SPO, and RHACS fill those gaps so evidence and detection are routine instead of a scramble before each audit.
 
-* Identify the roles of Compliance Operator, SPO, and RHACS (what each covers)
-* Compliance (hands‑on): list available profiles (read‑only) and preview a sample ComplianceSuite manifest (do not apply in shared clusters)
-* SPO (informational): understand profile recording/enforcement concepts
-* RHACS (informational): map where policies apply from build → deploy → runtime
+== What does it solve
 
-== Why it Matters
-Platform defaults are the locks and walls; add‑ons provide the cameras, inspectors, and alarms. Together they close blind spots: continuous benchmark scans (Compliance), enforced seccomp/SELinux profiles (SPO), and policy‑driven image/runtime detection (RHACS). The result is faster detection and response, fewer surprises in production, and audit evidence that’s generated continuously—not just before an audit.
+* Audit evidence collected on a schedule instead of the night before
+* Consistent seccomp and SELinux profiles across workloads
+* Image and policy checks before bad images reach production
+* Runtime and network signals when something misbehaves
+* A clearer handoff between platform defaults and specialized tooling
 
-== What it Solves
+== Your Mission
+Attackers move while humans scramble for last-minute audit evidence. Wire continuous controls: prove Compliance Operator is ready, inventory profiles, and schedule a CIS-style suite so posture gaps surface on a cadence—not under deadline panic.
 
-* Ad‑hoc audit scramble → Continuous evidence from scheduled benchmark scans and remediations (Compliance Operator)
-* Inconsistent seccomp/SELinux → Recorded baselines and enforced profiles; smaller kernel attack surface (Security Profiles Operator)
-* Late CVE discovery in prod → Build/deploy gates on image scan/policy; block known‑bad before runtime (RHACS + Quay)
-* Missed lateral movement or API misuse → Runtime/network detection and alerting on anomalies and risky API actions (RHACS)
-* Drift and unknown changes → Desired‑state enforcement and visible diffs for policy/config (GitOps + admission policies)
-* Fuzzy image provenance → Trusted registries/signatures and digest pinning enforced at admission (Admission + cosign)
-* Siloed findings → Correlated view across image, runtime, and network signals for faster triage (RHACS dashboard)
-
-== Understanding the Ecosystem
-[cols="1,2,2,2",options="header"]
-|===
-|Component | Primary Focus | Analogy | Outcome
-|Compliance Operator | Benchmark scanning & remediation | Building inspector | Evidence-backed posture
-|Security Profiles Operator (SPO) | Seccomp/SELinux profile lifecycle | Tailored safety harness | Minimal syscall set
-|RHACS | Image + runtime + network security | Security operations center | Policy-driven gating & detection
-|SCC / PSA | Admission privilege guardrails | Door lock policies | Unsafe specs blocked
-|GitOps (Argo CD) | Drift & desired state | Blueprint repository | Trustworthy change trail
-|===
-
-== How to Secure (Lifecycle View)
-* Build: RHACS scan + policy score gates; SPO profile recording.
-* Registry: Signed & scanned images (Quay+RHACS).
-* Deploy: SCC/PSA + admission policies; scheduled Compliance scans.
-* Runtime: RHACS anomaly + network; SPO enforced profiles.
-
-== How to Try It
-
-=== Compliance Operator presence
+=== Example 1: Confirm Compliance Operator is on the field
 [source,sh]
 ----
 oc get pods -n openshift-compliance 2>/dev/null || echo 'Compliance Operator not installed'
 ----
-=== List profiles
+=== Example 2: Inventory the benchmarks you can run
 [source,sh]
 ----
 oc get profiles.compliance.openshift.io -n openshift-compliance 2>/dev/null || true
 ----
-=== Sample scan (adjust names if exist)
+=== Example 3: Schedule a sample CIS scan (adjust names if needed)
+On a shared roadshow cluster, prefer previewing YAML over applying unless instructors cleared it.
+
 [source,sh]
 ----
 oc apply -f - <<'EOF'
@@ -79,7 +56,7 @@ spec:
 EOF
 ----
 
-=== View results later
+=== Example 4: Review check results when the scan lands
 [source,sh]
 ----
 oc get compliancecheckresults.compliance.openshift.io -n openshift-compliance | head
@@ -87,7 +64,24 @@ oc get compliancecheckresults.compliance.openshift.io -n openshift-compliance | 
 
 NOTE: SPO manages recording & enforcing seccomp / SELinux profiles; deeper commands appear in advanced labs.
 
-== Component Use Cases (Informational)
+== Understanding the Ecosystem
+[cols="1,2,2",options="header"]
+|===
+|Component | Primary Focus | Outcome
+|Compliance Operator | Benchmark scans and remediations | Ongoing evidence of posture
+|Security Profiles Operator | Seccomp and SELinux profiles | Smaller kernel attack surface
+|RHACS | Image, runtime, and network policy | Gates and detection in one place
+|SCC / PSA | Admission privilege checks | Unsafe pod specs blocked
+|GitOps | Desired state and drift | Changes stay reviewable
+|===
+
+== How to Secure (Lifecycle View)
+* Build: RHACS scan + policy score gates; SPO profile recording.
+* Registry: Signed & scanned images (Quay+RHACS).
+* Deploy: SCC/PSA + admission policies; scheduled Compliance scans.
+* Runtime: RHACS anomaly + network; SPO enforced profiles.
+
+== Component Examples (Informational)
 
 Compliance Operator:
 
@@ -146,7 +140,7 @@ Difference between Compliance vs RHACS scan?:: Benchmark config vs image/runtime
 Are scans disruptive?:: Low-impact; schedule off-peak for large estates.
 
 == Closing Story
-The cluster is a campus: locks (SCC), guards (RHACS), inspectors (Compliance), custom gear (SPO). Overlapping layers prevent single-point failure.
+Defaults, compliance scans, hardening profiles, and ACS each cover different blind spots. Use them together; do not expect one layer to do every job.
 
 
 :lab-cleanup-module: 101-10

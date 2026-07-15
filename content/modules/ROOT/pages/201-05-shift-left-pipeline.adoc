@@ -1,4 +1,4 @@
-= Lab: Shift Left – CI/CD Scanning & Signing Pipeline
+= Shift Left – CI/CD Scanning & Signing Pipeline
 :role: Intermediate Supply Chain
 :skills: Tekton, Image Scanning, Signing, Admission Gating
 :labid: LAB-201-05
@@ -6,17 +6,22 @@
 :sectnums:
 :icons: font
 
-== Skill
+== Overview
 Integrate security scanning and policy checks into pipelines.
 
-== Scenario
-You will build a minimal Tekton pipeline: build image → vulnerability scan → sign if clean → deploy gated by signature & digest. Scanning tool abstracted (use placeholder task if actual scanner unavailable). Demonstrates supply chain policy flow.
+Build a Tekton pipeline that builds, scans, gates, and signs an image, then deploy by digest from the signed result.
 
-== Objectives
-* Create Tekton Tasks: build, scan, sign
-* Use Pipeline + PipelineRun with workspaces & results
-* Add policy gate (simple result check) before signing
-* Reference signed image by digest in a Deployment
+== Why it matters
+Unsigned, unscanned images reach production when security sits after deploy. Pipelines that build, scan, gate, and sign shrink the window where attackers swap in a poisoned tag.
+
+== What does it solve
+
+* Silent promotion of unscanned images
+* Deployments that float on mutable tags instead of digests
+* Missing signature evidence for admission and audit
+
+== Your Mission
+Build a Tekton path that refuses unscanned or unsigned images—then deploy only by digest so a supply-chain swap cannot silently replace what you ran.
 
 == Prerequisites
 * OpenShift Pipelines (Tekton) Operator installed

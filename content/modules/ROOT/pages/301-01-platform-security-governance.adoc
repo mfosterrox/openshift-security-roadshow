@@ -1,4 +1,4 @@
-= Lab: Lead Platform-Wide Security Governance and Multi-Team Architecture Decisions
+= Lead Platform-Wide Security Governance and Multi-Team Architecture Decisions
 :role: Advanced Security Leadership & Architecture
 :skills: Security Operating Model, RBAC & Namespace Strategy, Segmentation Blueprints, Multi-Team Architecture
 :labid: LAB-301-01
@@ -6,19 +6,12 @@
 :sectnums:
 :icons: font
 
-== Skill
+== Overview
 Lead the design and implementation of platform-wide security governance frameworks and multi-team architecture decisions. You will establish security operating models, design RBAC and namespace strategies, create segmentation blueprints, and coordinate security architecture across multiple teams and organizations.
 
-== Objective
+Frame platform-wide security governance decisions that multiple teams can follow consistently across the cluster estate.
 
-* Design and implement a security operating model for platform-wide governance
-* Create RBAC and namespace strategies that scale across multiple teams
-* Develop segmentation blueprints for multi-tenant environments
-* Establish governance frameworks for multi-team architecture decisions
-* Design security policies and standards for platform-wide adoption
-* Coordinate security architecture decisions across organizational boundaries
-
-== Why it Matters
+== Why it matters
 
 Platform-wide security governance ensures consistent security practices across all teams and applications. Without proper governance:
 
@@ -36,7 +29,7 @@ Effective governance provides:
 * Coordinated segmentation blueprints
 * Alignment between security and business objectives
 
-== What it Solves
+== What does it solve
 
 This lab addresses the challenges of scaling security governance:
 
@@ -45,6 +38,9 @@ This lab addresses the challenges of scaling security governance:
 * **Segmentation Blueprints**: Creates reusable templates for network and workload segmentation
 * **Multi-Team Coordination**: Establishes processes for coordinating security architecture across teams
 * **Governance Frameworks**: Defines policies, standards, and procedures for platform security
+
+== Your Mission
+Design governing decisions so teams cannot freestyle privilege, namespaces, or segmentation. Leave with a model others can follow without inventing one-off exceptions.
 
 == Understanding the Architecture
 

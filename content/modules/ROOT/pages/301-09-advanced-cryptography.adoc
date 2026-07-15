@@ -1,4 +1,4 @@
-= Lab: Design Advanced Cryptography, Observability, and Encryption Strategies
+= Design Advanced Cryptography, Observability, and Encryption Strategies
 :role: Advanced Security Architecture
 :skills: Key Management Integration, Service-to-Service Encryption, Observability Pipeline Design, Audit Telemetry
 :labid: LAB-301-09
@@ -6,19 +6,12 @@
 :sectnums:
 :icons: font
 
-== Skill
+== Overview
 Design and implement comprehensive encryption strategies for OpenShift environments, including key management integration, service-to-service encryption architecture, and observability/audit telemetry pipeline design. You will learn to architect encryption at rest, in transit, and in use across the entire platform.
 
-== Objective
+Design encryption at rest and in transit with external key management, rotation, and enough observability to prove it is working.
 
-* Integrate external key management systems (KMS) with OpenShift
-* Design service-to-service encryption architecture
-* Implement encryption at rest for persistent storage
-* Configure observability and audit telemetry pipelines
-* Design encryption key rotation strategies
-* Validate encryption effectiveness and compliance
-
-== Why it Matters
+== Why it matters
 
 Advanced cryptography and encryption are fundamental to protecting sensitive data in cloud-native environments. This lab covers:
 
@@ -28,7 +21,7 @@ Advanced cryptography and encryption are fundamental to protecting sensitive dat
 * Providing observability into encryption operations
 * Meeting compliance requirements for data protection
 
-== What it Solves
+== What does it solve
 
 Modern security requirements demand encryption at multiple layers:
 
@@ -37,6 +30,9 @@ Modern security requirements demand encryption at multiple layers:
 * **Encryption in Use**: Protecting data during processing (confidential computing)
 * **Key Management**: Centralized, secure key lifecycle management
 * **Observability**: Monitoring encryption operations and key usage
+
+== Your Mission
+Close cleartext and weak-key paths with encryption at rest and in transit, managed keys, and enough telemetry to prove the crypto is real.
 
 == Understanding the Architecture
 

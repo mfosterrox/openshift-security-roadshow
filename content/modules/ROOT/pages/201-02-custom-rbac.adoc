@@ -1,24 +1,19 @@
-= Lab: Write Your Own Keycard – Custom RBAC in Action
+= Write Your Own Keycard – Custom RBAC in Action
 :role: Intermediate Platform Security
 :skills: Custom RBAC, Least Privilege Design, Scoped Identities, Service Account Hardening
 :mitre: T1078 (Valid Accounts), TA0004 (Privilege Escalation), T1552 (Credential Access)
 :compliance: NIST 800-53 AC-6, ISO 27001 A.9, SOC 2 CC6, PCI DSS 7
 :labid: LAB-201-02
 
-== Skill
+== Overview
 By the end you’ll be able to design and apply a narrowly scoped Role that grants only the handful of permissions an application maintainer truly needs, verify what works, prove what is denied, and explain how that shrinks incident blast radius.
 
-== Objective
-* Create a minimal, purpose‑built Role (get,list,update,patch on ConfigMaps & Secrets)
-* Bind it to a user (and a service account variation)
-* Demonstrate allowed vs denied verbs
-* Explain least privilege in plain business terms
-* Show how to audit and iterate safely
+Create a minimal custom Role and RoleBinding, prove allowed versus denied verbs, and state the least-privilege intent in plain language.
 
-== Why it Matters
+== Why it matters
 Imagine an office where every employee’s badge opens every room—including finance, HR, and the server closet. Nobody intends abuse, but one lost badge means a long night of worrying what was accessed. Built‑in broad roles (`edit`, `admin`) are those master badges. Custom RBAC is like cutting a key that only opens the supply cabinet your role requires. When (not if) an account is phished or a token is leaked, tightly scoped permissions turn a potential headline into a routine ticket. Auditors also smile when intent is obvious: “This identity may only adjust configuration.”
 
-== What it Solves
+== What does it solve
 Most real security incidents aren’t cinematic hacks—they’re ordinary credentials used in extraordinary places. Over-broad roles quietly enable:
 * Unapproved pod deployments (persistence footholds)
 * Reading secrets far outside an app’s scope (data leakage)
@@ -27,24 +22,7 @@ Most real security incidents aren’t cinematic hacks—they’re ordinary crede
 
 Crafting a custom Role removes silent “just in case” powers. It converts vague responsibility (“Dev team rights”) into precise intent (“May adjust non-sensitive app configuration values and rotate one secret”). That precision speeds investigations and compliance reviews.
 
-== Understanding the Attack Surface
-[options="header"]
-|===
-| Area | Risk with Broad Role | Reduced Risk with Custom Role
-| Workload Mutation | Can create/replace pods for persistence | Cannot create pods -> persistence blocked
-| Secret Exposure | Lists all secrets in namespace | Only reads designated ones
-| Privilege Escalation | Can bind new roles / clusterroles | RBAC mutation verbs absent
-| Lateral Movement | Wildcard verbs reveal resources to pivot | Minimal verbs limit enumeration
-| Audit Clarity | Hard to explain necessity of powers | Role name + verbs tell the story
-|===
-
-== How to Secure (Lifecycle View)
-* Build: Document the exact API objects the app truly needs to touch (often ConfigMaps + one Secret). Avoid “future proofing.”
-* Registry: CI service accounts should only push images—no runtime object changes.
-* Deploy: Replace use of `edit`/`admin` ClusterRoles with narrowly scoped namespace Roles.
-* Runtime: Periodically script `oc auth can-i --as <identity>` over a small verb/resource matrix; alert on unexpected “yes.”
-
-== How to Try It
+== Your Mission
 . Create a lab namespace:
 +
 [source,sh]
@@ -116,6 +94,23 @@ oc patch sa app-sa -p '{"automountServiceAccountToken":false}'
 ----
 oc delete project 201-02-c-rbac-lab --wait=false
 ----
+
+== Understanding the Attack Surface
+[options="header"]
+|===
+| Area | Risk with Broad Role | Reduced Risk with Custom Role
+| Workload Mutation | Can create/replace pods for persistence | Cannot create pods -> persistence blocked
+| Secret Exposure | Lists all secrets in namespace | Only reads designated ones
+| Privilege Escalation | Can bind new roles / clusterroles | RBAC mutation verbs absent
+| Lateral Movement | Wildcard verbs reveal resources to pivot | Minimal verbs limit enumeration
+| Audit Clarity | Hard to explain necessity of powers | Role name + verbs tell the story
+|===
+
+== How to Secure (Lifecycle View)
+* Build: Document the exact API objects the app truly needs to touch (often ConfigMaps + one Secret). Avoid “future proofing.”
+* Registry: CI service accounts should only push images—no runtime object changes.
+* Deploy: Replace use of `edit`/`admin` ClusterRoles with narrowly scoped namespace Roles.
+* Runtime: Periodically script `oc auth can-i --as <identity>` over a small verb/resource matrix; alert on unexpected “yes.”
 
 == Visuals (Optional)
 [mermaid]

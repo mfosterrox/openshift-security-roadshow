@@ -1,4 +1,4 @@
-= Lab: File Integrity Monitoring & Node Hardening
+= File Integrity Monitoring & Node Hardening
 :labid: LAB-201-04
 :cis-summary: "Implement file integrity monitoring and node-level security hardening using the File Integrity Operator."
 :mitre-summary: "Detects unauthorized file system changes and implements node-level security controls."
@@ -6,21 +6,15 @@
 :sectnums:
 :icons: font
 
-== Skill
+== Overview
 Learn how to deploy and configure the File Integrity Operator to monitor file system integrity on OpenShift nodes, detect unauthorized changes, and implement node-level security hardening measures.
 
-== Objective
+Configure file integrity monitoring and related node hardening so unexpected host file changes become visible and actionable.
 
-* Install and configure File Integrity Operator
-* Create FileIntegrity custom resources
-* Monitor file system changes
-* Review integrity reports
-* Implement node hardening recommendations
-
-== Why it Matters
+== Why it matters
 File integrity monitoring detects unauthorized changes to critical system files, which could indicate compromise or misconfiguration. Combined with node hardening, this provides defense-in-depth for the control plane and worker nodes, meeting compliance requirements for system integrity monitoring.
 
-== What it Solves
+== What does it solve
 
 * Undetected file system tampering
 * Compliance monitoring requirements
@@ -28,17 +22,8 @@ File integrity monitoring detects unauthorized changes to critical system files,
 * Unauthorized configuration changes
 * Security baseline drift
 
-== Understanding the Attack Surface
-[cols="1,2,2",options="header"]
-|===
-|Area | Risk If Unmonitored | Mitigation
-|System Files | Tampering | File integrity monitoring
-|Node Configuration | Drift | Hardening policies
-|Binary Changes | Malware | Integrity checks
-|Config Files | Unauthorized edits | Continuous monitoring
-|===
-
-== How to Try It
+== Your Mission
+Complete the examples below to close the attack paths this lab covers—treat each step as defending the cluster, not just clicking through commands.
 
 === Check File Integrity Operator installation
 [source,sh]
@@ -84,6 +69,16 @@ oc get fileintegrityreports -n openshift-file-integrity -o yaml | grep -A 10 "re
 ----
 oc delete fileintegrity worker-file-integrity -n openshift-file-integrity
 ----
+
+== Understanding the Attack Surface
+[cols="1,2,2",options="header"]
+|===
+|Area | Risk If Unmonitored | Mitigation
+|System Files | Tampering | File integrity monitoring
+|Node Configuration | Drift | Hardening policies
+|Binary Changes | Malware | Integrity checks
+|Config Files | Unauthorized edits | Continuous monitoring
+|===
 
 == Solutions / Controls
 

@@ -1,4 +1,4 @@
-= Lab: Projects & Namespaces as Security Boundaries
+= Projects & Namespaces as Security Boundaries
 :labid: LAB-101-02
 :cis-summary: "Use OpenShift projects and namespaces as security boundaries for multi-tenancy and resource isolation."
 :mitre-summary: "Prevents unauthorized access and resource conflicts by establishing namespace-level security boundaries."
@@ -6,21 +6,15 @@
 :sectnums:
 :icons: font
 
-== Skill
-Learn how OpenShift projects and namespaces serve as security boundaries for multi-tenancy, resource isolation, and access control. You'll understand how to structure namespaces for security, implement namespace-level policies, and manage multi-tenant environments safely.
+== Overview
+Projects and namespaces draw hard lines between teams and apps. Use them to keep RBAC, quotas, and network rules scoped so one tenant cannot casually reach another.
 
-== Objective
+Create a project with security labels, bind RBAC, and apply a ResourceQuota so you can see how namespaces isolate ownership and capacity.
 
-* Understand projects vs namespaces in OpenShift
-* Create and configure projects with security labels
-* Implement namespace-level RBAC boundaries
-* Configure resource quotas and limits per namespace
-* Understand namespace isolation and network policies
+== Why it matters
+On a shared cluster, a single flat namespace becomes everyone’s problem: shared secrets access, contested CPU, tangled NetworkPolicies. Clear project boundaries make ownership obvious and keep mistakes contained.
 
-== Why it Matters
-Projects and namespaces are fundamental security boundaries in OpenShift. They provide logical separation between teams, applications, and environments, enabling multi-tenancy while maintaining security isolation. Proper namespace design prevents unauthorized access, resource conflicts, and simplifies compliance auditing.
-
-== What it Solves
+== What does it solve
 
 * Multi-tenant isolation
 * Resource conflict prevention
@@ -28,19 +22,12 @@ Projects and namespaces are fundamental security boundaries in OpenShift. They p
 * Compliance and audit organization
 * Network segmentation foundation
 
-== Understanding the Attack Surface
-[cols="1,2,2",options="header"]
-|===
-|Area | Risk If Misconfigured | Mitigation
-|Namespace Overlap | Unauthorized access | Clear RBAC boundaries
-|Resource Conflicts | Noisy neighbors | ResourceQuota per namespace
-|Network Isolation | Lateral movement | NetworkPolicy per namespace
-|Label Inconsistency | Policy gaps | Standardized labeling
-|===
+== Your Mission
+Without project boundaries, one compromised identity or runaway workload can reach every tenant’s Secrets, CPU, and pods. Draw hard lines—labels, RBAC, and quotas—so a break-in stays trapped in one namespace instead of becoming a cluster-wide outage.
 
-== How to Try It
+=== Example 1: Claim a defended territory with security labels
+Stand up a dedicated project and label it so policy engines know this is a controlled tenant, not shared free-for-all space.
 
-=== Create a project with security labels
 [source,sh]
 ----
 oc new-project 101-02-demo --display-name="Security Demo" --description="101-02 Lab Project"
@@ -48,14 +35,18 @@ oc label namespace 101-02-demo security-tier=basic environment=dev
 oc get namespace 101-02-demo --show-labels
 ----
 
-=== Configure namespace-level RBAC
+=== Example 2: Stop casual privilege sprawl with namespace RBAC
+Bind a team to `edit` only inside this project, then prove the default service account cannot create pods until you say so. That closes the “any SA can do anything” attack path.
+
 [source,sh]
 ----
 oc create rolebinding dev-team --clusterrole=edit --group=dev-team -n 101-02-demo
 oc auth can-i create pods --as=system:serviceaccount:101-02-demo:default -n 101-02-demo
 ----
 
-=== Apply ResourceQuota
+=== Example 3: Cap a noisy-neighbor DoS with ResourceQuota
+Attackers (and buggy apps) burn the cluster with oversized requests. Put a ceiling on CPU, memory, and pods so one namespace cannot starve the rest.
+
 [source,sh]
 ----
 oc create quota demo-quota --hard=requests.cpu=2,requests.memory=2Gi,limits.cpu=4,limits.memory=4Gi,pods=10 -n 101-02-demo
@@ -67,6 +58,16 @@ oc describe quota demo-quota -n 101-02-demo
 ----
 oc delete project 101-02-demo --wait=false
 ----
+
+== Understanding the Attack Surface
+[cols="1,2,2",options="header"]
+|===
+|Area | Risk If Misconfigured | Mitigation
+|Namespace Overlap | Unauthorized access | Clear RBAC boundaries
+|Resource Conflicts | Noisy neighbors | ResourceQuota per namespace
+|Network Isolation | Lateral movement | NetworkPolicy per namespace
+|Label Inconsistency | Policy gaps | Standardized labeling
+|===
 
 == Solutions / Controls
 
@@ -92,7 +93,7 @@ How many namespaces should I create?:: One per team/environment/application boun
 Can namespaces communicate?:: By default yes; use NetworkPolicy to restrict.
 
 == Closing Story
-Namespaces are the foundation of multi-tenant security—proper boundaries enable safe collaboration.
+Give each team or environment its own project, attach RBAC and quotas there, and keep shared cluster-wide admin rare.
 
 
 :lab-cleanup-module: 101-02

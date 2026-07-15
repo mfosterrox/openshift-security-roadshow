@@ -1,4 +1,4 @@
-= Lab: Who Really Has Access? (Default RBAC in Action)
+= Who Really Has Access? (Default RBAC in Action)
 :labid: LAB-101-03
 :cis-summary: "Limit powerful role use; rely on built-in view/edit/admin tiers instead of broad superuser access."
 :mitre-summary: "Prevents unnecessary privilege escalation by using built-in least-privilege roles instead of broad cluster-admin grants."
@@ -8,39 +8,101 @@
 :sectnums:
 :icons: font
 
-== Skill
-Learn about OpenShift's built-in roles (view, edit, admin) and how they provide graduated levels of access without needing custom roles. You'll practically test what each role allows (from read-only access to full namespace control), understand how to safely escalate permissions step-by-step, and validate access using impersonation—no real user accounts or custom roles required.
+== Overview
+OpenShift ships useful built-in roles: `view`, `edit`, and `admin`. Learn what each can do with `oc auth can-i` and impersonation, and escalate only as far as the task requires—without writing custom Roles or handing out `cluster-admin`.
 
-== Objective
+Impersonate a user bound to view, edit, and admin in turn, and use `oc auth can-i` to see what each built-in role actually allows.
 
-* Use ONLY default ClusterRoles: view, edit, admin (plus a peek at basic-user & cluster-admin context)
-* Observe permission differences (read vs mutate vs manage RBAC)
-* Use impersonation (`--as`) to test quickly—no custom identities or new Roles
-* See how default roles map to least privilege patterns
-* Avoid the “just bind cluster-admin” anti-pattern
+== Why it matters
+Access problems are usually over-permission, not clever attacks. People bind `cluster-admin` because it is faster than reading the defaults. `view`, `edit`, and `admin` already cover most team needs and give you a clear ladder: read-only, change apps, run the namespace including RoleBindings.
 
-== Why it Matters
-Imagine an office where every visitor is handed the master key “to avoid delays.” Things go fine—until something disappears or a server closet is “accidentally reorganized.” Most security incidents in access control aren’t brilliant attacks; they’re ordinary over-permission. The default OpenShift roles exist so you do NOT have to invent one-off policies for common personas—and so you avoid reflexively binding cluster-admin.
+Using those roles speeds onboarding, keeps escalation intentional, and makes audits simpler because you are on documented platform defaults instead of one-off Role YAML.
 
-Using built-in roles: (1) speeds onboarding (“Give them view only”), (2) clarifies escalation paths (progress view → edit → admin), and (3) reduces audit friction (“We rely on documented platform defaults, not bespoke YAML sprawl”). Guardrails work best when widely understood; this lab makes the built-in role intent obvious.
+== What does it solve
+Skipping the defaults creates recurring mess:
 
-== What it Solves
-Teams often jump straight to cluster-admin or craft ad hoc Roles because they aren’t sure what the defaults already deliver. That leads to:
+* Temporary `cluster-admin` that never gets removed
+* Custom Roles that reinvent edit or admin poorly
+* Pipeline service accounts with more verbs than they need
+* Confusion about whether `view` can read Secrets or `edit` can create RoleBindings
 
-* Wide blast radius (cluster-admin “temporarily” bound forever)
-* Hard-to-review custom Role YAML duplicates (inconsistent patterns)
-* CI/CD identities holding more verbs than needed (mutation + RBAC management)
-* Confusion over “Why can’t view see secret data?” or “Why can edit not alter RoleBindings?”
+What the built-ins actually mean:
 
-Built-in roles encode sane boundaries:
+* `view` — read most namespaced objects; not Secret data; not RBAC objects
+* `edit` — change Deployments, ConfigMaps, Services; cannot change RoleBindings
+* `admin` — full namespace stewardship including RoleBindings; not cluster-wide ownership
+* `basic-user` — self and basic project discovery
+* `cluster-admin` — break-glass only; bypasses almost everything
 
-* view: Read most namespaced objects (NOT secret contents, NOT RBAC objects) → safe for dashboards & troubleshooting.
-* edit: All typical app mutation (deployments, configmaps, services) but still cannot change RBAC → prevents silent privilege extension.
-* admin: Full namespace stewardship including Role/RoleBinding management (but not cluster-scoped ownership) → local ‘tenant admin’.
-* basic-user: Lets a user get info about themselves and basic project discovery.
-* cluster-admin (reference only): Superuser; bypasses almost all policy—should remain a rare operational break-glass identity.
+== Your Mission
+Attackers harvest over-permissioned accounts: one leaked token with `cluster-admin` ends the game. Impersonate `dev-user`, climb only through built-in `view` → `edit` → `admin`, and prove what each tier can and cannot break—without ever handing out cluster-wide power.
 
-By adopting existing defaults, you eliminate redundant YAML, ease training, and reduce accidental overreach.
+=== Example 1: Build a sandbox the attacker would try to escalate from
+[source,sh]
+----
+oc new-project 101-03-r-rbac
+----
+
+=== Example 2: Limit to view — block writes and Secret theft
+Bind `view` and verify the attacker-shaped identity cannot deploy malware or read Secret data.
+
+[source,sh]
+----
+oc create rolebinding dev-view --clusterrole=view --user=dev-user
+oc auth can-i get pods --as=dev-user
+oc auth can-i create deployment --as=dev-user
+oc auth can-i get secret/mysecret --as=dev-user || true
+----
+Mission check: get pods = yes; create deployment = no; secret contents denied.
+
+=== Example 3: Grant edit — allow app changes, still block RBAC self-escalation
+`edit` lets someone mutate workloads. It must *not* let them forge RoleBindings—that is how footholds become permanent.
+
+[source,sh]
+----
+oc delete rolebinding dev-view
+oc create rolebinding dev-edit --clusterrole=edit --user=dev-user
+oc auth can-i create deployment --as=dev-user
+oc auth can-i create rolebinding --as=dev-user
+----
+Mission check: create deployment = yes; create rolebinding = no.
+
+=== Example 4: Admin only when stewardship is required
+Namespace `admin` is powerful inside the project (RoleBindings and Secrets). Treat it as deliberate, auditable elevation—not a default developer badge.
+
+[source,sh]
+----
+oc delete rolebinding dev-edit
+oc create rolebinding dev-admin --clusterrole=admin --user=dev-user
+oc auth can-i create rolebinding --as=dev-user
+oc auth can-i delete secret --as=dev-user
+----
+Mission check: both permitted *within the namespace only*.
+
+=== Example 5: Confirm the defended app is still operable
+Prove legitimate work still functions under the roles you chose—security without locking the team out.
+
+[source,sh]
+----
+oc create deployment sample --image=registry.access.redhat.com/ubi9/ubi -- sleep infinity
+oc get deploy --as=dev-user
+----
+
+=== Example 6: Keep the default ServiceAccount powerless
+A compromised pod’s SA should not list Secrets until you explicitly bind that power. Confirm the default deny holds.
+
+[source,sh]
+----
+oc create sa app-sa
+oc auth can-i list secrets --as=system:serviceaccount:101-03-r-rbac:app-sa
+----
+Mission check: denied until bound.
+
+=== Cleanup (optional)
+[source,sh]
+----
+oc delete project 101-03-r-rbac --wait=false
+----
 
 == Understanding the Attack Surface
 [cols="1,2,2",options="header"]
@@ -60,66 +122,6 @@ By adopting existing defaults, you eliminate redundant YAML, ease training, and 
 * Deploy: Prefer binding built-in ClusterRoles (view/edit/admin) at namespace scope rather than authoring custom Roles prematurely.
 * Runtime: Monitor audit logs or RHACS for privilege jumps (view → admin unexpectedly) and new RoleBindings.
 * Governance: Periodically export bindings; compare against team roster. Remove drift quickly.
-
-== How to Try It
-We will impersonate a fictitious user name `dev-user` and only bind built-in ClusterRoles in a single namespace.
-
-=== Create sandbox project
-[source,sh]
-----
-oc new-project 101-03-r-rbac
-----
-
-=== Bind view (read-most objects, no writes, no RBAC changes)
-[source,sh]
-----
-oc create rolebinding dev-view --clusterrole=view --user=dev-user
-oc auth can-i get pods --as=dev-user
-oc auth can-i create deployment --as=dev-user
-oc auth can-i get secret/mysecret --as=dev-user || true
-----
-Expected: get pods = yes; create deployment = no; secret access should fail (cannot read secret contents).
-
-=== Escalate to edit (can mutate workloads, still cannot edit RBAC)
-[source,sh]
-----
-oc delete rolebinding dev-view
-oc create rolebinding dev-edit --clusterrole=edit --user=dev-user
-oc auth can-i create deployment --as=dev-user
-oc auth can-i create rolebinding --as=dev-user
-----
-Expected: create deployment = yes; create rolebinding = no.
-
-=== Escalate to admin (full namespace administration including RBAC objects)
-[source,sh]
-----
-oc delete rolebinding dev-edit
-oc create rolebinding dev-admin --clusterrole=admin --user=dev-user
-oc auth can-i create rolebinding --as=dev-user
-oc auth can-i delete secret --as=dev-user
-----
-Expected: both now permitted (RBAC + secret mutation) within the namespace.
-
-=== Workload check under edit/admin
-[source,sh]
-----
-oc create deployment sample --image=registry.access.redhat.com/ubi9/ubi -- sleep infinity
-oc get deploy --as=dev-user
-----
-
-=== ServiceAccount conservative default
-[source,sh]
-----
-oc create sa app-sa
-oc auth can-i list secrets --as=system:serviceaccount:101-03-r-rbac:app-sa
-----
-Expected: denied until explicitly bound (shows default restraint for service accounts).
-
-=== Cleanup (optional)
-[source,sh]
-----
-oc delete project 101-03-r-rbac --wait=false
-----
 
 == Solutions / Controls
 [cols="1,2,2",options="header"]
@@ -154,7 +156,7 @@ Should I ever bind cluster-admin to a user?:: Avoid; reserve for break-glass ope
 Does RBAC replace vulnerability management?:: No; it limits blast radius after compromise.
 
 == Closing Story
-Default RBAC roles are the building’s standard badge templates. Consistency shrinks review effort, prevents “temporary” superuser drift, and turns access audits from archaeology into a glance.
+Reach for `view`, `edit`, and `admin` first. Save `cluster-admin` for break-glass. Review RoleBindings regularly so temporary grants do not become permanent.
 
 
 :lab-cleanup-module: 101-03

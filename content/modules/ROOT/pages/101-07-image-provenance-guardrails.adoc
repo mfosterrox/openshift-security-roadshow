@@ -1,4 +1,4 @@
-= Lab: Trusted Sources Only – Guardrails Against Unapproved Images
+= Trusted Sources Only – Guardrails Against Unapproved Images
 :labid: LAB-101-07
 :cis-summary: "Enforce trusted image sources and allow only approved registries/signature origins."
 :mitre-summary: "Prevents untrusted supply chain and initial access risks by enforcing trusted, vetted image sources only."
@@ -8,49 +8,32 @@
 :sectnums:
 :icons: font
 
-== Skill
-Learn why images from unknown registries are risky and how to allow only trusted sources. You'll set an allow‑list and verify image provenance (registry host + sha256 digest) in OpenShift.
+== Overview
+Limit which registries the cluster may pull from, then confirm what you ran by registry host and sha256 digest.
 
-== Objective
+Try a deployment from an untrusted source, block it with an allow-list, then deploy a trusted UBI image and verify host plus digest provenance.
 
-* Attempt deployment from unvetted source
-* Observe deny under allow‑list
-* Deploy trusted Red Hat UBI image
-* Verify provenance (host + digest)
+== Why it matters
+Pulls from arbitrary registries mean unknown builders and unvetted contents. An allow-list keeps traffic on registries you trust and cuts a lot of avoidable CVE noise from random public tags.
 
-== Why it Matters
-Images from random registries are risky, you don’t know who built them, what’s inside, or whether they’re maintained. An allow‑list only permits trusted sources, making provenance clear and reducing noisy, avoidable CVEs.
-
-== What it Solves
+== What does it solve
 
 * Accidental pulls from arbitrary public defaults
 * Image provenance ambiguity
 * Higher vulnerability noise baseline
 * Reproducibility issues with `:latest`
 
-== Understanding the Attack Surface
-[cols="1,2,2",options="header"]
-|===
-|Area | Risk If Ignored | Analogy
-|Unknown Registry Source | Malware / outdated libs | Unlabeled box left at dock
-|Unmaintained Base Image | CVE accumulation | Expired fire extinguisher
-|Implicit Tag (:latest) | Version drift | Moving target marker
-|No Allow-List Policy | Anything enters prod | Unlocked side entrance
-|Mixed Provenance Namespace | Hard incident scoping | Scrap + certified parts mixed
-|Direct External Pull | Outage / tampering risk | Single fragile bridge
-|Missing Signature / SBOM | Weak chain of custody | Broken package seal
-|===
+== Your Mission
+Supply-chain attackers ship malware through any registry that will take a tag. Your mission: put an allow-list on the door, prove an untrusted image is denied, then run only a trusted UBI workload you can fingerprint by host and digest.
 
-== How to Try It
-
-=== Create & label project
+=== Example 1: Mark the namespace as under registry lockdown
 [source,sh]
 ----
 oc new-project 101-07-i-trusted
 oc label namespace 101-07-i-trusted trusted-registry-enforce=true --overwrite
 ----
 
-=== Apply namespace-scoped allow‑list (cluster-admin)
+=== Example 2: Install the allow-list (cluster-admin) — close arbitrary pulls
 [source,sh]
 ----
 oc apply -f - <<'EOF'
@@ -114,20 +97,22 @@ spec:
 EOF
 ----
 
-=== Attempt disallowed image (expect deny)
+=== Example 3: Launch the untrusted payload — expect Deny
 [source,sh]
 ----
 oc -n 101-07-i-trusted create deployment bad --image=docker.io/library/nginx:latest || true
 ----
 
-=== Deploy trusted UBI image (should succeed)
+=== Example 4: Deploy only from an approved registry
 [source,sh]
 ----
 oc -n 101-07-i-trusted create deployment good --image=registry.access.redhat.com/ubi9/ubi:9.6 -- sleep infinity
 oc -n 101-07-i-trusted wait --for=condition=Available deployment/good --timeout=60s
 ----
 
-=== Verify provenance
+=== Example 5: Fingerprint provenance — host + digest
+Prove what actually runs so a floated `:latest` tag cannot quietly swap in attacker content.
+
 [source,sh]
 ----
 oc -n 101-07-i-trusted describe pod -l app=good | grep -E 'Image:|Image ID:'
@@ -135,12 +120,12 @@ oc -n 101-07-i-trusted describe pod -l app=good | grep -E 'Image:|Image ID:'
 
 What to look for:
 
-- Image: should show a trusted registry host (registry.access.redhat.com, registry.redhat.io, quay.io, or your internal registry)
-- Image ID: should show an immutable sha256 digest. This proves the exact content that ran; tags like :latest can change, digests do not.
+- Image: trusted registry host (registry.access.redhat.com, registry.redhat.io, quay.io, or your internal registry)
+- Image ID: immutable sha256 digest (tags can move; digests cannot)
 
-If both are correct (trusted host + sha256 digest), you have a basic provenance check: approved source and exact, verifiable content.
+If both are correct, you have a basic provenance check: approved source and exact, verifiable content.
 
-Example (if you use UBI 9.6):
+Example (UBI 9.6):
 
 - Image: registry.redhat.io/ubi9/ubi:9.6 (trusted source)
 - Image ID: …@sha256:dbc1e98d14a022542e45b5f22e0206d3f86b5bdf237b58ee7170c9ddd1b3a283 (immutable digest)
@@ -154,6 +139,17 @@ oc delete validatingadmissionpolicybinding trusted-images-only-deployments || tr
 oc delete validatingadmissionpolicy allow-trusted-registries-pods || true
 oc delete validatingadmissionpolicy allow-trusted-registries-deployments || true
 ----
+
+== Understanding the Attack Surface
+[cols="1,2",options="header"]
+|===
+|Area | Risk If Ignored
+|Unknown registry | Untrusted builders and unexpected content
+|Unmaintained base image | Growing CVE backlog
+|Floating `:latest` tag | You never know what you actually ran
+|No allow-list | Any public registry can feed production
+|Missing digest / signature | Weak ability to prove integrity
+|===
 
 == Summary Table
 [cols="1,2,2,2",options="header"]
@@ -191,7 +187,7 @@ Only CIS 5.5.1 (image provenance & policy) is asserted.
 Where does Lab B1 fit?:: B1 covers runtime least privilege; B6 covers image provenance.
 
 == Closing Story
-Trusted registries act like approved aerospace suppliers: origin is verified, not guessed.
+Allow only registries you trust, pin digests for important workloads, and treat `:latest` as a demo habit—not a production practice.
 
 
 :lab-cleanup-module: 101-07

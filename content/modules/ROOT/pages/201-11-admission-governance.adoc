@@ -1,4 +1,4 @@
-= Lab: Policy at the Front Door – Admission Governance (Gatekeeper)
+= Policy at the Front Door – Admission Governance (Gatekeeper)
 :role: Intermediate Admission Governance
 :skills: Admission Control, Gatekeeper, Policy Layering, Governance
 :labid: LAB-201-11
@@ -6,17 +6,22 @@
 :sectnums:
 :icons: font
 
-== Skill
+== Overview
 Admission governance & policy layering. Enforce baseline safety gates before insecure workloads enter the cluster.
 
-== Scenario
-Preventing insecure workloads early reduces remediation cost. You will deploy Gatekeeper constraints enforcing: (1) no root UID, (2) mandatory NetworkPolicy presence, (3) signed images (simulated), and (4) digest pinning over floating tags.
+Use Gatekeeper admission policies to block unsafe cluster changes at the API and show clear allow versus deny outcomes.
 
-== Objectives
-* Verify Gatekeeper operator (or install) and constraint CRDs
-* Create constraint templates
-* Enforce constraints & test violations
-* Layer policies with exemptions namespace-scoped
+== Why it matters
+Insecure specs enter the cluster only once—at admission. Gatekeeper (and similar) policies turn “we hope teams follow the guide” into denies at the API before a rootful or hostPath payload ever schedules.
+
+== What does it solve
+
+* Workloads that quietly revive root, privileged, or host mounts
+* Policy drift between wiki docs and what the API accepts
+* Late discovery of unsafe objects already running in production
+
+== Your Mission
+Install admission gates that block attacker-shaped pod specs at the door and prove clear allow versus deny outcomes.
 
 == Prerequisites
 * Gatekeeper / OpenShift operator installed (CRDs: ConstraintTemplate, K8sAllowedRepos, etc.)

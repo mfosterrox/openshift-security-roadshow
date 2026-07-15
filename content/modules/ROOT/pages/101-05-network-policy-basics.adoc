@@ -1,4 +1,4 @@
-= Lab: You Shall Not Pass – Segmenting Pod Traffic with NetworkPolicies
+= You Shall Not Pass – Segmenting Pod Traffic with NetworkPolicies
 :labid: LAB-101-05
 :cis-summary: "Apply NetworkPolicies so namespaces default deny and only intended pod traffic is allowed."
 :mitre-summary: "Prevents lateral movement and internal scanning via default deny plus narrowly scoped allow rules."
@@ -8,29 +8,152 @@
 :sectnums:
 :icons: font
 
-== Skill
-Shrink lateral movement by moving from implicit allow-all networking to explicit allow rules via NetworkPolicies.
+== Overview
+Move from open pod-to-pod traffic to NetworkPolicies that deny by default and allow only the flows you need.
 
-== Objective
+Show open pod-to-pod traffic, install a default-deny NetworkPolicy, add a narrow allow rule, and confirm which flows still work.
 
-* Observe default pod-to-pod connectivity
-* Enforce namespace-level default deny
-* Create targeted allow policy for one client
-* Validate blocked vs allowed flows
+== Why it matters
+By default, pods in a namespace can usually reach each other. If one pod is compromised, that becomes a free path to databases and internal APIs. NetworkPolicies flip the model: deny first, then allow only the clients and ports you choose. That limits how far an incident spreads and gives responders a concrete answer to what a pod was allowed to talk to.
 
-== Why it Matters
-In a flat network where all pods can talk to each other by default, a single compromised container becomes a launching pad for attackers to explore your entire cluster, scanning for databases, probing internal APIs, and pivoting to sensitive services. This "implicit trust" model is like a building where every door is unlocked: once someone gets in one room, they have access to everything.
-
-NetworkPolicies introduce explicit segmentation, interior doors that require intent rather than assumption. By moving from "allow-all by default" to "deny-all with specific exceptions," you dramatically reduce the attack surface. Even if one pod is compromised, it can only reach the services you've explicitly permitted, limiting lateral movement and making incident response clearer ("what could this pod actually reach?"). This approach aligns with zero-trust principles and satisfies compliance requirements for network segmentation.
-
-Business value: Segmentation contains breaches before they spread, reduces the scope of security audits, and demonstrates defense-in-depth to customers and regulators.
-
-== What it Solves
+== What does it solve
 
 * Prevents every compromised pod becoming a pivot
 * Reduces accidental exposure of internal services
 * Eases incident scoping (“what could it reach?”)
 * Supports regulated segmentation requirements
+
+== Your Mission
+A foothold in any pod can scan sideways to databases and internal APIs when east–west traffic is open. Your mission: prove the open path exists, slam the door with default deny, then reopen only the client you trust.
+
+=== Example 1: Stage the flat network the attacker wants
+Spin up an API plus two clients—one “allowed,” one “denied”—before any policy exists.
+
+[source,sh]
+----
+oc new-project 101-05-n-netpol-demo
+oc create deployment api --image=registry.access.redhat.com/ubi9/python-311 -- python3 -m http.server 8080
+oc expose deployment api --port=8080 --target-port=8080
+oc run client-allowed --image=registry.access.redhat.com/ubi9/ubi -l role=allowed -- sleep infinity
+oc run client-denied  --image=registry.access.redhat.com/ubi9/ubi -l role=denied  -- sleep infinity
+SVC=$(oc get svc api -o jsonpath='{.spec.clusterIP}')
+----
+
+=== Example 2: Confirm lateral movement works with no policy
+Both clients should reach the API. That is the blast radius you must shrink.
+
+[source,sh]
+----
+oc exec client-allowed -- curl -s -o /dev/null -w '%{http_code}\n' http://$SVC:8080
+oc exec client-denied  -- curl -s -o /dev/null -w '%{http_code}\n' http://$SVC:8080
+----
+
+[mermaid]
+----
+flowchart LR
+
+  subgraph P1["No Network Policies"]
+    CA1[client-allowed]
+    CD1[client-denied]
+    API1[api]
+    CA1 -->|200| API1
+    CD1 -->|200| API1
+  end
+----
+
+=== Example 3: Drop the blast radius — default deny ingress
+Close every inbound door. Compromised pods should time out instead of probing freely.
+
+[source,sh]
+----
+oc apply -f - <<'EOF'
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+EOF
+----
+
+=== Example 4: Verify the attacker’s pivots now fail
+Both clients should time out. Good—lateral movement is blocked until you explicitly reopen a path.
+
+[source,sh]
+----
+oc exec client-allowed -- sh -c "curl -s --max-time 3 -o /dev/null http://$SVC:8080" >/dev/null 2>&1 || echo TIMEOUT
+oc exec client-denied  -- sh -c "curl -s --max-time 3 -o /dev/null http://$SVC:8080" >/dev/null 2>&1 || echo TIMEOUT
+----
+
+[mermaid]
+----
+flowchart LR
+
+  subgraph P2["Default Deny Ingress"]
+    CA2[client-allowed]
+    CD2[client-denied]
+    API2[api]
+    CA2 -.->|timeout| API2
+    CD2 -.->|timeout| API2
+  end
+----
+
+=== Example 5: Reopen only the trusted client’s path
+Allow TCP/8080 solely from pods labeled `role=allowed`. Everything else stays locked out.
+
+[source,sh]
+----
+oc apply -f - <<'EOF'
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-from-allowed
+spec:
+  podSelector:
+    matchLabels:
+      app: api
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          role: allowed
+    ports:
+    - protocol: TCP
+      port: 8080
+  policyTypes:
+  - Ingress
+EOF
+----
+
+=== Example 6: Prove allow vs block (mission complete when denied stays dark)
+Allowed client returns 200; denied client times out. Business traffic works; the attacker-shaped client does not.
+
+[source,sh]
+----
+oc exec client-allowed -- curl -s -o /dev/null -w '%{http_code}\n' http://$SVC:8080
+oc exec client-denied  -- sh -c "curl -s --max-time 3 -o /dev/null http://$SVC:8080" >/dev/null 2>&1 || echo BLOCKED
+----
+
+[mermaid]
+----
+flowchart LR
+
+  subgraph P3["Allow Specific Client"]
+    CA3[client-allowed]
+    CD3[client-denied]
+    API3[api]
+    CA3 -->|200| API3
+    CD3 -.->|timeout| API3
+  end
+----
+
+=== Cleanup (optional)
+[source,sh]
+----
+oc delete project 101-05-n-netpol-demo --wait=false
+----
 
 == Understanding the Attack Surface
 [cols="1,2,2",options="header"]
@@ -66,126 +189,7 @@ Matching semantics you’ll use most:
   - Multiple entries in from or ports act like OR rules.
 - Default deny emerges when a pod is selected by any Ingress policy and no rule allows a given flow; the explicit pattern is a “default-deny” policy with podSelector: {} and no from rules.
 
-Tip: For cross-namespace access, add namespace labels (e.g., env=clients) and use namespaceSelector with those labels. See “How to Try It” for YAML examples.
-
-== How to Try It
-
-=== Create project & baseline pods
-[source,sh]
-----
-oc new-project 101-05-n-netpol-demo
-oc create deployment api --image=registry.access.redhat.com/ubi9/python-311 -- python3 -m http.server 8080
-oc expose deployment api --port=8080 --target-port=8080
-oc run client-allowed --image=registry.access.redhat.com/ubi9/ubi -l role=allowed -- sleep infinity
-oc run client-denied  --image=registry.access.redhat.com/ubi9/ubi -l role=denied  -- sleep infinity
-SVC=$(oc get svc api -o jsonpath='{.spec.clusterIP}')
-----
-
-=== Test open connectivity (both succeed)
-[source,sh]
-----
-oc exec client-allowed -- curl -s -o /dev/null -w '%{http_code}\n' http://$SVC:8080
-oc exec client-denied  -- curl -s -o /dev/null -w '%{http_code}\n' http://$SVC:8080
-----
-
-[mermaid]
-----
-flowchart LR
-
-  subgraph P1["No Network Policies"]
-    CA1[client-allowed]
-    CD1[client-denied]
-    API1[api]
-    CA1 -->|200| API1
-    CD1 -->|200| API1
-  end
-----
-
-=== Apply default deny (Ingress)
-[source,sh]
-----
-oc apply -f - <<'EOF'
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: default-deny-ingress
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-EOF
-----
-
-=== Retest (expect timeouts)
-[source,sh]
-----
-oc exec client-allowed -- sh -c "curl -s --max-time 3 -o /dev/null http://$SVC:8080" >/dev/null 2>&1 || echo TIMEOUT
-oc exec client-denied  -- sh -c "curl -s --max-time 3 -o /dev/null http://$SVC:8080" >/dev/null 2>&1 || echo TIMEOUT
-----
-
-[mermaid]
-----
-flowchart LR
-
-  subgraph P2["Default Deny Ingress"]
-    CA2[client-allowed]
-    CD2[client-denied]
-    API2[api]
-    CA2 -.->|timeout| API2
-    CD2 -.->|timeout| API2
-  end
-----
-
-=== Allow only approved client
-[source,sh]
-----
-oc apply -f - <<'EOF'
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-api-from-allowed
-spec:
-  podSelector:
-    matchLabels:
-      app: api
-  ingress:
-  - from:
-    - podSelector:
-        matchLabels:
-          role: allowed
-    ports:
-    - protocol: TCP
-      port: 8080
-  policyTypes:
-  - Ingress
-EOF
-----
-
-=== Retest (allowed=200, denied timeout)
-[source,sh]
-----
-oc exec client-allowed -- curl -s -o /dev/null -w '%{http_code}\n' http://$SVC:8080
-oc exec client-denied  -- sh -c "curl -s --max-time 3 -o /dev/null http://$SVC:8080" >/dev/null 2>&1 || echo BLOCKED
-----
-
-[mermaid]
-----
-flowchart LR
-
-  subgraph P3["Allow Specific Client"]
-    CA3[client-allowed]
-    CD3[client-denied]
-    API3[api]
-    CA3 -->|200| API3
-    CD3 -.->|timeout| API3
-  end
-----
-
-=== Cleanup (optional)
-[source,sh]
-----
-oc delete project 101-05-n-netpol-demo --wait=false
-----
+Tip: For cross-namespace access, add namespace labels (e.g., env=clients) and use namespaceSelector with those labels. See “Your Mission” for YAML examples.
 
 == Solutions / Controls
 
@@ -211,7 +215,7 @@ Are they node firewalls?:: Enforced at pod interfaces via CNI.
 How to avoid label sprawl mistakes?:: Minimal taxonomy: app, role, tier, env.
 
 == Closing Story
-Segmentation converts a wide-open warehouse into purposeful rooms; movement remains—but intentional.
+Start with default-deny in sensitive namespaces, then add the smallest set of allow rules that keep the app working.
 
 
 :lab-cleanup-module: 101-05
@@ -358,8 +362,6 @@ Implementation Checklist:: Policy selecting web; ingress rule permitting only pr
 * Default Deny Strategy: Add an empty (or minimal) policy selecting pods to shift them into deny-by-default, then add granular policies.
 
 === Next Steps & Enhancements
-Want YAML manifests and test harness? Provide preferred namespace & labels and we can generate ready-to-apply examples plus validation scripts (curl / netcat / exec loops).
-
 === Appendix: Validation Snippets
 [source,sh]
 ----

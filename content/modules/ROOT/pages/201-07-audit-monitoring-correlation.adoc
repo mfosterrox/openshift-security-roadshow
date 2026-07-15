@@ -1,4 +1,4 @@
-= Lab: See the Story – Audit Log & Monitoring Correlation
+= See the Story – Audit Log & Monitoring Correlation
 :role: Intermediate Detection & Response
 :skills: Audit Logs, Correlation, Monitoring, Threat Detection
 :labid: LAB-201-07
@@ -6,18 +6,22 @@
 :sectnums:
 :icons: font
 
-== Skill
+== Overview
 Correlate audit logs & monitoring signals.
 
-== Scenario
-You will generate a suspicious event (exec into a pod) and correlate the API audit entry with workload metrics/log metadata—forming the basis for detection rules in SIEM/ACS.
+Correlate API audit events with monitoring signals so you can tell a coherent story about who did what and what the cluster observed.
 
-== Objectives
-* Trigger an exec event
-* Query audit log for the event (via Loki or EFK assumption)
-* Extract identifying fields (user, verb, resource, pod)
-* Correlate with namespace metrics/log stream
-* Outline detection logic
+== Why it matters
+Audit logs alone and dashboards alone leave incident stories half-told. Correlating API verbs with monitoring signals lets you prove who did what while the cluster’s health signals confirm impact.
+
+== What does it solve
+
+* Blind spots between “API says X” and “cluster measured Y”
+* Slow incident narratives that re-debate timelines
+* Missed privilege misuse that never lights a metric alert alone
+
+== Your Mission
+Connect audit evidence to monitoring signals so a suspected foothold’s actions and blast radius show up as one coherent story.
 
 == Prerequisites
 * Cluster logging or LokiStack configured (audit indexed)
