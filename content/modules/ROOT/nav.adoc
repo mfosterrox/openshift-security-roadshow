@@ -51,6 +51,7 @@
 * xref:301-13-advanced-runtime-hunting.adoc[301-13 - Advanced Runtime Threat Hunting, Response & ACS Automation]
 
 .Advanced Cluster Security Modules
+* xref:acs-INDEX.adoc[RHACS Labs Overview]
 * xref:00-acs-setup-install-navigation.adoc[Setup and Introduction]
 * xref:01-acs-visibility-and-navigation.adoc[Visibility & Navigation]
 * xref:02-acs-vulnerability-management-lab.adoc[Vulnerability Management]
@@ -64,6 +65,7 @@
 * xref:10-acs-installation.adoc[Installation]
 
 .Software Supply Chain Security Modules
+* xref:tssc-INDEX.adoc[TSSC Labs Overview]
 * xref:tssc-00-intro.adoc[Trusted Artifact Signer — Container Signing]
 * xref:tssc-01-git-signing.adoc[Git Commit Signing]
 * xref:tssc-02-trusted-profile-analyzer.adoc[Trusted Profile Analyzer]

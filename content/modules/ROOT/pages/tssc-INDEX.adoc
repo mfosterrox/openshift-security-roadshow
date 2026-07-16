@@ -1,0 +1,45 @@
+= Trusted Software Supply Chain (TSSC) Labs Overview
+:toc:
+:icons: font
+
+xref:index.adoc[← Back to home] · Start from a role: xref:track-application-developer.adoc[Application Developer] · xref:track-platform-operator.adoc[Platform Operator] · xref:track-devsecops-engineer.adoc[DevSecOps] · xref:track-security-architect.adoc[Security Architect] · xref:track-network-infrastructure.adoc[Network & Infrastructure]
+
+== Overview
+
+These labs cover Trusted Software Supply Chain (TSSC) capabilities on OpenShift: Trusted Artifact Signer (container and git signing) and Trusted Profile Analyzer (SBOM analysis).
+
+Use this track after (or alongside) the role path that owns supply-chain controls—especially DevSecOps and Security Architect. Related framework labs include xref:201-05-shift-left-pipeline.adoc[201-05] and xref:301-06-supply-chain-integrity.adoc[301-06].
+
+Audience and prerequisites:
+
+* OpenShift cluster with TSSC components available in this environment
+* Familiarity with container images, git workflows, and basic CLI on the bastion
+* Credentials and console links are on the xref:index.adoc[home page]
+
+== Recommended sequence
+
+. xref:tssc-00-intro.adoc[Trusted Artifact Signer — Container Signing]
+. xref:tssc-01-git-signing.adoc[Git Commit Signing]
+. xref:tssc-02-trusted-profile-analyzer.adoc[Trusted Profile Analyzer]
+
+== TSSC Labs Index
+
+[cols="1,3,2,1",options="header"]
+|===
+|Lab | Title | Focus | Status
+
+|xref:tssc-00-intro.adoc[TSSC-00]
+|Trusted Artifact Signer — Container Signing
+|Sign and verify container images with TAS
+|Available
+
+|xref:tssc-01-git-signing.adoc[TSSC-01]
+|Git Commit Signing with Trusted Artifact Signer
+|Sign and verify git commits
+|Available
+
+|xref:tssc-02-trusted-profile-analyzer.adoc[TSSC-02]
+|Trusted Profile Analyzer
+|SBOM analysis and vulnerability insights
+|Available
+|===

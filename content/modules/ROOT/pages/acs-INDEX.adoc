@@ -1,0 +1,93 @@
+= Advanced Cluster Security (RHACS) Labs Overview
+:toc:
+:icons: font
+
+xref:index.adoc[← Back to home] · Start from a role: xref:track-application-developer.adoc[Application Developer] · xref:track-platform-operator.adoc[Platform Operator] · xref:track-devsecops-engineer.adoc[DevSecOps] · xref:track-security-architect.adoc[Security Architect] · xref:track-network-infrastructure.adoc[Network & Infrastructure]
+
+== Overview
+
+These labs go deep on Red Hat Advanced Cluster Security (RHACS): visibility, vulnerability and risk management, policy, CI/CD gates, compliance, notifications, API, network security, and installation.
+
+Use this track after (or alongside) the role path that owns the capability—especially DevSecOps, Platform Operator, and Security Architect. Related framework labs include xref:301-04-runtime-threat-detection.adoc[301-04], xref:301-05-incident-response-forensics.adoc[301-05], and xref:301-07-automated-remediation.adoc[301-07].
+
+Audience and prerequisites:
+
+* OpenShift cluster with RHACS Central and secured clusters available (this environment is pre-configured)
+* Familiarity with OpenShift console navigation and basic CLI (`oc`, optionally `roxctl`)
+* Credentials and console links are on the xref:index.adoc[home page]
+
+== Recommended sequence
+
+. xref:00-acs-setup-install-navigation.adoc[Setup and Introduction]
+. xref:01-acs-visibility-and-navigation.adoc[Visibility & Navigation]
+. xref:02-acs-vulnerability-management-lab.adoc[Vulnerability Management]
+. xref:03-acs-risk-profiling.adoc[Risk Profiling]
+. xref:04-acs-policy-management.adoc[Policy Management]
+. xref:05-acs-cicd-and-automation.adoc[CI/CD Automation and Integration]
+. xref:06-acs-compliance.adoc[Compliance]
+. xref:07-acs-notifications.adoc[Notifications and Alerting]
+. xref:08-acs-api.adoc[API Walkthrough]
+. xref:09-acs-network-security.adoc[Network Security]
+. xref:10-acs-installation.adoc[Installation]
+
+== RHACS Labs Index
+
+[cols="1,3,2,1",options="header"]
+|===
+|Lab | Title | Focus | Status
+
+|xref:00-acs-setup-install-navigation.adoc[00]
+|Lab Setup and Introduction
+|Environment, console access, first orientation
+|Available
+
+|xref:01-acs-visibility-and-navigation.adoc[01]
+|Navigating RHACS
+|Dashboard, inventory, and UI navigation
+|Available
+
+|xref:02-acs-vulnerability-management-lab.adoc[02]
+|Vulnerability Management
+|CVE findings, prioritization, and remediation views
+|Available
+
+|xref:03-acs-risk-profiling.adoc[03]
+|Risk Profiling
+|Risk scoring and workload risk context
+|Available
+
+|xref:04-acs-policy-management.adoc[04]
+|Policy Management
+|Built-in and custom policies; enforcement modes
+|Available
+
+|xref:05-acs-cicd-and-automation.adoc[05]
+|CI/CD and Automation
+|Pipeline gates and build-time checks
+|Available
+
+|xref:06-acs-compliance.adoc[06]
+|Compliance
+|Compliance standards and assessment results
+|Available
+
+|xref:07-acs-notifications.adoc[07]
+|Notifications
+|Alerting integrations and notification channels
+|Available
+
+|xref:08-acs-api.adoc[08]
+|API Walkthrough
+|Central API usage for automation
+|Available
+
+|xref:09-acs-network-security.adoc[09]
+|Network Security
+|Network graph, flows, and policy insights
+|Available
+
+|xref:10-acs-installation.adoc[10]
+|Installation and RHACS Cloud Service
+|Deployment options and RHACS Cloud Service
+|Available
+|===
