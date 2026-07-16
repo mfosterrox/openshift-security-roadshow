@@ -1,0 +1,29 @@
+---
+# Antora playbook for GitHub Pages
+# Public URL: https://mfosterrox.github.io/openshift-security-roadshow/
+site:
+  title: OpenShift Security Roadshow
+  url: https://mfosterrox.github.io/openshift-security-roadshow
+  start_page: modules::index.adoc
+
+content:
+  sources:
+  - url: .
+    start_path: content
+
+ui:
+  bundle:
+    url: https://github.com/rhpds/rhdp_showroom_theme/releases/download/v2.0.3/ui-bundle.zip
+    snapshot: true
+  supplemental_files:
+    - path: ./content/supplemental-ui
+    - path: ./content/lib
+    - path: .nojekyll
+    - path: ui.yml
+      contents: "static_files: [ .nojekyll ]"
+
+runtime:
+  cache_dir: ./.cache/antora
+
+output:
+  dir: ./www

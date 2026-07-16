@@ -1,14 +1,18 @@
 # openshift-security-roadshow
 
+Public site (GitHub Pages): **https://mfosterrox.github.io/openshift-security-roadshow/**
+
 === Getting Started
 
 . Edit your content in `content/modules/ROOT/pages/`
-. Run `./utilities/lab-build.sh` to build your html
-. Run `./utilities/lab-serve.sh` to view the roadshow locally via http://localhost:8000/ 
+. Run `make build` to build your html (or `npx antora --fetch default-site.yml`)
+. Run `make serve` to view the roadshow locally via http://localhost:8080/
 . Use `git` to branch and commit your work
 . Push your work to your repo
 .. You should use `git tags` or `git branches` in production
 .. However development items default to the head of `main`
+
+Pushes to `main` publish the site via `.github/workflows/gh-pages.yml` (Antora playbook: `gh-pages-site.yml`).
 
 == Variables
 
