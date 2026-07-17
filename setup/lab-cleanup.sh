@@ -42,11 +42,12 @@ fi
 record_completion() {
   mkdir -p "${PROGRESS_DIR}"
   touch "${PROGRESS_FILE}"
-  # Ignore grep "no match" status under set -e
-  grep -v "^MODULE=${MODULE} " "${PROGRESS_FILE}" > "${PROGRESS_FILE}.tmp" 2>/dev/null || true
+  # Drop prior markers for this module (new + legacy formats); ignore "no match" under set -e
+  grep -v -E "^(MODULE=${MODULE} |Module ${MODULE} done[[:space:]]*$)" \
+    "${PROGRESS_FILE}" > "${PROGRESS_FILE}.tmp" 2>/dev/null || true
   mv "${PROGRESS_FILE}.tmp" "${PROGRESS_FILE}"
-  printf 'MODULE=%s COMPLETE %s user=%s\n' \
-    "${MODULE}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$(whoami)" >> "${PROGRESS_FILE}"
+  printf 'Module %s done\n' "${MODULE}" >> "${PROGRESS_FILE}"
+  echo "Recorded completion marker: Module ${MODULE} done"
 }
 
 echo "==> Cleaning up module ${MODULE} resources..."

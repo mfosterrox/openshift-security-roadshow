@@ -87,13 +87,30 @@ bash setup/lab-environment.sh --deploy-skupper-only
 
 Use `--skip-rhacs-configure` if an instructor already ran configure and attendees should only refresh CLI/apps/images.
 
-Attendees record module completion by running `setup/lab-cleanup.sh` at the end of each module (documented as a routine cleanup step). Progress is written to `~/.acs-roadshow/progress` on the bastion for instructor verification.
+Attendees record module completion by running `setup/lab-cleanup.sh` at the end of each module (documented as a routine cleanup step). Each successful cleanup writes a marker line to `~/.acs-roadshow/progress` on the bastion for instructor verification / gameify scoring:
 
-Supported module ids include ACS (`00`–`10`), OpenShift security tracks (`101-01`, `201-06`, `301-10`, etc.), and `tssc-00`:
+[source,text]
+----
+Module 00 done
+Module 101-01 done
+----
+
+Supported module ids include ACS (`00`–`10`), OpenShift security tracks (`101-01`, `201-06`, `301-10`, etc.), and `tssc-00`–`tssc-02`.
 
 [source,bash]
 ----
 cat ~/.acs-roadshow/progress
+----
+
+Instructors can score many bastions from a CSV of SSH credentials with the helper under `gameify/` (see `gameify/README.md`):
+
+[source,bash]
+----
+cd gameify
+python3 -m pip install -r requirements.txt
+python3 main.py --csv bastions.csv
+# optional custom module list:
+python3 main.py --csv bastions.csv --modules 101-01,101-02,00
 ----
 
 == Optional cluster theming

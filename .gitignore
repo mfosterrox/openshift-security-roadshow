@@ -5,3 +5,6 @@ node_modules
 www
 .editorconfig
 package-lock.json
+gameify/results.log
+gameify/bastion_output_local.log
+gameify/.venv/
