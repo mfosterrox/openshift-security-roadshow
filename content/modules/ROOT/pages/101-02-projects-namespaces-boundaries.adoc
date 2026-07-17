@@ -5,7 +5,7 @@
 :toc:
 :icons: font
 
-**Duration:** ~10 minutes
+**Duration:** ~15 minutes
 
 == Overview
 Projects and namespaces draw hard lines between teams and apps. Use them to keep RBAC, quotas, and network rules scoped so one tenant cannot casually reach another.
@@ -13,7 +13,13 @@ Projects and namespaces draw hard lines between teams and apps. Use them to keep
 Create a project with security labels, bind RBAC, and apply a ResourceQuota so you can see how namespaces isolate ownership and capacity.
 
 == Why it matters
-On a shared cluster, a single flat namespace becomes everyone’s problem: shared secrets access, contested CPU, tangled NetworkPolicies. Clear project boundaries make ownership obvious and keep mistakes contained.
+On a shared cluster, a single flat namespace becomes everyone’s problem
+
+* Shared secrets access
+* Contested CPU
+* Tangled NetworkPolicies
+
+Clear project boundaries make ownership obvious and keep mistakes contained.
 
 == What does it solve
 
@@ -27,38 +33,171 @@ On a shared cluster, a single flat namespace becomes everyone’s problem: share
 Without project boundaries, one compromised identity or runaway workload can reach every tenant’s Secrets, CPU, and pods. Draw hard lines—labels, RBAC, and quotas—so a break-in stays trapped in one namespace instead of becoming a cluster-wide outage.
 
 === Claim a defended territory with security labels
-Stand up a dedicated project and label it so policy engines know this is a controlled tenant, not shared free-for-all space.
+Stand up a dedicated project so this tenant has its own boundary—not shared free-for-all space.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 101-02-demo --display-name="Security Demo" --description="101-02 Lab Project"
+----
+
+Label the namespace so policy engines (and operators) can target this tenant by security tier and environment:
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc label namespace 101-02-demo security-tier=basic environment=dev
+----
+
+Confirm the labels stuck on the project:
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc get namespace 101-02-demo --show-labels
 ----
 
 === Stop casual privilege sprawl with namespace RBAC
-Bind a team to `edit` only inside this project, then prove the default service account cannot create pods until you say so. That closes the “any SA can do anything” attack path.
+Bind a team to `edit` only inside this project. That scopes privilege to the boundary you just created—not the whole cluster.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create rolebinding dev-team --clusterrole=edit --group=dev-team -n 101-02-demo
+----
+
+Now prove the project’s default service account cannot create pods until you grant it. That closes the “any SA can do anything” path:
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc auth can-i create pods --as=system:serviceaccount:101-02-demo:default -n 101-02-demo
 ----
 
+NOTE: Expect `no`. The RoleBinding targets the `dev-team` group; the default service account is still denied.
+
 === Cap a noisy-neighbor DoS with ResourceQuota
-Attackers (and buggy apps) burn the cluster with oversized requests. Put a ceiling on CPU, memory, and pods so one namespace cannot starve the rest.
+Buggy apps (and noisy neighbors) burn the cluster with oversized requests. Put a ceiling on CPU, memory, and pods so one namespace cannot starve the rest.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create quota demo-quota --hard=requests.cpu=2,requests.memory=2Gi,limits.cpu=4,limits.memory=4Gi,pods=10 -n 101-02-demo
+----
+
+Inspect the quota to confirm the hard limits and current usage:
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc describe quota demo-quota -n 101-02-demo
 ----
 
-=== Cleanup
+== Challenge: onboard a new team
+
+Platform ops just approved a new application team. You must stand up their *default* project the same way you did for `101-02-demo`—without copying the demo commands blindly. Work from the requirements below first. Use the hidden solution only if you get stuck.
+
+=== Scenario
+
+The *Payments* team is joining the shared cluster. They need a dedicated development project before they deploy anything. Your platform standard for every new team is:
+
+. One OpenShift *project* per team/environment (not a shared sandbox).
+. Consistent *labels* so policy and reporting can find the tenant.
+. A namespace-scoped *RoleBinding* for the team’s IdP group (`edit` only in that project).
+. A *ResourceQuota* so a runaway deploy cannot starve other tenants.
+
+=== Requirements
+
+Create and configure a project that meets all of these checks:
+
+[cols="1,2",options="header"]
+|===
+|Requirement | Target value
+
+|Project name
+|`team-payments-dev`
+
+|Display name
+|`Payments Team (Dev)`
+
+|Description
+|`Default project for Payments team development workloads`
+
+|Labels
+|`team=payments`, `environment=dev`, `security-tier=basic`
+
+|RBAC
+|RoleBinding named `payments-devs` granting ClusterRole `edit` to group `payments-devs` in `team-payments-dev`
+
+|ResourceQuota name
+|`team-quota`
+
+|ResourceQuota hard limits
+|`requests.cpu=1`, `requests.memory=1Gi`, `limits.cpu=2`, `limits.memory=2Gi`, `pods=5`
+|===
+
+=== Prove it works
+
+Before you open the solution, verify your own work:
+
+* Labels are present on the namespace.
+* The default service account in `team-payments-dev` still *cannot* create pods (`oc auth can-i` should return `no`).
+* `oc describe quota team-quota -n team-payments-dev` shows the hard limits above.
+
+=== Solution (try yourself first)
+
+Click each step only if you need a hint.
+
+.Step 1 — Create the project
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc delete project 101-02-demo --wait=false
+oc new-project team-payments-dev \
+  --display-name="Payments Team (Dev)" \
+  --description="Default project for Payments team development workloads"
 ----
+====
+
+.Step 2 — Apply standard tenant labels
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc label namespace team-payments-dev team=payments environment=dev security-tier=basic
+oc get namespace team-payments-dev --show-labels
+----
+====
+
+.Step 3 — Bind the team group to edit in this project only
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc create rolebinding payments-devs \
+  --clusterrole=edit \
+  --group=payments-devs \
+  -n team-payments-dev
+----
+====
+
+.Step 4 — Confirm the default SA is still denied
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc auth can-i create pods \
+  --as=system:serviceaccount:team-payments-dev:default \
+  -n team-payments-dev
+----
+
+Expect `no`.
+====
+
+.Step 5 — Apply the team ResourceQuota and inspect it
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc create quota team-quota \
+  --hard=requests.cpu=1,requests.memory=1Gi,limits.cpu=2,limits.memory=2Gi,pods=5 \
+  -n team-payments-dev
+oc describe quota team-quota -n team-payments-dev
+----
+====
 
 == Debrief
 

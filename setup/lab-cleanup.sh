@@ -125,6 +125,19 @@ case "${MODULE}" in
       echo "Namespace 101-01-httpd-demo not found (already cleaned up)."
     fi
     ;;
+  101-02)
+    deleted_any=false
+    for ns in 101-02-demo team-payments-dev; do
+      if oc get project "${ns}" >/dev/null 2>&1; then
+        oc delete project "${ns}" --wait=false
+        echo "Namespace deleted: ${ns}"
+        deleted_any=true
+      fi
+    done
+    if [[ "${deleted_any}" == "false" ]]; then
+      echo "Namespaces 101-02-demo / team-payments-dev not found (already cleaned up)."
+    fi
+    ;;
   *)
     rm -f "/tmp/lab-${MODULE}.txt" /tmp/lab-scratch-* 2>/dev/null || true
     echo "Removed temporary lab files for module ${MODULE}."
