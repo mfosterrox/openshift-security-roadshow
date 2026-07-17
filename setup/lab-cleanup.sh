@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Reset transient lab resources after each module.
 # Usage: bash setup/lab-cleanup.sh --module 101-01
+#
+# Do not source ~/.bashrc here: on lab bastions it often calls `exit` for
+# non-interactive shells and aborts this script with no output.
+# Exported env vars (ROX_*, APP_HOME, etc.) are already inherited from the parent shell.
 set -euo pipefail
 
 MODULE=""
@@ -45,12 +49,6 @@ record_completion() {
     "${MODULE}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$(whoami)" >> "${PROGRESS_FILE}"
 }
 
-# Load env vars (ROX_*, APP_HOME, etc.) without letting bashrc abort this script under set -e
-set +e
-# shellcheck source=/dev/null
-source "${HOME}/.bashrc" 2>/dev/null
-set -e
-
 echo "==> Cleaning up module ${MODULE} resources..."
 
 case "${MODULE}" in
@@ -83,7 +81,11 @@ case "${MODULE}" in
           -H "Content-Type: application/json" \
           "https://${ROX_CENTRAL_ADDRESS}/v1/policies/${policy_id}" >/dev/null || true
         echo "Removed lab deploy enforcement policy."
+      else
+        echo "No lab deploy enforcement policy found to remove."
       fi
+    else
+      echo "ROX_API_TOKEN / ROX_CENTRAL_ADDRESS not set; skipped policy cleanup."
     fi
     if [[ -n "${APP_HOME:-}" && -d "${APP_HOME}/skupper-demo" ]]; then
       oc apply -f "${APP_HOME}/skupper-demo/" >/dev/null
@@ -116,8 +118,12 @@ case "${MODULE}" in
     echo "Removed CRIU checkpoint scratch files from /tmp."
     ;;
   101-01)
-    oc delete project 101-01-httpd-demo --wait=false 2>/dev/null || true
-    echo "Deleted project 101-01-httpd-demo (if it existed)."
+    if oc get project 101-01-httpd-demo >/dev/null 2>&1; then
+      oc delete project 101-01-httpd-demo --wait=false
+      echo "Namespace deleted"
+    else
+      echo "Namespace 101-01-httpd-demo not found (already cleaned up)."
+    fi
     ;;
   *)
     rm -f "/tmp/lab-${MODULE}.txt" /tmp/lab-scratch-* 2>/dev/null || true
@@ -126,4 +132,5 @@ case "${MODULE}" in
 esac
 
 record_completion
+echo "Operation successful."
 echo "==> Module ${MODULE} cleanup complete."
