@@ -141,6 +141,11 @@ Controls that matter: UBI (or maintained) bases, non-root, high ports, group-wri
 
 Quick facts: fix the image once across environments; `anyuid` is long-term debt. Smaller images usually mean fewer CVEs.
 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcTN6N2l3OXR0OXo4eGRkb3dpaHdocWRxZzQzN3A4OHQ3NTEycjFhaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/C1AaD43G6rMlZjT628/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+
 :lab-cleanup-module: 101-11
 include::partial$lab-cleanup.adoc[]
-

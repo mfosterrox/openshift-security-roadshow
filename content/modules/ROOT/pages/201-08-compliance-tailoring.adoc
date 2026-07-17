@@ -117,13 +117,6 @@ oc annotate complianceremediation <name> compliance.openshift.io/apply=true -n o
 == (Optional) AutoApply
 Enable auto-apply with caution in non-prod for iterative hardening.
 
-== Cleanup
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-oc delete compliancescans baseline-scan tailored-scan -n openshift-compliance --ignore-not-found
-oc delete tailoredprofile rhcos4-moderate-tailored -n openshift-compliance --ignore-not-found
-----
-
 == Debrief
 
 Tailoring turns Compliance Operator from noise into signal: compare baseline vs tailored results, then use ComplianceRemediation as a controlled harden path.
@@ -137,6 +130,11 @@ Controls that matter: tailored profiles, scan comparison, remediation CRs, and c
 
 Quick facts: document why a check is disabled; re-scan after remediation to prove the close.
 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMGh0OWkxemNoNmF4dG9lNHE4bncwOWpkdzR6NHJ6dDNuOW0xYnMwaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7auaKlfmip8gE/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+
 :lab-cleanup-module: 201-08
 include::partial$lab-cleanup.adoc[]
-

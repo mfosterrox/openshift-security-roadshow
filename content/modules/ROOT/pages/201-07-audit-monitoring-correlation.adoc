@@ -80,12 +80,6 @@ Data Points:
 == (Optional) SIEM Enrichment
 Add cluster / namespace labels when forwarding audit to SIEM for simplified queries.
 
-== Cleanup
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-oc delete project 201-07-a-correlation --wait=false
-----
-
 == Debrief
 
 Audit shows API intent; logs and metrics show runtime. Correlate on namespace, pod, user, verb, and time to spot pivots that neither stream alone catches.
@@ -99,6 +93,11 @@ Controls that matter: ship audit immutably, align clocks, query by identity and 
 
 Quick facts: this lab is the foundation for later ACS/IR correlation—not a replacement for runtime sensors.
 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbTkyMGVyZW5qaG84dHB1cWM3Z3l0eWlpNWhseW9vODZocTVyZmZhMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7abGQa0aRJUurpII/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+
 :lab-cleanup-module: 201-07
 include::partial$lab-cleanup.adoc[]
-

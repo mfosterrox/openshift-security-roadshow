@@ -112,5 +112,11 @@ With TAS you get:
 
 Continue to xref:tssc-01-git-signing.adoc[Git Commit Signing].
 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExa3R1YjV5eGt3MTQ2a2UxOGM0ZThzaTQwdXE3cHdmMGo3NXUzOHB0MiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/MrCYIN3x0SgdG/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+
 :lab-cleanup-module: tssc-00
 include::partial$lab-cleanup.adoc[]

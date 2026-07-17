@@ -94,6 +94,11 @@ What this module targets:
 
 Until full exercises land: decide which registry paths must be signed tomorrow versus still tag-mutable today.
 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDR4amFzZ2ZiNGNkaTVwM3lscmxycDMzMnB4bTdwYWd0emlsOHJiYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/qunFC4tNsyA8y9M36d/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+
 :lab-cleanup-module: 301-06
 include::partial$lab-cleanup.adoc[]
-

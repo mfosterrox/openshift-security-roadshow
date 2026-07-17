@@ -225,12 +225,6 @@ oc label namespace 201-11-a-govern policy-tier=dev
 # Example: refine rego to exempt tier=dev; left as exercise
 ----
 
-== Cleanup
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-oc delete project 201-11-a-govern --wait=false
-----
-
 == Debrief
 
 Admission governance blocks drift before runtime: constraints for non-root, required NetworkPolicy, digest/signing—and exemptions only via explicit, auditable labels.
@@ -244,6 +238,11 @@ Controls that matter: Gatekeeper/Kyverno (or equivalent) constraint sets, progre
 
 Quick facts: admission is the last gate before the API persists the object—pair it with CI scanning so developers fail earlier.
 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcTN6N2l3OXR0OXo4eGRkb3dpaHdocWRxZzQzN3A4OHQ3NTEycjFhaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/C1AaD43G6rMlZjT628/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+
 :lab-cleanup-module: 201-11
 include::partial$lab-cleanup.adoc[]
-

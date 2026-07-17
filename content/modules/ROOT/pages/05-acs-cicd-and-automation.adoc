@@ -331,7 +331,6 @@ image::fsi-security/sarah-call.png[Incident investigation,link=self, window=blan
 
 == Summary
 
-image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbTkyMGVyZW5qaG84dHB1cWM3Z3l0eWlpNWhseW9vODZocTVyZmZhMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7abGQa0aRJUurpII/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
 THUMBS UP!
 
@@ -339,7 +338,11 @@ In this lab, you reviewed a basic CI/CD use case that implemented the build poli
 
 Congrats! On to Compliance!
 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbTkyMGVyZW5qaG84dHB1cWM3Z3l0eWlpNWhseW9vODZocTVyZmZhMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7abGQa0aRJUurpII/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
 
 :lab-cleanup-module: 05
 include::partial$lab-cleanup.adoc[]
-

@@ -89,6 +89,11 @@ Controls that matter: keep OpenShift audit on, aggregate immutably, correlate wi
 
 Quick facts: audit shows API intent; it complements (does not replace) runtime detection. Confirm retention and SIEM forwarding before you need them.
 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjJmczc4MmswYmk1cnhvZ254ZXBiZ2M3bGJzbDV5eDQ3OGlqNWdwdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QSSA5Bd56W25ytLIwz/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+
 :lab-cleanup-module: 101-09
 include::partial$lab-cleanup.adoc[]
-

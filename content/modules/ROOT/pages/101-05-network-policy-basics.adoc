@@ -170,9 +170,6 @@ Controls that matter: default-deny in sensitive namespaces, smallest allow set t
 
 Quick facts: policies select pods; once selected, only explicit allows pass. CNI enforces at the pod interface—not a substitute for node firewalls. Pattern references below help you design the next rules.
 
-:lab-cleanup-module: 101-05
-include::partial$lab-cleanup.adoc[]
-
 
 == Extra: Network Policy Patterns (Reading)
 The following reference patterns are adapted from docs/network-policies.adoc. Use them to reason about design choices; keep YAML only in the hands-on section above.
@@ -319,4 +316,11 @@ oc exec pod/frontend -- curl -s -o /dev/null -w '%{http_code}\n' http://api:8080
 oc exec pod/untrusted -- curl -s --max-time 3 http://api:8080 || echo BLOCKED
 ----
 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDR4amFzZ2ZiNGNkaTVwM3lscmxycDMzMnB4bTdwYWd0emlsOHJiYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/qunFC4tNsyA8y9M36d/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
+== Cleanup
+
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+
+:lab-cleanup-module: 101-05
+include::partial$lab-cleanup.adoc[]

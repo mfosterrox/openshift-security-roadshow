@@ -100,5 +100,11 @@ Keyless signing works for git commits the same way as container images: Sigstore
 
 Continue to xref:tssc-02-trusted-profile-analyzer.adoc[Trusted Profile Analyzer].
 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNxZGd5Zm5qMnlpOHhrbm1hY2pwcG5ydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p18ohAgD3H60LSoI1C/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+
 :lab-cleanup-module: tssc-01
 include::partial$lab-cleanup.adoc[]

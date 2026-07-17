@@ -49,6 +49,21 @@ record_completion() {
   printf 'Module %s done\n' "${MODULE}" >> "${PROGRESS_FILE}"
 }
 
+delete_projects() {
+  local deleted_any=false
+  local ns
+  for ns in "$@"; do
+    if oc get project "${ns}" >/dev/null 2>&1; then
+      oc delete project "${ns}" --wait=false
+      echo "Namespace deleted: ${ns}"
+      deleted_any=true
+    fi
+  done
+  if [[ "${deleted_any}" == "false" ]]; then
+    echo "Namespace(s) $* not found (already cleaned up)."
+  fi
+}
+
 echo "==> Cleaning up module ${MODULE} resources..."
 
 case "${MODULE}" in
@@ -118,25 +133,81 @@ case "${MODULE}" in
     echo "Removed CRIU checkpoint scratch files from /tmp."
     ;;
   101-01)
-    if oc get project 101-01-httpd-demo >/dev/null 2>&1; then
-      oc delete project 101-01-httpd-demo --wait=false
-      echo "Namespace deleted"
-    else
-      echo "Namespace 101-01-httpd-demo not found (already cleaned up)."
-    fi
+    delete_projects 101-01-httpd-demo
     ;;
   101-02)
-    deleted_any=false
-    for ns in 101-02-demo team-payments-dev; do
-      if oc get project "${ns}" >/dev/null 2>&1; then
-        oc delete project "${ns}" --wait=false
-        echo "Namespace deleted: ${ns}"
-        deleted_any=true
-      fi
-    done
-    if [[ "${deleted_any}" == "false" ]]; then
-      echo "Namespaces 101-02-demo / team-payments-dev not found (already cleaned up)."
-    fi
+    delete_projects 101-02-demo team-payments-dev
+    ;;
+  101-03)
+    delete_projects 101-03-r-rbac
+    ;;
+  101-04)
+    delete_projects 101-04-s-scc-demo 101-04-s-resources-demo
+    ;;
+  101-05)
+    delete_projects 101-05-n-netpol-demo
+    ;;
+  101-06)
+    delete_projects 101-06-s-secrets
+    ;;
+  101-07)
+    delete_projects 101-07-i-trusted
+    ;;
+  101-08|101-09|101-10)
+    rm -f "/tmp/lab-${MODULE}.txt" /tmp/lab-scratch-* 2>/dev/null || true
+    echo "Removed temporary lab files for module ${MODULE}."
+    ;;
+  101-11|101-12)
+    # 101-12 reuses the 101-11 rebuild project
+    delete_projects 101-11-r-rebuild
+    ;;
+  201-01)
+    delete_projects app-frontend app-backend app-db
+    ;;
+  201-02)
+    delete_projects 201-02-c-rbac-lab
+    ;;
+  201-03)
+    delete_projects 201-03-w-harden
+    ;;
+  201-04)
+    rm -f /tmp/lab-201-04.txt /tmp/lab-scratch-* 2>/dev/null || true
+    echo "Removed temporary lab files for module 201-04."
+    ;;
+  201-05)
+    delete_projects 201-05-s-pipeline
+    ;;
+  201-06)
+    rm -f /tmp/lab-201-06.txt /tmp/lab-scratch-* 2>/dev/null || true
+    echo "Vault workshop cleanup is handled by cleanup-vault-lab.sh; recorded module completion."
+    ;;
+  201-07)
+    delete_projects 201-07-a-correlation
+    ;;
+  201-08)
+    oc delete compliancescans baseline-scan tailored-scan -n openshift-compliance --ignore-not-found 2>/dev/null || true
+    oc delete tailoredprofile rhcos4-moderate-tailored -n openshift-compliance --ignore-not-found 2>/dev/null || true
+    echo "Removed compliance scan and tailored profile objects (if present)."
+    ;;
+  201-09)
+    delete_projects 201-09-demo
+    ;;
+  201-10)
+    delete_projects 201-10-s-sandbox
+    ;;
+  201-11)
+    delete_projects 201-11-a-govern
+    ;;
+  301-10)
+    rm -f /tmp/lab-301-10.txt /tmp/lab-scratch-* 2>/dev/null || true
+    echo "ZTWIM workshop cleanup is handled by configure-ztwim-postgresql-lab.sh; recorded module completion."
+    ;;
+  301-11)
+    delete_projects 301-11-demo
+    ;;
+  tssc-00|tssc-01|tssc-02)
+    rm -f "/tmp/lab-${MODULE}.txt" /tmp/lab-scratch-* 2>/dev/null || true
+    echo "Removed temporary lab files for module ${MODULE}."
     ;;
   *)
     rm -f "/tmp/lab-${MODULE}.txt" /tmp/lab-scratch-* 2>/dev/null || true

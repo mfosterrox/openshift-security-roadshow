@@ -63,6 +63,11 @@ Controls that matter: map registry, service-to-service, CI→cluster, SA tokens,
 
 Quick facts: start at tier (app/platform) detail enough to prioritize; re-run when you add a trust boundary or on a fixed cadence.
 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExa3R1YjV5eGt3MTQ2a2UxOGM0ZThzaTQwdXE3cHdmMGo3NXUzOHB0MiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/MrCYIN3x0SgdG/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+
 :lab-cleanup-module: 201-01
 include::partial$lab-cleanup.adoc[]
-

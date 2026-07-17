@@ -79,6 +79,11 @@ Controls that matter: HTTPS by default on new Routes, HTTP→HTTPS redirect, cho
 
 Quick facts: edge TLS is fine when the cluster internal path is trusted; re-encrypt or passthrough when you need end-to-end or app-owned certs. Redirect (and HSTS where appropriate) closes downgrade paths.
 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeXdiMmFwaTNrbW02cTNod3BmaTh2aGRrdDJsc3d4NHpqNXY5ZzkwNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/073QSCJf2tIbtWjZpb/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+
 :lab-cleanup-module: 101-12
 include::partial$lab-cleanup.adoc[]
-

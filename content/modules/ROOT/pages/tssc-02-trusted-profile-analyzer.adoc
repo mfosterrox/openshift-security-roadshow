@@ -69,9 +69,11 @@ The same can be done with the Transitive Vulnerabilities next to the struts2-cor
 
 image::lab11.4-sbom.gif[lab11.4]
 
-== Module Cleanup
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcTYwZWZlazBoanhlcXV3NjkxdWg5YW52djBvMW1vYzkwZ3ZuYW4wOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/YrMrSUfeh5do2FISt8/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
-Once you're done with this module, kindly execute the following command to reset the content, variables, repositories, etc. for the next user:
+== Cleanup
+
+Reset TSSC module content for the next user, then run the roadshow module cleanup script.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----

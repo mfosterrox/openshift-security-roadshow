@@ -210,12 +210,6 @@ Add Gatekeeper policy to require annotation `signed=ok` or actual cosign verific
 == Failure Simulation
 Re-run with FAIL=1 env (edit scan task to export) and confirm sign task skipped.
 
-== Cleanup
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-oc delete project 201-05-s-pipeline --wait=false
-----
-
 == Debrief
 
 Your pipeline enforced scan-before-sign, skipped signing on failure, and deployed by digest so mutable tags cannot sneak into production.
@@ -229,6 +223,11 @@ Controls that matter: Tekton (or equivalent) gates, conditional sign tasks, dige
 
 Quick facts: the when-clause is the gate; admission and SBOM checks are the natural next layers.
 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDR4amFzZ2ZiNGNkaTVwM3lscmxycDMzMnB4bTdwYWd0emlsOHJiYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/qunFC4tNsyA8y9M36d/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+
 :lab-cleanup-module: 201-05
 include::partial$lab-cleanup.adoc[]
-

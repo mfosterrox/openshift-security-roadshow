@@ -366,20 +366,6 @@ oc exec -n vault "${ESO_POD}" -c app -- sh -c 'echo "username=${USERNAME}" && ec
 
 Perfect! You've deployed a second workload that reads credentials from the Kubernetes `Secret` ESO created—not from the Vault Agent Injector.
 
-== Clean up
-
-When you finish this module, run the workshop cleanup script from the bastion. It removes External Secrets Operator, all demo applications, Vault, and related namespaces.
-
-.Procedure
-. Run the cleanup script:
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-cd ~/openshift-days-ops-showroom/setup-scripts/vault-config-scripts
-./cleanup-vault-lab.sh
-
-cd ~/openshift-security-roadshow
-bash setup/lab-cleanup.sh --module 201-06
-----
 
 Expected output ends with `[vault-lab-cleanup] Done.` and no `vault` or `external-secrets` namespaces remaining.
 
@@ -396,3 +382,18 @@ What breaks without this:
 Controls that matter: Vault (or equivalent) as source of truth, Kubernetes auth bound to namespace/SA, injector for file delivery, ESO when apps need native Secret mounts, and least-privilege Vault roles.
 
 Quick facts: prefer short-lived, identity-bound access over copied passwords. Lab cleanup uses the Vault workshop scripts plus `lab-cleanup.sh --module 201-06`.
+
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzMyaHRsNTdwZWRlejRycGtpNTkxOGlyMjJsODE4OHFiaWd3NjFpNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/rVVFWyTINqG7C/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+When you finish this module, run the workshop cleanup script from the bastion. It removes External Secrets Operator, all demo applications, Vault, and related namespaces. Then run the roadshow module cleanup script.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+cd ~/openshift-days-ops-showroom/setup-scripts/vault-config-scripts
+./cleanup-vault-lab.sh
+
+cd ~/openshift-security-roadshow
+bash setup/lab-cleanup.sh --module 201-06
+----

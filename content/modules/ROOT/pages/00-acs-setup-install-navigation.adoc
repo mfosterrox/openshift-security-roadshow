@@ -336,7 +336,6 @@ image::00-quay-tags.png[Quay frontend repository tags,link=self, window=blank, w
 
 == Summary
 
-image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNxZGd5Zm5qMnlpOHhrbm1hY2pwcG5ydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p18ohAgD3H60LSoI1C/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
 *Great Job!*
 
@@ -344,7 +343,11 @@ Now that the setup is all done, you are ready to move on with RHACS and dive int
 
 On to *Visibility and Navigation*!
 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNxZGd5Zm5qMnlpOHhrbm1hY2pwcG5ydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p18ohAgD3H60LSoI1C/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
 
 :lab-cleanup-module: 00
 include::partial$lab-cleanup.adoc[]
-

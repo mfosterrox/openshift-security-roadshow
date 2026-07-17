@@ -358,10 +358,14 @@ Verify in RHACS *Risk* that baselines for `payment-gateway` show as locked.
 
 == Summary
 
-image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOWptdDZteGo5a3RheGc5ajc0bXh1bHNpYjN6NGJiY2NjajhsNDExayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/nbvFVPiEiJH6JOGIok/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
 Great work! On to the last module!
 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOWptdDZteGo5a3RheGc5ajc0bXh1bHNpYjN6NGJiY2NjajhsNDExayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/nbvFVPiEiJH6JOGIok/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+
 :lab-cleanup-module: 08
 include::partial$lab-cleanup.adoc[]
-

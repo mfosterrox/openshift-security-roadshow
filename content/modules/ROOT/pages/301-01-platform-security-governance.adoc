@@ -90,6 +90,11 @@ What this module targets:
 
 Until full exercises land: map your org’s exception path today—who can grant `cluster-admin` or open NetworkPolicy holes, and how those grants expire.
 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeXdiMmFwaTNrbW02cTNod3BmaTh2aGRrdDJsc3d4NHpqNXY5ZzkwNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/073QSCJf2tIbtWjZpb/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+
 :lab-cleanup-module: 301-01
 include::partial$lab-cleanup.adoc[]
-

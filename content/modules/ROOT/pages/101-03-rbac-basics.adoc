@@ -119,6 +119,11 @@ Controls that matter: start with built-in roles, bind at namespace scope, keep S
 
 Quick facts: use `oc auth can-i` to verify; `view` cannot read Secret data; `edit` cannot change RBAC. Reserve `cluster-admin` for break-glass.
 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcTYwZWZlazBoanhlcXV3NjkxdWg5YW52djBvMW1vYzkwZ3ZuYW4wOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/YrMrSUfeh5do2FISt8/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+
 :lab-cleanup-module: 101-03
 include::partial$lab-cleanup.adoc[]
-

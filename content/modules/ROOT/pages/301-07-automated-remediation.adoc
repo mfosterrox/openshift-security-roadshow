@@ -94,6 +94,11 @@ What this module targets:
 
 Until full exercises land: pick one recurring misconfig (latest tag, missing NetworkPolicy) and define the auto-fix versus human-only path.
 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzMyaHRsNTdwZWRlejRycGtpNTkxOGlyMjJsODE4OHFiaWd3NjFpNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/rVVFWyTINqG7C/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+
 :lab-cleanup-module: 301-07
 include::partial$lab-cleanup.adoc[]
-

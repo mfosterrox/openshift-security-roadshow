@@ -78,6 +78,11 @@ Controls that matter: layer Compliance Operator for benchmarks, SPO for runtime 
 
 Quick facts: you do not need every operator on day one—start with a benchmark scan, then add runtime and policy gates where risk is highest. Compliance scan ≠ RHACS vulnerability focus.
 
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOWptdDZteGo5a3RheGc5ajc0bXh1bHNpYjN6NGJiY2NjajhsNDExayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/nbvFVPiEiJH6JOGIok/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+
 :lab-cleanup-module: 101-10
 include::partial$lab-cleanup.adoc[]
-

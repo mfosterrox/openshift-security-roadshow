@@ -296,18 +296,6 @@ oc rsh -n postgresql-spiffe-client -c postgresql-spiffe-client deployment/postgr
 
 Congrats! You've seen new serial number, same trust chain, uninterrupted access—that's operational zero trust without a 2 a.m. password rotation runbook.
 
-== Clean up
-
-.Procedure
-. Run the cleanup script:
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-cd ~/openshift-days-ops-showroom/setup-scripts/ztwim-config-scripts
-./configure-ztwim-postgresql-lab.sh cleanup
-
-cd ~/openshift-security-roadshow
-bash setup/lab-cleanup.sh --module 301-10
-----
 
 
 == Debrief
@@ -323,3 +311,18 @@ What you proved:
 Controls that matter: SPIRE/ZTWIM issuance, mutual TLS on the data path, and identity-based authorization instead of static Secrets.
 
 Quick facts: this is one layer of a larger zero-trust stack—pair with NetworkPolicy and admission so stolen network access alone is not enough.
+
+image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjJmczc4MmswYmk1cnhvZ254ZXBiZ2M3bGJzbDV5eDQ3OGlqNWdwdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QSSA5Bd56W25ytLIwz/giphy.gif[link=self, window=blank, width=100%, class="center"]
+
+== Cleanup
+
+Run the ZTWIM lab cleanup, then the roadshow module cleanup script.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+cd ~/openshift-days-ops-showroom/setup-scripts/ztwim-config-scripts
+./configure-ztwim-postgresql-lab.sh cleanup
+
+cd ~/openshift-security-roadshow
+bash setup/lab-cleanup.sh --module 301-10
+----
