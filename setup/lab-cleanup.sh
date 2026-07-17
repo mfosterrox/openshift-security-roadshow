@@ -47,7 +47,6 @@ record_completion() {
     "${PROGRESS_FILE}" > "${PROGRESS_FILE}.tmp" 2>/dev/null || true
   mv "${PROGRESS_FILE}.tmp" "${PROGRESS_FILE}"
   printf 'Module %s done\n' "${MODULE}" >> "${PROGRESS_FILE}"
-  echo "Recorded completion marker: Module ${MODULE} done"
 }
 
 echo "==> Cleaning up module ${MODULE} resources..."
