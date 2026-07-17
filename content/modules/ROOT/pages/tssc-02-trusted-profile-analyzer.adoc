@@ -73,7 +73,7 @@ image::lab11.4-sbom.gif[lab11.4]
 
 Once you're done with this module, kindly execute the following command to reset the content, variables, repositories, etc. for the next user:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 curl -fsSL https://raw.githubusercontent.com/redhat-tssc-tmm/security-roadshow/main/cleanup_tssc-module.sh | bash -s {quay_admin_username} {quay_admin_password}
 

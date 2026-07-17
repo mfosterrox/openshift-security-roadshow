@@ -27,13 +27,13 @@ Sovereign cloud requirements mandate that data remains within specific geographi
 Complete the examples below to close the attack paths this lab covers—treat each step as defending the cluster, not just clicking through commands.
 
 === Configure OAuth identity provider
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get oauth cluster -o yaml
 ----
 
 === Create identity provider configuration
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
 apiVersion: config.openshift.io/v1
@@ -60,7 +60,7 @@ EOF
 ----
 
 === Verify identity provider
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get oauth cluster -o jsonpath='{.spec.identityProviders[*].name}'
 ----

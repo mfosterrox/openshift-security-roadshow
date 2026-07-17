@@ -5,16 +5,17 @@ This course offers hands-on experience with Kubernetes-native security on Red Ha
 == How this Roadshow works
 
 * *This page is home* — Credentials and console links live here. Use the home button anytime you get lost.
-* *Navigate with the TOC* — Modules are in the left table of contents, or use *Next* at the bottom of each page.
+* *Navigate with the table of contents* — Modules are in the left table of contents, or use *Next* at the bottom of each page.
 * *Open consoles in a new tab* — Keep this guide open. On a Mac, use *<cmd> click*; on Windows/Linux, use *<ctrl> click* or right-click → "Open in new tab."
-* *Use the bastion* — Run `oc`, `roxctl`, and `podman` on the RHEL bastion (SSH details below).
-* *Pick a role* — Choose the track that matches your job. 
+* *Use the bastion* — Run `oc`, `roxctl`, and `podman` on the RHEL bastion.
+* *Run the setup script* — To ensure you have the applications installed and configured, make sure to run the setup script from the bastion terminal tab.
+* *Pick a role* — For a tailored experience, start with the track that matches your desired role.
 
 == Environment setup
 
-From the bastion terminal tab, clone this repository and run the lab environment script. This is the attendee setup path: it applies RHACS demo configuration, configures RHACS CLI access, deploys the vulnerable workshop demo applications, and builds/pushes the Quay golden base and frontend images used later in the labs.
+From the bastion terminal tab, run the following commands to setup the lab environment.
 
-[source,bash,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 git clone https://github.com/mfosterrox/openshift-security-roadshow.git
 cd openshift-security-roadshow
@@ -30,7 +31,7 @@ TIP: Feel free to move on to your first module while the lab environment script 
 
 Before you start a path, confirm you can open each Showroom tab (right side of the lab UI) and sign in. Use these credentials anytime you return to this homepage.
 
-TIP: Prefer the Showroom tabs so you keep this guide open. You can also open the console URL in a new browser tab.
+TIP: Using the Showroom allows you to move through the console tabs while you work through the labs.
 
 === Red Hat^(R)^ OpenShift Container Platform (OCP)
 

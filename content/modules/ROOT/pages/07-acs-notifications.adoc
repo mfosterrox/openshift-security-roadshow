@@ -179,7 +179,7 @@ image::08-not-2.png[link=self, window=blank, width=100%]
 
 IMPORTANT: Run the following command if you have not created the policy in the earlier module:
 
-[source,sh,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 cat <<EOF | oc apply -n stackrox -f -
 apiVersion: config.stackrox.io/v1alpha1
@@ -228,7 +228,7 @@ EOF
 
 . Run the following command in the terminal:
 
-[source,sh,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 POD=$(oc get pod -n payments -l app=visa-processor -o jsonpath="{.items[0].metadata.name}")
 oc exec $POD -n payments -i --tty -- /bin/bash
@@ -285,7 +285,7 @@ include::partial$security-exercise-task-intro.adoc[]
 ====
 . Trigger a test by running shell exec (if not already done in module 04):
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc exec -n payment-gateway-{workshop_user_suffix} -it pod/payment-gateway -- /bin/bash -c "echo notification test"
 ----

@@ -30,7 +30,7 @@ A foothold in any pod can scan sideways to databases and internal APIs when east
 === Stage the flat network the attacker wants
 Spin up an API plus two clients—one “allowed,” one “denied”—before any policy exists.
 
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 101-05-n-netpol-demo
 oc create deployment api --image=registry.access.redhat.com/ubi9/python-311 -- python3 -m http.server 8080
@@ -43,7 +43,7 @@ SVC=$(oc get svc api -o jsonpath='{.spec.clusterIP}')
 === Confirm lateral movement works with no policy
 Both clients should reach the API. That is the blast radius you must shrink.
 
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc exec client-allowed -- curl -s -o /dev/null -w '%{http_code}\n' http://$SVC:8080
 oc exec client-denied  -- curl -s -o /dev/null -w '%{http_code}\n' http://$SVC:8080
@@ -65,7 +65,7 @@ flowchart LR
 === Drop the blast radius — default deny ingress
 Close every inbound door. Compromised pods should time out instead of probing freely.
 
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
 apiVersion: networking.k8s.io/v1
@@ -82,7 +82,7 @@ EOF
 === Verify the attacker’s pivots now fail
 Both clients should time out. Good—lateral movement is blocked until you explicitly reopen a path.
 
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc exec client-allowed -- sh -c "curl -s --max-time 3 -o /dev/null http://$SVC:8080" >/dev/null 2>&1 || echo TIMEOUT
 oc exec client-denied  -- sh -c "curl -s --max-time 3 -o /dev/null http://$SVC:8080" >/dev/null 2>&1 || echo TIMEOUT
@@ -104,7 +104,7 @@ flowchart LR
 === Reopen only the trusted client’s path
 Allow TCP/8080 solely from pods labeled `role=allowed`. Everything else stays locked out.
 
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
 apiVersion: networking.k8s.io/v1
@@ -131,7 +131,7 @@ EOF
 === Prove allow vs block (mission complete when denied stays dark)
 Allowed client returns 200; denied client times out. Business traffic works; the attacker-shaped client does not.
 
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc exec client-allowed -- curl -s -o /dev/null -w '%{http_code}\n' http://$SVC:8080
 oc exec client-denied  -- sh -c "curl -s --max-time 3 -o /dev/null http://$SVC:8080" >/dev/null 2>&1 || echo BLOCKED
@@ -151,7 +151,7 @@ flowchart LR
 ----
 
 === Cleanup
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project 101-05-n-netpol-demo --wait=false
 ----
@@ -310,7 +310,7 @@ Implementation Checklist:: Policy selecting web; ingress rule permitting only pr
 
 === Next Steps & Enhancements
 === Appendix: Validation Snippets
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 # Test an allowed path
 oc exec pod/frontend -- curl -s -o /dev/null -w '%{http_code}\n' http://api:8080

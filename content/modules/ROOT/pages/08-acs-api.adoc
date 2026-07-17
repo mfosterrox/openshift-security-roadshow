@@ -35,7 +35,7 @@ The RHACS API endpoint can be found using an 'oc' or 'kubectl' command to the UR
 
 For example:
 
-[source,bash,role="execute"]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc -n stackrox get route central -o jsonpath='{.spec.host}'
 ----
@@ -94,13 +94,13 @@ image::05-cd-10.png[link=self, window=blank, width=100%]
 
 IMPORTANT: Be sure to put the API token in the correct location.
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 export ROX_CENTRAL_ADDRESS="$(oc -n stackrox get route central -o jsonpath='{.spec.host}')"
 export ROX_API_TOKEN=<your_api_token>
 ----
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 echo $ROX_CENTRAL_ADDRESS
 echo $ROX_API_TOKEN
@@ -119,8 +119,7 @@ Use a tool like curl, Postman, or a programming language with HTTP client librar
 
 ==== Example Using curl Where You Get a List of Policies
 
-[source,sh,subs="attributes",role=execute]
-
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 curl -k -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS/v1/policies" | jq
 ----
@@ -149,8 +148,7 @@ curl -k -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS/
 
 ==== Example Using curl to Get a List of Alerts
 
-[source,sh,subs="attributes",role=execute]
-
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 curl -k -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS:443/v1/alerts" | jq
 ----
@@ -188,7 +186,7 @@ curl -k -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS:
 
 You can use queries as part of the URL to simplify the request to RHACS. You can also use a tool like 'jq' to filter through the output as you will see in the following step.
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 curl -k -H "Authorization: Bearer $ROX_API_TOKEN" https://$ROX_CENTRAL_ADDRESS:443/v1/alerts?query="Namespace:vault" | jq
 ----
@@ -228,8 +226,7 @@ curl -k -H "Authorization: Bearer $ROX_API_TOKEN" https://$ROX_CENTRAL_ADDRESS:4
 
 As mentioned before, let's use the previous command without the added query and sort the output using 'jq'. This time let's find all of the *ACTIVE* alerts and pull the IDs of those alerts:
 
-[source,sh,subs="attributes",role=execute]
-
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 curl -k -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS:443/v1/alerts" | jq -r '.alerts[] | select(.state=="ACTIVE") | .id'
 ----
@@ -255,21 +252,21 @@ That output will allow you to loop through the IDs of the alerts if you'd like t
 
 Next, let's combine a few namespaces together using the query feature from before: 
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 curl -k -H "Authorization: Bearer $ROX_API_TOKEN" https://$ROX_CENTRAL_ADDRESS/v1/alerts?query="Cluster:production+Namespace:stackrox,kube-system" | jq -r '.'
 ----
 
 Combination search query with URL-safe encoding:  
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 curl -k -H "Authorization: Bearer $ROX_API_TOKEN" https://$ROX_CENTRAL_ADDRESS/v1/alerts?query=Severity%3AHIGH_SEVERITY%2BNamespace%3Apayments | jq -r '.'
 ----
 
 Search filter for time range:  
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 curl -k -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS/v1/alerts?query=Violation%20Time%3A%3E1d" | jq -r '.'
 ----
@@ -312,7 +309,7 @@ Ensure `ROX_API_TOKEN` and `ROX_CENTRAL_ADDRESS` are set (from earlier in this m
 ====
 Retrieve the cluster ID:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 curl --silent --insecure \
   --header "Authorization: Bearer ${ROX_API_TOKEN}" \
@@ -326,12 +323,12 @@ curl --silent --insecure \
 ====
 Bulk-lock all process baselines in your payment gateway namespace:
 
-[source,bash,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 export NAMESPACE="payment-gateway-{workshop_user_suffix}"
 ----
 
-[source,bash,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 export CLUSTER_ID="<your-cluster-id-from-above>"
 

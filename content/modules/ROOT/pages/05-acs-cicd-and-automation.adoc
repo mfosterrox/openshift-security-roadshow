@@ -39,7 +39,7 @@ image::05-acm-02.png[link=self, window=blank, width=100%]
 . Configure the Application:
 * Name: Give the application the name *pac-custom-policies*:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 pac-custom-policies
 ----
@@ -96,7 +96,7 @@ Let's run the check again to check if the policies were successful.
 [start=1]
 . Perform an image security scan using roxctl to check for policy violations:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 roxctl -e $ROX_CENTRAL_ADDRESS:443 image check --image $QUAY_URL/$QUAY_USER/frontend:0.1
 ----
@@ -125,7 +125,7 @@ What's the difference?
 [start=3]
 . Delete the locally managed "conflicting" policies by running the following command:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 POLICY_ID=$(curl -X GET \
   -H "Authorization: Bearer $ROX_API_TOKEN" \
@@ -158,7 +158,7 @@ Review a simple OpenShift Pipelines (Tekton) workflow that scans images with rox
 [start=2]
 . Apply the pipeline resources:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f $TUTORIAL_HOME/openshift-pipelines/ --recursive
 ----
@@ -183,7 +183,7 @@ This pipeline works by taking an image that you have created and passing it thro
 [start=9]
 . Let's use the *frontend:0.1* image that we've been using all day. Run the following and input it into the image bar:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 echo $QUAY_URL/$QUAY_USER/frontend:0.1
 ----
@@ -210,7 +210,7 @@ image::05-cd-09.png[link=self, window=blank, width=100%]
 [start=11]
 . Run the following in the terminal:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 cat $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
 ----
@@ -220,7 +220,7 @@ The secret requires `rox_central_endpoint` and `rox_api_token`. Update placehold
 [start=12]
 . Run the following in the terminal to update the RHACS Central address and API Token:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 ACS_URL=$(oc -n stackrox get route central -o jsonpath='{.spec.host}')
 ACS_URL_PORT=$(echo "$ACS_URL" | sed 's/$/:443/')
@@ -231,7 +231,7 @@ sed -i "s|API_TOKEN|$ROX_API_TOKEN|g" $TUTORIAL_HOME/openshift-pipelines/secrets
 [start=14]
 . Apply the updated secret:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f $TUTORIAL_HOME/openshift-pipelines/secrets/rox-secrets.yml
 ----
@@ -294,7 +294,7 @@ include::partial$payment-gateway-namespace.adoc[]
 ====
 Search audit logs on control plane nodes for the compromised exec:
 
-[source,bash,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 namespace=$(oc project --short)
 

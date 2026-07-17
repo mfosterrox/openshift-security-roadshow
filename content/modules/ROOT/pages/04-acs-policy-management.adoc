@@ -53,7 +53,7 @@ This policy shows how RHACS detects and prevents such violations by using Linux 
 
 . Click the *Actions* button, then click *CLONE policy*. Then give it the name "Alpine Linux Package Manager Execution - Runtime":
 
-[source,sh,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 Alpine Linux Package Manager Execution - Runtime
 ----
@@ -86,7 +86,7 @@ IMPORTANT: Make sure that you are signed into the bastion host with OpenShift ac
 *Procedure*
 . In the terminal, start tmux with two panes:
 
-[source,sh,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 tmux new-session \; split-window -v \; attach
 ----
@@ -94,7 +94,7 @@ tmux new-session \; split-window -v \; attach
 [start=2]
 . Next, run a watch on OpenShift events in the first shell pane:
 
-[source,sh,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get events -n patient-portal -w
 ----
@@ -103,7 +103,7 @@ oc get events -n patient-portal -w
 . Press `Ctrl+b` first, *and then press* o to switch to the next pane. (Hold ctrl+b, then press o):
 . Exec into our Java application by getting the pod details and adding them to the following command:
 
-[source,sh,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 POD=$(oc get pod -l app=frontend -n patient-portal -o jsonpath="{.items[0].metadata.name}")
 oc exec $POD -n patient-portal -i --tty -- /bin/bash
@@ -114,7 +114,7 @@ oc exec $POD -n patient-portal -i --tty -- /bin/bash
 [start=5]
 . Run the apk package manager in this shell:
 
-[source,sh,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 apk update
 ----
@@ -142,7 +142,7 @@ Next, we'll set up a Deploy-Time policy to block applications from deploying int
 [start=1]
 . First, delete the deployment from the cluster. We will redeploy the application after creating the policy:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete -f $APP_HOME/skupper-demo/frontend.yml
 ----
@@ -163,7 +163,7 @@ image::04-deploy-00.png[link=self, window=blank, width=100%]
 [start=4]
 . Give the policy a new name, such as `Alpine Linux Package Manager in Image - Enforce Deploy`. The best practice would be to add a description for future policy enforcers as well: 
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 Alpine Linux Package Manager in Image - Enforce Deploy
 ----
@@ -202,14 +202,14 @@ Now, let's test it out! We're going to redeploy the frontend application from ea
 
 > In case you forgot to run the command earlier:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete -f $APP_HOME/skupper-demo/frontend.yml
 ----
 
 > Now reapply the frontend service and deployment:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f $APP_HOME/skupper-demo/frontend.yml
 ----
@@ -219,7 +219,7 @@ oc apply -f $APP_HOME/skupper-demo/frontend.yml
 [start=15]
 . Verify the frontend application against the policies you've created:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 roxctl -e $ROX_CENTRAL_ADDRESS:443 deployment check --file $APP_HOME/skupper-demo/frontend.yml --insecure-skip-tls-verify
 ----
@@ -241,7 +241,7 @@ Build-time policies define how images should be constructed—minimizing vulnera
 [start=1]
 . Verify that the variables are correct to make this section smoother:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 echo $QUAY_USER
 echo $QUAY_URL
@@ -251,7 +251,7 @@ echo $ROX_CENTRAL_ADDRESS
 [start=2]
 . Make sure you are logged in to Quay:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 podman login $QUAY_URL -u $QUAY_USER -p {quay_admin_password}
 ----
@@ -265,7 +265,7 @@ NOTE: Use the Quay admin credentials, Username: *{quay_admin_username}* & passwo
 The following command is designed to mimic and build a pipeline where a container build is going through a commit/promotion step. You download the image, scan for vulnerabilities, tag a newer version, and upload to Quay.
 ====
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 podman pull $QUAY_URL/$QUAY_USER/frontend:0.1
 roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image check --image=$QUAY_URL/$QUAY_USER/frontend:0.1
@@ -275,7 +275,7 @@ roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" image check --im
 
 > With the *Image Check* CLI command, you can check against the created policies:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 podman tag $QUAY_URL/$QUAY_USER/frontend:0.1 $QUAY_URL/$QUAY_USER/frontend:0.2
 podman push $QUAY_URL/$QUAY_USER/frontend:0.2 --remove-signatures
@@ -298,7 +298,7 @@ image::04-deploy-05.png[link=self, window=blank, width=100%]
 [start=4]
 . Give the policy the name `Alpine Linux Package Manager in Image - Enforce Build`. The best practice would be to add a description for future policy enforcers as well: 
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 Alpine Linux Package Manager in Image - Enforce Build
 ----
@@ -323,7 +323,7 @@ Now let's test it out!
 
 > Run the following in the terminal:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 podman pull $QUAY_URL/$QUAY_USER/frontend:0.1
 roxctl image check --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443"  --image=$QUAY_URL/$QUAY_USER/frontend:0.1 
@@ -371,7 +371,7 @@ image::fsi-security/locked4.png[Locked process baseline violation,link=self, win
 ====
 Simulate the attacker executing a shell:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc exec -n payment-gateway-{workshop_user_suffix} -it pod/payment-gateway -- /bin/bash -c "whoami && hostname && echo 'Arbitrary process execution successful'"
 ----

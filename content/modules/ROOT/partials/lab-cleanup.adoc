@@ -2,7 +2,7 @@
 
 Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
 
-[source,bash,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 cd ~/openshift-security-roadshow
 bash setup/lab-cleanup.sh --module {lab-cleanup-module}

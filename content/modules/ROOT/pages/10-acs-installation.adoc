@@ -158,7 +158,7 @@ image::11-cs-05.png[link=self, window=blank, width=100%]
 . Click *Download*
 . Next you need to copy the file contents and save it in a new file named *init-bundle.yaml*
 
-[source,bash,role="execute"]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 nano init-bundle.yaml
 ----
@@ -168,7 +168,7 @@ NOTE: Hit ctrl + x to exit nano.
 [start=7]
 . Run the following on your command line:
 
-[source,bash,role="execute"]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete -f init-bundle.yaml -n rhacs-operator
 oc create -f init-bundle.yaml -n rhacs-operator
@@ -238,7 +238,7 @@ include::partial$payment-gateway-namespace.adoc[]
 ====
 Trigger a container checkpoint via the kubelet API:
 
-[source,bash,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 NODE_NAME=$(oc get pods -l app=payment-gateway -o jsonpath='{.items[0].spec.nodeName}')
 CURRENT_NS=$(oc project --short)
@@ -276,7 +276,7 @@ image::fsi-security/criu-checkpoint.png[CRIU checkpoint archive,link=self, windo
 ====
 Install and run `checkpointctl` to inspect the process tree:
 
-[source,bash,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 curl --silent --fail --location \
   'https://raw.githubusercontent.com/jmhbnz/checkpointctl/main/bin/checkpointctl' \

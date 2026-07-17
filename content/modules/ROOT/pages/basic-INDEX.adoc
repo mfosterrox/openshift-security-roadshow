@@ -1,4 +1,4 @@
-= 101 Labs Overview (Basic skills B0–B10)
+= 101 Labs Overview
 :toc:
 :icons: font
 
@@ -10,99 +10,74 @@ Skills and role ownership follow the https://ralvares.github.io/openshift-securi
 
 These basic labs introduce OpenShift’s secure-by-default posture. Align workloads to built-in guardrails instead of bypassing them.
 
-Canonical Basic skills covered:
+Topics covered:
 
-* *B0* — Container security fundamentals (shared via projects/namespaces labs)
-* *B1* — Default OpenShift platform security layers — 101-01
-* *B2* — Basic RBAC — 101-03
-* *B3* — Workload guardrails (SCC/PSA, quotas, limits) — 101-02, 101-04
-* *B4* — Least privilege (non-root, minimal capabilities) — 101-01, 101-04, 101-11
-* *B5* — NetworkPolicies — 101-05
-* *B6* — Secrets basics — 101-06
-* *B7* — Trusted images / vulnerability awareness — 101-07, 101-11
-* *B8* — Encryption in transit and at rest — 101-08, 101-12
-* *B9* — Audit and cluster logs — 101-09
-* *B10* — Security extension operators (awareness) — 101-10
+* Container security fundamentals (projects and namespaces)
+* Default OpenShift platform security layers
+* Basic RBAC
+* Workload guardrails (SCC/PSA, quotas, limits)
+* Least privilege (non-root, minimal capabilities)
+* NetworkPolicies
+* Secrets basics
+* Trusted images and vulnerability awareness
+* Encryption in transit and at rest
+* Audit and cluster logs
+* Security extension operators (awareness)
 
-Audience: any of the five framework roles. Prefer a xref:index.adoc#choose-your-role[role track] so you only take the labs your role owns (for example, Application Developer skips B9/B10).
+Audience: any of the five framework roles. Prefer a xref:index.adoc#choose-your-role[role track] so you only take the labs your role owns (for example, Application Developer skips audit logging and compliance add-ons).
 
 == Basic Labs Index
 
-[cols="1,2,3,2,1",options="header"]
+[cols="2,3,2",options="header"]
 |===
-|Skill | Lab | Title | Roles | Status
+|Lab | Title | Roles
 
-|B1, B4
 |xref:101-01-default-secure-behavior.adoc[101-01]
 |Default Secure Behavior
 |App Dev, Platform, DevSecOps, Architect, Network
-|Available
 
-|B0, B1, B3
 |xref:101-02-projects-namespaces-boundaries.adoc[101-02]
 |Projects & Namespaces as Security Boundaries
 |App Dev, Platform, DevSecOps, Architect, Network
-|Available
 
-|B2
 |xref:101-03-rbac-basics.adoc[101-03]
 |Role-Based Access Control Basics
 |App Dev, Platform, DevSecOps, Architect
-|Available
 
-|B3, B4
 |xref:101-04-scc-resource-guardrails.adoc[101-04]
 |SCC Limits, Resource Guardrails & Pod Security
-|App Dev, Platform, DevSecOps, Architect (Network: B3)
-|Available
+|App Dev, Platform, DevSecOps, Architect, Network
 
-|B5
 |xref:101-05-network-policy-basics.adoc[101-05]
 |NetworkPolicy Basics
 |App Dev, Platform, DevSecOps, Architect, Network
-|Available
 
-|B6
 |xref:101-06-secrets-management.adoc[101-06]
 |Secrets Management
 |App Dev, Platform, DevSecOps, Architect
-|Available
 
-|B7
 |xref:101-07-image-provenance-guardrails.adoc[101-07]
 |Image Provenance Guardrails
 |App Dev, Platform, DevSecOps, Architect
-|Available
 
-|B8
 |xref:101-08-etcd-encryption-control-plane.adoc[101-08]
 |Etcd Encryption at Rest & Control Plane Hardening
 |App Dev, Platform, DevSecOps, Architect, Network
-|Available
 
-|B9
 |xref:101-09-audit-exec-events.adoc[101-09]
 |Audit Logging & Exec Events
 |Platform, DevSecOps, Architect, Network
-|Available
 
-|B10
 |xref:101-10-security-compliance-addons.adoc[101-10]
 |Security & Compliance Add-Ons Overview
 |Platform, Architect
-|Available
 
-|B4, B7
 |xref:101-11-rebuilding-images.adoc[101-11]
 |Rebuilding & Hardening Images
 |App Dev, DevSecOps (Platform secondary)
-|Available
 
-|B8
 |xref:101-12-enforcing-tls-routes.adoc[101-12]
 |Enforcing TLS on Routes
 |App Dev, Platform, DevSecOps, Architect, Network
-|Available
 |===
 
-Role abbreviations: App Dev = Application Developer; Platform = Platform Operator; DevSecOps = DevSecOps Engineer; Architect = Security Architect; Network = Network & Infrastructure Engineer.

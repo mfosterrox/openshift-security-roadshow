@@ -29,14 +29,14 @@ Install admission gates that block attacker-shaped pod specs at the door and pro
 * Cluster admin privileges
 
 == Namespace Setup
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 201-11-a-govern
 ----
 
 == No Root UID Constraint
 ConstraintTemplate:
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
 apiVersion: templates.gatekeeper.sh/v1
@@ -61,7 +61,7 @@ spec:
 EOF
 ----
 Constraint:
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
 apiVersion: constraints.gatekeeper.sh/v1beta1
@@ -73,7 +73,7 @@ EOF
 ----
 
 Test (expect denial):
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-11-a-govern -f - <<'EOF'
 apiVersion: v1
@@ -92,7 +92,7 @@ EOF
 
 == Mandatory NetworkPolicy Constraint
 Template:
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
 apiVersion: templates.gatekeeper.sh/v1
@@ -120,7 +120,7 @@ spec:
 EOF
 ----
 Constraint:
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
 apiVersion: constraints.gatekeeper.sh/v1beta1
@@ -131,7 +131,7 @@ spec: {}
 EOF
 ----
 Create a pod (should be denied). Then add a minimal NetworkPolicy and retry:
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-11-a-govern -f - <<'EOF'
 apiVersion: networking.k8s.io/v1
@@ -144,7 +144,7 @@ spec:
 EOF
 ----
 Retry pod with non-root context:
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-11-a-govern -f - <<'EOF'
 apiVersion: v1
@@ -164,7 +164,7 @@ EOF
 == Digest Pinning & (Simulated) Signature Constraint
 Simplified example focusing on forbidding mutable tags:
 Template:
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
 apiVersion: templates.gatekeeper.sh/v1
@@ -190,7 +190,7 @@ spec:
 EOF
 ----
 Constraint:
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
 apiVersion: constraints.gatekeeper.sh/v1beta1
@@ -201,7 +201,7 @@ spec: {}
 EOF
 ----
 Test denial with tag:
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-11-a-govern -f - <<'EOF'
 apiVersion: v1
@@ -219,14 +219,14 @@ EOF
 ----
 
 == Namespace Exemption
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc label namespace 201-11-a-govern policy-tier=dev
 # Example: refine rego to exempt tier=dev; left as exercise
 ----
 
 == Cleanup
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project 201-11-a-govern --wait=false
 ----

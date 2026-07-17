@@ -29,7 +29,7 @@ Without project boundaries, one compromised identity or runaway workload can rea
 === Claim a defended territory with security labels
 Stand up a dedicated project and label it so policy engines know this is a controlled tenant, not shared free-for-all space.
 
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 101-02-demo --display-name="Security Demo" --description="101-02 Lab Project"
 oc label namespace 101-02-demo security-tier=basic environment=dev
@@ -39,7 +39,7 @@ oc get namespace 101-02-demo --show-labels
 === Stop casual privilege sprawl with namespace RBAC
 Bind a team to `edit` only inside this project, then prove the default service account cannot create pods until you say so. That closes the “any SA can do anything” attack path.
 
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create rolebinding dev-team --clusterrole=edit --group=dev-team -n 101-02-demo
 oc auth can-i create pods --as=system:serviceaccount:101-02-demo:default -n 101-02-demo
@@ -48,14 +48,14 @@ oc auth can-i create pods --as=system:serviceaccount:101-02-demo:default -n 101-
 === Cap a noisy-neighbor DoS with ResourceQuota
 Attackers (and buggy apps) burn the cluster with oversized requests. Put a ceiling on CPU, memory, and pods so one namespace cannot starve the rest.
 
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create quota demo-quota --hard=requests.cpu=2,requests.memory=2Gi,limits.cpu=4,limits.memory=4Gi,pods=10 -n 101-02-demo
 oc describe quota demo-quota -n 101-02-demo
 ----
 
 === Cleanup
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project 101-02-demo --wait=false
 ----

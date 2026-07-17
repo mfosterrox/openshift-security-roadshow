@@ -38,7 +38,7 @@ image::03-cm-02.png[link=self, window=blank, width=100%]
 [start=2]
 . Run the following shell command.
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 curl -k X GET "https://$ROX_CENTRAL_ADDRESS:443/v1/secrets" -H "Authorization: Bearer $ROX_API_TOKEN" -H "Content-Type: application/json" | jq
 ----

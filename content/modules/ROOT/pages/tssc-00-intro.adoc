@@ -25,7 +25,7 @@ Sigstore/TAS improves on GPG with keyless signing, transparency logs (Rekor), an
 
 IMPORTANT: Run the following command to ensure the environment is up to date:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 curl -fsSL https://raw.githubusercontent.com/redhat-tssc-tmm/security-roadshow/main/cosign_gitsign_installer.sh | bash
 ----
@@ -35,7 +35,7 @@ This module uses the Quay image from xref:00-acs-setup-install-navigation.adoc#b
 [[setting-up-the-environment-variables]]
 === Setting up the environment variables
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 echo $QUAY_USER
 echo $QUAY_URL
@@ -62,7 +62,7 @@ NOTE: Cosign and gitsign read overlapping Sigstore environment variables for com
 
 Log in to Quay, inspect the image, then sign it interactively:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 cosign login $QUAY_URL -u $QUAY_USER -p {quay_admin_password}
 cosign tree $QUAY_URL/$QUAY_USER/frontend:0.1
@@ -80,7 +80,7 @@ image::11-quay-signed-image.png[link=self, window=blank, width=100%]
 
 TIP: Pipelines use OIDC tokens instead of browser login. Request a token from Keycloak and pass it to cosign:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 export OIDC_TOKEN_SERVICE=$(curl -s $OIDC_ISSUER_URL | jq -r '.["token-service"]')/token
 export OIDC_TOKEN=$(curl -s --request POST --url $OIDC_TOKEN_SERVICE \
@@ -93,7 +93,7 @@ cosign sign -y --identity-token=$OIDC_TOKEN $QUAY_URL/$QUAY_USER/frontend:0.1
 
 === Verifying signatures
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 cosign verify --certificate-identity jdoe@redhat.com $QUAY_URL/$QUAY_USER/frontend:0.1 | jq
 cosign verify --certificate-identity-regexp ^[a-zA-Z0-9._%+-]+@redhat\.com$ $QUAY_URL/$QUAY_USER/frontend:0.1 | jq

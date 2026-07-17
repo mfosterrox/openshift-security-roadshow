@@ -28,14 +28,14 @@ Pulls from arbitrary registries mean unknown builders and unvetted contents. An 
 Supply-chain attackers ship malware through any registry that will take a tag. Your mission: put an allow-list on the door, prove an untrusted image is denied, then run only a trusted UBI workload you can fingerprint by host and digest.
 
 === Mark the namespace as under registry lockdown
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 101-07-i-trusted
 oc label namespace 101-07-i-trusted trusted-registry-enforce=true --overwrite
 ----
 
 === Install the allow-list (cluster-admin) — close arbitrary pulls
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
 apiVersion: admissionregistration.k8s.io/v1
@@ -99,13 +99,13 @@ EOF
 ----
 
 === Launch the untrusted payload — expect Deny
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc -n 101-07-i-trusted create deployment bad --image=docker.io/library/nginx:latest || true
 ----
 
 === Deploy only from an approved registry
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc -n 101-07-i-trusted create deployment good --image=registry.access.redhat.com/ubi9/ubi:9.6 -- sleep infinity
 oc -n 101-07-i-trusted wait --for=condition=Available deployment/good --timeout=60s
@@ -114,7 +114,7 @@ oc -n 101-07-i-trusted wait --for=condition=Available deployment/good --timeout=
 === Fingerprint provenance — host + digest
 Prove what actually runs so a floated `:latest` tag cannot quietly swap in attacker content.
 
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc -n 101-07-i-trusted describe pod -l app=good | grep -E 'Image:|Image ID:'
 ----
@@ -132,7 +132,7 @@ Example (UBI 9.6):
 - Image ID: …@sha256:dbc1e98d14a022542e45b5f22e0206d3f86b5bdf237b58ee7170c9ddd1b3a283 (immutable digest)
 
 === Cleanup
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project 101-07-i-trusted --wait=false
 oc delete validatingadmissionpolicybinding trusted-images-only-pods || true

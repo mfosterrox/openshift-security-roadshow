@@ -28,13 +28,13 @@ Shipping an image that needs root pushes teams toward `anyuid` and other SCC exc
 The public `httpd` image just crashed because it wants root and port 80—the same privilege attackers hope you unlock with `anyuid`. Rebuild on UBI so the app serves under restricted SCC, prove the UID stays non-root, and expose it without widening the blast radius.
 
 === Open the rebuild sandbox
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 101-11-r-rebuild
 ----
 
 === Reproduce the attack-friendly image failure
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create deployment webapp --image=httpd
 oc logs -l app=webapp --tail=40 || true
@@ -61,7 +61,7 @@ Result: admission deny or crash-loop—do not “fix” with `anyuid`. Rebuild i
 NOTE: Rebuild on trusted UBI 9 httpd 2.4 (registry.access.redhat.com / registry.redhat.io). It runs non-root and listens on 8080. We copy a sample `index.html`; real apps place their site files the same way.
 
 === Build the defended image context
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 mkdir -p build && cd build
 cat > index.html <<'EOF'
@@ -78,7 +78,7 @@ EOF
 ----
 
 === Build inside OpenShift (no laptop privilege shortcuts)
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-build --name webapp --binary --strategy=docker
 oc start-build webapp --from-dir=. --follow
@@ -86,7 +86,7 @@ oc get is
 ----
 
 === Roll the defended image into production position
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc set image deployment/webapp *=image-registry.openshift-image-registry.svc:5000/101-11-r-rebuild/webapp:latest
 oc rollout status deployment/webapp
@@ -94,7 +94,7 @@ oc logs -l app=webapp --tail=40 || true
 ----
 
 === Prove non-root and restricted SCC still hold
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc exec deploy/webapp -- id -u
 oc get pod -l app=webapp -o jsonpath='{.items[0].metadata.annotations.openshift\.io/scc}{"\n"}'
@@ -112,7 +112,7 @@ What `restricted-v2` denies the attacker:
 * Default seccomp + SELinux MCS isolation
 
 === Expose the service without privilege growth
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc expose deployment webapp --port=8080 --target-port=8080
 oc expose service webapp
@@ -123,7 +123,7 @@ curl -s http://$ROUTE | head -3
 NOTE: Keep the project for the TLS lab (101-12). Delete only when finished with both.
 
 === Cleanup
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project 101-11-r-rebuild --wait=false
 ----

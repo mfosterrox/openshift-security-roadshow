@@ -27,13 +27,13 @@ Hardening prunes that list down to essentials. Negative tests (deliberate failin
 == Your Mission
 . Inspect baseline:
 +
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get scc restricted -o yaml | head -n 40
 ----
 . Create hardened SCC:
 +
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
 apiVersion: security.openshift.io/v1
@@ -76,14 +76,14 @@ EOF
 ----
 . Namespace + bind SCC:
 +
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 201-03-w-harden
 oc adm policy add-scc-to-group hardened-nonroot system:serviceaccounts:201-03-w-harden
 ----
 . Valid pod (should Run):
 +
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-03-w-harden -f - <<'EOF'
 apiVersion: v1
@@ -107,7 +107,7 @@ oc get pod good -n 201-03-w-harden -o jsonpath='{.metadata.annotations.openshift
 ----
 . Negative test – disallowed capability:
 +
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-03-w-harden -f - <<'EOF'
 apiVersion: v1
@@ -127,7 +127,7 @@ oc describe pod bad-cap -n 201-03-w-harden | grep -i deni || true
 ----
 . Negative test – root UID:
 +
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-03-w-harden -f - <<'EOF'
 apiVersion: v1
@@ -146,13 +146,13 @@ EOF
 Expected rejection / scheduling failure.
 . (Optional) Seccomp check:
 +
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc exec good -- unshare -m true || echo "Blocked or not permitted (expected)"
 ----
 . (Optional) Cleanup:
 +
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project 201-03-w-harden --wait=false
 ----

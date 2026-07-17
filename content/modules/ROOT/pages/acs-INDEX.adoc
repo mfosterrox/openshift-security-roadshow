@@ -32,62 +32,51 @@ Audience and prerequisites:
 
 == RHACS Labs Index
 
-[cols="1,3,2,1",options="header"]
+[cols="1,3,2",options="header"]
 |===
-|Lab | Title | Focus | Status
+|Lab | Title | Focus
 
 |xref:00-acs-setup-install-navigation.adoc[00]
 |Lab Setup and Introduction
 |Environment, console access, first orientation
-|Available
 
 |xref:01-acs-visibility-and-navigation.adoc[01]
 |Navigating RHACS
 |Dashboard, inventory, and UI navigation
-|Available
 
 |xref:02-acs-vulnerability-management-lab.adoc[02]
 |Vulnerability Management
 |CVE findings, prioritization, and remediation views
-|Available
 
 |xref:03-acs-risk-profiling.adoc[03]
 |Risk Profiling
 |Risk scoring and workload risk context
-|Available
 
 |xref:04-acs-policy-management.adoc[04]
 |Policy Management
 |Built-in and custom policies; enforcement modes
-|Available
 
 |xref:05-acs-cicd-and-automation.adoc[05]
 |CI/CD and Automation
 |Pipeline gates and build-time checks
-|Available
 
 |xref:06-acs-compliance.adoc[06]
 |Compliance
 |Compliance standards and assessment results
-|Available
 
 |xref:07-acs-notifications.adoc[07]
 |Notifications
 |Alerting integrations and notification channels
-|Available
 
 |xref:08-acs-api.adoc[08]
 |API Walkthrough
 |Central API usage for automation
-|Available
 
 |xref:09-acs-network-security.adoc[09]
 |Network Security
 |Network graph, flows, and policy insights
-|Available
 
 |xref:10-acs-installation.adoc[10]
 |Installation and RHACS Cloud Service
 |Deployment options and RHACS Cloud Service
-|Available
 |===

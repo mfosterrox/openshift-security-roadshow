@@ -1,4 +1,4 @@
-= 301 Labs Overview (Advanced skills A1–A10)
+= 301 Labs Overview
 :toc:
 :icons: font
 
@@ -10,20 +10,20 @@ Skills and role ownership follow the https://ralvares.github.io/openshift-securi
 
 These advanced labs cover enterprise security architecture and zero-trust patterns: governance, GitOps policy, multi-tenant networking, runtime detection, forensics, supply chain integrity, remediation automation, culture, cryptography, and workload identity.
 
-Canonical Advanced skills:
+Topics covered:
 
-* *A1* — Platform-wide security governance
-* *A2* — GitOps-driven policy and compliance pipelines
-* *A3* — Multi-tenant zero-trust network and service segmentation
-* *A4* — Runtime threat detection pipelines and response integration
-* *A5* — Coordinated incident response and forensics
-* *A6* — End-to-end supply chain integrity and provenance
-* *A7* — Automated remediation and policy enforcement
-* *A8* — Security culture and maturity
-* *A9* — Advanced cryptography and encryption strategies
-* *A10* — Zero-trust workload identity and confidential computing
+* Platform-wide security governance
+* GitOps-driven policy and compliance pipelines
+* Multi-tenant zero-trust network and service segmentation
+* Runtime threat detection pipelines and response integration
+* Coordinated incident response and forensics
+* End-to-end supply chain integrity and provenance
+* Automated remediation and policy enforcement
+* Security culture and maturity
+* Advanced cryptography and encryption strategies
+* Zero-trust workload identity and confidential computing
 
-Application Developer has no Advanced skills in the framework—use Intermediate completion, then DevSecOps or Architect.
+Application Developer has no Advanced labs in the framework—complete Intermediate, then continue with DevSecOps or Architect.
 
 Audience and prerequisites:
 
@@ -33,75 +33,53 @@ Audience and prerequisites:
 
 == Advanced Labs Index
 
-[cols="1,2,3,2,1",options="header"]
+[cols="2,3,2",options="header"]
 |===
-|Skill | Lab | Title | Roles | Status
+|Lab | Title | Roles
 
-|A1
 |xref:301-01-platform-security-governance.adoc[301-01]
 |Platform-Wide Security Governance & Policy as Code
 |Platform, Architect
-|Planned
 
-|A2
 |xref:301-02-gitops-policy-compliance.adoc[301-02]
 |GitOps-Driven Policy and Compliance Pipelines
 |DevSecOps, Architect
-|Planned
 
-|A3
 |xref:301-03-multi-tenant-zero-trust-network.adoc[301-03]
 |Multi-Tenant Zero-Trust Network Segmentation
 |Architect, Network
-|Planned
 
-|A4
 |xref:301-04-runtime-threat-detection.adoc[301-04]
 |Runtime Threat Detection with ACS Deep Dive
 |DevSecOps
-|Planned
 
-|A5
 |xref:301-05-incident-response-forensics.adoc[301-05]
 |Incident Response, Forensics & ACS Integration
 |Architect
-|Planned
 
-|A6
 |xref:301-06-supply-chain-integrity.adoc[301-06]
 |Supply Chain Integrity, Provenance & Trusted Artifact Signer
 |DevSecOps, Architect
-|Planned
 
-|A7
 |xref:301-07-automated-remediation.adoc[301-07]
 |Automated Remediation, Policy Enforcement & ACS Response
 |Platform, DevSecOps, Architect
-|Planned
 
-|A8
 |xref:301-08-security-culture-maturity.adoc[301-08]
 |Building Security Culture & Maturity Models
 |Platform, Architect
-|Planned
 
-|A9
 |xref:301-09-advanced-cryptography.adoc[301-09]
 |Advanced Cryptography: Post-Quantum mTLS, Encryption Strategies
 |DevSecOps, Architect, Network
-|Planned
 
-|A10
 |xref:301-10-zero-trust-workload-identity.adoc[301-10]
 |Zero-Trust Workload Identity, Federation & SPIFFE/SPIRE
 |DevSecOps, Architect, Network
-|Planned
 
-|A10
 |xref:301-11-confidential-containers.adoc[301-11]
 |Confidential Containers & Secure Enclaves
 |DevSecOps, Architect, Network
-|Planned
 |===
 
 == Related advanced labs
@@ -118,7 +96,7 @@ Audience and prerequisites:
 |xref:301-13-advanced-runtime-hunting.adoc[301-13]
 |Advanced Runtime Threat Hunting & ACS Automation
 |DevSecOps
-|Extends A4 hunting and response automation
+|Extends runtime hunting and response automation
 |===
 
 Role abbreviations: App Dev = Application Developer; Platform = Platform Operator; DevSecOps = DevSecOps Engineer; Architect = Security Architect; Network = Network & Infrastructure Engineer.

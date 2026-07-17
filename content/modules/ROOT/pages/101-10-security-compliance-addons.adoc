@@ -29,19 +29,19 @@ SCC and RBAC cover a lot, but they do not schedule CIS-style scans, manage secco
 Attackers move while humans scramble for last-minute audit evidence. Wire continuous controls: prove Compliance Operator is ready, inventory profiles, and schedule a CIS-style suite so posture gaps surface on a cadence—not under deadline panic.
 
 === Confirm Compliance Operator is on the field
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get pods -n openshift-compliance 2>/dev/null || echo 'Compliance Operator not installed'
 ----
 === Inventory the benchmarks you can run
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get profiles.compliance.openshift.io -n openshift-compliance 2>/dev/null || true
 ----
 === Schedule a sample CIS scan (adjust names if needed)
 On a shared roadshow cluster, prefer previewing YAML over applying unless instructors cleared it.
 
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
 apiVersion: compliance.openshift.io/v1alpha1
@@ -58,7 +58,7 @@ EOF
 ----
 
 === Review check results when the scan lands
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get compliancecheckresults.compliance.openshift.io -n openshift-compliance | head
 ----

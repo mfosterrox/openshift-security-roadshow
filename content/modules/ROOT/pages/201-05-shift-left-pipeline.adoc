@@ -30,7 +30,7 @@ Build a Tekton path that refuses unscanned or unsigned images—then deploy only
 
 == Namespace & Service Account
 Tekton CRDs require YAML; only typos fixed and kept minimal.
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 201-05-s-pipeline
 och create sa pipeline -n 201-05-s-pipeline
@@ -38,7 +38,7 @@ oc adm policy add-scc-to-user anyuid -z pipeline -n 201-05-s-pipeline  # only if
 ----
 
 == Build Task (S2I or Buildah Simplified)
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-05-s-pipeline -f - <<'EOF'
 apiVersion: tekton.dev/v1
@@ -65,7 +65,7 @@ EOF
 ----
 
 == Scan Task (Simulated)
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-05-s-pipeline -f - <<'EOF'
 apiVersion: tekton.dev/v1
@@ -90,7 +90,7 @@ EOF
 ----
 
 == Sign Task (Cosign Simulated)
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-05-s-pipeline -f - <<'EOF'
 apiVersion: tekton.dev/v1
@@ -112,7 +112,7 @@ EOF
 ----
 
 == Pipeline Definition
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-05-s-pipeline -f - <<'EOF'
 apiVersion: tekton.dev/v1
@@ -153,7 +153,7 @@ EOF
 ----
 
 == Run Pipeline
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-05-s-pipeline -f - <<'EOF'
 apiVersion: tekton.dev/v1
@@ -170,20 +170,20 @@ spec:
 EOF
 ----
 Monitor:
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get pipelineruns -n 201-05-s-pipeline
 och describe pipelinerun secure-build-run -n 201-05-s-pipeline | grep -i status
 ----
 Get digest:
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get pipelinerun secure-build-run -n 201-05-s-pipeline -o jsonpath='{.status.pipelineResults}'
 ----
 
 == Deployment Using Digest (Gate Simulation)
 Replace <DIGEST> with extracted digest:
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-05-s-pipeline -f - <<'EOF'
 apiVersion: apps/v1
@@ -205,13 +205,13 @@ EOF
 ----
 
 == (Optional) Admission Tie-In
-Add Gatekeeper policy to require annotation `signed=ok` or actual cosign verification (see I10 lab) before allowing tag-based images.
+Add Gatekeeper policy to require annotation `signed=ok` or actual cosign verification (see xref:201-11-admission-governance.adoc[201-11]) before allowing tag-based images.
 
 == Failure Simulation
 Re-run with FAIL=1 env (edit scan task to export) and confirm sign task skipped.
 
 == Cleanup
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project 201-05-s-pipeline --wait=false
 ----

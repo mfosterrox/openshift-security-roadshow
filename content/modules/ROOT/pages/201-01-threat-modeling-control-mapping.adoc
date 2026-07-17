@@ -30,7 +30,7 @@ With a model:
 
 == Your Mission
 . (Optional) Create visual aid namespaces:
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project app-frontend
 oc new-project app-backend
@@ -45,7 +45,7 @@ oc new-project app-db
 . Turn top ranked 5–7 into backlog tickets with acceptance criteria.
 . Commit artifact (`threat-model-app.md`) and schedule a quarterly review.
 . (Optional) Cleanup:
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project app-frontend app-backend app-db --wait=false
 ----

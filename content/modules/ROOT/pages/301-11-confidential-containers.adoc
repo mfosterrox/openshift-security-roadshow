@@ -27,13 +27,13 @@ Confidential containers provide hardware-backed isolation that protects workload
 Complete the examples below to close the attack paths this lab covers—treat each step as defending the cluster, not just clicking through commands.
 
 === Check Kata container support
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get nodes -o jsonpath='{.items[*].status.nodeInfo.containerRuntimeVersion}'
 ----
 
 === Create RuntimeClass for Kata
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
 apiVersion: node.k8s.io/v1
@@ -45,7 +45,7 @@ EOF
 ----
 
 === Deploy workload with Kata runtime
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
 apiVersion: v1
@@ -63,13 +63,13 @@ EOF
 ----
 
 === Verify runtime
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get pod confidential-app -n 301-11-demo -o jsonpath='{.spec.runtimeClassName}'
 ----
 
 === Cleanup
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project 301-11-demo --wait=false
 ----

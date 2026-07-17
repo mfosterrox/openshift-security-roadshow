@@ -27,14 +27,14 @@ Manual certificate management is error-prone and leads to expired certificates c
 Complete the examples below to close the attack paths this lab covers—treat each step as defending the cluster, not just clicking through commands.
 
 === Check cert-manager installation
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get pods -n openshift-cert-manager
 oc get crd certificates.cert-manager.io
 ----
 
 === Create ClusterIssuer
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
 apiVersion: cert-manager.io/v1
@@ -47,7 +47,7 @@ EOF
 ----
 
 === Create Certificate resource
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
 apiVersion: cert-manager.io/v1
@@ -66,14 +66,14 @@ EOF
 ----
 
 === Verify certificate creation
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get certificate -n 201-09-demo
 oc get secret example-cert-tls -n 201-09-demo
 ----
 
 === Cleanup
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project 201-09-demo --wait=false
 ----

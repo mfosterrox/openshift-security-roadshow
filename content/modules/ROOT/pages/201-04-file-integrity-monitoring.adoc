@@ -27,14 +27,14 @@ File integrity monitoring detects unauthorized changes to critical system files,
 Complete the examples below to close the attack paths this lab covers—treat each step as defending the cluster, not just clicking through commands.
 
 === Check File Integrity Operator installation
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get pods -n openshift-file-integrity
 oc get fileintegrity -A
 ----
 
 === Create FileIntegrity resource
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
 apiVersion: fileintegrity.openshift.io/v1alpha1
@@ -53,20 +53,20 @@ EOF
 ----
 
 === Monitor integrity status
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get fileintegrity -n openshift-file-integrity
 oc get fileintegrityreports -n openshift-file-integrity
 ----
 
 === Review integrity reports
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get fileintegrityreports -n openshift-file-integrity -o yaml | grep -A 10 "results"
 ----
 
 === Cleanup
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete fileintegrity worker-file-integrity -n openshift-file-integrity
 ----

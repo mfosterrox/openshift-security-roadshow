@@ -29,13 +29,13 @@ Run a sandboxed workload and contrast it with a normal pod so you know when stro
 * Cluster admin permissions
 
 == Operator Presence
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get csv -n openshift-sandboxed-containers 2>/dev/null | grep -i sandbox || echo "Install Sandboxed Containers Operator from OperatorHub"
 ----
 
 == RuntimeClass
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get runtimeclass | grep -i kata || cat <<'EOF' | oc apply -f -
 apiVersion: node.k8s.io/v1
@@ -47,14 +47,14 @@ EOF
 ----
 
 == Namespace & Baseline Pod
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 201-10-s-sandbox
 oc run regular --image=registry.access.redhat.com/ubi9/ubi -- sleep 3600
 ----
 
 == Kata Pod
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
 apiVersion: v1
@@ -71,7 +71,7 @@ EOF
 ----
 
 == Compare Isolation
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc exec regular -- ps -ef | head
 oc exec kata-pod -- ps -ef | head
@@ -79,7 +79,7 @@ oc exec kata-pod -- ps -ef | head
 Kata pod process list should show fewer host processes; underlying hypervisor isolation applies.
 
 Check SCC annotation:
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get pod kata-pod -o jsonpath='{.metadata.annotations.openshift\.io/scc}{"\n"}'
 ----
@@ -88,7 +88,7 @@ oc get pod kata-pod -o jsonpath='{.metadata.annotations.openshift\.io/scc}{"\n"}
 Measure startup time or simple CPU benchmark difference for awareness.
 
 == Cleanup
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project 201-10-s-sandbox --wait=false
 ----

@@ -33,7 +33,7 @@ In this module, we will focus on the *backend* namespace. Also, hopefully, you r
 
 Run the following two commands to remember which namespaces are currently compliant:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 cd ~/
 export TUTORIAL_HOME="$(pwd)/demo-apps"
@@ -42,7 +42,7 @@ oc get --all-namespaces networkpolicies -o json | jq '[.items[] | select((.metad
 
 
 *Sample output*
-[source, bash]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 [
  "medical",
@@ -122,14 +122,14 @@ First, let's take a look at the four applications and all of their associated se
 
 . Run the following command. 
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 export TUTORIAL_HOME="$(pwd)/demo-apps"
 cat $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
 ----
 
 *Sample output*
-[source, bash]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 # Deployment named "varnish"
 # Listens on :8080
@@ -147,7 +147,7 @@ IMPORTANT: The netpol command only looks at the services and deployment manifest
 [start=2]
 . Run the following command: 
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 roxctl netpol connectivity map $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
 ----
@@ -171,7 +171,7 @@ This output is telling us that all connections are currently authorized into the
 [start=3]
 . Run the following command. This command will copy the network policy output to an "everything" file and will display what was added:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 roxctl netpol generate $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml >> $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
 roxctl netpol generate $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
@@ -182,7 +182,7 @@ Now we have network policies! Time to put them to work.
 [start=4]
 . Apply the network policies with the following command:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
 ----
@@ -206,7 +206,7 @@ image::ex-net-20.png[link=self, window=blank, width=100%]
 [start=6]
 . Lastly, let's check the netpol connections output AND our compliance command:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 roxctl netpol connectivity map $TUTORIAL_HOME/kubernetes-manifests/medical-application/backend/everything.yml
 oc get --all-namespaces networkpolicies -o json | jq '[.items[] | select((.metadata.namespace | startswith("openshift") | not) and (.metadata.namespace | startswith("kube-") | not) and .metadata.namespace != "default") | .metadata.namespace] | unique'
@@ -221,7 +221,7 @@ INFO:   in file: /home/lab-user/demo-apps/kubernetes-manifests/medical-applicati
 backend/varnish[Deployment] => backend/api-server[Deployment] : TCP 9001
 ----
 
-[source,bash]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 [lab-user@bastion ~]$ oc get --all-namespaces networkpolicies -o json | jq '[.items[] | select((.metadata.namespace | startswith("openshift") | not) and (.metadata.namespace | startswith("kube-") | not) and .metadata.namespace != "default") | .metadata.namespace] | unique'
 [
@@ -308,7 +308,7 @@ spec:
 
 Apply via the OpenShift console *Import YAML* or:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<EOF
 apiVersion: networking.k8s.io/v1

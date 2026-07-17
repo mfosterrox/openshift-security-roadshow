@@ -23,13 +23,13 @@ Etcd holds Secrets, ConfigMaps, and other API objects. If someone gets raw etcd 
 If an attacker (or stolen backup) can read raw etcd disks, unencrypted Secrets become free credentials. Confirm encryption posture and that control-plane components are present and healthy—deny the “steal the volume, read the cluster” path.
 
 === Check whether encryption is already defending Secrets at rest
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get encryptionconfig cluster -o yaml
 ----
 
 === Verify the API server encryption type
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get apiserver cluster -o jsonpath='{.spec.encryption.type}'
 ----
@@ -37,7 +37,7 @@ oc get apiserver cluster -o jsonpath='{.spec.encryption.type}'
 NOTE: Enabling etcd encryption requires cluster-admin access and may require a cluster restart. Typically done at install or via cluster config updates.
 
 === Quick control-plane health sweep
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get nodes -o wide
 oc get pods -n openshift-kube-apiserver

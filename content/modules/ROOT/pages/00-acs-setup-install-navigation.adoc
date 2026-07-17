@@ -76,7 +76,7 @@ Variables persisted to `~/.bashrc`:
 [start=1]
 . Clone the roadshow repository and run the lab setup script:
 
-[source,bash,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 git clone https://github.com/mfosterrox/openshift-security-roadshow.git
 cd openshift-security-roadshow
@@ -113,7 +113,7 @@ IMPORTANT: PodSecurity warnings during `oc apply` are expected—you are deployi
 [start=2]
 . The script prints progress for each phase. When it completes, reload your shell environment:
 
-[source,bash,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 source ~/.bashrc
 echo "TUTORIAL_HOME=$TUTORIAL_HOME"
@@ -186,7 +186,7 @@ image::00-quay-vuln-detailed.png[link=self, window=blank, width=100%]
 
 === Verify RHACS and Quay integration
 
-[source,bash,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" \
   image scan --image=$QUAY_URL/$QUAY_USER/frontend:0.1 --force -o table | head -25
@@ -196,7 +196,7 @@ roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" \
 
 After making the *frontend* repository public, run the second setup phase:
 
-[source,bash,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 cd ~/openshift-security-roadshow
 bash setup/lab-environment.sh --deploy-skupper-only
@@ -233,7 +233,7 @@ Patient portal deployed. Frontend image: quay-h2xfr.apps.cluster-h2xfr.h2xfr.san
 
 Verify the application is running:
 
-[source,bash,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get pods -n patient-portal
 ----
@@ -268,7 +268,7 @@ include::partial$security-exercise-task-intro.adoc[]
 ====
 Variables come from `~/.bashrc`.
 
-[source,bash,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 source ~/.bashrc
 oc get deploy frontend -n patient-portal \
@@ -282,7 +282,7 @@ echo "Expected: ${QUAY_URL}/${QUAY_USER}/frontend:0.1"
 ====
 Check where OpenShift pulled the image from.
 
-[source,bash,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc describe pod -n patient-portal -l app=frontend | grep -E 'Image:|Pull|Pulling|Pulled|Failed|Back-off'
 ----
@@ -301,7 +301,7 @@ oc describe pod -n patient-portal -l app=frontend | grep -E 'Image:|Pull|Pulling
 ====
 The `imageID` on the pod should include the same digest prefix (`sha256:...`) as the Quay manifest.
 
-[source,bash,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 source ~/.bashrc
 podman inspect --format='Quay digest: {{.Digest}}' ${QUAY_URL}/${QUAY_USER}/frontend:0.1
@@ -314,7 +314,7 @@ oc get pod -n patient-portal -l app=frontend -o jsonpath='{range .items[*]}{.met
 ====
 Confirm the scanned image matches what you deployed.
 
-[source,bash,role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 source ~/.bashrc
 roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS:443" \

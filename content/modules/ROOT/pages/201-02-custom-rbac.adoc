@@ -27,13 +27,13 @@ Crafting a custom Role removes silent “just in case” powers. It converts vag
 == Your Mission
 . Create a lab namespace:
 +
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 201-02-c-rbac-lab
 ----
 . Create a minimal Role (include patch so modern tooling works):
 +
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create role config-secret-updater \
   --verb=get --verb=list --verb=update --verb=patch \
@@ -41,21 +41,21 @@ oc create role config-secret-updater \
 ----
 . Bind the Role to a (demo) user:
 +
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create rolebinding updater-binding \
   --role=config-secret-updater --user=devuser
 ----
 . Seed sample objects:
 +
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create configmap app-config --from-literal=flag=on
 oc create secret generic db-creds --from-literal=password=Initial123!
 ----
 . Show allowed operations:
 +
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc auth can-i list configmaps --as devuser
 oc auth can-i update secret/db-creds --as devuser
@@ -64,7 +64,7 @@ oc patch secret db-creds -p '{"stringData":{"password":"Rotated456!"}}' --type=m
 ----
 . Show explicit denials (proof of least privilege):
 +
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc auth can-i create pods --as devuser
 oc run test --image=registry.access.redhat.com/ubi9/ubi --as devuser || echo DENIED
@@ -75,7 +75,7 @@ oc delete secret db-creds --as devuser || echo DENIED
 ----
 . Service Account variant (typical for automation):
 +
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create sa app-sa
 oc create rolebinding sa-updater \
@@ -86,13 +86,13 @@ oc auth can-i patch configmap/app-config \
 ----
 . (Optional) Disable default token automount to shrink passive risk:
 +
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc patch sa app-sa -p '{"automountServiceAccountToken":false}'
 ----
 . Cleanup when done:
 +
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project 201-02-c-rbac-lab --wait=false
 ----

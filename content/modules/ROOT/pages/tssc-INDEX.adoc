@@ -24,22 +24,19 @@ Audience and prerequisites:
 
 == TSSC Labs Index
 
-[cols="1,3,2,1",options="header"]
+[cols="1,3,2",options="header"]
 |===
-|Lab | Title | Focus | Status
+|Lab | Title | Focus
 
 |xref:tssc-00-intro.adoc[TSSC-00]
 |Trusted Artifact Signer — Container Signing
 |Sign and verify container images with TAS
-|Available
 
 |xref:tssc-01-git-signing.adoc[TSSC-01]
 |Git Commit Signing with Trusted Artifact Signer
 |Sign and verify git commits
-|Available
 
 |xref:tssc-02-trusted-profile-analyzer.adoc[TSSC-02]
 |Trusted Profile Analyzer
 |SBOM analysis and vulnerability insights
-|Available
 |===

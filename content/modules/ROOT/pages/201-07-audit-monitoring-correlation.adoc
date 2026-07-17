@@ -29,14 +29,14 @@ Connect audit evidence to monitoring signals so a suspected foothold’s actions
 * Permissions to read audit indices
 
 == Namespace & Pod
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 201-07-a-correlation
 oc run sleeper --image=registry.access.redhat.com/ubi9/ubi -- sleep 600
 ----
 
 == Suspicious Exec
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc exec sleeper -- sh -c 'id; uname -a'
 ----
@@ -55,7 +55,7 @@ Look for fields:
 * sourceIPs[]
 
 == Extract Fields (API Example)
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 # If you have direct file access (control plane), pseudo:
 grep sleeper /var/log/kube-apiserver/audit* | grep exec | tail -1
@@ -64,7 +64,7 @@ Parse JSON: identify timestamp, user, pod.
 
 == Metrics / Logs Correlation
 Check pod logs around timestamp:
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc logs sleeper -n 201-07-a-correlation --since=2m
 ----
@@ -81,7 +81,7 @@ Data Points:
 Add cluster / namespace labels when forwarding audit to SIEM for simplified queries.
 
 == Cleanup
-[source,sh]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project 201-07-a-correlation --wait=false
 ----

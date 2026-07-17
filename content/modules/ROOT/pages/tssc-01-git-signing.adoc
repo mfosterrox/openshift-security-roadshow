@@ -12,7 +12,7 @@
 
 Configure `git` to sign commits with `gitsign` using the same Fulcio/Rekor/OIDC endpoints as container signing.
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 cd /home/lab-user/demo-apps
 git status
@@ -20,7 +20,7 @@ git status
 
 Push the repo to the cluster GitLab instance ({gitlab_url}) using credentials `{gitlab_user}` / `{gitlab_user_password}`:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 export GITLAB_REPO_URL=https://$(oc get route gitlab -n gitlab | tail -n 1 | awk '{print $2}')/user1/demo-apps.git
 git remote remove origin 2>/dev/null || true
@@ -30,7 +30,7 @@ git push --set-upstream origin main
 
 Configure local git for X509/gitsign signing:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 git config --local commit.gpgsign true
 git config --local tag.gpgsign true
@@ -44,7 +44,7 @@ git config --local gitsign.clientID trusted-artifact-signer
 
 == Sign and push a commit
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 touch make-a-commit.txt
 git add .
@@ -58,7 +58,7 @@ image::11-signing-successcode.png[copy the success code]
 
 IMPORTANT: The *committer* name in git metadata can be set locally; the cryptographic *signer* identity (e.g. `jdoe@redhat.com`) comes from OIDC and is recorded in Rekor.
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 git push
 ----
@@ -71,21 +71,21 @@ image::11-gitlab-signature.png[unverified badge]
 
 Inspect the signature metadata:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 gitsign show
 ----
 
 Verify against Rekor and the trust root for a specific identity:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 gitsign verify --certificate-identity=jdoe@redhat.com --certificate-oidc-issuer $OIDC_ISSUER_URL
 ----
 
 Or verify any Red Hat signer authenticated via your cluster OIDC domain:
 
-[source,sh,subs="attributes",role=execute]
+[source,bash,subs="+macros,+attributes",role=execute]
 ----
 gitsign verify --certificate-identity-regexp ^[a-zA-Z0-9._%+-]+@redhat\.com$ --certificate-oidc-issuer-regexp \.opentlc\.com
 ----

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Reset transient lab resources after each ACS module.
-# Usage: bash setup/lab-cleanup.sh --module 01
+# Reset transient lab resources after each module.
+# Usage: bash setup/lab-cleanup.sh --module 101-01
 set -euo pipefail
 
 MODULE=""
@@ -23,6 +23,12 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+if [[ -z "${MODULE}" ]]; then
+  echo "Error: --module is required" >&2
+  usage
+  exit 1
+fi
+
 if [[ ! "${MODULE}" =~ ^(0[0-9]|10|101-[0-9]{2}|201-[0-9]{2}|301-[0-9]{2}|tssc-0[0-2])$ ]]; then
   echo "Error: unsupported module id '${MODULE}'" >&2
   usage
@@ -32,16 +38,18 @@ fi
 record_completion() {
   mkdir -p "${PROGRESS_DIR}"
   touch "${PROGRESS_FILE}"
-  if [[ -f "${PROGRESS_FILE}" ]]; then
-    grep -v "^MODULE=${MODULE} " "${PROGRESS_FILE}" > "${PROGRESS_FILE}.tmp" 2>/dev/null || true
-    mv "${PROGRESS_FILE}.tmp" "${PROGRESS_FILE}"
-  fi
+  # Ignore grep "no match" status under set -e
+  grep -v "^MODULE=${MODULE} " "${PROGRESS_FILE}" > "${PROGRESS_FILE}.tmp" 2>/dev/null || true
+  mv "${PROGRESS_FILE}.tmp" "${PROGRESS_FILE}"
   printf 'MODULE=%s COMPLETE %s user=%s\n' \
     "${MODULE}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$(whoami)" >> "${PROGRESS_FILE}"
 }
 
+# Load env vars (ROX_*, APP_HOME, etc.) without letting bashrc abort this script under set -e
+set +e
 # shellcheck source=/dev/null
-source "${HOME}/.bashrc" 2>/dev/null || true
+source "${HOME}/.bashrc" 2>/dev/null
+set -e
 
 echo "==> Cleaning up module ${MODULE} resources..."
 
@@ -106,6 +114,10 @@ case "${MODULE}" in
   10)
     rm -f /tmp/checkpointctl /tmp/checkpoint-payment-gateway_* 2>/dev/null || true
     echo "Removed CRIU checkpoint scratch files from /tmp."
+    ;;
+  101-01)
+    oc delete project 101-01-httpd-demo --wait=false 2>/dev/null || true
+    echo "Deleted project 101-01-httpd-demo (if it existed)."
     ;;
   *)
     rm -f "/tmp/lab-${MODULE}.txt" /tmp/lab-scratch-* 2>/dev/null || true
