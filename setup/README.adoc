@@ -109,7 +109,7 @@ Instructors can score many bastions from a CSV of SSH credentials with the helpe
 cd gameify
 python3 -m pip install -r requirements.txt
 python3 main.py --csv bastions.csv
-# optional custom module list:
+# optional subset (default scores the full catalog):
 python3 main.py --csv bastions.csv --modules 101-01,101-02,00
 ----
 

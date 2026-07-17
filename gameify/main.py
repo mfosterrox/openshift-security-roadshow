@@ -12,7 +12,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 PROGRESS_FILE = "/home/lab-user/.acs-roadshow/progress"
-DEFAULT_MODULES = [f"{i:02d}" for i in range(0, 10)] + ["10"]
+# Full roadshow catalog (same ids accepted by setup/lab-cleanup.sh)
+DEFAULT_MODULES = (
+    [f"{i:02d}" for i in range(0, 10)]
+    + ["10"]
+    + [f"101-{i:02d}" for i in range(1, 13)]
+    + [f"201-{i:02d}" for i in range(1, 12)]
+    + [f"301-{i:02d}" for i in range(1, 14)]
+    + ["tssc-00", "tssc-01", "tssc-02"]
+)
 DEFAULT_USER = "lab-user"
 DEFAULT_PORT = 22
 CONNECT_TIMEOUT = 15
@@ -144,23 +152,28 @@ def score_host(bastion: dict, modules: list[str]) -> list[str]:
         lines.append(error)
         for mod in modules:
             lines.append(f"Module {mod} failed")
+        lines.append(f"Summary: 0/{len(modules)} complete")
         return lines
 
     if progress_text is None:
         lines.append("Progress file unreadable")
         for mod in modules:
             lines.append(f"Module {mod} failed")
+        lines.append(f"Summary: 0/{len(modules)} complete")
         return lines
 
     if progress_text == "":
         lines.append(f"Progress file not found: {PROGRESS_FILE}")
 
     completed = parse_completed_modules(progress_text)
+    success_count = 0
     for mod in modules:
         if mod in completed:
             lines.append(f"Module {mod} success")
+            success_count += 1
         else:
             lines.append(f"Module {mod} failed")
+    lines.append(f"Summary: {success_count}/{len(modules)} complete")
     return lines
 
 
@@ -197,7 +210,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--modules",
-        help="Comma-separated module ids to score (default: ACS 00-10)",
+        help=(
+            "Comma-separated module ids to score "
+            "(default: all ACS 00-10, 101-01..12, 201-01..11, 301-01..13, tssc-00..02)"
+        ),
     )
     parser.add_argument(
         "--results",

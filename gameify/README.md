@@ -33,16 +33,18 @@ See [bastions.example.csv](bastions.example.csv).
 
 ## Usage
 
-Score ACS modules `00`–`10` (default) across every row in a CSV:
+Score **all** roadshow modules by default (ACS `00`–`10`, `101-*`, `201-*`, `301-*`, `tssc-*`) across every row in a CSV:
 
 ```bash
 python3 main.py --csv bastions.csv
 ```
 
-Score a custom module list (role-track event):
+Score a custom subset (for example a role-track event):
 
 ```bash
 python3 main.py --csv bastions.csv --modules 101-01,101-02,101-03
+# ACS-only:
+python3 main.py --csv bastions.csv --modules 00,01,02,03,04,05,06,07,08,09,10
 ```
 
 Quick single-host test:
