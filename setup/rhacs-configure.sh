@@ -101,23 +101,33 @@ mkdir -p "${LOG_DIR}"
 LOG_FILE="${LOG_DIR}/rhacs-configure-$(date +%Y%m%d-%H%M%S).log"
 progress_init "${TOTAL}" "${LOG_FILE}" "RHACS configure"
 
+persist_rox_exports() {
+  local host_only=$1
+  local token=$2
+  local env_file="${HOME}/.acs-roadshow/env"
+  mkdir -p "$(dirname "${env_file}")"
+  touch "${env_file}"
+  for dest in "${env_file}" "${HOME}/.bashrc"; do
+    [[ -f "${dest}" ]] || touch "${dest}"
+    for name in ROX_CENTRAL_ADDRESS ROX_API_TOKEN; do
+      if grep -qE "^(export[[:space:]]+)?${name}=" "${dest}" 2>/dev/null; then
+        sed -i.bak "/^export ${name}=/d;/^${name}=/d" "${dest}" 2>/dev/null || \
+          sed -i '' "/^export ${name}=/d;/^${name}=/d" "${dest}" 2>/dev/null || true
+      fi
+    done
+    {
+      printf 'export ROX_CENTRAL_ADDRESS=%q\n' "${host_only}"
+      printf 'export ROX_API_TOKEN=%q\n' "${token}"
+    } >> "${dest}"
+  done
+}
+
 resolve_token_step() {
   resolve_rox_central_address || return 1
   ensure_rox_api_token || return 1
   export ROX_CENTRAL_ADDRESS ROX_API_TOKEN RHACS_NAMESPACE
   HOST_ONLY="$(rox_central_host)"
-  if [[ -f "${HOME}/.bashrc" ]]; then
-    for name in ROX_CENTRAL_ADDRESS ROX_API_TOKEN; do
-      if grep -qE "^(export[[:space:]]+)?${name}=" "${HOME}/.bashrc" 2>/dev/null; then
-        sed -i.bak "/^export ${name}=/d;/^${name}=/d" "${HOME}/.bashrc" 2>/dev/null || \
-          sed -i '' "/^export ${name}=/d;/^${name}=/d" "${HOME}/.bashrc" 2>/dev/null || true
-      fi
-    done
-    {
-      printf 'export ROX_CENTRAL_ADDRESS=%q\n' "${HOST_ONLY}"
-      printf 'export ROX_API_TOKEN=%q\n' "${ROX_API_TOKEN}"
-    } >> "${HOME}/.bashrc"
-  fi
+  persist_rox_exports "${HOST_ONLY}" "${ROX_API_TOKEN}"
   export ROX_CENTRAL_ADDRESS="${HOST_ONLY}"
   echo "ROX_CENTRAL_ADDRESS=${HOST_ONLY}"
   echo "ROX_API_TOKEN set (${#ROX_API_TOKEN} chars)"
@@ -177,5 +187,5 @@ progress_success_banner "RHACS configure completed successfully" \
 
 cat <<EOF
   ROX_CENTRAL_ADDRESS=${HOST_ONLY}
-  ROX_API_TOKEN=<in ~/.bashrc>
+  ROX_API_TOKEN=<in ~/.acs-roadshow/env and ~/.bashrc>
 EOF

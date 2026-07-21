@@ -25,7 +25,7 @@ bash setup/lab-environment.sh \
 source ~/.bashrc
 ----
 
-TIP: Feel free to move on to your first module while the lab environment script runs in the background.
+TIP: Feel free to sign into the consoles while the lab environment script runs in the background.
 
 == All lab components
 

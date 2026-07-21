@@ -29,18 +29,46 @@ WORK_DIR="${HOME}"
 
 DEMO_APPS_REPO="${DEMO_APPS_REPO:-https://github.com/mfosterrox/demo-apps.git}"
 SKUPPER_REPO="${SKUPPER_REPO:-https://github.com/mfosterrox/skupper-security-demo.git}"
+ROADSHOW_ENV_FILE="${HOME}/.acs-roadshow/env"
 
+# Persist lab vars to a dedicated env file (safe to source from scripts) and ~/.bashrc
+# (for interactive shells). Never source ~/.bashrc from this script — bastion images
+# often call `exit` for non-interactive shells, which aborts setup mid-run.
 persist_var() {
   local name=$1
   local value=$2
-  touch "${HOME}/.bashrc"
+  mkdir -p "$(dirname "${ROADSHOW_ENV_FILE}")"
+  touch "${ROADSHOW_ENV_FILE}" "${HOME}/.bashrc"
+  if grep -q "^export ${name}=" "${ROADSHOW_ENV_FILE}" 2>/dev/null; then
+    sed -i "/^export ${name}=/d" "${ROADSHOW_ENV_FILE}"
+  fi
   if grep -q "^export ${name}=" "${HOME}/.bashrc" 2>/dev/null; then
-    # shellcheck disable=SC2016
     sed -i "/^export ${name}=/d" "${HOME}/.bashrc"
   fi
+  printf 'export %s=%q\n' "${name}" "${value}" >> "${ROADSHOW_ENV_FILE}"
   printf 'export %s=%q\n' "${name}" "${value}" >> "${HOME}/.bashrc"
   # shellcheck disable=SC2163
   export "${name}=${value}"
+}
+
+load_roadshow_env() {
+  if [[ -f "${ROADSHOW_ENV_FILE}" ]]; then
+    # shellcheck source=/dev/null
+    source "${ROADSHOW_ENV_FILE}"
+    return 0
+  fi
+  # Fallback: pull only known exports from ~/.bashrc without executing the full file
+  if [[ -f "${HOME}/.bashrc" ]]; then
+    local line
+    while IFS= read -r line || [[ -n "${line}" ]]; do
+      case "${line}" in
+        export\ ROX_*|export\ QUAY_*|export\ TUTORIAL_HOME=*|export\ APP_HOME=*)
+          # shellcheck disable=SC2163
+          eval "${line}"
+          ;;
+      esac
+    done < "${HOME}/.bashrc"
+  fi
 }
 
 usage() {
@@ -86,8 +114,7 @@ deploy_skupper() {
   persist_var APP_HOME "${WORK_DIR}/skupper-app"
 
   if [[ -z "${QUAY_URL:-}" || -z "${QUAY_USER:-}" ]]; then
-    # shellcheck source=/dev/null
-    source "${HOME}/.bashrc" 2>/dev/null || true
+    load_roadshow_env
   fi
 
   sed -i "s|quay.io/mfoster/patient-portal-frontend:1.0|${QUAY_URL}/${QUAY_USER}/frontend:0.1|g" \
@@ -145,9 +172,8 @@ do_cli_vars() {
   ROX_CENTRAL_ADDRESS="${ROX_CENTRAL_ADDRESS#http://}"
   persist_var ROX_CENTRAL_ADDRESS "${ROX_CENTRAL_ADDRESS}"
 
-  if [[ -z "${ROX_API_TOKEN:-}" ]] && grep -q '^export ROX_API_TOKEN=' "${HOME}/.bashrc" 2>/dev/null; then
-    # shellcheck source=/dev/null
-    source "${HOME}/.bashrc"
+  if [[ -z "${ROX_API_TOKEN:-}" ]]; then
+    load_roadshow_env
   fi
 
   if [[ -z "${ROX_PASSWORD:-}" ]]; then
@@ -265,8 +291,11 @@ do_golden_image() {
 
 do_frontend_image() {
   ensure_podman || return 1
-  # shellcheck source=/dev/null
-  source "${HOME}/.bashrc"
+  load_roadshow_env
+  if [[ -z "${TUTORIAL_HOME:-}" || -z "${QUAY_URL:-}" || -z "${QUAY_USER:-}" ]]; then
+    echo "Error: TUTORIAL_HOME / QUAY_URL / QUAY_USER must be set before building the frontend image." >&2
+    return 1
+  fi
   sed -i "s|^FROM python:3\.12-alpine AS \(\w\+\)|FROM ${QUAY_URL}/${QUAY_USER}/python-alpine-golden:0.1 AS \1|" \
     "${TUTORIAL_HOME}/app-images/frontend/Dockerfile"
   cd "${TUTORIAL_HOME}/app-images/frontend/"
@@ -310,7 +339,11 @@ if [[ "${SKIP_IMAGES}" != true ]]; then
 fi
 
 if [[ -n "${configure_pid}" ]]; then
-  progress_render "Waiting for RHACS configure to finish"
+  # Heartbeat while background configure runs so the bar does not look stuck.
+  while kill -0 "${configure_pid}" 2>/dev/null; do
+    progress_render "Waiting for RHACS configure to finish"
+    sleep 2
+  done
   set +e
   wait "${configure_pid}"
   cfg_rc=$?
@@ -326,8 +359,8 @@ if [[ -n "${configure_pid}" ]]; then
     echo "===== $(date -u +%Y-%m-%dT%H:%M:%SZ) END background rhacs-configure (ok) ====="
     cat "${configure_log}"
   } >> "${LOG_FILE}"
-  # shellcheck source=/dev/null
-  source "${HOME}/.bashrc" 2>/dev/null || true
+  progress_render "RHACS configure finished"
+  load_roadshow_env
 fi
 
 if [[ "${SKIP_IMAGES}" != true ]]; then
@@ -335,23 +368,31 @@ if [[ "${SKIP_IMAGES}" != true ]]; then
 fi
 
 progress_done "Lab environment setup complete"
+load_roadshow_env
 
 progress_success_banner "Lab environment setup completed successfully" \
-  "RHACS CLI ready (ROX_CENTRAL_ADDRESS / ROX_API_TOKEN in ~/.bashrc)" \
+  "RHACS CLI ready (ROX_CENTRAL_ADDRESS / ROX_API_TOKEN saved)" \
   "Workshop demo applications deployed" \
   "Quay images ready (golden base + frontend, when image steps ran)" \
+  "Env file: ${ROADSHOW_ENV_FILE}" \
   "Detailed log: ${LOG_FILE}"
 
 cat <<EOF
+================================================================
+  SETUP COMPLETE — you can continue with the labs
+================================================================
+
 Environment summary
   TUTORIAL_HOME=${TUTORIAL_HOME:-not set}
   QUAY_USER=${QUAY_USER}
   QUAY_URL=${QUAY_URL:-not set}
-  ROX_CENTRAL_ADDRESS=${ROX_CENTRAL_ADDRESS}
-  ROX_API_TOKEN=<set in ~/.bashrc, ${#ROX_API_TOKEN} chars>
+  ROX_CENTRAL_ADDRESS=${ROX_CENTRAL_ADDRESS:-not set}
+  ROX_API_TOKEN=<set, ${#ROX_API_TOKEN} chars>
+  Env file: ${ROADSHOW_ENV_FILE}
 
 NEXT STEPS
   1. Reload your shell:  source ~/.bashrc
+     (or: source ${ROADSHOW_ENV_FILE})
   2. Open the Quay console and browse the frontend repository (see module 00).
   3. Make the frontend repository PUBLIC under Repository Settings.
   4. Deploy the patient-portal application:

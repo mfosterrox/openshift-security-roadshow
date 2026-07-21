@@ -12,6 +12,8 @@ Projects and namespaces draw hard lines between teams and apps. Use them to keep
 
 Create a project with security labels, bind RBAC, and apply a ResourceQuota so you can see how namespaces isolate ownership and capacity.
 
+TIP: An OpenShift *project* is a namespace plus metadata/access controls; create one boundary per team/environment/app; namespaces can talk by default—restrict with NetworkPolicy.
+
 == Why it matters
 On a shared cluster, a single flat namespace becomes everyone’s problem
 
@@ -201,18 +203,14 @@ oc describe quota team-quota -n team-payments-dev
 
 == Debrief
 
-You drew a project boundary, scoped `edit` RBAC inside it, and capped CPU/memory/pods with a ResourceQuota. That is the pattern: trap a compromise or a runaway workload in one namespace instead of the whole cluster.
+You drew a project boundary, scoped `edit` RBAC inside it, and capped CPU/memory/pods with a ResourceQuota. This traps a compromise or a runaway workload in one namespace instead of the whole cluster.
 
 What breaks without this:
 
 * No RBAC scope → lateral access and Secret theft across teams
 * No ResourceQuota → noisy-neighbor DoS
 * No NetworkPolicy (next labs) → open east-west traffic by default
-* Inconsistent labels → policy engines miss the tenant
-
-Controls that matter: projects for ownership, namespace RBAC for least privilege, ResourceQuota for fair multi-tenancy, NetworkPolicy for segmentation, consistent labels for targeting.
-
-Quick facts: an OpenShift *project* is a namespace plus metadata/access controls; create one boundary per team/environment/app; namespaces can talk by default—restrict with NetworkPolicy.
+* Inconsistent labels → policy engines like Red Hat Advanced Cluster Security miss the tenant
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNxZGd5Zm5qMnlpOHhrbm1hY2pwcG5ydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p18ohAgD3H60LSoI1C/giphy.gif[link=self, window=blank, width=100%, class="center"]
 

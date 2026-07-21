@@ -88,24 +88,31 @@ bash setup/lab-environment.sh \
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-==> Verifying OpenShift admin access
-system:admin
+Lab environment setup
+Details: /home/lab-user/.acs-roadshow/lab-environment-YYYYMMDD-HHMMSS.log
 
-==> Configuring RHACS CLI variables
-==> Verifying roxctl access to RHACS Central
-User name:
-	anonymous bearer token "pipelines-ci-token" with roles [Admin]
+[############################] 9/9  Lab environment setup complete
 
-==> Deploying vulnerable workshop applications
-namespace/backend created
-...
+================================================================
+  SUCCESS: Lab environment setup completed successfully
+================================================================
 
-==> Setup complete — variables saved to ~/.bashrc
-NEXT STEPS:
-  1. Open the Quay console and browse the frontend repository.
-  2. Make the frontend repository PUBLIC under Repository Settings.
-  3. Deploy the patient-portal application:
-     cd openshift-security-roadshow && bash setup/lab-environment.sh --deploy-skupper-only
+  ✓ RHACS CLI ready (ROX_CENTRAL_ADDRESS / ROX_API_TOKEN saved)
+  ✓ Workshop demo applications deployed
+  ✓ Quay images ready (golden base + frontend, when image steps ran)
+  ✓ Env file: /home/lab-user/.acs-roadshow/env
+  ✓ Detailed log: /home/lab-user/.acs-roadshow/lab-environment-....log
+
+================================================================
+  SETUP COMPLETE — you can continue with the labs
+================================================================
+
+NEXT STEPS
+  1. Reload your shell:  source ~/.bashrc
+  2. Open the Quay console and browse the frontend repository.
+  3. Make the frontend repository PUBLIC under Repository Settings.
+  4. Deploy the patient-portal application:
+     bash setup/lab-environment.sh --deploy-skupper-only
 ----
 
 IMPORTANT: PodSecurity warnings during `oc apply` are expected—you are deploying intentionally vulnerable applications for the workshop.

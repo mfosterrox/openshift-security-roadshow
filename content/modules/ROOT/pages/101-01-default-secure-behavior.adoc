@@ -7,7 +7,7 @@
 :toc:
 :icons: font
 
-**Duration:** ~15 minutes
+**Duration:** ~10 minutes
 
 == Overview
 OpenShift assumes many container images were built for permissive environments. By default it runs containers as non-root and blocks privileged ports such as 80. Images that already follow those rules—non-root user, listen on 8080 or higher—deploy cleanly. Images that expect root or port 80 fail until you fix them or accept a risky exception.
@@ -50,7 +50,7 @@ oc get pods -l app=web
 oc get pods -l app=web -o wide
 ----
 
-NOTE: The pod should land in `CrashLoopBackOff` with a rising restart count—the cluster refused to run this image with the privileges it assumed on a laptop.
+NOTE: The pod should land in `CrashLoopBackOff/Error` with a rising restart count—the cluster refused to run this image with the privileges it assumed on a laptop.
 
 === Investigate why the deployment failed
 
@@ -148,15 +148,24 @@ oc expose service/web
 
 Hit the Route and confirm the hardened image serves traffic. Success means the business still works while the privilege assumptions from the public image remain closed.
 
+First, get the route and store in variable:
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get route web
 ROUTE=$(oc get route web -o jsonpath='{.spec.host}')
+echo "http://$ROUTE"
+----
+
+Then, test the service with curl commands:
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 curl -s -o /dev/null -w "%{http_code}" "http://$ROUTE/" && echo " OK"
 curl -s "http://$ROUTE/" | head -5
 ----
 
-TIP: the service does not have a certificate, so https traffic will fail. Use http instead.
+TIP: The service does not have a certificate, so https traffic will fail. Use http instead.
 
 == Debrief
 

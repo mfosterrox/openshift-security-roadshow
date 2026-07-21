@@ -4,7 +4,6 @@
 
 xref:index.adoc[← Back to home] · Start from a role: xref:track-application-developer.adoc[Application Developer] · xref:track-platform-operator.adoc[Platform Operator] · xref:track-devsecops-engineer.adoc[DevSecOps] · xref:track-security-architect.adoc[Security Architect] · xref:track-network-infrastructure.adoc[Network & Infrastructure]
 
-Skills and role ownership follow the https://ralvares.github.io/openshift-security-framework/[OpenShift Security Skills Framework^].
 
 == Overview
 

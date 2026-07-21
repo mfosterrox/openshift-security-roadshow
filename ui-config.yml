@@ -10,7 +10,7 @@ tabs:
 - name: OpenShift Console
   url: 'https://console-openshift-console.${DOMAIN}'
 - name: Red Hat Advanced Cluster Security
-  url: 'https://central-stackrox.${DOMAIN}'
+  url: 'https://central-reencrypt-stackrox.${DOMAIN}'
 - name: Red Hat Quay
   url: 'https://quay.${DOMAIN}'
 - name: Bastion
