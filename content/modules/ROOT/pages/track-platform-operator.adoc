@@ -54,7 +54,7 @@ For deeper segmentation, also use NetworkPolicy foundations in 101-05 and coordi
 . xref:301-07-automated-remediation.adoc[301-07 — Automated Remediation & Policy Enforcement]
 . xref:301-08-security-culture-maturity.adoc[301-08 — Security Culture & Maturity]
 
-== Optional product deep-dives
+== Product deep-dives
 
 * xref:acs-INDEX.adoc[RHACS] — platform vulnerability, compliance, and policy operations
 * xref:tssc-INDEX.adoc[TSSC] — when supporting signing infrastructure consumers

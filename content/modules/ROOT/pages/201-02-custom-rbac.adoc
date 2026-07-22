@@ -25,36 +25,51 @@ Most real security incidents aren’t cinematic hacks—they’re ordinary crede
 Crafting a custom Role removes silent “just in case” powers. It converts vague responsibility (“Dev team rights”) into precise intent (“May adjust non-sensitive app configuration values and rotate one secret”). That precision speeds investigations and compliance reviews.
 
 == Your Mission
-. Create a lab namespace:
-+
+Click each step only if you need a hint.
+
+.Create a lab namespace
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 201-02-c-rbac-lab
 ----
-. Create a minimal Role (include patch so modern tooling works):
-+
+====
+
+.Create a minimal Role (include patch so modern tooling works)
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create role config-secret-updater \
   --verb=get --verb=list --verb=update --verb=patch \
   --resource=configmaps,secrets
 ----
-. Bind the Role to a (demo) user:
-+
+====
+
+.Bind the Role to a (demo) user
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create rolebinding updater-binding \
   --role=config-secret-updater --user=devuser
 ----
-. Seed sample objects:
-+
+====
+
+.Seed sample objects
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create configmap app-config --from-literal=flag=on
 oc create secret generic db-creds --from-literal=password=Initial123!
 ----
-. Show allowed operations:
-+
+====
+
+.Show allowed operations
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc auth can-i list configmaps --as devuser
@@ -62,8 +77,11 @@ oc auth can-i update secret/db-creds --as devuser
 oc patch configmap app-config -p '{"data":{"flag":"off"}}' --type=merge --as devuser
 oc patch secret db-creds -p '{"stringData":{"password":"Rotated456!"}}' --type=merge --as devuser
 ----
-. Show explicit denials (proof of least privilege):
-+
+====
+
+.Show explicit denials (proof of least privilege)
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc auth can-i create pods --as devuser
@@ -73,8 +91,11 @@ oc create rolebinding bogus --clusterrole=view --user=devuser --as devuser || ec
 oc auth can-i delete secret/db-creds --as devuser
 oc delete secret db-creds --as devuser || echo DENIED
 ----
-. Service Account variant (typical for automation):
-+
+====
+
+.Service Account variant (typical for automation)
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create sa app-sa
@@ -84,18 +105,16 @@ oc create rolebinding sa-updater \
 oc auth can-i patch configmap/app-config \
   --as system:serviceaccount:201-02-c-rbac-lab:app-sa
 ----
-. (Optional) Disable default token automount to shrink passive risk:
-+
+====
+
+.Disable default token automount to shrink passive risk
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc patch sa app-sa -p '{"automountServiceAccountToken":false}'
 ----
-. Cleanup when done:
-+
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-oc delete project 201-02-c-rbac-lab --wait=false
-----
+====
 
 == Debrief
 

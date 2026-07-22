@@ -28,13 +28,20 @@ Someone may already have exec’d into a pod or opened a port-forward tunnel. Yo
 
 Assuming `audit.json` file (JSON lines).
 
-=== Confirm the evidence file is present
+Click each step only if you need a hint.
+
+.Confirm the evidence file is present
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 ls -l audit.json
 ----
+====
 
-=== Hunt every pod/exec — classic post-compromise foothold
+.Hunt every pod/exec — classic post-compromise foothold
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 jq 'select(.objectRef.subresource=="exec") | {time:.requestReceivedTimestamp,user:.user.username,ns:.objectRef.namespace,pod:.objectRef.name,cmd:.requestObject.command}' audit.json
@@ -44,37 +51,53 @@ Fallback:
 ----
 grep -F '"exec"' audit.json | head
 ----
+====
 
-=== Hunt port-forward tunnels — internal services exposed out
+.Hunt port-forward tunnels — internal services exposed out
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 jq 'select(.objectRef.subresource=="portforward") | {time:.requestReceivedTimestamp,user:.user.username,ns:.objectRef.namespace,pod:.objectRef.name}' audit.json
 ----
+====
 
-=== Focus the investigation on a suspected identity
+.Focus the investigation on a suspected identity
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 USER=suspect@example.com
 jq --arg U "$USER" 'select(.user.username==$U and (.objectRef.subresource=="exec" or .objectRef.subresource=="portforward")) | {time:.requestReceivedTimestamp,sub:.objectRef.subresource,pod:.objectRef.name,ns:.objectRef.namespace,sourceIPs:.sourceIPs}' audit.json
 ----
+====
 
-=== Stage distribution — did stages complete or abort?
+.Stage distribution — did stages complete or abort?
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 jq 'select(.objectRef.subresource=="exec") | .stage' audit.json | sort | uniq -c
 ----
+====
 
-=== Unique exec actors — who is pivoting live?
+.Unique exec actors — who is pivoting live?
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 jq 'select(.objectRef.subresource=="exec") | .user.username' audit.json | sort | uniq -c
 ----
+====
 
-=== Commands captured — what did they run?
+.Commands captured — what did they run?
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 jq 'select(.objectRef.subresource=="exec") | .requestObject.command' audit.json | sort | uniq -c
 ----
+====
 
 == Debrief
 

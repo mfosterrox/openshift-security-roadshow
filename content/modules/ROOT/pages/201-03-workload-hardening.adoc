@@ -25,14 +25,20 @@ Broad SCC usage silently enables:
 Hardening prunes that list down to essentials. Negative tests (deliberate failing pods) ensure protections aren’t theoretical.
 
 == Your Mission
-. Inspect baseline:
-+
+Click each step only if you need a hint.
+
+.Inspect baseline
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get scc restricted -o yaml | head -n 40
 ----
-. Create hardened SCC:
-+
+====
+
+.Create hardened SCC
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
@@ -74,15 +80,21 @@ users: []
 priority: 10
 EOF
 ----
-. Namespace + bind SCC:
-+
+====
+
+.Namespace + bind SCC
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 201-03-w-harden
 oc adm policy add-scc-to-group hardened-nonroot system:serviceaccounts:201-03-w-harden
 ----
-. Valid pod (should Run):
-+
+====
+
+.Valid pod (should Run)
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-03-w-harden -f - <<'EOF'
@@ -105,8 +117,11 @@ spec:
 EOF
 oc get pod good -n 201-03-w-harden -o jsonpath='{.metadata.annotations.openshift\.io/scc}{"\n"}'
 ----
-. Negative test – disallowed capability:
-+
+====
+
+.Negative test – disallowed capability
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-03-w-harden -f - <<'EOF'
@@ -125,8 +140,11 @@ spec:
 EOF
 oc describe pod bad-cap -n 201-03-w-harden | grep -i deni || true
 ----
-. Negative test – root UID:
-+
+====
+
+.Negative test – root UID
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-03-w-harden -f - <<'EOF'
@@ -143,19 +161,17 @@ spec:
     command: ["sh","-c","sleep 1000"]
 EOF
 ----
-Expected rejection / scheduling failure.
-. (Optional) Seccomp check:
-+
+NOTE: Expect a rejection or scheduling failure.
+====
+
+.Prove seccomp still blocks risky syscalls on the hardened pod
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc exec good -- unshare -m true || echo "Blocked or not permitted (expected)"
 ----
-. (Optional) Cleanup:
-+
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-oc delete project 201-03-w-harden --wait=false
-----
+====
 
 == Debrief
 

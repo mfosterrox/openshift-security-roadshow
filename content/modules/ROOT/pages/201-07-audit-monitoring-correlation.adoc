@@ -24,61 +24,81 @@ Audit logs alone and dashboards alone leave incident stories half-told. Correlat
 == Your Mission
 Connect audit evidence to monitoring signals so a suspected foothold’s actions and blast radius show up as one coherent story.
 
-== Prerequisites
+=== Prerequisites
+
 * Cluster logging or LokiStack configured (audit indexed)
 * Permissions to read audit indices
 
-== Namespace & Pod
+Click each step only if you need a hint.
+
+.Namespace & Pod
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 201-07-a-correlation
 oc run sleeper --image=registry.access.redhat.com/ubi9/ubi -- sleep 600
 ----
+====
 
-== Suspicious Exec
+.Suspicious Exec
+[%collapsible]
+====
+Run the exec more than once so audit shows repeated probing, not a one-off mistake.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc exec sleeper -- sh -c 'id; uname -a'
+oc exec sleeper -- sh -c 'id; uname -a'
 ----
-(Optional: exec multiple times to simulate repeated probing.)
+====
 
-== Query Audit (Conceptual Command)
+.Query Audit (Conceptual Command)
+[%collapsible]
+====
 If using Loki:
 [source,promql]
 ----
 {log_type="kube-apiserver"} |= `connect` |= `exec` |= `sleeper` | json
 ----
-Look for fields:
-* user.username
-* objectRef.name / namespace
-* verb (connect) + subresource=exec
-* sourceIPs[]
+TIP: Look for these fields in the results.
 
-== Extract Fields (API Example)
+* `user.username`
+* `objectRef.name` / namespace
+* verb (`connect`) + `subresource=exec`
+* `sourceIPs[]`
+====
+
+.Extract Fields (API Example)
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 # If you have direct file access (control plane), pseudo:
 grep sleeper /var/log/kube-apiserver/audit* | grep exec | tail -1
 ----
 Parse JSON: identify timestamp, user, pod.
+====
 
-== Metrics / Logs Correlation
+.Metrics / Logs Correlation
+[%collapsible]
+====
 Check pod logs around timestamp:
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc logs sleeper -n 201-07-a-correlation --since=2m
 ----
 If using ACS runtime, find corresponding process execution alert conceptually.
+====
 
 == Detection Logic Draft
+
 Rule: IF (exec to prod namespace pod) AND (user not in admin group) THEN alert severity=high.
 Data Points:
 * Audit: user, verb=connect, subresource=exec
 * RBAC: subject group membership
 * Namespace label: env=prod
-
-== (Optional) SIEM Enrichment
-Add cluster / namespace labels when forwarding audit to SIEM for simplified queries.
+* SIEM enrichment: cluster and namespace labels on forwarded audit events so queries stay simple
 
 == Debrief
 

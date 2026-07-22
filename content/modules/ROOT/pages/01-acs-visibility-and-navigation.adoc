@@ -346,7 +346,7 @@ image::fsi-security/sarah-call.png[Incident call,link=self, window=blank, width=
 ====
 . Review the risk factors: external exposure, suspicious processes, and configuration issues.
 
-Optionally, use global search with the query:
+Use global search with the query:
 
 [source]
 ----

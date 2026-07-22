@@ -37,33 +37,46 @@ Attackers prefer pods that already run as root. Refusing that by default removes
 == Your Mission
 Refuse the privilege ladder attackers want (`anyuid`, UID 0, port 80) and stop noisy-neighbor resource grabs with LimitRange and ResourceQuota. Complete Part A, then Part B.
 
+Click each step only if you need a hint.
+
 === Part A: SCC Limits & Non-Root Realities
 An unpatched vendor image wants root and port 80—exactly the privilege ladder attackers climb after breakout. Prove restricted SCC blocks it, see what `anyuid` would unlock if you caved, and document any unavoidable exception instead of silently normalizing root.
 
-==== Open a sandbox for the privilege test
+.Open a sandbox for the privilege test
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 101-04-s-scc-demo
 ----
+====
 
-==== Attacker-shaped deploy — bind privileged port 80
+.Attacker-shaped deploy — bind privileged port 80
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create deployment vendor-app --image=registry.access.redhat.com/ubi9/python-311 -- python3 -m http.server 80
 oc logs -l app=vendor-app --tail=50
 ----
-Mission check: CrashLoopBackOff with PermissionError (binding port 80).
+TIP: Expect `CrashLoopBackOff` with PermissionError (binding port 80).
+====
 
-==== Force UID 0 — expect the platform to refuse
+.Force UID 0 — expect the platform to refuse
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc patch deployment vendor-app --type='json' -p='[{"op":"add","path":"/spec/template/spec/securityContext","value":{"runAsUser":0}}]'
 oc rollout restart deployment/vendor-app
 oc get events --sort-by=.lastTimestamp | grep vendor-app | tail -n 5 || true
 ----
-Look for invalid UID range / runAsUser errors. That refusal is the win.
+TIP: Look for invalid UID range / runAsUser errors. That refusal is the win.
+====
 
-==== `anyuid` is the trap — try it only to understand the cost (cluster-admin)
+.`anyuid` is the trap — try it only to understand the cost (cluster-admin)
+[%collapsible]
+====
 Granting `anyuid` is how teams accidentally gift attackers root-in-container. Observe what it unlocks, then treat it as an anti-pattern.
 
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -74,11 +87,14 @@ oc exec deploy/vendor-app -- id -u || true
 oc logs -l app=vendor-app --tail=10 || true
 ----
 If it succeeded (not recommended): `id -u` = 0 and the server listens on 80 — privilege restored for whoever owns the pod next.
+====
 
-==== If you must accept risk, make the exception loud
+.If you must accept risk, make the exception loud
+[%collapsible]
+====
 For third-party apps you cannot rebuild, register a discoverable risk acceptance instead of a silent, forever grant.
 
-Multiple deployments? Prefer per-Deployment annotations; optionally index on the namespace with keys suffixed by deployment name.
+Multiple deployments? Prefer per-Deployment annotations; for a namespace index, use keys suffixed by deployment name.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -87,34 +103,46 @@ oc annotate namespace 101-04-s-scc-demo \
 	openshift.io/risk-accepted-approved-by.vendor-app="InfoSec Team" \
 	--overwrite
 ----
+====
 
-==== Prove the exception is audited
+.Prove the exception is audited
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get ns 101-04-s-scc-demo -o yaml | grep -E 'openshift.io/risk-accepted'
 ----
 
 NOTE: Keep this for exceptional cases. The preferred path is to rebuild images so they run under the restricted SCC without anyuid.
+====
 
-==== Cleanup
+.Cleanup
+[%collapsible]
+======
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project 101-04-s-scc-demo --wait=false
 ----
+====
 
 === Part B: Resource Usage (Quotas & Limits)
 Without quotas, one runaway or attacker-controlled scale-up eats the node’s CPU and memory—classic noisy-neighbor denial. Apply LimitRange and ResourceQuota so oversized grabs fail loudly.
 
 Namespace: `101-04-s-resources-demo`. Image: UBI `sleep infinity`.
 
-==== Claim the capacity sandbox
+.Claim the capacity sandbox
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 101-04-s-resources-demo
 oc project
 ----
+======
 
-==== LimitRange — default and cap every container
+.LimitRange — default and cap every container
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
@@ -143,13 +171,20 @@ spec:
       memory: "4"
 EOF
 ----
-==== Verify defaults are now enforced
+====
+
+.Verify defaults are now enforced
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get limitrange default-limits -o jsonpath='{.spec.limits[0]}' | sed 's/,/\n/g'
 ----
+====
 
-==== ResourceQuota — stop cluster-wide resource theft
+.ResourceQuota — stop cluster-wide resource theft
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create quota compute-quota \
@@ -160,17 +195,23 @@ oc create quota compute-quota \
   --hard=pods=10
 oc describe quota compute-quota | sed -n '1,25p'
 ----
+====
 
-==== Deploy without oversized requests — defaults fill in
+.Deploy without oversized requests — defaults fill in
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create deployment stress --image=registry.access.redhat.com/ubi9/ubi -- /bin/sh -c "sleep infinity"
 oc wait --for=condition=Available deployment/stress --timeout=90s
 oc get pod -l app=stress -o jsonpath='{.items[0].spec.containers[0].resources}{"\n"}'
 ----
-Mission check: requests 100m/128Mi; limits 500m/256Mi.
+TIP: Expect requests 100m/128Mi and limits 500m/256Mi.
+====
 
-==== Resize within the allowed envelope
+.Resize within the allowed envelope
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc set resources deploy/stress --requests=cpu=300m,memory=256Mi --limits=cpu=800m,memory=512Mi
@@ -178,8 +219,11 @@ oc rollout restart deploy/stress
 oc wait --for=condition=Available deployment/stress --timeout=90s
 oc get pod -l app=stress -o jsonpath='{.items[0].spec.containers[0].resources}{"\n"}'
 ----
+====
 
-==== Reject the oversize grab (admission stops the DoS path)
+.Reject the oversize grab (admission stops the DoS path)
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc set resources deployment/stress --limits=cpu=2,memory=1Gi
@@ -188,20 +232,27 @@ oc get deploy stress -o jsonpath='{range .status.conditions[*]}{.type}:{.reason}
 oc get pod -l app=stress -o jsonpath='{.items[0].spec.containers[0].resources}{"\n"}'
 oc get deploy stress -o jsonpath='{.spec.template.spec.containers[0].resources.limits}{"\n"}'
 ----
+====
 
-==== Reject replica flood beyond pod quota
+.Reject replica flood beyond pod quota
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc scale deployment stress --replicas=25 || true
 oc get events --sort-by=.lastTimestamp | grep -E 'FailedCreate.*compute-quota' | tail -1 || true
 oc get quota compute-quota
 ----
+====
 
-==== Cleanup
+.Cleanup
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project 101-04-s-resources-demo --wait=false
 ----
+====
 
 == Debrief
 

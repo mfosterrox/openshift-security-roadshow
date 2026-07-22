@@ -26,13 +26,20 @@ Sovereign cloud requirements mandate that data remains within specific geographi
 == Your Mission
 Complete the examples below to close the attack paths this lab covers—treat each step as defending the cluster, not just clicking through commands.
 
-=== Configure OAuth identity provider
+Click each step only if you need a hint.
+
+.Configure OAuth identity provider
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get oauth cluster -o yaml
 ----
+====
 
-=== Create identity provider configuration
+.Create identity provider configuration
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
@@ -58,22 +65,32 @@ spec:
         preferredUsername: ["uid"]
 EOF
 ----
+====
 
-=== Verify identity provider
+.Verify identity provider
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get oauth cluster -o jsonpath='{.spec.identityProviders[*].name}'
 ----
+====
 
-=== Configure data residency (informational)
+.Configure data residency (informational)
+[%collapsible]
+====
 NOTE: Data residency is typically configured at the cluster installation level or through cluster configuration. This may involve:
 - Node placement policies
 - Storage class restrictions
 - Network policies for data flow
 - Compliance operator configurations
+====
 
-=== Cleanup
+.Cleanup
+[%collapsible]
+====
 No cleanup needed for this lab.
+====
 
 == Debrief
 

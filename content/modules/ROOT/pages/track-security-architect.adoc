@@ -65,7 +65,7 @@ Core responsibilities (framework):
 
 Runtime detection engineering is owned by xref:track-devsecops-engineer.adoc[DevSecOps]; review xref:301-04-runtime-threat-detection.adoc[301-04] when designing the detection portfolio.
 
-== Optional product deep-dives
+== Product deep-dives
 
 * xref:acs-INDEX.adoc[RHACS] — runtime, policy, and compliance architecture context
 * xref:tssc-INDEX.adoc[TSSC] — supply-chain provenance stack

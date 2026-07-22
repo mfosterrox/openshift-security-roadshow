@@ -288,7 +288,7 @@ export PATH=/tmp:$PATH
 checkpointctl inspect --ps-tree-env /tmp/checkpoint-payment-gateway_payment-gateway*
 ----
 
-Look for `exfil.sh` in the process tree—the smoking gun from the simulated intrusion.
+TIP: Look for `exfil.sh` in the process tree—the smoking gun from the simulated intrusion.
 ====
 
 === What you learned

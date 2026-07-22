@@ -27,19 +27,27 @@ Shipping an image that needs root pushes teams toward `anyuid` and other SCC exc
 == Your Mission
 The public `httpd` image just crashed because it wants root and port 80—the same privilege attackers hope you unlock with `anyuid`. Rebuild on UBI so the app serves under restricted SCC, prove the UID stays non-root, and expose it without widening the blast radius.
 
-=== Open the rebuild sandbox
+Click each step only if you need a hint.
+
+.Open the rebuild sandbox
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 101-11-r-rebuild
 ----
+====
 
-=== Reproduce the attack-friendly image failure
+.Reproduce the attack-friendly image failure
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create deployment webapp --image=httpd
 oc logs -l app=webapp --tail=40 || true
 ----
-Expected failure snippet:
+NOTE: Expected failure resembles the following.
+
 [source,text]
 ----
 AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 10.128.2.191. Set the 'ServerName' directive globally to suppress this message
@@ -48,6 +56,7 @@ AH00558: httpd: Could not reliably determine the server's fully qualified domain
 no listening sockets available, shutting down
 AH00015: Unable to open logs
 ----
+
 Reason: Port 80 needs elevated privileges, root-owned log dirs, and clashes with random non-root UID injection.
 
 Why this image is a defender’s problem:
@@ -56,11 +65,14 @@ Why this image is a defender’s problem:
 * Writes under root-owned paths (fails for random UIDs)
 * Not built for OpenShift restricted SCC
 
-Result: admission deny or crash-loop—do not “fix” with `anyuid`. Rebuild instead.
+TIP: admission deny or crash-loop—do not “fix” with `anyuid`. Rebuild instead.
 
 NOTE: Rebuild on trusted UBI 9 httpd 2.4 (registry.access.redhat.com / registry.redhat.io). It runs non-root and listens on 8080. We copy a sample `index.html`; real apps place their site files the same way.
+====
 
-=== Build the defended image context
+.Build the defended image context
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 mkdir -p build && cd build
@@ -76,30 +88,39 @@ USER 1001
 EXPOSE 8080
 EOF
 ----
+====
 
-=== Build inside OpenShift (no laptop privilege shortcuts)
+.Build inside OpenShift (no laptop privilege shortcuts)
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-build --name webapp --binary --strategy=docker
 oc start-build webapp --from-dir=. --follow
 oc get is
 ----
+====
 
-=== Roll the defended image into production position
+.Roll the defended image into production position
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc set image deployment/webapp *=image-registry.openshift-image-registry.svc:5000/101-11-r-rebuild/webapp:latest
 oc rollout status deployment/webapp
 oc logs -l app=webapp --tail=40 || true
 ----
+====
 
-=== Prove non-root and restricted SCC still hold
+.Prove non-root and restricted SCC still hold
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc exec deploy/webapp -- id -u
 oc get pod -l app=webapp -o jsonpath='{.items[0].metadata.annotations.openshift\.io/scc}{"\n"}'
 ----
-Mission check:
+TIP: Confirm both of the following:
 
 * `id -u` is non-zero (NOT 0)
 * SCC annotation shows `restricted-v2`
@@ -110,8 +131,11 @@ What `restricted-v2` denies the attacker:
 * No privilege escalation; no hostPID/IPC/Network
 * Capabilities dropped; extra caps blocked
 * Default seccomp + SELinux MCS isolation
+====
 
-=== Expose the service without privilege growth
+.Expose the service without privilege growth
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc expose deployment webapp --port=8080 --target-port=8080
@@ -121,12 +145,16 @@ curl -s http://$ROUTE | head -3
 ----
 
 NOTE: Keep the project for the TLS lab (101-12). Delete only when finished with both.
+====
 
-=== Cleanup
+.Cleanup
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project 101-11-r-rebuild --wait=false
 ----
+====
 
 == Debrief
 

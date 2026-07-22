@@ -34,7 +34,11 @@ Clear project boundaries make ownership obvious and keep mistakes contained.
 == Your Mission
 Without project boundaries, one compromised identity or runaway workload can reach every tenant’s Secrets, CPU, and pods. Draw hard lines—labels, RBAC, and quotas—so a break-in stays trapped in one namespace instead of becoming a cluster-wide outage.
 
-=== Claim a defended territory with security labels
+Click each step only if you need a hint.
+
+.Claim a defended territory with security labels
+[%collapsible]
+====
 Stand up a dedicated project so this tenant has its own boundary—not shared free-for-all space.
 
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -55,8 +59,11 @@ Confirm the labels stuck on the project:
 ----
 oc get namespace 101-02-demo --show-labels
 ----
+====
 
-=== Stop casual privilege sprawl with namespace RBAC
+.Stop casual privilege sprawl with namespace RBAC
+[%collapsible]
+====
 Bind a team to `edit` only inside this project. That scopes privilege to the boundary you just created—not the whole cluster.
 
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -72,8 +79,11 @@ oc auth can-i create pods --as=system:serviceaccount:101-02-demo:default -n 101-
 ----
 
 NOTE: Expect `no`. The RoleBinding targets the `dev-team` group; the default service account is still denied.
+====
 
-=== Cap a noisy-neighbor DoS with ResourceQuota
+.Cap a noisy-neighbor DoS with ResourceQuota
+[%collapsible]
+====
 Buggy apps (and noisy neighbors) burn the cluster with oversized requests. Put a ceiling on CPU, memory, and pods so one namespace cannot starve the rest.
 
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -87,6 +97,7 @@ Inspect the quota to confirm the hard limits and current usage:
 ----
 oc describe quota demo-quota -n 101-02-demo
 ----
+====
 
 == Challenge: onboard a new team
 

@@ -95,7 +95,7 @@ image::ex-net-5.png[link=self, window=blank, width=100%]
 image::ex-net-7.png[link=self, window=blank, width=100%]
 
 ====
-You should see no active YAMLs in the namespace since we have not created any network policies in the backend namespace.
+TIP: You should see no active YAMLs in the namespace since we have not created any network policies in the backend namespace.
 ====
 
 [start=6]

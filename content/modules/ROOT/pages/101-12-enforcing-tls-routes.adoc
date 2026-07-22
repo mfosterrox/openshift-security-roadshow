@@ -29,23 +29,33 @@ Plain HTTP is free surveillance for anyone on the path—credentials, cookies, A
 
 Prereq: project from 101-11 (`101-11-r-rebuild`) with `webapp` still running. If that project was renamed for TLS, adjust below.
 
-=== Locate the exposed Route (attack surface today)
+Click each step only if you need a hint.
+
+.Locate the exposed Route (attack surface today)
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc project 101-11-r-rebuild
 ROUTE=$(oc get route webapp -o jsonpath='{.spec.host}' 2>/dev/null)
 echo $ROUTE
 ----
+====
 
-=== Baseline the insecure cleartext path
+.Baseline the insecure cleartext path
+[%collapsible]
+====
 Confirm HTTP works—this is what an attacker on-path can read today.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 curl http://$ROUTE
 ----
+====
 
-=== Enforce edge TLS + HTTP→HTTPS redirect
+.Enforce edge TLS + HTTP→HTTPS redirect
+[%collapsible]
+====
 Close the plaintext door. Edge termination plus redirect makes cleartext a hop to HTTPS, not a usable channel.
 
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -53,18 +63,25 @@ Close the plaintext door. Edge termination plus redirect makes cleartext a hop t
 oc delete route webapp
 oc create route edge webapp --service=webapp --port=8080 --insecure-policy=Redirect
 ----
+====
 
-=== Verify the defended HTTPS path
+.Verify the defended HTTPS path
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 curl -k https://$ROUTE
 ----
+====
 
-=== Cleanup
+.Cleanup
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project 101-11-r-rebuild --wait=false
 ----
+====
 
 == Debrief
 

@@ -24,17 +24,25 @@ Insecure specs enter the cluster only once—at admission. Gatekeeper (and simil
 == Your Mission
 Install admission gates that block attacker-shaped pod specs at the door and prove clear allow versus deny outcomes.
 
-== Prerequisites
+=== Prerequisites
+
 * Gatekeeper / OpenShift operator installed (CRDs: ConstraintTemplate, K8sAllowedRepos, etc.)
 * Cluster admin privileges
 
-== Namespace Setup
+Click each step only if you need a hint.
+
+.Namespace Setup
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 201-11-a-govern
 ----
+====
 
-== No Root UID Constraint
+.No Root UID Constraint
+[%collapsible]
+====
 ConstraintTemplate:
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -89,8 +97,11 @@ spec:
     command: ["sleep","5"]
 EOF
 ----
+====
 
-== Mandatory NetworkPolicy Constraint
+.Mandatory NetworkPolicy Constraint
+[%collapsible]
+====
 Template:
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -160,8 +171,11 @@ spec:
     command: ["sleep","1000"]
 EOF
 ----
+====
 
-== Digest Pinning & (Simulated) Signature Constraint
+.Digest Pinning & (Simulated) Signature Constraint
+[%collapsible]
+====
 Simplified example focusing on forbidding mutable tags:
 Template:
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -217,13 +231,17 @@ spec:
     command: ["sleep","1"]
 EOF
 ----
+====
 
-== Namespace Exemption
+.Namespace Exemption
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc label namespace 201-11-a-govern policy-tier=dev
 # Example: refine rego to exempt tier=dev; left as exercise
 ----
+====
 
 == Debrief
 

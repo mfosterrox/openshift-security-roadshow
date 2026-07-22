@@ -32,8 +32,11 @@ OpenShift forces an explicit choice. Either rebuild for random UIDs and high por
 == Your Mission
 A teammate (or a new hire following a blog post) wants to stand up a quick web service. They grab the public Docker Hub `httpd` image—it worked on their laptop as *root* on *port 80*—and deploy it to the shared cluster. Your job is to show why that fails under OpenShift defaults, then restore a hardened path that still serves traffic without widening privilege.
 
-=== A developer deploys a public root-friendly image
+Click each step only if you need a hint.
 
+.A developer deploys a public root-friendly image
+[%collapsible]
+====
 Create a project and deploy the public Docker Hub `httpd` image the way many people do on day one. Admission may accept it, but OpenShift’s defaults should stop it from running with root-like power.
 
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -51,9 +54,11 @@ oc get pods -l app=web -o wide
 ----
 
 NOTE: The pod should land in `CrashLoopBackOff/Error` with a rising restart count—the cluster refused to run this image with the privileges it assumed on a laptop.
+====
 
-=== Investigate why the deployment failed
-
+.Investigate why the deployment failed
+[%collapsible]
+====
 Collect evidence before anyone asks for `anyuid`. Logs and events are your first proof that the fail was intentional hardening, not a flaky image pull.
 
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -61,7 +66,8 @@ Collect evidence before anyone asks for `anyuid`. Logs and events are your first
 oc logs -l app=web --tail=50 --all-containers=true
 ----
 
-Expected failure snippet:
+NOTE: Expected failure resembles the following.
+
 [source,text]
 ----
 AH00558: httpd: Could not reliably determine the server's fully qualified domain name...
@@ -80,9 +86,11 @@ oc describe pod -l app=web | tail -30
 ----
 
 Privileged port 80, root-owned log paths, and an image that assumed UID 0 all defeated by the OpenShift platform. OpenShift injected a random non-root UID, so the process could neither bind nor write where it wanted.
+====
 
-=== Confirm the UID and port the image assumed
-
+.Confirm the UID and port the image assumed
+[%collapsible]
+======
 `oc create deployment` does not declare a `containerPort`, so do not look for port 80 in the pod spec. Prove the mismatch from the container security context (non-root UID) and the logs (process tried to bind port 80).
 
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -97,9 +105,11 @@ oc logs -l app=web --tail=50 --all-containers=true | grep -E 'bind to address|:8
 ====
 Container `runAsUser` is a large non-zero UID (for example `1001210000`) with `runAsNonRoot: true`, and the logs show a failed bind to port `80`. That mismatch is the guardrail. Do not "fix" this by granting extra SCC power—that trains teams to bypass defaults instead of shipping an OpenShift-ready image.
 ====
+======
 
-=== Counter with a hardened UBI image
-
+.Counter with a hardened UBI image
+[%collapsible]
+====
 Replace the public Docker Hub image with a Red Hat UBI image built for non-root on port 8080. No SCC escalation. You restore service while keeping the platform defaults intact.
 
 [cols="1,2",options="header"]
@@ -123,9 +133,11 @@ Verify the hardened workload is actually up:
 oc get pods -l app=web
 oc logs -l app=web --tail=15
 ----
+====
 
-=== Prove non-root still holds, then expose safely
-
+.Prove non-root still holds, then expose safely
+[%collapsible]
+====
 Before publishing the app, confirm the running process is still not UID 0. Then expose it with a Route so users get service—without relaxing the UID guard that just blocked the laptop-style image.
 
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -143,9 +155,11 @@ NOTE: `oc expose deployment` creates a Service only. You need a second `oc expos
 oc expose deployment web --port=8080
 oc expose service/web
 ----
+====
 
-=== Verify the service answers
-
+.Verify the service answers
+[%collapsible]
+====
 Hit the Route and confirm the hardened image serves traffic. Success means the business still works while the privilege assumptions from the public image remain closed.
 
 First, get the route and store in variable:
@@ -166,6 +180,7 @@ curl -s "http://$ROUTE/" | head -5
 ----
 
 TIP: The service does not have a certificate, so https traffic will fail. Use http instead.
+====
 
 == Debrief
 

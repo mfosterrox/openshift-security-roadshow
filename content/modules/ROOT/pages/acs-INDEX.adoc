@@ -13,7 +13,7 @@ Use this track after (or alongside) the role path that owns the capability—esp
 Audience and prerequisites:
 
 * OpenShift cluster with RHACS Central and secured clusters available (this environment is pre-configured)
-* Familiarity with OpenShift console navigation and basic CLI (`oc`, optionally `roxctl`)
+* Familiarity with OpenShift console navigation and basic CLI (`oc`, `roxctl`)
 * Credentials and console links are on the xref:index.adoc[home page]
 
 == Recommended sequence

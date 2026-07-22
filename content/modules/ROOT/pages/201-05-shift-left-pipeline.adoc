@@ -24,11 +24,16 @@ Unsigned, unscanned images reach production when security sits after deploy. Pip
 == Your Mission
 Build a Tekton path that refuses unscanned or unsigned images—then deploy only by digest so a supply-chain swap cannot silently replace what you ran.
 
-== Prerequisites
-* OpenShift Pipelines (Tekton) Operator installed
-* Cosign installed locally (optional) or simulate signing
+=== Prerequisites
 
-== Namespace & Service Account
+* OpenShift Pipelines (Tekton) Operator installed
+* Cosign installed locally, or simulate signing in the pipeline tasks
+
+Click each step only if you need a hint.
+
+.Namespace & Service Account
+[%collapsible]
+====
 Tekton CRDs require YAML; only typos fixed and kept minimal.
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -36,8 +41,11 @@ oc new-project 201-05-s-pipeline
 och create sa pipeline -n 201-05-s-pipeline
 oc adm policy add-scc-to-user anyuid -z pipeline -n 201-05-s-pipeline  # only if build strategy requires
 ----
+====
 
-== Build Task (S2I or Buildah Simplified)
+.Build Task (S2I or Buildah Simplified)
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-05-s-pipeline -f - <<'EOF'
@@ -63,8 +71,11 @@ spec:
       echo -n "$DIGEST" > $(results.image-digest.path)
 EOF
 ----
+====
 
-== Scan Task (Simulated)
+.Scan Task (Simulated)
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-05-s-pipeline -f - <<'EOF'
@@ -88,8 +99,11 @@ spec:
       echo -n PASS > $(results.scan-status.path)
 EOF
 ----
+====
 
-== Sign Task (Cosign Simulated)
+.Sign Task (Cosign Simulated)
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-05-s-pipeline -f - <<'EOF'
@@ -110,8 +124,11 @@ spec:
       echo "signature-ok" > /tekton/home/signature.txt
 EOF
 ----
+====
 
-== Pipeline Definition
+.Pipeline Definition
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-05-s-pipeline -f - <<'EOF'
@@ -151,8 +168,11 @@ spec:
       value: $(tasks.build.results.image-digest)
 EOF
 ----
+====
 
-== Run Pipeline
+.Run Pipeline
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -n 201-05-s-pipeline -f - <<'EOF'
@@ -180,8 +200,11 @@ Get digest:
 ----
 oc get pipelinerun secure-build-run -n 201-05-s-pipeline -o jsonpath='{.status.pipelineResults}'
 ----
+====
 
-== Deployment Using Digest (Gate Simulation)
+.Deployment Using Digest (Gate Simulation)
+[%collapsible]
+====
 Replace <DIGEST> with extracted digest:
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -203,11 +226,10 @@ spec:
         image: image-registry.openshift-image-registry.svc:5000/201-05-s-pipeline/demo@sha256:<DIGEST>
 EOF
 ----
-
-== (Optional) Admission Tie-In
-Add Gatekeeper policy to require annotation `signed=ok` or actual cosign verification (see xref:201-11-admission-governance.adoc[201-11]) before allowing tag-based images.
+====
 
 == Failure Simulation
+
 Re-run with FAIL=1 env (edit scan task to export) and confirm sign task skipped.
 
 == Debrief
@@ -219,7 +241,7 @@ What breaks without this:
 * Unscanned or unsigned images → known-bad artifacts reach the cluster
 * Tag-based deploys → non-reproducible, retaggable runtime
 
-Controls that matter: Tekton (or equivalent) gates, conditional sign tasks, digest pins, and admission that extends trust (signatures/SBOM) at deploy time.
+Controls that matter: Tekton (or equivalent) gates, conditional sign tasks, digest pins, and admission that extends trust (signatures/SBOM) at deploy time—see xref:201-11-admission-governance.adoc[201-11] for Gatekeeper / cosign enforcement on tag-based images.
 
 Quick facts: the when-clause is the gate; admission and SBOM checks are the natural next layers.
 

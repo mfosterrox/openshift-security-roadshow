@@ -24,17 +24,25 @@ Standard containers share a kernel with the node. A breakout from a high-risk wo
 == Your Mission
 Run a sandboxed workload and contrast it with a normal pod so you know when stronger isolation is the right defense—not just a novelty.
 
-== Prerequisites
+=== Prerequisites
+
 * Worker nodes with virtualization support (VT-x/AMD-V)
 * Cluster admin permissions
 
-== Operator Presence
+Click each step only if you need a hint.
+
+.Operator Presence
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get csv -n openshift-sandboxed-containers 2>/dev/null | grep -i sandbox || echo "Install Sandboxed Containers Operator from OperatorHub"
 ----
+====
 
-== RuntimeClass
+.RuntimeClass
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get runtimeclass | grep -i kata || cat <<'EOF' | oc apply -f -
@@ -45,15 +53,21 @@ metadata:
 handler: kata
 EOF
 ----
+====
 
-== Namespace & Baseline Pod
+.Namespace & Baseline Pod
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 201-10-s-sandbox
 oc run regular --image=registry.access.redhat.com/ubi9/ubi -- sleep 3600
 ----
+====
 
-== Kata Pod
+.Kata Pod
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
@@ -69,8 +83,11 @@ spec:
     command: ["sh","-c","uname -a; ps -ef; sleep 3600"]
 EOF
 ----
+====
 
-== Compare Isolation
+.Compare Isolation
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc exec regular -- ps -ef | head
@@ -83,13 +100,11 @@ Check SCC annotation:
 ----
 oc get pod kata-pod -o jsonpath='{.metadata.annotations.openshift\.io/scc}{"\n"}'
 ----
-
-== (Optional) Performance Consideration
-Measure startup time or simple CPU benchmark difference for awareness.
+====
 
 == Debrief
 
-Kata (sandboxed) containers add a VM boundary for high-risk workloads—but they do not replace SCC, seccomp, quotas, or NetworkPolicy.
+Kata (sandboxed) containers add a VM boundary for high-risk workloads—but they do not replace SCC, seccomp, quotas, or NetworkPolicy. Measure startup and CPU cost before rolling Kata out broadly; use it where isolation value outweighs overhead.
 
 What breaks without this:
 

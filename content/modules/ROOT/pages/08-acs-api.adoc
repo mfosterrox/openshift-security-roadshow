@@ -340,7 +340,7 @@ curl --silent --insecure \
   --data "{\"cluster_id\": \"${CLUSTER_ID}\", \"namespaces\": [\"${NAMESPACE}\"]}" | jq .
 ----
 
-Expected response: `{"success": true}`.
+TIP: Expected response: `{"success": true}`.
 ====
 
 .Step 4 — Verify baselines are locked

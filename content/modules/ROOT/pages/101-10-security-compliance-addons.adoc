@@ -28,17 +28,29 @@ SCC and RBAC cover a lot, but they do not schedule CIS-style scans, manage secco
 == Your Mission
 Attackers move while humans scramble for last-minute audit evidence. Wire continuous controls: prove Compliance Operator is ready, inventory profiles, and schedule a CIS-style suite so posture gaps surface on a cadence—not under deadline panic.
 
-=== Confirm Compliance Operator is on the field
+Click each step only if you need a hint.
+
+.Confirm Compliance Operator is on the field
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get pods -n openshift-compliance 2>/dev/null || echo 'Compliance Operator not installed'
 ----
-=== Inventory the benchmarks you can run
+====
+
+.Inventory the benchmarks you can run
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get profiles.compliance.openshift.io -n openshift-compliance 2>/dev/null || true
 ----
-=== Schedule a sample CIS scan (adjust names if needed)
+====
+
+.Schedule a sample CIS scan (adjust names if needed)
+[%collapsible]
+====
 On a shared roadshow cluster, prefer previewing YAML over applying unless instructors cleared it.
 
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -56,14 +68,18 @@ spec:
     content: rhcos4
 EOF
 ----
+====
 
-=== Review check results when the scan lands
+.Review check results when the scan lands
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get compliancecheckresults.compliance.openshift.io -n openshift-compliance | head
 ----
 
 NOTE: SPO manages recording & enforcing seccomp / SELinux profiles; deeper commands appear in advanced labs.
+====
 
 == Debrief
 

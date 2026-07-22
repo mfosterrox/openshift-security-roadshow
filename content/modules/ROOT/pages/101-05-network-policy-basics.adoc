@@ -27,7 +27,11 @@ By default, pods in a namespace can usually reach each other. If one pod is comp
 == Your Mission
 A foothold in any pod can scan sideways to databases and internal APIs when east–west traffic is open. Your mission: prove the open path exists, slam the door with default deny, then reopen only the client you trust.
 
-=== Stage the flat network the attacker wants
+Click each step only if you need a hint.
+
+.Stage the flat network the attacker wants
+[%collapsible]
+====
 Spin up an API plus two clients—one “allowed,” one “denied”—before any policy exists.
 
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -39,8 +43,11 @@ oc run client-allowed --image=registry.access.redhat.com/ubi9/ubi -l role=allowe
 oc run client-denied  --image=registry.access.redhat.com/ubi9/ubi -l role=denied  -- sleep infinity
 SVC=$(oc get svc api -o jsonpath='{.spec.clusterIP}')
 ----
+====
 
-=== Confirm lateral movement works with no policy
+.Confirm lateral movement works with no policy
+[%collapsible]
+====
 Both clients should reach the API. That is the blast radius you must shrink.
 
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -61,8 +68,11 @@ flowchart LR
     CD1 -->|200| API1
   end
 ----
+====
 
-=== Drop the blast radius — default deny ingress
+.Drop the blast radius — default deny ingress
+[%collapsible]
+====
 Close every inbound door. Compromised pods should time out instead of probing freely.
 
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -78,8 +88,11 @@ spec:
   - Ingress
 EOF
 ----
+====
 
-=== Verify the attacker’s pivots now fail
+.Verify the attacker’s pivots now fail
+[%collapsible]
+====
 Both clients should time out. Good—lateral movement is blocked until you explicitly reopen a path.
 
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -100,8 +113,11 @@ flowchart LR
     CD2 -.->|timeout| API2
   end
 ----
+====
 
-=== Reopen only the trusted client’s path
+.Reopen only the trusted client’s path
+[%collapsible]
+====
 Allow TCP/8080 solely from pods labeled `role=allowed`. Everything else stays locked out.
 
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -127,8 +143,11 @@ spec:
   - Ingress
 EOF
 ----
+====
 
-=== Prove allow vs block (mission complete when denied stays dark)
+.Prove allow vs block (mission complete when denied stays dark)
+[%collapsible]
+====
 Allowed client returns 200; denied client times out. Business traffic works; the attacker-shaped client does not.
 
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -149,12 +168,16 @@ flowchart LR
     CD3 -.->|timeout| API3
   end
 ----
+====
 
-=== Cleanup
+.Cleanup
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project 101-05-n-netpol-demo --wait=false
 ----
+====
 
 == Debrief
 

@@ -30,8 +30,11 @@ Network reachability alone is not trust. Password spray, stolen Secret mounts, a
 == Your Mission
 Wire ZTWIM and PostgreSQL so only cert-bearing workloads connect—then prove bare connections are rejected and certificates rotate without another shared password to steal.
 
-== Prepare the platform and deploy PostgreSQL
+Click each step only if you need a hint.
 
+.Prepare the platform and deploy PostgreSQL
+[%collapsible]
+======
 ZTWIM is already installed on this cluster. You'll register the trust domain and SPIRE configuration, then deploy PostgreSQL and a client workload—each in its own namespace with its own service account so the database can enforce *who* connects, not just *that* TLS is enabled.
 
 [NOTE]
@@ -74,9 +77,11 @@ oc get pods -n postgresql-spiffe-client
 ====
 The client certificate Common Name (`postgresql_spiffe`) must match the PostgreSQL database user. PostgreSQL maps the CN to the username during certificate authentication.
 ====
+======
 
-== Inspect SPIFFE certificates
-
+.Inspect SPIFFE certificates
+[%collapsible]
+====
 Before connecting, look at what ZTWIM actually issued. Certificates are automatically mounted at `/opt/postgresql-certs/` by the `spiffe-helper` sidecar—you never create or copy PEM files by hand.
 
 . On the **server** pod, dump the certificate and focus on three fields—*who* it represents, *how long* it's valid, and the canonical SPIFFE identity URI:
@@ -87,7 +92,7 @@ oc rsh -n postgresql-spiffe -c postgresql-spiffe deployment/postgresql-spiffe \
   cat /opt/postgresql-certs/svid.pem | openssl x509 -noout -text
 ----
 +
-Look for these in the output:
+TIP: Look for these in the output:
 
 * *Subject* — server hostname (`CN=postgresql-spiffe.postgresql-spiffe.svc`)
 * *Validity* — short lifespan (default: 1 hour); `Not After` is roughly one hour after `Not Before`
@@ -143,9 +148,11 @@ oc rsh -n postgresql-spiffe-client -c postgresql-spiffe-client deployment/postgr
 ----
 
 The `spiffe-helper` sidecar fetches a new certificate approximately 30 minutes before expiration. Short lifetimes are a feature—if an attacker steals a cert, the window of abuse is measured in minutes, not months until someone rotates a password.
+====
 
-== Connect and verify mutual TLS
-
+.Connect and verify mutual TLS
+[%collapsible]
+====
 Time to put the certificates to work. You'll connect from the client pod using `psql` with `sslmode=verify-full`: the client proves its identity, PostgreSQL proves *its* identity, and hostname verification must pass. No password prompt—because there is no password.
 
 . Run a one-line connection test:
@@ -157,7 +164,7 @@ oc rsh -n postgresql-spiffe-client -c postgresql-spiffe-client deployment/postgr
   -c "SELECT current_user, current_database();"
 ----
 +
-Expected output:
+NOTE: Expected output:
 +
 [source,text]
 ----
@@ -180,7 +187,7 @@ oc rsh -n postgresql-spiffe-client -c postgresql-spiffe-client deployment/postgr
   -c 'SELECT version();'
 ----
 +
-Look for `SSL connection (protocol: TLSv1.3, ...)` in the output and `ssl_is_used` returning `t`. Cluster IP and PostgreSQL build string may differ on your environment.
+TIP: Look for `SSL connection (protocol: TLSv1.3, ...)` in the output and `ssl_is_used` returning `t`. Cluster IP and PostgreSQL build string may differ on your environment.
 +
 . Prove you have a working session—insert a row and read it back:
 +
@@ -193,9 +200,11 @@ VALUES ('spiffe-test', 'Authenticated with certificates!');
 SELECT * FROM test_table;
 SQL
 ----
+====
 
-== Prove zero-trust enforcement
-
+.Prove zero-trust enforcement
+[%collapsible]
+====
 Zero trust means *verify every connection*, not "trust the internal network." If an attacker can reach port 5432, they should still fail without a valid SPIFFE identity.
 
 . Deliberately omit the client cert and key from the connection string:
@@ -207,7 +216,7 @@ oc rsh -n postgresql-spiffe-client -c postgresql-spiffe-client deployment/postgr
   2>&1 | head -5
 ----
 +
-Expected error:
+NOTE: Expected error:
 +
 [source,text]
 ----
@@ -229,7 +238,7 @@ oc exec -n postgresql-spiffe-client unauthorized-client -- \
   2>&1 | head -3
 ----
 +
-You should see `connection requires a valid client certificate`. Even pods in the same namespace cannot connect without valid SPIFFE certificates—NetworkPolicy might let them talk; PostgreSQL still says no.
+TIP: You should see `connection requires a valid client certificate`. Even pods in the same namespace cannot connect without valid SPIFFE certificates—NetworkPolicy might let them talk; PostgreSQL still says no.
 +
 . Clean up the test pod:
 +
@@ -237,9 +246,11 @@ You should see `connection requires a valid client certificate`. Even pods in th
 ----
 oc delete pod unauthorized-client -n postgresql-spiffe-client
 ----
+====
 
-== Observe automatic certificate rotation
-
+.Observe automatic certificate rotation
+[%collapsible]
+======
 Static passwords rot until someone notices. SPIFFE certificates expire on a schedule—and `spiffe-helper` renews them before they do, without restarting your application containers.
 
 .Procedure
@@ -295,8 +306,7 @@ oc rsh -n postgresql-spiffe-client -c postgresql-spiffe-client deployment/postgr
 +
 
 Congrats! You've seen new serial number, same trust chain, uninterrupted access—that's operational zero trust without a 2 a.m. password rotation runbook.
-
-
+======
 
 == Debrief
 

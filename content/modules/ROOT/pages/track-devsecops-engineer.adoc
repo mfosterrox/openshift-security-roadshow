@@ -59,7 +59,7 @@ Skip for this role: xref:101-10-security-compliance-addons.adoc[101-10] (Platfor
 . xref:301-10-zero-trust-workload-identity.adoc[301-10 — Zero-Trust Workload Identity]
 . xref:301-11-confidential-containers.adoc[301-11 — Confidential Containers]
 
-== Optional product deep-dives
+== Product deep-dives
 
 Take these after Intermediate supply-chain labs (201-05 / 201-11) or alongside Advanced runtime and supply-chain labs:
 

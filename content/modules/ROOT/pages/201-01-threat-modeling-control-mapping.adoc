@@ -29,26 +29,66 @@ With a model:
 * Focused backlog: sequence of high leverage, low regret steps
 
 == Your Mission
-. (Optional) Create visual aid namespaces:
+Map trust boundaries to concrete OpenShift controls. Click each step only if you need a hint.
+
+.Create visual-aid namespaces for the trust boundaries you will map
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project app-frontend
 oc new-project app-backend
 oc new-project app-db
 ----
-. List assets: code, images, secrets, database, CI system, cluster API.
-. Textual data flow (sample below) – adjust to reality.
-. Mark trust boundaries (Internet ingress, CI → cluster, app → db, registry ↔ kubelet).
-. Apply STRIDE sampling to 5–10 flows (avoid exhaustiveness trap).
-. Build a Threat → Control table (start with provided excerpt; extend locally).
-. Qualitatively score (High/Med/Low impact & likelihood) + effort (S/M/L); sort.
-. Turn top ranked 5–7 into backlog tickets with acceptance criteria.
-. Commit artifact (`threat-model-app.md`) and schedule a quarterly review.
-. (Optional) Cleanup:
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-oc delete project app-frontend app-backend app-db --wait=false
-----
+====
+
+.List assets
+[%collapsible]
+====
+List assets: code, images, secrets, database, CI system, cluster API.
+====
+
+.Sketch a textual data flow
+[%collapsible]
+====
+Write a textual data flow (sample below) and adjust it to your reality—frontends, APIs, databases, CI, and the registry.
+====
+
+.Mark trust boundaries
+[%collapsible]
+====
+Mark trust boundaries: Internet ingress, CI → cluster, app → db, registry ↔ kubelet.
+====
+
+.Apply STRIDE sampling
+[%collapsible]
+====
+Apply STRIDE sampling to 5–10 flows (avoid the exhaustiveness trap).
+====
+
+.Build a Threat → Control table
+[%collapsible]
+====
+Build a Threat → Control table (start with a short excerpt; extend locally).
+====
+
+.Score and sort
+[%collapsible]
+====
+Qualitatively score (High/Med/Low impact and likelihood) plus effort (S/M/L); sort by leverage.
+====
+
+.Turn findings into backlog tickets
+[%collapsible]
+====
+Turn the top ranked 5–7 items into backlog tickets with acceptance criteria.
+====
+
+.Commit and schedule review
+[%collapsible]
+====
+Commit the artifact (`threat-model-app.md`) and schedule a quarterly review.
+====
 
 == Debrief
 

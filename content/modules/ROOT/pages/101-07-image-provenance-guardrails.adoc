@@ -27,14 +27,21 @@ Pulls from arbitrary registries mean unknown builders and unvetted contents. An 
 == Your Mission
 Supply-chain attackers ship malware through any registry that will take a tag. Your mission: put an allow-list on the door, prove an untrusted image is denied, then run only a trusted UBI workload you can fingerprint by host and digest.
 
-=== Mark the namespace as under registry lockdown
+Click each step only if you need a hint.
+
+.Mark the namespace as under registry lockdown
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 101-07-i-trusted
 oc label namespace 101-07-i-trusted trusted-registry-enforce=true --overwrite
 ----
+====
 
-=== Install the allow-list (cluster-admin) — close arbitrary pulls
+.Install the allow-list (cluster-admin) — close arbitrary pulls
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
@@ -97,21 +104,30 @@ spec:
         trusted-registry-enforce: "true"
 EOF
 ----
+====
 
-=== Launch the untrusted payload — expect Deny
+.Launch the untrusted payload — expect Deny
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc -n 101-07-i-trusted create deployment bad --image=docker.io/library/nginx:latest || true
 ----
+====
 
-=== Deploy only from an approved registry
+.Deploy only from an approved registry
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc -n 101-07-i-trusted create deployment good --image=registry.access.redhat.com/ubi9/ubi:9.6 -- sleep infinity
 oc -n 101-07-i-trusted wait --for=condition=Available deployment/good --timeout=60s
 ----
+====
 
-=== Fingerprint provenance — host + digest
+.Fingerprint provenance — host + digest
+[%collapsible]
+====
 Prove what actually runs so a floated `:latest` tag cannot quietly swap in attacker content.
 
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -130,8 +146,11 @@ Example (UBI 9.6):
 
 - Image: registry.redhat.io/ubi9/ubi:9.6 (trusted source)
 - Image ID: …@sha256:dbc1e98d14a022542e45b5f22e0206d3f86b5bdf237b58ee7170c9ddd1b3a283 (immutable digest)
+====
 
-=== Cleanup
+.Cleanup
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project 101-07-i-trusted --wait=false
@@ -140,6 +159,7 @@ oc delete validatingadmissionpolicybinding trusted-images-only-deployments || tr
 oc delete validatingadmissionpolicy allow-trusted-registries-pods || true
 oc delete validatingadmissionpolicy allow-trusted-registries-deployments || true
 ----
+====
 
 == Debrief
 

@@ -8,7 +8,7 @@
 **Duration:** ~25 minutes
 
 == Overview
-Wire HashiCorp Vault (and optionally External Secrets Operator) so pods get secrets at runtime without baking static copies into Git or images—dev-mode Vault for learning only.
+Wire HashiCorp Vault and External Secrets Operator so pods get secrets at runtime without baking static copies into Git or images—dev-mode Vault for learning only.
 
 include::partial$console-access.adoc[]
 
@@ -30,10 +30,13 @@ Stand up Vault, configure Kubernetes auth and policies, then prove a pod can con
 This lab runs Vault in *dev mode* (auto-unsealed, root token `root`). Dev mode is for learning only—data is lost when the Vault pod restarts. Do not use it in production.
 ====
 
-This lab tracks the https://github.com/validatedpatterns/layered-zero-trust[Layered Zero Trust Validated Pattern] pattern for secrets (Vault, optional External Secrets Operator).
+This lab tracks the https://github.com/validatedpatterns/layered-zero-trust[Layered Zero Trust Validated Pattern] pattern for secrets (Vault and External Secrets Operator).
 
-== Deploy Vault
+Click each step only if you need a hint.
 
+.Deploy Vault
+[%collapsible]
+====
 The workshop install script deploys the HashiCorp Helm chart into the `vault` namespace with the Agent Injector enabled.
 
 .Procedure
@@ -56,9 +59,11 @@ The script:
 
 [start=2]
 . CTRL + Click on the URL after the script completes to open the Vault UI in a new tab.
+====
 
-== Verify the deployment
-
+.Verify the deployment
+[%collapsible]
+====
 Confirm the Vault server and injector are running:
 
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -66,10 +71,12 @@ Confirm the Vault server and injector are running:
 oc get pods,svc,route -n vault
 ----
 
-You should see the Vault server pod `Running`, the `vault-agent-injector` deployment `Running`, and a Route to the UI.
+TIP: You should see the Vault server pod `Running`, the `vault-agent-injector` deployment `Running`, and a Route to the UI.
+====
 
-== Configure Vault
-
+.Configure Vault
+[%collapsible]
+====
 Configure Vault policies and Kubernetes auth so only authorized pods in namespace `vault` can read secrets. Run the following inside the Vault pod, then verify in the UI.
 
 .Procedure
@@ -145,9 +152,11 @@ Vault 1.21 validates the service account token `aud` claim against the role `aud
 ----
 exit
 ----
+====
 
-== Create secrets in Vault
-
+.Create secrets in Vault
+[%collapsible]
+======
 We've created some roles. Now, let's create some secrets in Vault.
 
 .Procedure
@@ -210,9 +219,11 @@ The Vault path must be exactly `my-second-secret` (under the `secret` engine). E
 . Review the secret information and click *Save*.
 +
 image::16-vault-ui-01.png[Vault UI,link=self,window=blank,width=800]
+======
 
-== Access secrets from a Kubernetes pod
-
+.Access secrets from a Kubernetes pod
+[%collapsible]
+====
 With Vault configured and secrets stored, you will deploy a sample application in the `vault` namespace. The **Vault Agent Injector** mutates the pod to add an init container that authenticates with Kubernetes auth and renders secrets to `/vault/secrets/`.
 
 The deployment uses annotations to inject `secret/login` and `secret/my-first-secret`:
@@ -246,7 +257,7 @@ Press `Ctrl+C` when the pod is `2/2` Ready (web container + Vault Agent sidecar)
 echo "https://$(oc get route vault-secrets-app -n vault -o jsonpath='{.spec.host}')/"
 ----
 +
-You should see the Vault Secrets App welcome page.
+TIP: You should see the Vault Secrets App welcome page.
 
 . Read the injected secrets from the pod:
 +
@@ -256,9 +267,9 @@ POD=$(oc get pod -n vault -l app=vault-secrets-app -o jsonpath='{.items[0].metad
 oc exec -n vault "${POD}" -c web -- sh -c "cat /vault/secrets/login && echo && cat /vault/secrets/my-first-secret"
 ----
 
-*Expected:* `rhos-token=workshop-token-abc123` and `username=workshop-user` / `password=workshop-password`.
+TIP: Expect `rhos-token=workshop-token-abc123` and `username=workshop-user` / `password=workshop-password`.
 
-. Optional: inspect Agent Injector logs if secrets are missing:
+. Confirm the Agent Injector rendered the files (and gather evidence if the mount is empty):
 +
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -266,10 +277,12 @@ oc logs -n vault "${POD}" -c vault-agent-init
 oc describe pod -n vault "${POD}"
 ----
 
-Nice! You've injected the first created secret into a running pod. Next, you will use External Secrets Operator to sync the 2nd secret you created into another workload.
+You have injected the first secret into a running pod. Next, use External Secrets Operator to sync the second secret into another workload.
+====
 
-== Access secrets with External Secrets Operator
-
+.Access secrets with External Secrets Operator
+[%collapsible]
+====
 The first deployment used the **Vault Agent Injector** to render secrets as files under `/vault/secrets/`. The **External Secrets Operator (ESO)** offers a different pattern: it reads secrets from Vault and materializes them as native Kubernetes `Secret` objects. Workloads then consume those secrets through `env`, `envFrom`, or volume mounts—the same way they would use any other Kubernetes secret.
 
 === Install External Secrets Operator
@@ -295,7 +308,7 @@ helm upgrade --install external-secrets external-secrets/external-secrets \
 oc get pods -n external-secrets
 ----
 
-You should see the `external-secrets` deployment pod in `Running` state.
+TIP: You should see the `external-secrets` deployment pod in `Running` state.
 
 === Configure ESO to sync from Vault
 
@@ -320,7 +333,7 @@ oc get externalsecret sync-my-second-secret -n vault -o jsonpath='{.status.condi
 oc get secret my-second-secret-sync -n vault -o jsonpath='{.data.username}{"\n"}' | base64 -d && echo
 ----
 
-Expected: ExternalSecret `Ready` status is `True`, and the decoded username is `workshop-user-2`.
+TIP: ExternalSecret `Ready` status is `True`, and the decoded username is `workshop-user-2`.
 
 
 NOTE: If status is `SecretSyncedError` and `my-second-secret-sync` was not created, confirm `my-second-secret` in the Vault UI includes both `username` and `password`, then inspect the error:
@@ -367,8 +380,8 @@ oc exec -n vault "${ESO_POD}" -c app -- sh -c 'echo "username=${USERNAME}" && ec
 Perfect! You've deployed a second workload that reads credentials from the Kubernetes `Secret` ESO created—not from the Vault Agent Injector.
 
 
-Expected output ends with `[vault-lab-cleanup] Done.` and no `vault` or `external-secrets` namespaces remaining.
-
+TIP: Output ends with `[vault-lab-cleanup] Done.` and no `vault` or `external-secrets` namespaces remaining.
+====
 
 == Debrief
 

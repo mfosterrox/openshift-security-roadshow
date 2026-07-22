@@ -26,21 +26,31 @@ Advanced threats require proactive detection and rapid response. Threat hunting 
 == Your Mission
 Complete the examples below to close the attack paths this lab covers—treat each step as defending the cluster, not just clicking through commands.
 
-=== Access ACS console
+Click each step only if you need a hint.
+
+.Access ACS console
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 echo "Access ACS console for threat hunting and analysis"
 oc get route -n stackrox central -o jsonpath='{.spec.host}'
 ----
+====
 
-=== Create hunting query (example)
+.Create hunting query (example)
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 echo "Example: Search for suspicious process executions"
 # Use ACS API or UI to create custom queries
 ----
+====
 
-=== Configure automated response policy
+.Configure automated response policy
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
@@ -57,15 +67,22 @@ data:
       action: network-policy-block
 EOF
 ----
+====
 
-=== Review ACS policies and violations
+.Review ACS policies and violations
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 echo "Review ACS policies and violations through console or API"
 ----
+====
 
-=== Cleanup
+.Cleanup
+[%collapsible]
+====
 No cleanup needed for this lab.
+====
 
 == Debrief
 

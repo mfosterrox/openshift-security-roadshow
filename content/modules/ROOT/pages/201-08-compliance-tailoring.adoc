@@ -24,11 +24,16 @@ Raw upstream Compliance profiles flag noise your environment cannot fix today. T
 == Your Mission
 Tailor a Compliance profile so attackers and auditors alike face a scan set that matches your real platform—not a one-size-fits-nobody checklist.
 
-== Prerequisites
+=== Prerequisites
+
 * Compliance Operator installed (`openshift-compliance` namespace)
 * Cluster admin privileges
 
-== Baseline Scan
+Click each step only if you need a hint.
+
+.Baseline Scan
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
@@ -49,23 +54,27 @@ Monitor:
 ----
 oc get compliancescans -n openshift-compliance
 ----
+====
 
-== Findings
+.Findings
+[%collapsible]
+====
 When phase=DONE:
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get complianceremediations -n openshift-compliance | head
 oc logs job/baseline-scan-rhcos4-moderate-master -n openshift-compliance | head
 ----
-Fetch results tar (optional) via pod logs / artifacts.
-
 Identify a rule to exclude (example id placeholder `rhcos4-useless-example`):
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get complianceremediations -n openshift-compliance | grep -i chrony || true
 ----
+====
 
-== Tailored Profile
+.Tailored Profile
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
@@ -81,8 +90,11 @@ spec:
     - name: rhcos4-useless-example
 EOF
 ----
+====
 
-== Tailored Scan
+.Tailored Scan
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
@@ -102,8 +114,11 @@ Compare result counts:
 ----
 oc get compliancescans -n openshift-compliance
 ----
+====
 
-== Generate Remediation
+.Generate Remediation
+[%collapsible]
+====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get complianceremediations -n openshift-compliance | grep tailored || head
@@ -114,8 +129,8 @@ Apply one remediation (example):
 oc annotate complianceremediation <name> compliance.openshift.io/apply=true -n openshift-compliance
 ----
 
-== (Optional) AutoApply
-Enable auto-apply with caution in non-prod for iterative hardening.
+NOTE: Prefer explicit annotate/apply in production. Auto-apply of remediations is for non-prod iterative hardening only—enable it with a change ticket and a rollback plan.
+====
 
 == Debrief
 
