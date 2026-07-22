@@ -102,17 +102,6 @@ Details: /home/lab-user/.acs-roadshow/lab-environment-YYYYMMDD-HHMMSS.log
   ✓ Quay images ready (golden base + frontend, when image steps ran)
   ✓ Env file: /home/lab-user/.acs-roadshow/env
   ✓ Detailed log: /home/lab-user/.acs-roadshow/lab-environment-....log
-
-================================================================
-  SETUP COMPLETE — you can continue with the labs
-================================================================
-
-NEXT STEPS
-  1. Reload your shell:  source ~/.bashrc
-  2. Open the Quay console and browse the frontend repository.
-  3. Make the frontend repository PUBLIC under Repository Settings.
-  4. Deploy the patient-portal application:
-     bash setup/lab-environment.sh --deploy-skupper-only
 ----
 
 IMPORTANT: PodSecurity warnings during `oc apply` are expected—you are deploying intentionally vulnerable applications for the workshop.

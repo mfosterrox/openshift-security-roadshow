@@ -376,26 +376,3 @@ progress_success_banner "Lab environment setup completed successfully" \
   "Quay images ready (golden base + frontend, when image steps ran)" \
   "Env file: ${ROADSHOW_ENV_FILE}" \
   "Detailed log: ${LOG_FILE}"
-
-cat <<EOF
-================================================================
-  SETUP COMPLETE — you can continue with the labs
-================================================================
-
-Environment summary
-  TUTORIAL_HOME=${TUTORIAL_HOME:-not set}
-  QUAY_USER=${QUAY_USER}
-  QUAY_URL=${QUAY_URL:-not set}
-  ROX_CENTRAL_ADDRESS=${ROX_CENTRAL_ADDRESS:-not set}
-  ROX_API_TOKEN=<set, ${#ROX_API_TOKEN} chars>
-  Env file: ${ROADSHOW_ENV_FILE}
-
-NEXT STEPS
-  1. Reload your shell:  source ~/.bashrc
-     (or: source ${ROADSHOW_ENV_FILE})
-  2. Open the Quay console and browse the frontend repository (see module 00).
-  3. Make the frontend repository PUBLIC under Repository Settings.
-  4. Deploy the patient-portal application:
-
-     bash setup/lab-environment.sh --deploy-skupper-only
-EOF
