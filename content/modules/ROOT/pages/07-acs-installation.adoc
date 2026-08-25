@@ -295,7 +295,7 @@ TIP: Look for `exfil.sh` in the process tree—the smoking gun from the simulate
 
 * CRIU checkpoints preserve volatile runtime state for forensic analysis without killing the pod.
 * OpenShift supports checkpoint/restore for incident response on supported versions (4.17+).
-* Forensic collection completes the ACME incident arc: detect (modules 01–05), contain (module 09), preserve (this exercise).
+* Forensic collection completes the ACME incident arc: detect (earlier RHACS labs), contain (xref:06-acs-network-and-runtime.adoc[06 Network and Runtime]), preserve (this exercise).
 
 
 == Summary
@@ -307,5 +307,5 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeXdiMmFwaTNrbW02cTNod3Bm
 
 Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
 
-:lab-cleanup-module: 10
+:lab-cleanup-module: 07
 include::partial$lab-cleanup.adoc[]

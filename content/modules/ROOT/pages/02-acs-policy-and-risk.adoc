@@ -1,4 +1,4 @@
-= Risk Profiling
+= Policy and Risk
 :toc:
 :sectnums:
 :icons: font
@@ -7,7 +7,9 @@
 
 * Understand the additional configuration challenges of Kubernetes
 * Tie vulnerability management details together with configuration details and runtime events
-* Help you identify "Risk" in your clusters
+* Identify risk in your clusters
+* Clone and enforce a deploy-time policy
+* Create policies from Risk filters
 
 == The Configuration Management Tab
 
@@ -280,6 +282,112 @@ image::03-risk-13.png[link=self, window=blank, width=100%]
 
 See the link:https://docs.openshift.com/acs/4.4/operating/evaluate-security-risks.html[Understanding the filtering criteria into policy criteria^] documentation for more information.
 
+== Deploy-time policy enforcement
+
+Deploy-time policy enforces configuration controls both before deployment in the CI/CD process and within the cluster itself. It can include build-time policies and cluster configurations, such as privileged mode or mounting the Docker socket.
+
+There are two ways to enforce deploy-time policies in RHACS:
+
+* With listen and enforce options enabled, RHACS rejects deployments that violate the policy using the admission controller.
+* When the admission controller is disabled, RHACS scales pod replicas to zero for deployments that violate the policy.
+
+Runtime process enforcement (for example, blocking `apk` in a running pod) is xref:06-acs-network-and-runtime.adoc[06 Network and Runtime Security]. Build-time gates with `roxctl image check` are xref:03-acs-cicd-and-automation.adoc[03 CI/CD].
+
+=== Prevent the Alpine Linux Package Manager in the Frontend Image from Being Deployed
+
+*Procedure*
+
+[start=1]
+. First, delete the deployment from the cluster. We will redeploy the application after creating the policy:
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc delete -f $APP_HOME/skupper-demo/frontend.yml
+----
+
+[start=2]
+. Navigate to Platform Configuration → Policy Management:
+. On the *Policy Management* page, type *Policy* then *Alpine Linux Package Manager (apk) in Image* into the filter bar at the top.
+
+IMPORTANT: This time you are going to edit a different policy for the Alpine Linux Package Manager (apk), specifically related to the *Build & Deploy* phases.
+
+[start=3]
+. Click on the *Alpine Linux Package Manager (apk) in Image* options (the three dots on the right side of the screen) and select *Clone policy*:
+
+IMPORTANT: Make sure to *CLONE* the policy. Cloning policies ensures the default policies aren't altered.
+
+image::04-deploy-00.png[link=self, window=blank, width=100%]
+
+[start=4]
+. Give the policy a new name, such as `Alpine Linux Package Manager in Image - Enforce Deploy`. The best practice would be to add a description for future policy enforcers as well:
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+Alpine Linux Package Manager in Image - Enforce Deploy
+----
+
+[start=5]
+. Click *Next*
+. Next, deselect *Build* stage so that only the Deploy stage is selected:
+
+image::04-deploy-01.png[link=self, window=blank, width=100%]
+
+NOTE: Since certain policy criteria is specific to each stage, you have to reset the policy criteria.
+
+> Now, we want to target our specific deployment with an image label.
+
+[start=7]
+. Click *Next*:
+. Click on the *Image contents* dropdown on the right side of the browser:
+. Find the *Image component* label and drag it to the default policy criteria:
+. Type *apk-tools* under the criteria:
+
+Your policy should look like this:
+
+image::04-deploy-02.png[link=self, window=blank, width=100%]
+
+[start=11]
+. In Policy behavior -> Actions, click *Inform and enforce* + *Enforce on Deploy*:
+
+image::04-deploy-03.png[link=self, window=blank, width=100%]
+
+[start=12]
+. Click *Next*:
+. Review the changes:
+. Click *Save*:
+
+Now, let's test it out! We're going to redeploy the frontend application from earlier.
+
+> In case you forgot to run the command earlier:
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc delete -f $APP_HOME/skupper-demo/frontend.yml
+----
+
+> Now reapply the frontend service and deployment:
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc apply -f $APP_HOME/skupper-demo/frontend.yml
+----
+
+*Expected:* Admission webhook denies the deployment—policy *Alpine Linux Package Manager in Image - Enforce Deploy* violated because container `frontend` includes `apk-tools`.
+
+[start=15]
+. Verify the frontend application against the policies you've created:
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+roxctl -e $ROX_CENTRAL_ADDRESS:443 deployment check --file $APP_HOME/skupper-demo/frontend.yml --insecure-skip-tls-verify
+----
+
+image::04-deploy-04.png[link=self, window=blank, width=100%]
+
+> The new policy will fail the check when in enforce mode. In inform mode, you will get a policy violation without the "Failed policy" error.
+
+Cleanup for this lab restores the frontend deployment after you finish.
+
 == What Would You Do?
 
 * What filters would be useful in your day-to-day risk workflow? 
@@ -388,9 +496,9 @@ Note whether the baseline is *unlocked*—RHACS is still in its observation wind
 
 Great job!
 
-RHACS does not simply surface vulnerabilities. You learned the various risk priority justifications RHACS provides and filtered and searched through these vulnerabilities. RHACS reports the risk indicators, deployment details, and processes necessary to discover vulnerabilities for each deployment.
+RHACS does not simply surface vulnerabilities. You learned the various risk priority justifications RHACS provides, filtered and searched through these vulnerabilities, and enforced a deploy-time policy against the frontend image.
 
-Have fun with *Policy Management*!
+Have fun with xref:03-acs-cicd-and-automation.adoc[CI/CD]!
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDR4amFzZ2ZiNGNkaTVwM3lscmxycDMzMnB4bTdwYWd0emlsOHJiYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/qunFC4tNsyA8y9M36d/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
@@ -398,5 +506,5 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDR4amFzZ2ZiNGNkaTVwM3ls
 
 Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
 
-:lab-cleanup-module: 03
+:lab-cleanup-module: 02
 include::partial$lab-cleanup.adoc[]

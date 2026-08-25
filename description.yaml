@@ -8,7 +8,7 @@ The OpenShift Security Roadshow is a hands-on lab for field and technical teams 
 * 101 — *Foundations* — OpenShift secure-by-default posture
 * 201 — *Intermediate* — Hardening and shift-left
 * 301 — *Advanced* — Enterprise and zero trust
-* *RHACS (modules 00–10)* — Full application lifecycle with Advanced Cluster Security
+* *RHACS (modules 00–07)* — Full application lifecycle with Advanced Cluster Security
 * *Lightwell* — Project Lightwell (trusted software supply chain)
 
 == Lab Guide

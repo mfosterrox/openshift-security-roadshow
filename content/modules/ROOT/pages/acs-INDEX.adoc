@@ -6,7 +6,7 @@ xref:index.adoc[←]
 
 == Overview
 
-These labs go deep on Red Hat Advanced Cluster Security (RHACS): visibility, vulnerability and risk management, policy, CI/CD gates, compliance, notifications, API, network security, and installation.
+These labs go deep on Red Hat Advanced Cluster Security (RHACS): setup and navigation, vulnerability management, policy and risk, CI/CD gates, compliance, notifications and API, network and runtime security, and installation.
 
 Use this track after (or alongside) the role path that owns the capability—especially DevSecOps, Platform Operator, and Security Architect. Related framework labs include xref:301-04-runtime-threat-detection.adoc[301-04], xref:301-05-incident-response-forensics.adoc[301-05], and xref:301-07-automated-remediation.adoc[301-07].
 
@@ -18,17 +18,14 @@ Audience and prerequisites:
 
 == Recommended sequence
 
-. xref:00-acs-setup-install-navigation.adoc[Setup and Introduction]
-. xref:01-acs-visibility-and-navigation.adoc[Visibility & Navigation]
-. xref:02-acs-vulnerability-management-lab.adoc[Vulnerability Management]
-. xref:03-acs-risk-profiling.adoc[Risk Profiling]
-. xref:04-acs-policy-management.adoc[Policy Management]
-. xref:05-acs-cicd-and-automation.adoc[CI/CD Automation and Integration]
-. xref:06-acs-compliance.adoc[Compliance]
-. xref:07-acs-notifications.adoc[Notifications and Alerting]
-. xref:08-acs-api.adoc[API Walkthrough]
-. xref:09-acs-network-security.adoc[Network Security]
-. xref:10-acs-installation.adoc[Installation]
+. xref:00-acs-setup-install-navigation.adoc[Setup and Navigation]
+. xref:01-acs-vulnerability-management.adoc[Vulnerability Management]
+. xref:02-acs-policy-and-risk.adoc[Policy and Risk]
+. xref:03-acs-cicd-and-automation.adoc[CI/CD Automation and Integration]
+. xref:04-acs-compliance.adoc[Compliance]
+. xref:05-acs-notifications-api.adoc[Notifications, API, and Integrations]
+. xref:06-acs-network-and-runtime.adoc[Network and Runtime Security]
+. xref:07-acs-installation.adoc[Installation]
 
 == RHACS Labs Index
 
@@ -37,46 +34,34 @@ Audience and prerequisites:
 |Lab | Title | Focus
 
 |xref:00-acs-setup-install-navigation.adoc[00]
-|Lab Setup and Introduction
-|Environment, console access, first orientation
+|Setup and Navigation
+|Environment, consoles, dashboard, and search
 
-|xref:01-acs-visibility-and-navigation.adoc[01]
-|Navigating RHACS
-|Dashboard, inventory, and UI navigation
-
-|xref:02-acs-vulnerability-management-lab.adoc[02]
+|xref:01-acs-vulnerability-management.adoc[01]
 |Vulnerability Management
-|CVE findings, prioritization, and remediation views
+|CVE findings, prioritization, and reporting
 
-|xref:03-acs-risk-profiling.adoc[03]
-|Risk Profiling
-|Risk scoring and workload risk context
+|xref:02-acs-policy-and-risk.adoc[02]
+|Policy and Risk
+|Risk scoring, filters, and deploy-time enforcement
 
-|xref:04-acs-policy-management.adoc[04]
-|Policy Management
-|Built-in and custom policies; enforcement modes
-
-|xref:05-acs-cicd-and-automation.adoc[05]
+|xref:03-acs-cicd-and-automation.adoc[03]
 |CI/CD and Automation
 |Pipeline gates and build-time checks
 
-|xref:06-acs-compliance.adoc[06]
+|xref:04-acs-compliance.adoc[04]
 |Compliance
 |Compliance standards and assessment results
 
-|xref:07-acs-notifications.adoc[07]
-|Notifications
-|Alerting integrations and notification channels
+|xref:05-acs-notifications-api.adoc[05]
+|Notifications, API, and Integrations
+|Notifiers, webhooks, and Central API
 
-|xref:08-acs-api.adoc[08]
-|API Walkthrough
-|Central API usage for automation
+|xref:06-acs-network-and-runtime.adoc[06]
+|Network and Runtime Security
+|Network graph, netpol, and runtime enforcement
 
-|xref:09-acs-network-security.adoc[09]
-|Network Security
-|Network graph, flows, and policy insights
-
-|xref:10-acs-installation.adoc[10]
+|xref:07-acs-installation.adoc[07]
 |Installation and RHACS Cloud Service
 |Deployment options and RHACS Cloud Service
 |===

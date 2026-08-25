@@ -101,7 +101,7 @@ Let's run the check again to check if the policies were successful.
 roxctl -e $ROX_CENTRAL_ADDRESS:443 image check --image $QUAY_URL/$QUAY_USER/frontend:0.1
 ----
 
-*Expected:* Two failing APK enforce policies plus GitOps-managed policies from the previous section.
+*Expected:* Failing APK and GitOps-managed policies. If you created *Alpine Linux Package Manager in Image - Enforce Deploy* in xref:02-acs-policy-and-risk.adoc[02 Policy and Risk], it appears here as well.
 
 > You should see a second APK policy violation from the externally managed GitOps policy.
 
@@ -123,7 +123,7 @@ What's the difference?
 * Externally managed policies are managed via GitOps and policy as code
 
 [start=3]
-. Delete the locally managed "conflicting" policies by running the following command:
+. Delete a locally managed conflicting build policy if you created one earlier (skip if the name is not found):
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -334,9 +334,9 @@ image::fsi-security/sarah-call.png[Incident investigation,link=self, window=blan
 
 THUMBS UP!
 
-In this lab, you reviewed a basic CI/CD use case that implemented the build policy from the previous module. You then adjusted the policy so the pipeline would succeed. 
+In this lab, you reviewed a basic CI/CD use case that implemented build-time policy checks with `roxctl` and GitOps-managed policies. You then adjusted the pipeline secret so the scan could reach Central. 
 
-Congrats! On to Compliance!
+Congrats! On to xref:04-acs-compliance.adoc[Compliance]!
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbTkyMGVyZW5qaG84dHB1cWM3Z3l0eWlpNWhseW9vODZocTVyZmZhMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7abGQa0aRJUurpII/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
@@ -344,5 +344,5 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbTkyMGVyZW5qaG84dHB1cWM3
 
 Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
 
-:lab-cleanup-module: 05
+:lab-cleanup-module: 03
 include::partial$lab-cleanup.adoc[]

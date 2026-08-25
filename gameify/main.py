@@ -14,8 +14,7 @@ from pathlib import Path
 PROGRESS_FILE = "/home/lab-user/.acs-roadshow/progress"
 # Full roadshow catalog (same ids accepted by setup/lab-cleanup.sh)
 DEFAULT_MODULES = (
-    [f"{i:02d}" for i in range(0, 10)]
-    + ["10"]
+    [f"{i:02d}" for i in range(0, 8)]
     + [f"101-{i:02d}" for i in range(1, 13)]
     + [f"201-{i:02d}" for i in range(1, 12)]
     + [f"301-{i:02d}" for i in range(1, 14)]
@@ -212,7 +211,7 @@ def main(argv: list[str] | None = None) -> int:
         "--modules",
         help=(
             "Comma-separated module ids to score "
-            "(default: all ACS 00-10, 101-01..12, 201-01..11, 301-01..13, tssc-00..02)"
+            "(default: all ACS 00-07, 101-01..12, 201-01..11, 301-01..13, tssc-00..02)"
         ),
     )
     parser.add_argument(

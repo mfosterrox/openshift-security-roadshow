@@ -44,7 +44,7 @@ Score a custom subset (for example a role-track event):
 ```bash
 python3 main.py --csv bastions.csv --modules 101-01,101-02,101-03
 # ACS-only:
-python3 main.py --csv bastions.csv --modules 00,01,02,03,04,05,06,07,08,09,10
+python3 main.py --csv bastions.csv --modules 00,01,02,03,04,05,06,07
 ```
 
 Quick single-host test:

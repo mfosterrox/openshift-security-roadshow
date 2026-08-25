@@ -1,51 +1,30 @@
-= Notifications
+= Notifications, API, and Integrations
 :toc:
 :sectnums:
 :icons: font
 
 == Module Goals
-* Understanding how notification and alerting work in RHACS
-* Set up a notification alert to a Microsoft Teams channel
-* Set up a notification alert to a Slack channel
-* Configure policies to send alerts to both Teams and Slack
 
-== How Do Notifications and Alerts Work in RHACS
+* Understand how notification and alerting work in RHACS
+* Set up a Slack notifier (Teams uses the same Integrations pattern)
+* Attach a notifier to a policy
+* Call the RHACS API with a token for policies and alerts
 
-Red Hat Advanced Cluster Security for Kubernetes (RHACS) offers robust notification and alerting mechanisms to enhance the security and observability of Kubernetes environments. 
+== How notifications and alerts work in RHACS
 
-=== Notification and Alerting Mechanisms
+RHACS generates a *violation* when a policy is broken. You route those events through *Platform Configuration → Integrations* (notifiers, registries, API tokens, backups). Severity on the policy (Low through Critical) decides who should wake up.
 
-==== Policy Violations
-
-RHACS uses a set of pre-defined and custom policies to monitor the cluster for security violations. These policies can cover a wide range of security aspects including image vulnerabilities, misconfigurations, runtime behaviors, and compliance checks. When a policy is violated, RHACS generates a violation event. These events are the primary triggers for notifications and alerts.
-
-==== Alert Configurations
-
-RHACS supports integrations with various notification and alerting systems such as Slack, Microsoft Teams, email, PagerDuty, Splunk, and more. For systems not directly supported, custom webhooks can be configured to send alerts to any endpoint that can process HTTP POST requests.
-
-==== Setting Up Notifications
-
-Administrators can configure notification channels through the RHACS console. This involves providing the necessary credentials and endpoints for the chosen notification service. These notifications can be scoped to specific policies, allowing for granular control over which violations generate alerts and where those alerts are sent.
-
-==== Alert Management
-
-Policies can be assigned different severity levels (Low, Medium, High, Critical). Alerts can be configured to trigger based on the severity level of the violation. Depending on the integration, alerts can be routed to different teams or systems. For example, critical violations can be sent to on-call engineers via PagerDuty, while lower-severity alerts might be sent to a Slack channel for informational purposes.
-
-==== Runtime Alerts
-
-RHACS continuously monitors Kubernetes clusters for runtime anomalies. Alerts can be configured to trigger on suspicious activities such as unexpected network connections, process executions, or file system changes. By analyzing the runtime behavior of applications, RHACS can alert on deviations from known good states or behaviors.
-
-== Configuring Alerting in RHACS
+Supported notifiers include Slack, Microsoft Teams, email, PagerDuty, Splunk, and generic webhooks.
 
 == Integrating Slack with RHACS
 
-In this guide, we will show you how to integrate Red Hat Advanced Cluster Security (RHACS) with Slack by setting up an Incoming Webhook in Slack and configuring it in RHACS to receive security alerts.
+Hands-on for this lab is Slack. Microsoft Teams follows the same pattern: create a webhook in the chat product, then add a *Notifier* integration in RHACS and *Test* it.
 
 === Prerequisites
-Before proceeding, ensure you have the following:
+
 - A Slack account and access to create a Slack app.
 
-=== Steps for Setting Up the Slack Integration
+=== Steps for setting up the Slack integration
 
 *Procedure*
 
@@ -92,70 +71,11 @@ image::07-slack-04.png[link=self, window=blank, width=100%]
 . Click **Test** to ensure the integration works correctly:
 . If successful, you will see the message **"The test was successful"**.
 
-== References
-- [Slack API Documentation](https://api.slack.com/)
+NOTE: For Microsoft Teams, use *Notifier Integrations → Microsoft Teams* with an incoming webhook from the channel *Workflows* UI. Name the integration `teams-alerts` and *Test* it the same way.
 
-====
-Next, we have to configure our policies to alert based on specific triggers.
-====
+== Configure notifications
 
-== Integrating Microsoft Teams with RHACS
-
-In this guide, we will show you how to integrate Red Hat Advanced Cluster Security (RHACS) with Microsoft Teams by setting up an Incoming Webhook in Teams and configuring it in RHACS to receive security alerts.
-
-=== Prerequisites
-Before proceeding, ensure you have the following:
-
-- A Microsoft Teams account and access to create a Teams app.
-- Administrator permissions in your Microsoft Teams organization.
-
-=== Steps for Setting Up the Microsoft Teams Integration
-
-*Procedure*
-
-. Navigate to the Microsoft Teams web app or desktop application and log in with your Microsoft credentials:
-. Go to the channel where you want to receive the notifications:
-. Click the **More options** (three dots) next to the channel name and select **Workflows**:
-
-image::07-teams-00.png[link=self, window=blank, width=100%]
-
-[start=4]
-. In the Workflows dialog, click **send webhook alerts to chat**:
-
-image::07-teams-01.png[link=self, window=blank, width=100%]
-
-[start=5]
-. Fill in the webhook details:
-* **Name:** Enter: **RHACS Security Alerts**
-. Click **add workflow**:
-
-image::07-teams-02.png[link=self, window=blank, width=100%]
-
-[start=7]
-. Copy the **Webhook URL** that is generated. You will need this for the RHACS configuration
-. Navigate to the RHACS Console and log in
-. Go to **Platform Configurations -> Integrations**
-. Under **Notifier Integrations**, select **Microsoft Teams**
-. Click the **New integration** button to start the configuration
-. Configure the Teams integration.
-* **Integration Name:** Enter: **teams-alerts**
-* **Webhook URL:** Paste the **Webhook URL** you copied earlier from Teams.
-. Click **Test** to ensure the integration works correctly
-. If successful, you will see the message **"The test was successful"**.
-. Click **Save**
-
-=== References
-- [Microsoft Teams Webhook Documentation](https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook)
-
-====
-Next, we have to configure our policies to alert based on specific triggers.
-====
-
-== Configure Notifications
-
-Balancing security alerting in a team is crucial to ensure that the team is responsive to genuine threats while minimizing alert fatigue. RHACS enables this by letting you configure your alert channels and attach them to the policies you care about. 
-
-Let's test this out. You will use the runtime enforcement policy that was used in the previous module.
+Attach the notifier to a policy you already have. This lab reuses *No bash allowed* from xref:02-acs-policy-and-risk.adoc[02 Policy and Risk].
 
 *Procedure*
 
@@ -174,10 +94,10 @@ image::07-pol-not-01.png[link=self, window=blank, width=100%]
 image::08-not-2.png[link=self, window=blank, width=100%]
 
 [start=4]
-. Go to Policy behavior - actions. There should be your slack-alerts and teams-alerts notifier options available:
+. Go to Policy behavior - actions. There should be your slack-alerts (and teams-alerts, if you added Teams) notifier options available:
 . Click the desired notifier(s) and save the policy:
 
-IMPORTANT: Run the following command if you have not created the policy in the earlier module:
+IMPORTANT: Run the following command if you have not created the policy in xref:02-acs-policy-and-risk.adoc[02]:
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -239,15 +159,47 @@ oc exec $POD -n payments -i --tty -- /bin/bash
 ----
 [demo-user@bastion ~]$ POD=$(oc get pod -l app=ctf-web-to-system -o jsonpath="{.items[0].metadata.name}")
 oc exec $POD -i --tty -- /bin/bash
-tomcat@visa-processor-9bfcf46f7-cwtjb:/usr/local/tomcat$ 
+tomcat@visa-processor-9bfcf46f7-cwtjb:/usr/local/tomcat$
 ----
 
 NOTE: If you see *tomcat@visa-processor...*, you've confirmed you have a shell and access to the visa-processor application.
 
 [start=7]
-. Lastly, review your Slack and/or Teams channel for the alert: 
+. Lastly, review your Slack (and/or Teams) channel for the alert.
 
-*Congrats!* 
+== RHACS API
+
+The setup script already exported `ROX_API_TOKEN` and `ROX_CENTRAL_ADDRESS`. You can also mint a token in *Platform Configuration → Integrations → API Token* (Admin role for this lab).
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc -n stackrox get route central -o jsonpath='{.spec.host}{"\n"}'
+echo "ROX_CENTRAL_ADDRESS=$ROX_CENTRAL_ADDRESS"
+test -n "$ROX_API_TOKEN" && echo "ROX_API_TOKEN is set" || echo "ROX_API_TOKEN is missing"
+----
+
+Use `Authorization: Bearer $ROX_API_TOKEN` over HTTPS. Rotate tokens, grant least privilege in production, and revoke when a user leaves.
+
+=== List policies
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+curl -k -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS/v1/policies" | jq '.policies[] | {id,name,severity,disabled}' | head -40
+----
+
+=== List alerts, then filter
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+curl -k -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS:443/v1/alerts" | jq -r '.alerts[] | select(.state=="ACTIVE") | .id' | head
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+curl -k -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ADDRESS:443/v1/alerts?query=Namespace:payments" | jq
+----
+
+API docs live in the RHACS console (Help → API reference). Come up with one automation you would actually run—bulk lock, export, or ticket create—and we can discuss after the module.
 
 == Security Exercise: ACME Incident Response
 
@@ -283,7 +235,7 @@ include::partial$security-exercise-task-intro.adoc[]
 .Step 3 — Trigger a test violation
 [%collapsible]
 ====
-. Trigger a test by running shell exec (if not already done in module 04):
+. Trigger a test by running shell exec:
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -301,17 +253,11 @@ oc exec -n payment-gateway-{workshop_user_suffix} -it pod/payment-gateway -- /bi
 
 * Runtime process violations can be routed to SOC channels alongside existing policy alerts.
 * Notification rules scoped by namespace target incident-specific workloads without noise cluster-wide.
-* Alerting closes the loop between detection (module 04) and operational response.
-
+* The same Integrations page is where API tokens live for automation.
 
 == Summary
 
-
-Nice!
-
-You integrated webhooks into RHACS for both Slack and Microsoft Teams and configured notifications based on previous policies.
-
-Time to review the *RHACS API*!
+You wired a notifier, attached it to a policy, and called the Central API. Next: xref:06-acs-network-and-runtime.adoc[Network and Runtime Security].
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjJmczc4MmswYmk1cnhvZ254ZXBiZ2M3bGJzbDV5eDQ3OGlqNWdwdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QSSA5Bd56W25ytLIwz/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
@@ -319,5 +265,5 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjJmczc4MmswYmk1cnhvZ254
 
 Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
 
-:lab-cleanup-module: 07
+:lab-cleanup-module: 05
 include::partial$lab-cleanup.adoc[]

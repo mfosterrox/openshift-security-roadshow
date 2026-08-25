@@ -48,7 +48,7 @@ Skip for this role (unless cross-training): RBAC deep dive, Secrets, image prove
 
 == Related modules
 
-* xref:09-acs-network-security.adoc[RHACS — Network Security] for visualization and enforcement patterns after the 101/201 network labs
+* xref:06-acs-network-and-runtime.adoc[RHACS — Network and Runtime Security] for visualization and enforcement patterns after the 101/201 network labs
 
 == Catalogs
 

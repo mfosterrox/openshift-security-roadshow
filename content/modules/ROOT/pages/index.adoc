@@ -98,5 +98,5 @@ Browse full catalogs by skill level: xref:basic-INDEX.adoc[101 Foundations], xre
 
 Use these after (or alongside) the role track that owns the capability—especially DevSecOps, Platform Operator, and Security Architect.
 
-* xref:acs-INDEX.adoc[Advanced Cluster Security (RHACS)] — Visibility, vulnerabilities, risk, policy, CI/CD gates, compliance, network security, and installation.
+* xref:acs-INDEX.adoc[Advanced Cluster Security (RHACS)] — Setup, vulnerabilities, policy and risk, CI/CD gates, compliance, notifications and API, network and runtime, and installation.
 * xref:tssc-INDEX.adoc[Trusted Software Supply Chain (TSSC)] — Trusted Artifact Signer (container and git signing) and Trusted Profile Analyzer (SBOM analysis).

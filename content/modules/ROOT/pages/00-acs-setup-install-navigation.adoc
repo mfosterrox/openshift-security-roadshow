@@ -1,4 +1,4 @@
-= Lab Setup and Introduction
+= Setup and Navigation
 :toc:
 :sectnums:
 :icons: font
@@ -9,6 +9,7 @@
 * Run the bastion setup script to configure RHACS CLI access and deploy vulnerable demo apps
 * Build and push workshop images to Quay, then deploy the patient-portal application
 * Complete the Trusted Image Pulls from Quay security exercise
+* Navigate the RHACS dashboard, search, and Platform Configuration
 
 == Accessing the Workshop Components
 
@@ -57,6 +58,8 @@ image::00-quay-login.png[Quay Console,link=self, window=blank, width=100%]
 | *Quay Console Username:* | {quay_admin_username}
 | *Quay Console Password:* | {quay_admin_password}
 |===
+
+[[deploy-the-workshop-apps]]
 
 == Lab environment setup
 
@@ -119,6 +122,7 @@ test -n "$ROX_API_TOKEN" && echo "ROX_API_TOKEN is set" || echo "ROX_API_TOKEN i
 ----
 
 [[quay]]
+[[build-a-container-image]]
 
 == Red Hat Quay
 
@@ -245,7 +249,6 @@ frontend-5c487dcb47-z9stn            1/1     Running   0          54s
 payment-processor-6644dfc5b7-5vzqh   1/1     Running   0          51s
 ----
 
-
 == Security Exercise: Trusted Image Pulls from Quay
 
 You built, scanned, and deployed the *frontend* image through Quay. Before moving on, verify that OpenShift is running the same image you pushed—not an unexpected registry, tag, or stale pull.
@@ -329,15 +332,261 @@ image::00-quay-tags.png[Quay frontend repository tags,link=self, window=blank, w
 * Registry visibility (public vs private) and pull secrets directly affect whether workloads can start securely.
 * RHACS ties vulnerability data to the exact image URI your deployments pull from Quay.
 
+== RHACS Basics
+
+RHACS provides the tools and capabilities to address the security needs of a cloud-native development approach on Kubernetes. These security features represent any developer or administrator’s primary work across various environments, including multiple datacenters, private clouds, or public clouds that run Kubernetes clusters.
+
+=== RHACS features
+
+Using Red Hat Advanced Cluster Security for Kubernetes, you can gain comprehensive Kubernetes security that includes the following use cases:
+
+- *Visibility:* See your entire landscape of images, registries, containers, deployments, and runtime behavior.
+- *Vulnerability Management*: Identify and remediate vulnerabilities in container images and Kubernetes across the entire software development life cycle.
+- *Compliance:* Audit your systems against CIS Benchmarks, NIST, PCI, and HIPAA, with interactive dashboards and one-click audit reports.
+- *Network Security:* Visualize existing connections and enforce tighter segmentation using Kubernetes-native controls to reduce your blast radius.
+- *Security Policy Guardrails:* See all your deployments ranked by risk level, using context from Kubernetes' declarative data, to prioritize remediation.
+- *Configuration Management:* Apply best practices for Docker and Kubernetes to harden your environment for a more secure and stable application.
+- *Threat Detection:* Use rules, automated allow lists, and baselining to identify suspicious activity in your running applications accurately.
+- *Incident Response:* Take action, from failing builds and blocking deployments to killing pods and thwarting attacks, using Kubernetes for enforcement.
+
+== Introduction to the RHACS Console
+
+This section focuses on navigation and search. Later labs go deep on each use case—do not spend time walking every menu here.
+
+=== Navigating the RHACS Console
+
+The "Dashboard" or RHACS home page has 3 sections:
+
+. Navigation bar
+. Navigation drawer
+. Dashboard
+
+image::01-acs-dashboard-00.png[link=self, window=blank, width=100%, Numbered Dashboard]
+
+=== 1. Navigation Bar
+
+The top bar contains the following functionality:
+
+- Global search
+- Command-line tools
+- Cluster health
+- Documentation
+- API reference
+- Enable dark/light mode
+- Logged-in user account
+
+image::01-acs-top-bar.png[link=self, window=blank, width=100%, Navigation Bar]
+
+=== Global Search
+
+The ability to instantly find resources is essential to safeguard your cluster. Utilize the RHACS search feature to find relevant resources faster. For example, you can use it to find deployments exposed to a newly published CVE or all deployments with external network exposure.
+
+==== A search query
+
+A search query consists of two parts:
+
+- An attribute that identifies the resource type you want to search for.
+- A search term that finds the matching resource.
+
+====
+For example, to find all violations in the *frontend* deployment, the search query is select Deployment *THEN* frontend.
+====
+
+In this search query, Deployment is the attribute, and *frontend* is the search term.
+
+TIP: The search field in RHACS requires each attribute to be entered fully as a search term. Enter your first attribute, and hit the <tab> key to move along to the following attribute you would like to enter. Watch the video below for a demonstration.
+
+---
+
+video::01-acs-search.mp4[width=640,opts=autoplay, class="center" ]
+
+---
+
+NOTE: RHACS maintains a library of searchable assets to help you search faster. They will appear in a drop-down list, and you can click on them to enter them as well. If a specific CVE or deployment cannot be found, please confirm the spelling of the asset name or that it is correctly deployed in the cluster.
+
+You can also search using *REGEX-like capabilities*. Add an *r/* before the search term—for example, *Namespace:r/st.*x* matches `stackrox` and `stix`.
+
+==== Common Search Queries
+
+Here are some common search queries you can try in the RHACS search bar if you’d like to test its functionality.
+
+|============
+|Query|Example|Purpose
+|CVE:<CVE_number>|CVE:CVE-2018-11776|Finding deployments that are affected by a specific CVE
+|Privileged:<true_or_false>|Privileged:true|Finding privileged running deployments
+|Exposure Level:<level>|Exposure Level:External|Finding deployments that have external network exposure
+|============
+
+IMPORTANT: RHACS, like Kubernetes, works on a *key:value* system primarily due to its flexibility and power in organizing, selecting, and managing resources, but also because of the ability to set selectors and match objects based on a set of values (e.g., 'in', 'not in', 'exists', 'does not exist').
+
+image::01-acs-search-cve.png[link=self, window=blank, width=100%, Search Syntax]
+
+==== Local Page Filtering
+
+Each RHACS view also supports local filtering with the same syntax as global search (including *r/* regex). Attributes are limited to what is relevant on that page—for example, filtering violations by namespace.
+
+====
+Local filters apply only to the current view; global search spans the entire RHACS inventory.
+====
+
+---
+video::01-acs-local.mp4[width=640,opts=autoplay, class="center"]
+---
+
+=== Navigation Menu
+
+image::01-acs-nav.png[link=self, window=blank, width=100%, Navigation Menu]
+
+The left-hand navigation menu provides access to each of the security use cases, as well as product configuration to integrate RHACS with your existing tooling:
+
+- *Dashboard:* Summary view of your environment
+- *Network Graph:* Network flows, listening endpoints, and policy simulation — xref:06-acs-network-and-runtime.adoc[06 Network and Runtime Security]
+- *Violations:* Policy violation events and enforcement status — xref:06-acs-network-and-runtime.adoc[06]
+- *Compliance:* CIS, PCI-DSS, and STIG coverage — xref:04-acs-compliance.adoc[04 Compliance]
+- *Vulnerability Management:* Workload, platform, and node CVE views — xref:01-acs-vulnerability-management.adoc[01 Vulnerability Management]
+- *Configuration Management:* Misconfiguration and standards reporting — xref:02-acs-policy-and-risk.adoc[02 Policy and Risk]
+- *Risk:* Prioritized workloads — xref:02-acs-policy-and-risk.adoc[02 Policy and Risk]
+- *Platform Configuration:* Clusters, policies, collections, integrations, access control, and system settings
+
+=== Dashboard
+
+The RHACS dashboard provides at-a-glance counters, cluster/namespace filtering, and customizable widgets for risk, compliance, violations, and CVEs.
+
+image::01-acs-dashboard-01.png[link=self, window=blank, width=100%, Center Dashboard]
+
+The dashboard has three sections: the status bar, the dashboard filter, and actionable widgets.
+
+image::01-acs-dashboard-02.png[link=self, window=blank, width=100%, Three Dashboard Sections]
+
+==== The Status Bar
+
+The status bar provides at-a-glance numerical counters for critical resources. The counters reflect what is visible with your current access scope, defined by the roles associated with your user profile.
+
+These counters are clickable, providing fast access to the desired list view pages as follows:
+
+|============
+|Counter|Destination
+|Clusters|Platform Configuration -> Clusters
+|Nodes|Configuration Management -> Applications & Infrastructure -> Nodes
+|Violations|Violations Main Menu
+|Deployments|Configuration Management -> Applications & Infrastructure -> Deployments
+|Images|Vulnerability Management -> Dashboard -> Images
+|Secrets|Configuration Management -> Applications & Infrastructure -> Secrets
+|============
+
+==== The Dashboard Filter
+
+The dashboard includes a top-level filter that applies simultaneously to all widgets. You can select clusters and one or more namespaces within selected clusters. Any change to the filter is immediately reflected by all widgets, limiting the data they present to the selected scope.
+
+NOTE: The dashboard filter does not affect the status bar. When no clusters or namespaces are selected, the view shows All.
+
+image::01-acs-dashboard-03.png[link=self, window=blank, width=100%, Dashboard Filter]
+
+image::01-acs-dashboard-04.png[link=self, window=blank, width=100%, Dashboard Drop-down]
+
+==== Actionable Widgets
+
+Customize widgets and filters to highlight the data most relevant to your deployments.
+
+=== Platform Configuration
+
+*Platform Configuration* is where you manage clusters, policies, collections, integrations, access control, and system health.
+
+image::01-pc-1.png[link=self, window=blank, width=100%]
+
+==== Policy Management
+
+image::01-pc-2.png[link=self, window=blank, width=100%]
+
+Clone, edit, and create policies. RHACS ships with many defaults; this is where you tailor enforcement for your environment.
+
+==== Collections
+
+image::01-pc-3.png[link=self, window=blank, width=100%]
+
+Group deployments into collections and attach policies, reporting, or compliance workflows to those groups.
+
+==== Integrations
+
+image::01-pc-4.png[link=self, window=blank, width=100%]
+
+Connect image registries, notifiers, backup targets, cloud sources, and API tokens. You will configure notifiers and API tokens in xref:05-acs-notifications-api.adoc[05 Notifications, API, and Integrations].
+
+==== Access Control
+
+image::01-pc-6.png[link=self, window=blank, width=100%]
+
+Configure authentication providers, roles, permission sets, and access scopes.
+
+==== System Configuration and Health
+
+image::01-pc-7.png[link=self, window=blank, width=100%]
+
+Manage data retention, cluster settings, and platform configuration.
+
+image::01-pc-9.png[link=self, window=blank, width=100%]
+
+Monitor sensor upgrades, credential expiration, and generate diagnostic bundles from *System Health*.
+
+Other Platform Configuration areas include *Exception Configuration* and *Administration Events*—useful for vulnerability exceptions and platform troubleshooting.
+
+== Security Exercise: ACME Incident Response
+
+include::partial$acme-incident-context.adoc[]
+
+=== Scenario
+
+[quote, Morgan, Infosec]
+We have irregular egress traffic from `payment-gateway` on the production cluster. Sarah, use RHACS to locate the deployment and assess its risk before we touch the pod.
+
+=== Your task
+
+include::partial$security-exercise-task-intro.adoc[]
+
+.Step 1 — Open RHACS and switch to your namespace
+[%collapsible]
+====
+include::partial$payment-gateway-namespace.adoc[]
+
+image::fsi-security/sarah-call.png[Incident call,link=self, window=blank, width=100%]
+
+. Log in to the RHACS console at `{acs_route}[{acs_route}^]`.
+====
+
+.Step 2 — Search for payment-gateway in Risk
+[%collapsible]
+====
+. Use *Risk* in the left navigation and search for `payment-gateway`.
+====
+
+.Step 3 — Open the deployment
+[%collapsible]
+====
+. Select the `payment-gateway` deployment in namespace `payment-gateway-{workshop_user_suffix}`.
+====
+
+.Step 4 — Review risk factors
+[%collapsible]
+====
+. Review the risk factors: external exposure, suspicious processes, and configuration issues.
+
+Use global search with the query:
+
+[source]
+----
+Deployment:payment-gateway Namespace:payment-gateway-{workshop_user_suffix}
+----
+====
+
+=== What you learned
+
+* RHACS Risk view consolidates vulnerability, configuration, and runtime signals for a compromised deployment.
+* Locating a workload quickly is the first step when responding to an active incident.
+* The payment gateway shows elevated risk due to external connectivity and anomalous runtime behavior.
 
 == Summary
 
-
-*Great Job!*
-
-Now that the setup is all done, you are ready to move on with RHACS and dive into the security considerations.
-
-On to *Visibility and Navigation*!
+Setup is done and you can navigate the RHACS console. Next: xref:01-acs-vulnerability-management.adoc[Vulnerability Management].
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNxZGd5Zm5qMnlpOHhrbm1hY2pwcG5ydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p18ohAgD3H60LSoI1C/giphy.gif[link=self, window=blank, width=100%, class="center"]
 

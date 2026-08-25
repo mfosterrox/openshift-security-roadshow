@@ -15,7 +15,7 @@ usage() {
   cat <<'EOF'
 Usage: lab-cleanup.sh --module MODULE
 
-MODULE examples: 00-10 (ACS), 101-01, 201-06, 301-10, tssc-00, tssc-01, tssc-02
+MODULE examples: 00-07 (ACS), 101-01, 201-06, 301-10, tssc-00, tssc-01, tssc-02
 EOF
 }
 
@@ -33,7 +33,7 @@ if [[ -z "${MODULE}" ]]; then
   exit 1
 fi
 
-if [[ ! "${MODULE}" =~ ^(0[0-9]|10|101-[0-9]{2}|201-[0-9]{2}|301-[0-9]{2}|tssc-0[0-2])$ ]]; then
+if [[ ! "${MODULE}" =~ ^(0[0-7]|101-[0-9]{2}|201-[0-9]{2}|301-[0-9]{2}|tssc-0[0-2])$ ]]; then
   echo "Error: unsupported module id '${MODULE}'" >&2
   usage
   exit 1
@@ -75,22 +75,16 @@ echo "==> Cleaning up module ${MODULE} resources..."
 
 case "${MODULE}" in
   00)
-    rm -f /tmp/frontend-build.log /tmp/quay-push.log 2>/dev/null || true
-    echo "Removed temporary image build logs."
+    rm -f /tmp/frontend-build.log /tmp/quay-push.log /tmp/rhacs-risk-notes.txt 2>/dev/null || true
+    echo "Removed temporary image build logs and RHACS navigation scratch files."
     ;;
   01)
-    rm -f /tmp/rhacs-risk-notes.txt 2>/dev/null || true
-    echo "Removed local RHACS navigation scratch files."
-    ;;
-  02)
     rm -f /tmp/vuln-report-*.txt 2>/dev/null || true
     echo "Removed temporary vulnerability report files."
     ;;
-  03)
+  02)
     rm -f /tmp/process-baseline-notes.txt 2>/dev/null || true
     echo "Removed process discovery scratch files."
-    ;;
-  04)
     if [[ -n "${ROX_API_TOKEN:-}" && -n "${ROX_CENTRAL_ADDRESS:-}" ]]; then
       policy_id=$(curl --silent --insecure -X GET \
         -H "Authorization: Bearer ${ROX_API_TOKEN}" \
@@ -114,28 +108,42 @@ case "${MODULE}" in
       echo "Redeployed Skupper demo application."
     fi
     ;;
-  05)
+  03)
     rm -f /tmp/audit-search-*.json 2>/dev/null || true
     echo "Removed temporary audit log query files."
     ;;
-  06)
+  04)
     rm -f /tmp/compliance-notes.txt 2>/dev/null || true
     echo "Removed compliance review scratch files."
     ;;
-  07)
-    rm -f /tmp/notification-test.log 2>/dev/null || true
-    echo "Removed notification test scratch files."
-    ;;
-  08)
+  05)
+    rm -f /tmp/notification-test.log /tmp/api-response-*.json 2>/dev/null || true
     unset CLUSTER_ID 2>/dev/null || true
-    rm -f /tmp/api-response-*.json 2>/dev/null || true
-    echo "Cleared temporary API session variables and response files."
+    echo "Removed notification and API scratch files."
     ;;
-  09)
+  06)
     rm -f /tmp/netpol-*.yaml 2>/dev/null || true
     echo "Removed temporary network policy drafts."
+    if [[ -n "${ROX_API_TOKEN:-}" && -n "${ROX_CENTRAL_ADDRESS:-}" ]]; then
+      policy_id=$(curl --silent --insecure -X GET \
+        -H "Authorization: Bearer ${ROX_API_TOKEN}" \
+        -H "Content-Type: application/json" \
+        "https://${ROX_CENTRAL_ADDRESS}/v1/policies" \
+        | jq -r '.policies[] | select(.name=="Alpine Linux Package Manager Execution - Runtime") | .id' 2>/dev/null || true)
+      if [[ -n "${policy_id}" && "${policy_id}" != "null" ]]; then
+        curl --silent --insecure -X DELETE \
+          -H "Authorization: Bearer ${ROX_API_TOKEN}" \
+          -H "Content-Type: application/json" \
+          "https://${ROX_CENTRAL_ADDRESS}/v1/policies/${policy_id}" >/dev/null || true
+        echo "Removed lab runtime enforcement policy."
+      else
+        echo "No lab runtime enforcement policy found to remove."
+      fi
+    else
+      echo "ROX_API_TOKEN / ROX_CENTRAL_ADDRESS not set; skipped runtime policy cleanup."
+    fi
     ;;
-  10)
+  07)
     rm -f /tmp/checkpointctl /tmp/checkpoint-payment-gateway_* 2>/dev/null || true
     echo "Removed CRIU checkpoint scratch files from /tmp."
     ;;

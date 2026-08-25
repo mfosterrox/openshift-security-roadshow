@@ -52,17 +52,14 @@
 
 .Advanced Cluster Security Modules
 * xref:acs-INDEX.adoc[RHACS Labs Overview]
-* xref:00-acs-setup-install-navigation.adoc[Setup and Introduction]
-* xref:01-acs-visibility-and-navigation.adoc[Visibility & Navigation]
-* xref:02-acs-vulnerability-management-lab.adoc[Vulnerability Management]
-* xref:03-acs-risk-profiling.adoc[Risk profiling]
-* xref:04-acs-policy-management.adoc[Policy Management]
-* xref:05-acs-cicd-and-automation.adoc[CI/CD Automation and Integration]
-* xref:06-acs-compliance.adoc[Compliance]
-* xref:07-acs-notifications.adoc[Notifications and Alerting]
-* xref:08-acs-api.adoc[API Walkthrough]
-* xref:09-acs-network-security.adoc[Network Security]
-* xref:10-acs-installation.adoc[Installation]
+* xref:00-acs-setup-install-navigation.adoc[Setup and Navigation]
+* xref:01-acs-vulnerability-management.adoc[Vulnerability Management]
+* xref:02-acs-policy-and-risk.adoc[Policy and Risk]
+* xref:03-acs-cicd-and-automation.adoc[CI/CD Automation and Integration]
+* xref:04-acs-compliance.adoc[Compliance]
+* xref:05-acs-notifications-api.adoc[Notifications, API, and Integrations]
+* xref:06-acs-network-and-runtime.adoc[Network and Runtime Security]
+* xref:07-acs-installation.adoc[Installation]
 
 .Software Supply Chain Security Modules
 * xref:tssc-INDEX.adoc[TSSC Labs Overview]
