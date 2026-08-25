@@ -37,8 +37,6 @@ No Advanced labs are assigned to this role—grow into the xref:track-devsecops-
 . xref:101-11-rebuilding-images.adoc[101-11 — Rebuild & Harden Images]
 . xref:101-12-enforcing-tls-routes.adoc[101-12 — Enforce TLS on Routes]
 
-Skip for this role: xref:101-09-audit-exec-events.adoc[101-09] and xref:101-10-security-compliance-addons.adoc[101-10].
-
 === Intermediate
 
 . xref:201-01-threat-modeling-control-mapping.adoc[201-01 — Threat Modeling & Control Mapping]

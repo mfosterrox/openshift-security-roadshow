@@ -31,8 +31,6 @@ Not owning: compliance scanning automation, supply-chain gates, or organization-
 . xref:101-09-audit-exec-events.adoc[101-09 — Audit Logging & Exec Events]
 . xref:101-12-enforcing-tls-routes.adoc[101-12 — Enforce TLS on Routes]
 
-Skip for this role (unless cross-training): RBAC deep dive, Secrets, image provenance, compliance add-ons, and image rebuild (101-11).
-
 === Intermediate
 
 . xref:101-05-network-policy-basics.adoc[101-05 — NetworkPolicy Basics] and xref:201-09-cert-manager-mtls.adoc[201-09 — Certificate Management & mTLS]
