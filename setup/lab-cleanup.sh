@@ -51,8 +51,15 @@ record_completion() {
 
 delete_projects() {
   local deleted_any=false
-  local ns
+  local ns current
+  current="$(oc project -q 2>/dev/null || true)"
   for ns in "$@"; do
+    # Leave the namespace before deleting it so the next module is not stuck
+    # in a Terminating project (same failure mode as a mid-lab oc delete).
+    if [[ -n "${current}" && "${current}" == "${ns}" ]]; then
+      oc project default >/dev/null 2>&1 || true
+      current="default"
+    fi
     if oc get project "${ns}" >/dev/null 2>&1; then
       oc delete project "${ns}" --wait=false
       echo "Namespace deleted: ${ns}"
@@ -142,20 +149,47 @@ case "${MODULE}" in
     delete_projects 101-03-r-rbac
     ;;
   101-04)
+    # Part A may have granted anyuid to the namespace default SA (cluster-scoped binding).
+    oc adm policy remove-scc-from-user anyuid -z default -n 101-04-s-scc-demo >/dev/null 2>&1 || true
     delete_projects 101-04-s-scc-demo 101-04-s-resources-demo
     ;;
   101-05)
     delete_projects 101-05-n-netpol-demo
     ;;
   101-06)
+    # Part A (secure-app-env + db-credentials) and Part B (secure-app-file) share one project.
     delete_projects 101-06-s-secrets
     ;;
   101-07)
-    delete_projects 101-07-i-trusted
+    # Cluster-scoped: two ValidatingAdmissionPolicies + two bindings from Part A.
+    # Namespaced: 101-07-i-trusted (labeled + UBI deploy) and 101-07-i-open (control).
+    echo "Removing trusted-registry ValidatingAdmissionPolicy objects..."
+    oc delete validatingadmissionpolicybinding trusted-images-only-pods --ignore-not-found=true || true
+    oc delete validatingadmissionpolicybinding trusted-images-only-deployments --ignore-not-found=true || true
+    oc delete validatingadmissionpolicy allow-trusted-registries-pods --ignore-not-found=true || true
+    oc delete validatingadmissionpolicy allow-trusted-registries-deployments --ignore-not-found=true || true
+    unset DIGEST 2>/dev/null || true
+    delete_projects 101-07-i-trusted 101-07-i-open
     ;;
-  101-08|101-09|101-10)
+  101-08)
+    rm -f /tmp/lab-101-08-etcd-before.bin /tmp/lab-101-08-etcd-after.bin \
+      /tmp/lab-101-08.txt /tmp/lab-scratch-* 2>/dev/null || true
+    unset ETCD_POD 2>/dev/null || true
+    echo "Removed etcd value copies from /tmp. Cluster encryption is left as-is."
+    delete_projects 101-08-e-etcd
+    ;;
+  101-09)
+    rm -f /tmp/lab-101-09-audit.json /tmp/lab-101-09.txt /tmp/lab-scratch-* 2>/dev/null || true
+    unset MASTER 2>/dev/null || true
+    echo "Removed saved audit extract from /tmp."
+    delete_projects 101-09-a-audit
+    ;;
+  101-10)
     rm -f "/tmp/lab-${MODULE}.txt" /tmp/lab-scratch-* 2>/dev/null || true
-    echo "Removed temporary lab files for module ${MODULE}."
+    oc delete scansettingbinding 101-10-cis-audit -n openshift-compliance --ignore-not-found 2>/dev/null || true
+    oc delete compliancesuite cis-scan -n openshift-compliance --ignore-not-found 2>/dev/null || true
+    echo "Removed this module's ScanSettingBinding (101-10-cis-audit) and leftover cis-scan suite if present."
+    echo "Instructor suites (for example acs-catch-all) are left in place."
     ;;
   101-11|101-12)
     # 101-12 reuses the 101-11 rebuild project

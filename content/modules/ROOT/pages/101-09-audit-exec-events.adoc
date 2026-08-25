@@ -1,42 +1,153 @@
 = Logs Don’t Lie – Tracing Who Did What (Audit Forensics)
 :labid: LAB-101-09
-:cis-summary: "Maintain comprehensive audit logging to record sensitive API actions (exec, port‑forward, RBAC changes)."
+:cis-summary: "Keep API audit logging on (CIS 3.2.1 / 1.2.22–1.2.25): know where kube-apiserver, OpenShift API, and OAuth audit files live, and be able to extract exec and port-forward events."
 :mitre-summary: "Prevents undetected misuse by capturing exec and port-forward activity for rapid escalation investigation."
-:audit-evidence: "jq filters extract exec and portforward entries with user, pod, namespace, commands, and source IPs for incident summary."
-:cis-mitre-codes: '{"cisMapping":{"primary":["3.2.1"]},"mitre":{"techniques":["T1543"],"tactics":["TA0003","TA0004"],"mitigations":["M1026","M1047"]}}'
+:audit-evidence: "Listed control-plane audit paths; generated oc exec; extracted exec events with user, pod, namespace, and source IP."
+:cis-mitre-codes: '{"cisMapping":{"primary":["3.2.1","1.2.22"],"related":["1.2.23","1.2.24","1.2.25","3.2.2"]},"mitre":{"techniques":["T1543"],"tactics":["TA0003","TA0004"],"mitigations":["M1026","M1047"]}}'
 :toc:
 :icons: font
 
-**Duration:** ~15 minutes
+**Duration:** ~20 minutes
 
 == Overview
-Read API audit logs for risky verbs such as exec, port-forward, Secret get, and RBAC changes, then write a short report that names who did what and when.
-
-Find exec and related high-risk API audit events, attribute them to identities, and turn the details into a short incident summary.
+Know where OpenShift writes API audit logs, which CIS controls that satisfies, then generate an `oc exec` and pull the event from the Kubernetes API server audit file.
 
 == Why it matters
-When something goes wrong, audit logs show the API calls: user, verb, object, time, source. That is how you reconstruct an incident instead of arguing from memory.
+When something goes wrong, audit logs show the API calls: user, verb, object, time, source. CIS Kubernetes expects that trail to exist, rotate, and cover sensitive verbs such as exec. That is how you reconstruct an incident instead of arguing from memory.
 
 == What does it solve
 
 * Reduces downtime in incident reconstruction
 * Prevents disputes over actions
 * Supports least privilege validation
+* Gives auditors a concrete answer for “where are the API audit logs?” and “is exec recorded?”
 
 == Your Mission
-Someone may already have exec’d into a pod or opened a port-forward tunnel. Your mission: pull the audit trail fast enough to name the actor, command, and timing—before the story becomes guesswork.
+Someone may already have exec’d into a pod. Your mission: know the log locations CIS cares about, make an exec yourself, then pull the audit trail fast enough to name the actor, pod, and time. Complete *Part A*, then *Part B*.
 
-Assuming `audit.json` file (JSON lines).
+Deeper correlation with Loki and RHACS is xref:201-07-audit-monitoring-correlation.adoc[201-07]. Compliance Operator scans are xref:101-10-security-compliance-addons.adoc[101-10].
 
 Click each step only if you need a hint.
 
-.Confirm the evidence file is present
+=== Part A: CIS controls and where the logs live
+OpenShift writes **three** API audit streams on every control plane node. `oc adm node-logs` reads them without SSH. You need permission to get `nodes/log` (`cluster-admin` or the roadshow `node-log-viewer` ClusterRole).
+
+.Map the log locations
+[%collapsible]
+====
+On-disk paths are on the **control plane node**, not the bastion. The `oc adm` path argument is relative to `/var/log/`.
+
+[cols="1,2,2",options="header"]
+|===
+|What |On the node |How you read it from the bastion
+
+|Kubernetes API server (exec, pods, Secrets)
+|`/var/log/kube-apiserver/audit.log` (plus rotated `audit-*.log`)
+|`oc adm node-logs <node> --path=kube-apiserver/audit.log`
+
+|OpenShift API server (Routes, projects, operators)
+|`/var/log/openshift-apiserver/`
+|`oc adm node-logs <node> --path=openshift-apiserver/`
+
+|OAuth API server (tokens, logins)
+|`/var/log/oauth-apiserver/`
+|`oc adm node-logs <node> --path=oauth-apiserver/`
+
+|Node journal
+|journald on the node
+|`oc adm node-logs <node>` (no `--path`)
+
+|Cluster Logging / Loki
+|indexed store (`log_type=kube-apiserver`)
+|xref:201-07-audit-monitoring-correlation.adoc[201-07]
+|===
+
+List the kube-apiserver audit files that actually exist:
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc adm node-logs --role=master --path=kube-apiserver/ | head -40
+----
+TIP: You should see `audit.log` and rotated `audit-YYYY-…log` files. That is the CIS “audit log path is set” evidence.
+====
+
+.Match this to CIS
+[%collapsible]
+====
+Kubernetes CIS (kube-apiserver) is what this module maps to. OpenShift CIS (`ocp4-cis` in Compliance Operator) asks the same questions with OpenShift rule names.
+
+[cols="1,2,2",options="header"]
+|===
+|CIS Kubernetes |What an auditor asks |What “good” looks like here
+
+|1.2.22
+|Is `--audit-log-path` set?
+|Files under `/var/log/kube-apiserver/` (previous step)
+
+|1.2.23
+|Are logs retained long enough (`--audit-log-maxage`)?
+|Retention days in the API server config; not only “we have a file today”
+
+|1.2.24
+|Are enough rotated files kept (`--audit-log-maxbackup`)?
+|Several `audit-*.log` files in the listing
+
+|1.2.25
+|Do files rotate at a max size (`--audit-log-maxsize`)?
+|OpenShift typically rotates around 100–200 MiB
+
+|3.2.1
+|Is there a minimal audit policy?
+|OpenShift ships a policy; API audit events exist
+
+|3.2.2
+|Does the policy cover key security events?
+|`exec`, `portforward`, Secret access, and RBAC changes are logged
+|===
+
+Local files **rotate and age out**. CIS also expects you to *forward* them (SIEM / Cluster Logging). Disk on the master is not the archive.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get kubeapiserver cluster -o jsonpath='{.spec.observedConfig.apiServerArguments.audit-log-path}{"\n"}' 2>/dev/null || true
+oc get compliancecheckresults.compliance.openshift.io -n openshift-compliance 2>/dev/null | grep -iE 'audit|1.2.22|3.2' | head || echo 'Compliance Operator results not in this cluster — use the table above.'
+----
+TIP: Treat any FAIL rows as a teaser. xref:101-10-security-compliance-addons.adoc[101-10] filters the audit-log rules and prints what to change.
+====
+
+=== Part B: Generate exec and hunt it
+Create a pod, exec into it, then search the Kubernetes API audit log. Metadata-level audit still records *who* and *which pod*; the command string is present only when the policy logs the request body.
+
+.Leave an exec fingerprint
 [%collapsible]
 ====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-ls -l audit.json
+oc new-project 101-09-a-audit || oc project 101-09-a-audit
+oc create deployment audit-sleeper --image=registry.access.redhat.com/ubi9/ubi -- sleep infinity
+oc rollout status deployment/audit-sleeper --timeout=90s
+oc exec deploy/audit-sleeper -- id
+oc exec deploy/audit-sleeper -- uname -n
 ----
+====
+
+.Pull matching lines from kube-apiserver audit.log
+[%collapsible]
+====
+This reads `/var/log/kube-apiserver/audit.log` on the first control plane node. Give the exec a few seconds to land in the file.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+MASTER=$(oc get nodes -l node-role.kubernetes.io/master -o jsonpath='{.items[0].metadata.name}')
+echo "Reading audit.log on ${MASTER}"
+sleep 5
+oc adm node-logs "${MASTER}" --path=kube-apiserver/audit.log \
+  | grep -F '101-09-a-audit' \
+  | grep -E '"exec"|portforward' \
+  | tee /tmp/lab-101-09-audit.json \
+  | wc -l
+----
+TIP: Count greater than 0 means your exec (or a port-forward) is in the Kubernetes API audit file. If 0, wait and re-run, or try another master (`oc get nodes -l node-role.kubernetes.io/master`).
 ====
 
 .Hunt every pod/exec — classic post-compromise foothold
@@ -44,73 +155,62 @@ ls -l audit.json
 ====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-jq 'select(.objectRef.subresource=="exec") | {time:.requestReceivedTimestamp,user:.user.username,ns:.objectRef.namespace,pod:.objectRef.name,cmd:.requestObject.command}' audit.json
+jq -c 'select(.objectRef.subresource=="exec") | {time:.requestReceivedTimestamp,user:.user.username,ns:.objectRef.namespace,pod:.objectRef.name,verb:.verb,sourceIPs:.sourceIPs}' /tmp/lab-101-09-audit.json
 ----
-Fallback:
+Fallback if `jq` complains about concatenated objects:
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-grep -F '"exec"' audit.json | head
+grep -F '"exec"' /tmp/lab-101-09-audit.json | head
+----
+
+Look for your user, namespace `101-09-a-audit`, and pod name `audit-sleeper-…`.
+====
+
+.Hunt port-forward tunnels
+[%collapsible]
+====
+You did not open a port-forward. Empty output is a pass—this query is how you would catch a tunnel.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+jq -c 'select(.objectRef.subresource=="portforward") | {time:.requestReceivedTimestamp,user:.user.username,ns:.objectRef.namespace,pod:.objectRef.name}' /tmp/lab-101-09-audit.json || true
 ----
 ====
 
-.Hunt port-forward tunnels — internal services exposed out
+.Unique exec actors in this slice
 [%collapsible]
 ====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-jq 'select(.objectRef.subresource=="portforward") | {time:.requestReceivedTimestamp,user:.user.username,ns:.objectRef.namespace,pod:.objectRef.name}' audit.json
+jq -r 'select(.objectRef.subresource=="exec") | .user.username' /tmp/lab-101-09-audit.json | sort | uniq -c
 ----
 ====
 
-.Focus the investigation on a suspected identity
+.Write the one-line incident summary
 [%collapsible]
 ====
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-USER=suspect@example.com
-jq --arg U "$USER" 'select(.user.username==$U and (.objectRef.subresource=="exec" or .objectRef.subresource=="portforward")) | {time:.requestReceivedTimestamp,sub:.objectRef.subresource,pod:.objectRef.name,ns:.objectRef.namespace,sourceIPs:.sourceIPs}' audit.json
-----
-====
+Fill this from the jq output: *who* (`user`), *what* (`exec` on which pod), *when* (`time`), *from where* (`sourceIPs`). That is the CIS-relevant evidence: sensitive API actions are recorded and attributable.
 
-.Stage distribution — did stages complete or abort?
-[%collapsible]
-====
-[source,bash,subs="+macros,+attributes",role=execute]
+[source,text]
 ----
-jq 'select(.objectRef.subresource=="exec") | .stage' audit.json | sort | uniq -c
-----
-====
-
-.Unique exec actors — who is pivoting live?
-[%collapsible]
-====
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-jq 'select(.objectRef.subresource=="exec") | .user.username' audit.json | sort | uniq -c
-----
-====
-
-.Commands captured — what did they run?
-[%collapsible]
-====
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-jq 'select(.objectRef.subresource=="exec") | .requestObject.command' audit.json | sort | uniq -c
+At <time>, <user> from <sourceIP> exec'd into pod <pod> in namespace 101-09-a-audit.
 ----
 ====
 
 == Debrief
 
-You queried audit evidence for `pod/exec`, port-forward, actors, and captured commands—the forensics baseline when someone pivots inside a namespace.
+You mapped Kubernetes CIS audit controls to OpenShift file paths, listed real `kube-apiserver` audit files, generated an exec, and extracted who/when/which pod from `/var/log/kube-apiserver/audit.log`.
 
 What breaks without this:
 
 * No retention or shipping → you cannot answer who/what/when after an incident
 * Ignoring exec/port-forward → classic post-compromise footholds stay invisible
+* Knowing only Loki or only the node file → you fail the auditor’s “where does it live?” question
 
-Controls that matter: keep OpenShift audit on, aggregate immutably, correlate with RHACS/runtime signals, and alert on anomalous verbs for sensitive namespaces.
+Controls that matter: keep OpenShift audit on, know the three `/var/log/…-apiserver/` trees, aggregate immutably off the node (CIS intent of 1.2.23–1.2.25 plus log forwarding), correlate with RHACS/runtime in later modules, and alert on anomalous verbs for sensitive namespaces.
 
-Quick facts: audit shows API intent; it complements (does not replace) runtime detection. Confirm retention and SIEM forwarding before you need them.
+Quick facts: audit shows API intent; it complements (does not replace) runtime detection. Metadata logs prove the exec; RequestResponse may also capture the command. Confirm retention and SIEM forwarding before you need them. Next: xref:101-10-security-compliance-addons.adoc[101-10] grades those CIS rows (path, rotation, forwarding) as PASS/FAIL.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjJmczc4MmswYmk1cnhvZ254ZXBiZ2M3bGJzbDV5eDQ3OGlqNWdwdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QSSA5Bd56W25ytLIwz/giphy.gif[link=self, window=blank, width=100%, class="center"]
 

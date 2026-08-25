@@ -2,20 +2,20 @@
 :labid: LAB-101-07
 :cis-summary: "Enforce trusted image sources and allow only approved registries/signature origins."
 :mitre-summary: "Prevents untrusted supply chain and initial access risks by enforcing trusted, vetted image sources only."
-:audit-evidence: "Policy denies docker.io nginx; UBI image admitted and provenance (Image and digest) verified."
+:audit-evidence: "Policy denies docker.io and ghcr.io; unlabeled namespace is not gated; UBI admitted; digest fingerprinted and pinned; docker.io image UPDATE denied."
 :cis-mitre-codes: '{"cisMapping":{"primary":["5.5.1"],"related":[]},"mitre":{"techniques":["T1195"],"tactics":["TA0001","TA0003"],"mitigations":["M1016"]}}'
 :toc:
 :icons: font
 
-**Duration:** ~15 minutes
+**Duration:** ~25 minutes
 
 == Overview
-Limit which registries the cluster may pull from, then confirm what you ran by registry host and sha256 digest.
+Limit which registries a namespace may pull from, then confirm what you ran by registry host and sha256 digest.
 
-Try a deployment from an untrusted source, block it with an allow-list, then deploy a trusted UBI image and verify host plus digest provenance.
+Part A installs an allow-list and proves untrusted registries are denied. Part B deploys a trusted UBI image, fingerprints host plus digest, pins the digest, and shows that an image *update* is denied too.
 
 == Why it matters
-Pulls from arbitrary registries mean unknown builders and unvetted contents. An allow-list keeps traffic on registries you trust and cuts a lot of avoidable CVE noise from random public tags.
+Pulls from arbitrary registries mean unknown builders and unvetted contents. An allow-list keeps traffic on registries you trust and cuts a lot of avoidable CVE noise from random public tags. Tags such as `:latest` can move; a digest cannot.
 
 == What does it solve
 
@@ -25,23 +25,45 @@ Pulls from arbitrary registries mean unknown builders and unvetted contents. An 
 * Reproducibility issues with `:latest`
 
 == Your Mission
-Supply-chain attackers ship malware through any registry that will take a tag. Your mission: put an allow-list on the door, prove an untrusted image is denied, then run only a trusted UBI workload you can fingerprint by host and digest.
+Supply-chain attackers ship malware through any registry that will take a tag. Put an allow-list on the door, prove untrusted images are denied, then run only a trusted UBI workload you can fingerprint and pin by digest. Complete *Part A*, then *Part B*.
+
+This is the 101 baseline (ValidatingAdmissionPolicy on a labeled namespace). Later modules add Gatekeeper, signing, and SBOMs.
 
 Click each step only if you need a hint.
 
-.Mark the namespace as under registry lockdown
+=== Part A: Allow-list the registries
+Mark one namespace, install the policy, then prove `docker.io` and `ghcr.io` cannot create a Deployment there. Leave the cluster-scoped policy in place until the module cleanup at the end.
+
+.Open a sandbox and mark it for registry lockdown
 [%collapsible]
 ====
+The label is the opt-in switch. Namespaces without it are not evaluated by this policy.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc new-project 101-07-i-trusted
+oc new-project 101-07-i-trusted || oc project 101-07-i-trusted
 oc label namespace 101-07-i-trusted trusted-registry-enforce=true --overwrite
+oc get ns 101-07-i-trusted --show-labels | grep trusted-registry-enforce
 ----
 ====
 
-.Install the allow-list (cluster-admin) — close arbitrary pulls
+.See what the cluster already allows (platform Image config)
 [%collapsible]
 ====
+OpenShift can also restrict registries cluster-wide via Image config. Empty `registrySources` usually means the platform is not blocking public registries—so a namespace policy still matters.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get image.config.openshift.io cluster -o jsonpath='spec.registrySources={.spec.registrySources}{"\n"}' 2>/dev/null || echo 'Image config not readable — continue with the namespace allow-list.'
+----
+TIP: If `allowedRegistries` is already set, the ValidatingAdmissionPolicy is a second gate for this labeled namespace.
+====
+
+.Install the allow-list (cluster-admin)
+[%collapsible]
+====
+Two policies: one matches Pods, one matches Deployments. Both allow only Red Hat registries, Quay.io, or the internal image registry. The bindings apply only where `trusted-registry-enforce=true`.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
@@ -106,14 +128,83 @@ EOF
 ----
 ====
 
-.Launch the untrusted payload — expect Deny
+.Read the allow-list back
 [%collapsible]
 ====
+Confirm the four prefixes and that the binding is label-scoped—not cluster-wide.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc -n 101-07-i-trusted create deployment bad --image=docker.io/library/nginx:latest || true
+oc get validatingadmissionpolicy allow-trusted-registries-deployments -o jsonpath='{.spec.validations[0].message}{"\n"}'
+oc get validatingadmissionpolicybinding trusted-images-only-deployments -o yaml | grep -A6 'namespaceSelector:'
+----
+
+What to explain: CREATE and UPDATE both go through this gate. A later `oc set image` to `docker.io` is denied the same way as the first create.
+====
+
+.Launch an untrusted payload — expect Deny
+[%collapsible]
+====
+`--dry-run=server` still hits admission, so you get the deny without starting an image pull.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc -n 101-07-i-trusted create deployment bad --image=docker.io/library/nginx:latest --dry-run=server -o name || true
+----
+
+NOTE: The create is rejected. That is the correct result.
+
+[source,text]
+----
+error: failed to create deployment: admission webhook ... denied the request: Deployment rejected: only Red Hat registries, Quay.io, or internal registry images allowed.
+----
+
+Exact wording varies by OpenShift version. Look for `denied` and the trusted-registry message.
+====
+
+.Prove it is not only docker.io
+[%collapsible]
+====
+GitHub Container Registry is public and still not on the allow-list.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc -n 101-07-i-trusted create deployment also-bad --image=ghcr.io/linuxcontainers/alpine:latest --dry-run=server -o name || true
+----
+
+TIP: Same Deny. The gate is an allow-list, not a docker.io blocklist.
+
+What to explain:
+
+[mermaid]
+----
+flowchart LR
+  D["docker.io / nginx:latest"]
+  G["ghcr.io / alpine:latest"]
+  U["registry.access.redhat.com / ubi9"]
+  P["Admission allow-list"]
+  D -->|"Deny"| P
+  G -->|"Deny"| P
+  U -->|"Allow"| P
 ----
 ====
+
+.Prove the label is the switch
+[%collapsible]
+====
+A second project *without* the label should pass server-side dry-run for `docker.io`. Do not actually roll out that Deployment—you only need the admission result.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc new-project 101-07-i-open || oc project 101-07-i-open
+oc -n 101-07-i-open create deployment probe --image=docker.io/library/nginx:latest --dry-run=server -o name
+oc project 101-07-i-trusted
+----
+TIP: Dry-run prints `deployment.apps/probe` (admitted). The policy is opt-in per namespace, not a silent cluster-wide lock.
+====
+
+=== Part B: Trusted image, digest, and pin
+Run UBI from an approved registry, prove host plus digest, pin the digest so the tag cannot drift, then show that changing the image back to `docker.io` is still denied.
 
 .Deploy only from an approved registry
 [%collapsible]
@@ -121,7 +212,8 @@ oc -n 101-07-i-trusted create deployment bad --image=docker.io/library/nginx:lat
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc -n 101-07-i-trusted create deployment good --image=registry.access.redhat.com/ubi9/ubi:9.6 -- sleep infinity
-oc -n 101-07-i-trusted wait --for=condition=Available deployment/good --timeout=60s
+oc -n 101-07-i-trusted wait --for=condition=Available deployment/good --timeout=90s
+oc -n 101-07-i-trusted get pods -l app=good
 ----
 ====
 
@@ -137,49 +229,86 @@ oc -n 101-07-i-trusted describe pod -l app=good | grep -E 'Image:|Image ID:'
 
 What to look for:
 
-- Image: trusted registry host (registry.access.redhat.com, registry.redhat.io, quay.io, or your internal registry)
-- Image ID: immutable sha256 digest (tags can move; digests cannot)
+* *Image:* trusted registry host (`registry.access.redhat.com`, `registry.redhat.io`, `quay.io`, or your internal registry)
+* *Image ID:* immutable sha256 digest (tags can move; digests cannot)
 
 If both are correct, you have a basic provenance check: approved source and exact, verifiable content.
 
 Example (UBI 9.6):
 
-- Image: registry.redhat.io/ubi9/ubi:9.6 (trusted source)
-- Image ID: …@sha256:dbc1e98d14a022542e45b5f22e0206d3f86b5bdf237b58ee7170c9ddd1b3a283 (immutable digest)
+* Image: `registry.access.redhat.com/ubi9/ubi:9.6` (trusted source)
+* Image ID: `…@sha256:dbc1e98d14a022542e45b5f22e0206d3f86b5bdf237b58ee7170c9ddd1b3a283` (immutable digest)
 ====
 
-.Cleanup
+.Extract the digest with jsonpath
 [%collapsible]
 ====
+`describe` is for humans. Automation should read the digest field.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc delete project 101-07-i-trusted --wait=false
-oc delete validatingadmissionpolicybinding trusted-images-only-pods || true
-oc delete validatingadmissionpolicybinding trusted-images-only-deployments || true
-oc delete validatingadmissionpolicy allow-trusted-registries-pods || true
-oc delete validatingadmissionpolicy allow-trusted-registries-deployments || true
+oc -n 101-07-i-trusted get pod -l app=good -o jsonpath='Image:     {.items[0].status.containerStatuses[0].image}{"\n"}Image ID:  {.items[0].status.containerStatuses[0].imageID}{"\n"}'
 ----
+TIP: Image ID includes `@sha256:…`. That string is what you pin next.
+====
+
+.Pin the running digest
+[%collapsible]
+====
+Point the Deployment at the exact Image ID. After this, retagging `ubi:9.6` on the registry cannot change what this workload pulls.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+DIGEST=$(oc -n 101-07-i-trusted get pod -l app=good -o jsonpath='{.items[0].status.containerStatuses[0].imageID}')
+DIGEST="${DIGEST#*://}"
+echo "Pinning to: $DIGEST"
+oc -n 101-07-i-trusted set image deployment/good "*=${DIGEST}"
+oc -n 101-07-i-trusted rollout status deployment/good --timeout=90s
+oc -n 101-07-i-trusted get deploy good -o jsonpath='{.spec.template.spec.containers[0].image}{"\n"}'
+----
+TIP: The Deployment spec should now contain `@sha256:`, not only `:9.6`.
+====
+
+.Prove UPDATE is denied too
+[%collapsible]
+====
+CREATE was blocked in Part A. Attackers also patch running workloads. `oc set image` is an UPDATE.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc -n 101-07-i-trusted set image deployment/good *=docker.io/library/nginx:latest || true
+oc -n 101-07-i-trusted get deploy good -o jsonpath='{.spec.template.spec.containers[0].image}{"\n"}'
+----
+NOTE: The set-image command fails; the spec still shows the pinned digest. Admission protects the running shape, not only new Deployments.
 ====
 
 == Debrief
 
-You marked a namespace for registry lockdown, blocked an untrusted pull, allowed an approved source, and fingerprinted host plus digest for provenance.
+You labeled a namespace, installed a registry allow-list, denied `docker.io` and `ghcr.io`, showed an unlabeled namespace is not gated, ran UBI from a trusted host, fingerprinted the digest, pinned it, and proved an image UPDATE is denied as well.
 
 What breaks without this:
 
 * Arbitrary registries → unknown base images and supply-chain risk
 * Floating tags like `:latest` → non-reproducible, mutable runtime
-* No allow-list → policy gaps between teams and clusters
+* CREATE-only gates → a later `oc set image` sneaks untrusted content in
+* Cluster-wide policy with no label switch → you cannot roll out gradually
 
 Controls that matter: trusted-registry allow-lists (admission), digest pins for important workloads, progressive labels for opt-in, and later signature verification.
 
-Quick facts: mirror public images into a registry you control; treat `:latest` as a demo habit, not production practice.
+Kubernetes Secrets and digest pins are still not signatures. Stronger supply-chain controls in later modules:
+
+* xref:101-11-rebuilding-images.adoc[101-11] — rebuild on UBI so the image itself is OpenShift-ready
+* xref:201-11-admission-governance.adoc[201-11] — Gatekeeper constraints beyond a single CEL allow-list
+* xref:301-06-supply-chain-integrity.adoc[301-06] — signing, SBOM, and end-to-end provenance
+* xref:tssc-01-git-signing.adoc[TSSC git signing] — signed commits and trusted artifacts
+
+Quick facts: mirror public images into a registry you control; treat `:latest` as a demo habit, not production practice. Remove the ValidatingAdmissionPolicy objects in cleanup so they do not linger on the shared cluster.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbTkyMGVyZW5qaG84dHB1cWM3Z3l0eWlpNWhseW9vODZocTVyZmZhMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7abGQa0aRJUurpII/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
 == Cleanup
 
-Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+Before moving to the next module, run the lab cleanup script to reset transient resources from this module. It deletes both lab projects and the cluster-scoped admission policy objects.
 
 :lab-cleanup-module: 101-07
 include::partial$lab-cleanup.adoc[]

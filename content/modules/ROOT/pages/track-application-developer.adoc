@@ -2,7 +2,7 @@
 :toc:
 :icons: font
 
-xref:index.adoc[← Back to home] · Framework: https://ralvares.github.io/openshift-security-framework/[OpenShift Security Skills Framework^]
+xref:index.adoc[←]
 
 == Role overview
 

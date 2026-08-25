@@ -5,46 +5,30 @@
 :toc:
 :icons: font
 
-**Duration:** ~10 minutes
+**Duration:** ~25 minutes (most of that is waiting if the cluster still has to encrypt)
 
 == Overview
-Enable etcd encryption at rest so Secrets and similar data are not readable as plaintext on disk, and review basic control-plane hardening options.
+Prove why etcd encryption at rest matters: copy a known Secret *from etcd* (the store an attacker with a backup would see), enable encryption if it is off, then copy the same key again and show the value is ciphertext.
+
+The Kubernetes API still returns Secrets after encryption. What changes is a stolen etcd snapshot or disk: the planted password must not appear in the raw value.
 
 == Why it matters
-Etcd holds Secrets, ConfigMaps, and other API objects. If someone gets raw etcd storage without encryption at rest, they can read that data. Turning encryption on closes that path and is often required for compliance.
+Etcd holds Secrets, ConfigMaps, Routes, and OAuth tokens. By default OpenShift does **not** encrypt those values at rest. If someone gets an etcd backup or the volume, they can read credentials. Encryption at rest closes that path. You still need RBAC—`oc get secret` keeps working for people the API already trusts.
 
 == What does it solve
 
-* Secrets readable from etcd disk if the store is accessed
+* Secrets readable from etcd disk or backups if the store is accessed
 * Gaps against common data-protection audit asks
 * Weak control-plane posture when etcd is treated as "just another volume"
 
 == Your Mission
-If an attacker (or stolen backup) can read raw etcd disks, unencrypted Secrets become free credentials. Confirm encryption posture and that control-plane components are present and healthy—deny the “steal the volume, read the cluster” path.
+If an attacker (or stolen backup) can read raw etcd, unencrypted Secrets become free credentials. Plant a sentinel password, copy that key from etcd, turn on encryption if needed, then copy it again and confirm the sentinel is gone from the etcd value. Complete *Part A*, then *Part B*.
+
+This uses the supported `etcdctl` client inside an `openshift-etcd` pod—the same check Red Hat documents for verifying encryption. Do not copy other namespaces’ Secrets.
 
 Click each step only if you need a hint.
 
-.Check whether encryption is already defending Secrets at rest
-[%collapsible]
-====
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-oc get encryptionconfig cluster -o yaml
-----
-====
-
-.Verify the API server encryption type
-[%collapsible]
-====
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-oc get apiserver cluster -o jsonpath='{.spec.encryption.type}'
-----
-
-NOTE: Enabling etcd encryption requires cluster-admin access and may require a cluster restart. Typically done at install or via cluster config updates.
-====
-
-.Quick control-plane health sweep
+.Control-plane health (etcd and API must be ready)
 [%collapsible]
 ====
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -55,30 +39,172 @@ oc get pods -n openshift-etcd
 ----
 ====
 
-.Cleanup
+=== Part A: Test before encryption
+Create a lab Secret, then test it twice: through the API, and through etcd.
+
+.Plant a sentinel Secret
 [%collapsible]
 ====
-No cleanup needed for this lab.
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc new-project 101-08-e-etcd || oc project 101-08-e-etcd
+oc create secret generic lab-db-creds --from-literal=password='ROADSHOW-ETCD-CLEARTEXT-TOKEN' --dry-run=client -o yaml | oc apply -f -
+oc get secret lab-db-creds -o jsonpath='{.data.password}' | base64 -d; echo
+----
+TIP: The API shows the password. That is expected. Etcd encryption does not hide Secrets from `oc get`.
+====
+
+.Read the current encryption type
+[%collapsible]
+====
+Empty or `identity` means etcd values are stored in the clear. `aesgcm` or `aescbc` means encryption is already on.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get apiserver cluster -o jsonpath='spec.encryption.type={.spec.encryption.type}{"\n"}'
+oc get kubeapiserver -o jsonpath='{range .items[0].status.conditions[?(@.type=="Encrypted")]}reason={.reason}{"\n"}message={.message}{"\n"}{end}'
+----
+====
+
+.Test before encryption
+[%collapsible]
+====
+Run the same two checks you will run after: the API, then etcd.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+echo 'BEFORE — API (authorized oc get)'
+oc -n 101-08-e-etcd get secret lab-db-creds -o jsonpath='{.data.password}' | base64 -d; echo
+
+echo 'BEFORE — etcd (stolen-backup view)'
+ETCD_POD=$(oc get pod -n openshift-etcd --no-headers | awk '/^etcd-/{print $1; exit}')
+oc exec -n openshift-etcd -c etcdctl "$ETCD_POD" -- \
+  etcdctl get /kubernetes.io/secrets/101-08-e-etcd/lab-db-creds --print-value-only \
+  | grep -aE 'k8s:enc:|ROADSHOW-ETCD-CLEARTEXT-TOKEN' || echo 'FAIL: no etcd match'
+----
+
+Pass the API test if you see `ROADSHOW-ETCD-CLEARTEXT-TOKEN`.
+
+Pass the etcd test if you see **one** of:
+
+[source,text]
+----
+ROADSHOW-ETCD-CLEARTEXT-TOKEN
+----
+
+(not encrypted yet — continue to Part B) or:
+
+[source,text]
+----
+k8s:enc:
+----
+
+(already encrypted — skip the patch in Part B, still run the after test).
+====
+
+=== Part B: Encrypt, then test again
+Enabling encryption is cluster-wide and can take **20 minutes or longer**. If the before test already showed `k8s:enc:` in etcd, skip the patch and run the after test.
+
+IMPORTANT: Do not enable encryption on a shared roadshow cluster unless you own the cluster or the instructor asked you to. One enable is enough for everyone. Do not turn encryption back off in this lab.
+
+.Enable etcd encryption (only if still identity)
+[%collapsible]
+====
+https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/etcd/enabling-etcd-encryption[Official procedure^]: set `spec.encryption.type` on the `APIServer` object to `aesgcm`.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+TYPE=$(oc get apiserver cluster -o jsonpath='{.spec.encryption.type}')
+echo "Current type: '${TYPE}'"
+if [[ "${TYPE}" == "aesgcm" || "${TYPE}" == "aescbc" ]]; then
+  echo 'Already encrypted — skip the patch.'
+else
+  oc patch apiserver cluster --type=merge -p '{"spec":{"encryption":{"type":"aesgcm"}}}'
+  echo 'Patch applied. Encryption of existing objects can take 20+ minutes.'
+fi
+----
+====
+
+.Wait until Kubernetes API encryption reports complete
+[%collapsible]
+====
+Re-run this block until you see `EncryptionCompleted` and `secrets, configmaps`. `EncryptionInProgress` means wait and click again.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+echo 'OpenShift API server:'
+oc get openshiftapiserver -o jsonpath='{range .items[0].status.conditions[?(@.type=="Encrypted")]}{.reason}{"\n"}{.message}{"\n"}{end}'
+echo
+echo 'Kubernetes API server:'
+oc get kubeapiserver -o jsonpath='{range .items[0].status.conditions[?(@.type=="Encrypted")]}{.reason}{"\n"}{.message}{"\n"}{end}'
+echo
+echo 'OAuth API server:'
+oc get authentication.operator.openshift.io -o jsonpath='{range .items[0].status.conditions[?(@.type=="Encrypted")]}{.reason}{"\n"}{.message}{"\n"}{end}'
+----
+TIP: Do not take an etcd backup until encryption has finished, or the snapshot can be only partly encrypted.
+====
+
+.Test after encryption
+[%collapsible]
+====
+Same two checks as before. Encryption is working only if **both** pass.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+echo 'AFTER — API (must still show the password)'
+oc -n 101-08-e-etcd get secret lab-db-creds -o jsonpath='{.data.password}' | base64 -d; echo
+
+echo 'AFTER — etcd (must be ciphertext, not the password)'
+ETCD_POD=$(oc get pod -n openshift-etcd --no-headers | awk '/^etcd-/{print $1; exit}')
+oc exec -n openshift-etcd -c etcdctl "$ETCD_POD" -- \
+  etcdctl get /kubernetes.io/secrets/101-08-e-etcd/lab-db-creds --print-value-only \
+  | grep -aE 'k8s:enc:|ROADSHOW-ETCD-CLEARTEXT-TOKEN' || echo 'FAIL: no etcd match'
+----
+
+[source,text]
+----
+AFTER — API (must still show the password)
+ROADSHOW-ETCD-CLEARTEXT-TOKEN
+
+AFTER — etcd (must be ciphertext, not the password)
+k8s:enc:
+----
+
+[cols="1,2,2",options="header"]
+|===
+|Check |Pass |Fail
+
+|API
+|prints `ROADSHOW-ETCD-CLEARTEXT-TOKEN`
+|empty or error
+
+|etcd
+|prints `k8s:enc:`
+|prints `ROADSHOW-ETCD-CLEARTEXT-TOKEN` (wait and retry)
+|===
 ====
 
 == Debrief
 
-You checked whether etcd encryption at rest is defending Secrets on disk and swept basic control-plane health so plaintext storage is not a silent gap.
+You copied a known Secret out of etcd, enabled at-rest encryption if it was off, and copied the same key again. The API still served the Secret; the etcd value became ciphertext. That is the control against a stolen volume or etcd backup.
 
 What breaks without this:
 
 * Unencrypted etcd / backups → Secrets readable if storage is stolen
 * Weak control-plane posture → larger blast radius when the API plane is probed
+* Backing up etcd *during* encryption → a mix of clear and encrypted objects
 
-Controls that matter: etcd encryption at rest, key management, node/API hardening, and audit so you can prove the control is on.
+Controls that matter: etcd encryption at rest (`aesgcm` or `aescbc`), store encryption keys separately from snapshots, node/API hardening, and audit so you can prove the control is on.
 
-Quick facts: enable at install when you can; enabling later needs careful planning. Performance impact is usually minimal versus the data-protection win.
+Leave encryption enabled. Disabling it (`type: identity`) decrypts the store again and is out of scope for this lab.
+
+Quick facts: enable at install when you can; enabling later is cluster-wide and can take 20+ minutes. Performance impact is usually small versus the data-protection win. This does not replace RBAC or xref:101-06-secrets-management.adoc[101-06] Secret hygiene.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMGh0OWkxemNoNmF4dG9lNHE4bncwOWpkdzR6NHJ6dDNuOW0xYnMwaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7auaKlfmip8gE/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
 == Cleanup
 
-Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+Before moving to the next module, run the lab cleanup script. It removes the lab project and the etcd copy files. It does **not** disable cluster etcd encryption.
 
 :lab-cleanup-module: 101-08
 include::partial$lab-cleanup.adoc[]

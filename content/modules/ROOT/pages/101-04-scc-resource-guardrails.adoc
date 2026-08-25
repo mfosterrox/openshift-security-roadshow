@@ -1,4 +1,4 @@
-= SCC Limits & Resource Guardrails
+= Secure Context Constraints (SCC), Limits & Resource Guardrails
 :labid: LAB-101-04
 :cis-summary: "Restrict granting of privileged SCCs like anyuid—prefer fixing images to run under restricted defaults. Set default container requests/limits and namespace quotas to cap usage and prevent noisy neighbors."
 :mitre-summary: "Prevents container privilege escalation by denying root/privileged assumptions and discouraging anyuid exceptions. Prevents resource exhaustion and noisy-neighbor denial by enforcing default requests and namespace quotas."
@@ -17,12 +17,9 @@ Also apply LimitRange and ResourceQuota so namespaces get defaults and ceilings 
 Prove why privileged ports and root fail under restricted SCC, then see what `anyuid` unlocks—and apply LimitRange plus ResourceQuota to bound CPU and memory.
 
 == Why it matters
-OpenShift assigns a random non-root UID. Images that hard-code root or fixed ownership fail until someone grants `anyuid` or rebuilds the image. Granting `anyuid` gets the pod running, and it also makes root-in-container normal again. Prefer fixing or replacing the image; if you cannot, record why the exception exists and who owns it.
+OpenShift assigns a random non-root UID when a container is created. Images that hard-code root or fixed ownership fail until someone grants `anyuid` or rebuilds the image. Granting `anyuid` gets the pod running, and it also makes root-in-container normal again. Users should prefer fixing or replacing the image; if you cannot, record why the exception exists and who owns it.
 
-Without LimitRange and ResourceQuota, a single workload can request huge CPU and memory and push others out. LimitRange sets per-container defaults and maxes. ResourceQuota caps the namespace. Together they keep shared clusters predictable and make capacity problems show up as events instead of mystery outages.
-
-NOTE: Permission Requirements for This Lab
-Most steps require only project-level access. Granting the `anyuid` SCC needs cluster-admin (or delegated). LimitRange & ResourceQuota creation usually needs elevated (cluster-admin or delegated) rights. Forbidden errors are expected guardrails.
+And without LimitRange and ResourceQuota, a single workload can request huge CPU and memory and push others out. LimitRange sets per-container defaults and maxes. ResourceQuota caps the namespace. Together they keep shared clusters predictable and make capacity problems show up as events instead of mystery outages.
 
 == What does it solve
 
@@ -35,7 +32,7 @@ Most steps require only project-level access. Granting the `anyuid` SCC needs cl
 Attackers prefer pods that already run as root. Refusing that by default removes an easy foothold.
 
 == Your Mission
-Refuse the privilege ladder attackers want (`anyuid`, UID 0, port 80) and stop noisy-neighbor resource grabs with LimitRange and ResourceQuota. Complete Part A, then Part B.
+Refuse the privilege ladder attackers want (`anyuid`, UID 0, port 80) and stop noisy-neighbor resource grabs with LimitRange and ResourceQuota. Complete *Part A*, then *Part B*.
 
 Click each step only if you need a hint.
 
@@ -45,21 +42,27 @@ An unpatched vendor image wants root and port 80—exactly the privilege ladder 
 .Open a sandbox for the privilege test
 [%collapsible]
 ====
+Stay in this project for every Part A command so SCC grants land on the lab namespace, not whatever you had selected last.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc new-project 101-04-s-scc-demo
+oc new-project 101-04-s-scc-demo || oc project 101-04-s-scc-demo
 ----
 ====
 
 .Attacker-shaped deploy — bind privileged port 80
 [%collapsible]
 ====
+The image pull can take a minute. Wait until the rollout gives up (the pod will not become Available) before reading logs. If you still see `ContainerCreating`, wait and re-run `oc logs`.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create deployment vendor-app --image=registry.access.redhat.com/ubi9/python-311 -- python3 -m http.server 80
-oc logs -l app=vendor-app --tail=50
+oc rollout status deployment/vendor-app --timeout=90s || true
+oc get pods -l app=vendor-app
+oc logs -l app=vendor-app --tail=50 --all-containers=true || true
 ----
-TIP: Expect `CrashLoopBackOff` with PermissionError (binding port 80).
+TIP: Expect `CrashLoopBackOff` with `PermissionError` (cannot bind port 80 as non-root). `ContainerCreating` means the image is still pulling—not the SCC result yet.
 ====
 
 .Force UID 0 — expect the platform to refuse
@@ -69,24 +72,28 @@ TIP: Expect `CrashLoopBackOff` with PermissionError (binding port 80).
 ----
 oc patch deployment vendor-app --type='json' -p='[{"op":"add","path":"/spec/template/spec/securityContext","value":{"runAsUser":0}}]'
 oc rollout restart deployment/vendor-app
-oc get events --sort-by=.lastTimestamp | grep vendor-app | tail -n 5 || true
+oc get events --field-selector reason=FailedCreate --sort-by=.lastTimestamp | grep vendor-app | tail -n 3 || true
 ----
-TIP: Look for invalid UID range / runAsUser errors. That refusal is the win.
+TIP: Look for `runAsUser: Invalid value: 0` and `must be in the ranges`. The long provider list is normal; the UID-0 refusal is the win.
 ====
 
-.`anyuid` is the trap — try it only to understand the cost (cluster-admin)
+.`anyuid` is the trap — try it only to understand the cost
 [%collapsible]
 ====
 Granting `anyuid` is how teams accidentally gift attackers root-in-container. Observe what it unlocks, then treat it as an anti-pattern.
 
+Pin the grant to this lab namespace. On the roadshow bastion the command often *succeeds* because your user is privileged. Wait for the new pod before `exec` or logs—otherwise you will still see `ContainerCreating`.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc adm policy add-scc-to-user anyuid -z default || echo 'Expected Forbidden if not admin'
-oc rollout restart deployment/vendor-app
-oc exec deploy/vendor-app -- id -u || true
-oc logs -l app=vendor-app --tail=10 || true
+oc project 101-04-s-scc-demo
+oc adm policy add-scc-to-user anyuid -z default -n 101-04-s-scc-demo || echo 'Forbidden — expected if you cannot grant SCCs. That is the correct production outcome.'
+oc rollout restart deployment/vendor-app -n 101-04-s-scc-demo
+oc rollout status deployment/vendor-app -n 101-04-s-scc-demo --timeout=120s || true
+oc exec -n 101-04-s-scc-demo deploy/vendor-app -- id -u || true
+oc logs -n 101-04-s-scc-demo -l app=vendor-app --tail=10 --all-containers=true || true
 ----
-If it succeeded (not recommended): `id -u` = 0 and the server listens on 80 — privilege restored for whoever owns the pod next.
+If the grant succeeded: `id -u` is `0` and the process can listen on 80. That restored root for whoever owns the pod next. If it was Forbidden, stay on restricted SCC—that is the outcome you want in production.
 ====
 
 .If you must accept risk, make the exception loud
@@ -99,9 +106,9 @@ Multiple deployments? Prefer per-Deployment annotations; for a namespace index, 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc annotate namespace 101-04-s-scc-demo \
-	openshift.io/risk-accepted.vendor-app="Requires anyuid for privileged port" \
-	openshift.io/risk-accepted-approved-by.vendor-app="InfoSec Team" \
-	--overwrite
+  openshift.io/risk-accepted.vendor-app="Requires anyuid for privileged port" \
+  openshift.io/risk-accepted-approved-by.vendor-app="InfoSec Team" \
+  --overwrite
 ----
 ====
 
@@ -113,38 +120,32 @@ oc annotate namespace 101-04-s-scc-demo \
 oc get ns 101-04-s-scc-demo -o yaml | grep -E 'openshift.io/risk-accepted'
 ----
 
-NOTE: Keep this for exceptional cases. The preferred path is to rebuild images so they run under the restricted SCC without anyuid.
-====
-
-.Cleanup
-[%collapsible]
-======
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-oc delete project 101-04-s-scc-demo --wait=false
-----
+NOTE: Keep this for exceptional cases. The preferred path is to rebuild images so they run under the restricted SCC without anyuid. Leave `101-04-s-scc-demo` in place until the module cleanup at the end.
 ====
 
 === Part B: Resource Usage (Quotas & Limits)
 Without quotas, one runaway or attacker-controlled scale-up eats the node’s CPU and memory—classic noisy-neighbor denial. Apply LimitRange and ResourceQuota so oversized grabs fail loudly.
 
-Namespace: `101-04-s-resources-demo`. Image: UBI `sleep infinity`.
+Use a **new** project (`101-04-s-resources-demo`). Do not delete the Part A project yet—both namespaces are removed by the cleanup script at the end of this module.
+
+Image: UBI `sleep infinity`.
 
 .Claim the capacity sandbox
 [%collapsible]
 ====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc new-project 101-04-s-resources-demo
+oc new-project 101-04-s-resources-demo || oc project 101-04-s-resources-demo
 oc project
 ----
-======
+====
 
 .LimitRange — default and cap every container
 [%collapsible]
 ====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
+oc new-project 101-04-s-resources-demo || oc project 101-04-s-resources-demo
 oc apply -f - <<'EOF'
 apiVersion: v1
 kind: LimitRange
@@ -178,7 +179,8 @@ EOF
 ====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc get limitrange default-limits -o jsonpath='{.spec.limits[0]}' | sed 's/,/\n/g'
+oc project 101-04-s-resources-demo
+oc get limitrange default-limits -n 101-04-s-resources-demo -o jsonpath='{.spec.limits[0]}' | sed 's/,/\n/g'
 ----
 ====
 
@@ -187,13 +189,14 @@ oc get limitrange default-limits -o jsonpath='{.spec.limits[0]}' | sed 's/,/\n/g
 ====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc create quota compute-quota \
+oc project 101-04-s-resources-demo
+oc create quota compute-quota -n 101-04-s-resources-demo \
   --hard=requests.cpu=2 \
   --hard=requests.memory=2Gi \
   --hard=limits.cpu=4 \
   --hard=limits.memory=4Gi \
   --hard=pods=10
-oc describe quota compute-quota | sed -n '1,25p'
+oc describe quota compute-quota -n 101-04-s-resources-demo | sed -n '1,25p'
 ----
 ====
 
@@ -202,9 +205,10 @@ oc describe quota compute-quota | sed -n '1,25p'
 ====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc create deployment stress --image=registry.access.redhat.com/ubi9/ubi -- /bin/sh -c "sleep infinity"
-oc wait --for=condition=Available deployment/stress --timeout=90s
-oc get pod -l app=stress -o jsonpath='{.items[0].spec.containers[0].resources}{"\n"}'
+oc project 101-04-s-resources-demo
+oc create deployment stress -n 101-04-s-resources-demo --image=registry.access.redhat.com/ubi9/ubi -- /bin/sh -c "sleep infinity"
+oc wait -n 101-04-s-resources-demo --for=condition=Available deployment/stress --timeout=90s
+oc get pod -n 101-04-s-resources-demo -l app=stress -o jsonpath='{.items[0].spec.containers[0].resources}{"\n"}'
 ----
 TIP: Expect requests 100m/128Mi and limits 500m/256Mi.
 ====
@@ -214,10 +218,11 @@ TIP: Expect requests 100m/128Mi and limits 500m/256Mi.
 ====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc set resources deploy/stress --requests=cpu=300m,memory=256Mi --limits=cpu=800m,memory=512Mi
-oc rollout restart deploy/stress
-oc wait --for=condition=Available deployment/stress --timeout=90s
-oc get pod -l app=stress -o jsonpath='{.items[0].spec.containers[0].resources}{"\n"}'
+oc project 101-04-s-resources-demo
+oc set resources deploy/stress -n 101-04-s-resources-demo --requests=cpu=300m,memory=256Mi --limits=cpu=800m,memory=512Mi
+oc rollout restart deploy/stress -n 101-04-s-resources-demo
+oc wait -n 101-04-s-resources-demo --for=condition=Available deployment/stress --timeout=90s
+oc get pod -n 101-04-s-resources-demo -l app=stress -o jsonpath='{.items[0].spec.containers[0].resources}{"\n"}'
 ----
 ====
 
@@ -226,11 +231,12 @@ oc get pod -l app=stress -o jsonpath='{.items[0].spec.containers[0].resources}{"
 ====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc set resources deployment/stress --limits=cpu=2,memory=1Gi
-oc rollout restart deploy/stress
-oc get deploy stress -o jsonpath='{range .status.conditions[*]}{.type}:{.reason}:{.message}{"\n"}{end}' | grep -i FailedCreate || true
-oc get pod -l app=stress -o jsonpath='{.items[0].spec.containers[0].resources}{"\n"}'
-oc get deploy stress -o jsonpath='{.spec.template.spec.containers[0].resources.limits}{"\n"}'
+oc project 101-04-s-resources-demo
+oc set resources deployment/stress -n 101-04-s-resources-demo --limits=cpu=2,memory=1Gi
+oc rollout restart deploy/stress -n 101-04-s-resources-demo
+oc get deploy stress -n 101-04-s-resources-demo -o jsonpath='{range .status.conditions[*]}{.type}:{.reason}:{.message}{"\n"}{end}' | grep -i FailedCreate || true
+oc get pod -n 101-04-s-resources-demo -l app=stress -o jsonpath='{.items[0].spec.containers[0].resources}{"\n"}'
+oc get deploy stress -n 101-04-s-resources-demo -o jsonpath='{.spec.template.spec.containers[0].resources.limits}{"\n"}'
 ----
 ====
 
@@ -239,18 +245,10 @@ oc get deploy stress -o jsonpath='{.spec.template.spec.containers[0].resources.l
 ====
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc scale deployment stress --replicas=25 || true
-oc get events --sort-by=.lastTimestamp | grep -E 'FailedCreate.*compute-quota' | tail -1 || true
-oc get quota compute-quota
-----
-====
-
-.Cleanup
-[%collapsible]
-====
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-oc delete project 101-04-s-resources-demo --wait=false
+oc project 101-04-s-resources-demo
+oc scale deployment stress -n 101-04-s-resources-demo --replicas=25 || true
+oc get events -n 101-04-s-resources-demo --sort-by=.lastTimestamp | grep -E 'FailedCreate.*compute-quota' | tail -1 || true
+oc get quota compute-quota -n 101-04-s-resources-demo
 ----
 ====
 
@@ -264,9 +262,9 @@ What breaks without this:
 * Broad `anyuid` → long-lived privilege that is hard to roll back
 * No LimitRange/ResourceQuota → scheduling chaos and cluster resource theft
 
-Controls that matter: stay on restricted SCC, fix or replace images before granting exceptions, apply LimitRange defaults/caps and ResourceQuota ceilings, and audit exceptions.
+IMPORTANT: stay on restricted SCC, fix or replace images before granting exceptions, apply LimitRange defaults/caps and ResourceQuota ceilings, and audit exceptions.
 
-Quick facts: random UIDs are intentional for portability; requests drive scheduling, limits throttle. Prefer image fixes over SCC debt.
+TIP: OpenShift assigns a random UID on purpose so the same image can run in any namespace. CPU and memory *requests* decide where a pod is scheduled; *limits* cap what it can consume. Fix or replace the image before you grant an SCC exception.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcW84bjNhdDZnN3VhbjkwOGdta2s5Yzg5anFscmU0Mm94cmVmcXVjZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/cEODGfeOYMRxK/giphy.gif[link=self, window=blank, width=100%, class="center"]
 

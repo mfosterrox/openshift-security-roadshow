@@ -16,7 +16,7 @@
 * xref:101-07-image-provenance-guardrails.adoc[101-07 - Image Provenance Guardrails]
 * xref:101-08-etcd-encryption-control-plane.adoc[101-08 - Etcd Encryption at Rest & Basic Control Plane Hardening]
 * xref:101-09-audit-exec-events.adoc[101-09 - Audit Logging & Exec Events]
-* xref:101-10-security-compliance-addons.adoc[101-10 - Security & Compliance Add-Ons Overview (Compliance Operator Intro)]
+* xref:101-10-security-compliance-addons.adoc[101-10 - CIS Audit Log Checks (Compliance Operator)]
 * xref:101-11-rebuilding-images.adoc[101-11 - Rebuilding & Hardening Images]
 * xref:101-12-enforcing-tls-routes.adoc[101-12 - Enforcing TLS on Routes]
 

@@ -2,14 +2,7 @@
 :toc:
 :icons: font
 
-xref:index.adoc[← Back to home] 
-
-Start from a role: 
-* xref:track-application-developer.adoc[Application Developer] 
-* xref:track-platform-operator.adoc[Platform Operator] 
-*xref:track-devsecops-engineer.adoc[DevSecOps] 
-* xref:track-security-architect.adoc[Security Architect] 
-* xref:track-network-infrastructure.adoc[Network & Infrastructure]
+xref:index.adoc[←]
 
 == Overview
 
@@ -74,7 +67,7 @@ Audience: any of the five framework roles. Prefer a xref:index.adoc#choose-your-
 |Platform, DevSecOps, Architect, Network
 
 |xref:101-10-security-compliance-addons.adoc[101-10]
-|Security & Compliance Add-Ons Overview
+|CIS Audit Log Checks (Compliance Operator)
 |Platform, Architect
 
 |xref:101-11-rebuilding-images.adoc[101-11]

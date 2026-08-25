@@ -25,7 +25,9 @@ By default, pods in a namespace can usually reach each other. If one pod is comp
 * Supports regulated segmentation requirements
 
 == Your Mission
-A foothold in any pod can scan sideways to databases and internal APIs when east–west traffic is open. Your mission: prove the open path exists, slam the door with default deny, then reopen only the client you trust.
+A foothold in any pod can scan sideways to databases and internal APIs when east–west traffic is open. 
+
+*Your mission:* prove the open path exists, slam the door with default deny, then reopen only the client you trust.
 
 Click each step only if you need a hint.
 
@@ -56,17 +58,24 @@ oc exec client-allowed -- curl -s -o /dev/null -w '%{http_code}\n' http://$SVC:8
 oc exec client-denied  -- curl -s -o /dev/null -w '%{http_code}\n' http://$SVC:8080
 ----
 
+NOTE: Both commands print `200`. That is the correct result—there is no NetworkPolicy yet, so every pod can call the API.
+
+[source,text]
+----
+200
+200
+----
+
+What to explain: labels do not matter yet. `role=allowed` and `role=denied` are only names. Either pod can reach the API, so a foothold in any client is a pivot.
+
 [mermaid]
 ----
 flowchart LR
-
-  subgraph P1["No Network Policies"]
-    CA1[client-allowed]
-    CD1[client-denied]
-    API1[api]
-    CA1 -->|200| API1
-    CD1 -->|200| API1
-  end
+  CA["client-allowed<br/>role=allowed"]
+  CD["client-denied<br/>role=denied"]
+  API["api :8080"]
+  CA -->|"curl → 200"| API
+  CD -->|"curl → 200"| API
 ----
 ====
 
@@ -101,17 +110,24 @@ oc exec client-allowed -- sh -c "curl -s --max-time 3 -o /dev/null http://$SVC:8
 oc exec client-denied  -- sh -c "curl -s --max-time 3 -o /dev/null http://$SVC:8080" >/dev/null 2>&1 || echo TIMEOUT
 ----
 
+NOTE: Both commands print `TIMEOUT`. That is the correct result—default deny closed inbound traffic for every pod, including the client you will trust next.
+
+[source,text]
+----
+TIMEOUT
+TIMEOUT
+----
+
+What to explain: a default-deny Ingress policy selects all pods in the namespace. Timeouts are the win. You have not broken DNS or the API process—you blocked the path.
+
 [mermaid]
 ----
 flowchart LR
-
-  subgraph P2["Default Deny Ingress"]
-    CA2[client-allowed]
-    CD2[client-denied]
-    API2[api]
-    CA2 -.->|timeout| API2
-    CD2 -.->|timeout| API2
-  end
+  CA["client-allowed<br/>role=allowed"]
+  CD["client-denied<br/>role=denied"]
+  API["api :8080"]
+  CA -.->|"curl → TIMEOUT"| API
+  CD -.->|"curl → TIMEOUT"| API
 ----
 ====
 
@@ -156,17 +172,24 @@ oc exec client-allowed -- curl -s -o /dev/null -w '%{http_code}\n' http://$SVC:8
 oc exec client-denied  -- sh -c "curl -s --max-time 3 -o /dev/null http://$SVC:8080" >/dev/null 2>&1 || echo BLOCKED
 ----
 
+NOTE: Expected output is `200` then `BLOCKED`. The trusted client is back; the untrusted client is still dark.
+
+[source,text]
+----
+200
+BLOCKED
+----
+
+What to explain: labels now enforce the boundary. The allow rule matches `role=allowed` to `app=api` on TCP/8080 only. `role=denied` has no matching ingress rule, so it still times out.
+
 [mermaid]
 ----
 flowchart LR
-
-  subgraph P3["Allow Specific Client"]
-    CA3[client-allowed]
-    CD3[client-denied]
-    API3[api]
-    CA3 -->|200| API3
-    CD3 -.->|timeout| API3
-  end
+  CA["client-allowed<br/>role=allowed"]
+  CD["client-denied<br/>role=denied"]
+  API["api :8080"]
+  CA -->|"curl → 200"| API
+  CD -.->|"curl → BLOCKED"| API
 ----
 ====
 
@@ -191,16 +214,19 @@ What breaks without this:
 
 Controls that matter: default-deny in sensitive namespaces, smallest allow set that keeps the app working, consistent app/role/tier/env labels, and validation of allow vs deny paths.
 
-Quick facts: policies select pods; once selected, only explicit allows pass. CNI enforces at the pod interface—not a substitute for node firewalls. Pattern references below help you design the next rules.
+Quick facts: policies select pods; once selected, only explicit allows pass. CNI enforces at the pod interface—not a substitute for node firewalls. Optional pattern notes below can help you design the next rules.
 
-
+[discrete]
 == Extra: Network Policy Patterns (Reading)
-The following reference patterns are adapted from docs/network-policies.adoc. Use them to reason about design choices; keep YAML only in the hands-on section above.
 
-=== Pattern Format
-Each pattern includes: Explanation, Use Case, Risk (Why it matters), Implementation Checklist, Quick Validation steps.
+[%collapsible]
+====
+Reference patterns adapted from `docs/network-policies.adoc`. Use them to reason about design; keep YAML only in the hands-on section above.
 
-=== Pattern: DENY All Non-Whitelisted Traffic to a Namespace
+Each pattern includes an explanation, use case, risk, implementation checklist, and a mermaid sketch.
+
+*DENY all non-whitelisted traffic to a namespace*
+
 [mermaid]
 ----
 flowchart LR
@@ -216,16 +242,14 @@ flowchart LR
   API -. ❌ .-> Guest
 ----
 
-Explanation:: Only approved cross-namespace flow (blog -> guestbook) is permitted; other cross or internal flows are blocked.
-Use Case:: Multi-tenant cluster; restrict which external namespace may call a frontend.
-Why it Matters:: Reduces lateral movement between namespaces.
-Implementation Checklist::
-* NetworkPolicy selecting protected pods (e.g. guestbook)
-* Ingress rules with `from` including `namespaceSelector + podSelector` for allowed source
-* Specify ports
-* `policyTypes: [Ingress]`
+Only an approved cross-namespace flow (blog → guestbook) is permitted; other cross or internal flows are blocked.
 
-=== Pattern: LIMIT Traffic to an Application
+* Use case: multi-tenant cluster; restrict which external namespace may call a frontend.
+* Why it matters: reduces lateral movement between namespaces.
+* Checklist: NetworkPolicy selecting protected pods; ingress `from` with `namespaceSelector` + `podSelector`; specify ports; `policyTypes: [Ingress]`.
+
+*LIMIT traffic to an application*
+
 [mermaid]
 ----
 flowchart LR
@@ -235,12 +259,15 @@ flowchart LR
   BookAPI -.-> BookFE
   Coffee -. ❌ .-> BookAPI
 ----
-Explanation:: Frontend (role=frontend) may call bookstore API; other APIs denied.
-Use Case:: Enforce intra-namespace microservice boundaries.
-Why it Matters:: Prevents accidental/malicious service calls to internal APIs.
-Implementation Checklist:: podSelector for API pods; ingress from frontend label; restrict ports; `policyTypes: [Ingress]`.
 
-=== Pattern: DENY All Traffic from Other Namespaces
+Frontend (`role=frontend`) may call the bookstore API; other APIs are denied.
+
+* Use case: intra-namespace microservice boundaries.
+* Why it matters: prevents accidental or malicious calls to internal APIs.
+* Checklist: podSelector for API pods; ingress from frontend label; restrict ports; `policyTypes: [Ingress]`.
+
+*DENY all traffic from other namespaces*
+
 [mermaid]
 ----
 flowchart LR
@@ -261,12 +288,15 @@ flowchart LR
   BarPod -. ❌ .-> Web
   BarPod -. ❌ .-> DB
 ----
-Explanation:: Only internal namespace communication is permitted.
-Use Case:: Tenant isolation; environment boundary.
-Why it Matters:: Prevents privilege creep and meets audit separation requirements.
-Implementation Checklist:: Policy selecting web & db; ingress limited to same-namespace (no namespaceSelectors) OR selective addition for trusted namespaces.
 
-=== Pattern: ALLOW Traffic Only to a Metrics Port
+Only in-namespace communication is permitted.
+
+* Use case: tenant isolation; environment boundary.
+* Why it matters: prevents privilege creep and meets audit separation requirements.
+* Checklist: policy selecting web and db; ingress limited to the same namespace (no `namespaceSelector`) unless you add a trusted namespace.
+
+*ALLOW traffic only to a metrics port*
+
 [mermaid]
 ----
 flowchart LR
@@ -278,12 +308,15 @@ flowchart LR
   Prom -.-> Metrics
   Prom -. ❌ .-> HTTP
 ----
-Explanation:: Prometheus may scrape metrics port; general HTTP port is blocked.
-Use Case:: Observability access minimization.
-Why it Matters:: Reduces exposure of non-observability endpoints to monitoring credentials.
-Implementation Checklist:: Ingress from monitoring pods; allow port 5000 only.
 
-=== Pattern: DENY External Egress Traffic
+Prometheus may scrape the metrics port; the general HTTP port is blocked.
+
+* Use case: observability access minimization.
+* Why it matters: monitoring credentials cannot reach non-observability endpoints.
+* Checklist: ingress from monitoring pods; allow port 5000 only.
+
+*DENY external egress traffic*
+
 [mermaid]
 ----
 flowchart LR
@@ -297,12 +330,15 @@ flowchart LR
   App1 -. ❌ .-> External
   App2 -. ❌ .-> External
 ----
-Explanation:: Internal communication allowed; outbound to external networks denied.
-Use Case:: Regulated workloads (PCI, OT) requiring strict egress control.
-Why it Matters:: Prevents data exfiltration and command-and-control callbacks.
-Implementation Checklist:: Egress policy; allow only explicit internal destinations (DNS, logging, etc.); `policyTypes: [Egress]`.
 
-=== Pattern: DENY All Inbound to an Application (Except Specific Source)
+Internal communication is allowed; outbound to external networks is denied.
+
+* Use case: regulated workloads (PCI, OT) that need strict egress control.
+* Why it matters: reduces exfil and command-and-control callbacks.
+* Checklist: egress policy; allow only explicit internal destinations (DNS, logging); `policyTypes: [Egress]`.
+
+*DENY all inbound to an application (except a specific source)*
+
 [mermaid]
 ----
 flowchart LR
@@ -318,19 +354,22 @@ flowchart LR
   Web -. ❌ .-> FooPod
   Web -. ❌ .-> AnyOther
 ----
-Explanation:: Web can make outbound calls but only FooPod can reach it inbound.
-Use Case:: Backend reachable only via controlled proxy or connector.
-Why it Matters:: Prevents accidental exposure and narrows attack surface.
-Implementation Checklist:: Policy selecting web; ingress rule permitting only proxy label; add `policyTypes: [Ingress,Egress]` if controlling both directions.
 
-=== Operational Notes
-* Selection Principle: Pods not selected by any policy remain open (all ingress/egress allowed). Once selected, only explicitly allowed traffic passes.
-* Namespace Scope: Policies do not cross namespaces without `namespaceSelector`.
-* Default Deny Strategy: Add an empty (or minimal) policy selecting pods to shift them into deny-by-default, then add granular policies.
+Web can make outbound calls, but only FooPod can reach it inbound.
 
-=== Next Steps & Enhancements
-=== Appendix: Validation Snippets
-[source,bash,subs="+macros,+attributes",role=execute]
+* Use case: backend reachable only via a controlled proxy or connector.
+* Why it matters: prevents accidental exposure and narrows the attack surface.
+* Checklist: policy selecting web; ingress permitting only the proxy label; add `policyTypes: [Ingress,Egress]` if you control both directions.
+
+*Operational notes*
+
+* Pods not selected by any policy remain open. Once selected, only explicit allows pass.
+* Policies do not cross namespaces without `namespaceSelector`.
+* Default deny: add a policy that selects the pods, then add granular allows.
+
+*Validation snippets*
+
+[source,bash]
 ----
 # Test an allowed path
 oc exec pod/frontend -- curl -s -o /dev/null -w '%{http_code}\n' http://api:8080
@@ -338,6 +377,7 @@ oc exec pod/frontend -- curl -s -o /dev/null -w '%{http_code}\n' http://api:8080
 # Test a blocked path with timeout fallback
 oc exec pod/untrusted -- curl -s --max-time 3 http://api:8080 || echo BLOCKED
 ----
+====
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDR4amFzZ2ZiNGNkaTVwM3lscmxycDMzMnB4bTdwYWd0emlsOHJiYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/qunFC4tNsyA8y9M36d/giphy.gif[link=self, window=blank, width=100%, class="center"]
 

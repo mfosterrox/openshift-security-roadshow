@@ -200,7 +200,7 @@ TIP: Both are permitted *within the namespace only*. Prefer leaving day-to-day d
 
 == Debrief
 
-You reproduced an attack that starts from “just give them admin,” then closed the worst paths with built-in least privilege: `view` stops Secret reads and writes, `edit` restores app shipping without RoleBinding persistence, and the app SA stays unbound. Namespace `admin` stays a stewardship tool—not a default developer badge.
+You reproduced an attack that starts from “just give them admin” then closed the worst paths with built-in least privilege: `view` stops Secret reads and writes, `edit` restores app shipping without RoleBinding persistence, and the app SA stays unbound. Namespace `admin` stays a stewardship tool—not a default developer badge.
 
 What breaks without this:
 
@@ -210,7 +210,7 @@ What breaks without this:
 
 Controls that matter: start with built-in roles, bind at namespace scope, prefer `view`/`edit` over `admin` for day-to-day humans, never bind powerful ClusterRoles to default SAs, and review bindings so temporary grants do not stick.
 
-Quick facts: use `oc auth can-i` (and `--as=`) to verify; `view` cannot read Secret data; `edit` cannot change RBAC (but can read Secrets). Reserve `cluster-admin` for break-glass.
+TIP: use `oc auth can-i` (and `--as=`) to verify; `view` cannot read Secret data; `edit` cannot change RBAC (but can read Secrets). Reserve `cluster-admin` for break-glass.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcTYwZWZlazBoanhlcXV3NjkxdWg5YW52djBvMW1vYzkwZ3ZuYW4wOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/YrMrSUfeh5do2FISt8/giphy.gif[link=self, window=blank, width=100%, class="center"]
 

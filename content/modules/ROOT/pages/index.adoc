@@ -6,7 +6,7 @@ This course offers hands-on experience with Kubernetes-native security on Red Ha
 
 * *This page is home* — Credentials and console links live here. Use the home button anytime you get lost.
 * *Navigate with the table of contents* — Modules are in the left table of contents, or use *Next* at the bottom of each page.
-* *Open consoles in a new tab* — Keep this guide open. On a Mac, use *<cmd> click*; on Windows/Linux, use *<ctrl> click* or right-click → "Open in new tab."
+* *Use consoles in Showroom, or open them in a new tab* — Keep this guide open. Prefer the console tabs on the right of the lab UI. To open a link in a new browser tab: on a Mac, *<cmd> click*; on Windows/Linux, *<ctrl> click* or right-click → "Open in new tab."
 * *Use the bastion* — Run `oc`, `roxctl`, and `podman` on the RHEL bastion.
 * *Run the setup script* — To ensure you have the applications installed and configured, make sure to run the setup script from the bastion terminal tab.
 * *Pick a role* — For a tailored experience, start with the track that matches your desired role.
