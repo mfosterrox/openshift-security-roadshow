@@ -35,43 +35,43 @@ With a model:
 == Your Mission
 Map trust boundaries to the OpenShift controls you already practiced in 201-01 through 201-10. Click each step only if you need a hint.
 
-.Create project app-frontend
+.Create project 201-11-app-frontend
 [%collapsible]
 ====
 Visual aid for the internet-facing trust zone.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc new-project app-frontend
+oc new-project 201-11-app-frontend
 ----
 
-TIP: `Now using project "app-frontend"`.
+TIP: `Now using project "201-11-app-frontend"`.
 ====
 
-.Create project app-backend
+.Create project 201-11-app-backend
 [%collapsible]
 ====
 Visual aid for the API / service trust zone.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc new-project app-backend
+oc new-project 201-11-app-backend
 ----
 
-TIP: `Now using project "app-backend"`.
+TIP: `Now using project "201-11-app-backend"`.
 ====
 
-.Create project app-db
+.Create project 201-11-app-db
 [%collapsible]
 ====
 Visual aid for the data trust zone.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc new-project app-db
+oc new-project 201-11-app-db
 ----
 
-TIP: `Now using project "app-db"`.
+TIP: `Now using project "201-11-app-db"`.
 ====
 
 .List the assets you will protect
@@ -141,7 +141,7 @@ TIP: “Everything is High” means you have not ranked yet.
 .Turn the top item into a backlog ticket
 [%collapsible]
 ====
-One sentence of threat, one acceptance criterion that names the control (for example “NetworkPolicy default-deny in app-db”).
+One sentence of threat, one acceptance criterion that names the control (for example “NetworkPolicy default-deny in 201-11-app-db”).
 
 TIP: Five to seven tickets is a working backlog, not a novel.
 ====

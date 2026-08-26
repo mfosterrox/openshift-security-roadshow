@@ -13,10 +13,12 @@ By the end you’ll be able to design and apply a narrowly scoped Role that gran
 Create a minimal custom Role and RoleBinding, prove allowed versus denied verbs, and state the least-privilege intent in plain language.
 
 == Why it matters
-Imagine an office where every employee’s badge opens every room—including finance, HR, and the server closet. Nobody intends abuse, but one lost badge means a long night of worrying what was accessed. Built‑in broad roles (`edit`, `admin`) are those master badges. Custom RBAC is like cutting a key that only opens the supply cabinet your role requires. When (not if) an account is phished or a token is leaked, tightly scoped permissions turn a potential headline into a routine ticket. Auditors also smile when intent is obvious: “This identity may only adjust configuration.”
+Imagine an office where every employee’s badge opens every room—including finance, HR, and the server closet. 
+
+Nobody intends abuse, but one lost badge means a long night of worrying what was accessed. Built‑in broad roles (`edit`, `admin`) are those master badges. Custom RBAC is like cutting a key that only opens the supply cabinet your role requires. When (not if) an account is phished or a token is leaked, tightly scoped permissions turn a potential headline into a routine ticket. Auditors also smile when intent is obvious: “This identity may only adjust configuration.”
 
 == What does it solve
-Most real security incidents aren’t cinematic hacks—they’re ordinary credentials used in extraordinary places. Over-broad roles quietly enable:
+Most real security incidents are ordinary credentials used in the wrong places. Over-broad roles quietly enable:
 
 * Unapproved pod deployments (persistence footholds)
 * Reading secrets far outside an app’s scope (data leakage)
@@ -26,7 +28,16 @@ Most real security incidents aren’t cinematic hacks—they’re ordinary crede
 Crafting a custom Role removes silent “just in case” powers. It converts vague responsibility (“Dev team rights”) into precise intent (“May adjust non-sensitive app configuration values and rotate one secret”). That precision speeds investigations and compliance reviews.
 
 == Your Mission
-Stop using `edit`/`admin` as the default developer badge. Cut a Role that can only touch ConfigMaps and Secrets, then prove pods, RoleBindings, and Secret delete stay denied.
+In xref:101-03-rbac-basics.adoc[101-03] you saw what namespace `admin` (and even `edit`) actually unlocks: Secret theft, a self-forged RoleBinding, and a foothold Deployment. Built-in roles are the right starting ladder—they are still broader than many day-to-day jobs. An app maintainer who only needs to flip a ConfigMap flag and rotate one Secret does not need to create pods or mint more RoleBindings.
+
+Your job is to cut a *custom* Role for that job and prove it is not a master badge:
+
+* Allow only `get`/`list`/`update`/`patch` on ConfigMaps and Secrets—enough to read and rotate, not to wipe the Secret.
+* Bind that Role to a human (`devuser`) and show the allowed path works (`oc auth can-i` plus a real `oc patch`).
+* Show the dangerous verbs stay denied: create pods, create RoleBindings, delete the Secret. Try the creates/deletes so a `can-i` of `no` is not the only evidence.
+* Repeat the allow check for a dedicated ServiceAccount (how CI and app pods should authenticate), then turn off default token automount so a pod that does not call the API does not carry a token.
+
+When you finish, you should be able to say in one sentence what this identity may do—and what an attacker with that leaked token still cannot do.
 
 Click each step only if you need a hint.
 

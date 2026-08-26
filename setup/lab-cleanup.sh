@@ -207,14 +207,19 @@ case "${MODULE}" in
     delete_projects 101-12-tls
     ;;
   201-01)
+    # Custom RBAC lab project (not the 201-11 threat-model namespaces).
     delete_projects 201-01-c-rbac-lab
     ;;
   201-02)
+    oc adm policy remove-scc-from-group hardened-nonroot system:serviceaccounts:201-02-w-harden >/dev/null 2>&1 || true
+    oc delete scc hardened-nonroot --ignore-not-found >/dev/null 2>&1 || true
+    echo "Removed SCC hardened-nonroot and its group binding (if present)."
     delete_projects 201-02-w-harden
     ;;
   201-03)
+    oc delete fileintegrity worker-file-integrity -n openshift-file-integrity --ignore-not-found >/dev/null 2>&1 || true
+    echo "Removed FileIntegrity worker-file-integrity (if present)."
     rm -f /tmp/lab-201-03.txt /tmp/lab-scratch-* 2>/dev/null || true
-    echo "Removed temporary lab files for module 201-03."
     ;;
   201-04)
     delete_projects 201-04-s-pipeline
@@ -232,16 +237,23 @@ case "${MODULE}" in
     echo "Removed compliance scan and tailored profile objects (if present)."
     ;;
   201-08)
+    oc delete clusterissuer selfsigned-issuer --ignore-not-found >/dev/null 2>&1 || true
+    echo "Removed ClusterIssuer selfsigned-issuer (if present)."
     delete_projects 201-08-demo
     ;;
   201-09)
     delete_projects 201-09-s-sandbox
     ;;
   201-10)
+    oc delete k8snonrootuid nonroot-required --ignore-not-found >/dev/null 2>&1 || true
+    oc delete k8snetpolrequired netpol-required --ignore-not-found >/dev/null 2>&1 || true
+    oc delete k8sdigestonly digest-only --ignore-not-found >/dev/null 2>&1 || true
+    oc delete constrainttemplate k8snonrootuid k8snetpolrequired k8sdigestonly --ignore-not-found >/dev/null 2>&1 || true
+    echo "Removed Gatekeeper constraints and templates from this lab (if present)."
     delete_projects 201-10-a-govern
     ;;
   201-11)
-    delete_projects app-frontend app-backend app-db
+    delete_projects 201-11-app-frontend 201-11-app-backend 201-11-app-db
     ;;
   301-10)
     rm -f /tmp/lab-301-10.txt /tmp/lab-scratch-* 2>/dev/null || true
