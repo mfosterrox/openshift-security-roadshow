@@ -2,7 +2,7 @@
 :toc:
 :icons: font
 
-xref:index.adoc[←]
+xref:index.adoc[← Back]
 
 == Role overview
 
@@ -33,9 +33,9 @@ Not owning: compliance scanning automation, supply-chain gates, or organization-
 
 === Intermediate
 
-. xref:101-05-network-policy-basics.adoc[101-05 — NetworkPolicy Basics] and xref:201-09-cert-manager-mtls.adoc[201-09 — Certificate Management & mTLS]
-. xref:201-07-audit-monitoring-correlation.adoc[201-07 — Audit Correlation & Anomaly Detection]
-. xref:201-11-admission-governance.adoc[201-11 — Admission & Policy Enforcement]
+. xref:101-05-network-policy-basics.adoc[101-05 — NetworkPolicy Basics] and xref:201-08-cert-manager-mtls.adoc[201-08 — Certificate Management & mTLS]
+. xref:201-06-audit-monitoring-correlation.adoc[201-06 — Audit Correlation & Anomaly Detection]
+. xref:201-10-admission-governance.adoc[201-10 — Admission & Policy Enforcement]
 
 === Advanced
 

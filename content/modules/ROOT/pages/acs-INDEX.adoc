@@ -2,7 +2,7 @@
 :toc:
 :icons: font
 
-xref:index.adoc[←]
+xref:index.adoc[← Back]
 
 == Overview
 
@@ -16,7 +16,7 @@ Audience and prerequisites:
 * Familiarity with OpenShift console navigation and basic CLI (`oc`, `roxctl`)
 * Credentials and console links are on the xref:index.adoc[home page]
 
-== Recommended sequence
+== Recommended Sequence
 
 . xref:00-acs-setup-install-navigation.adoc[Setup and Navigation]
 . xref:01-acs-vulnerability-management.adoc[Vulnerability Management]

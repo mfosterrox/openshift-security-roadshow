@@ -31,23 +31,62 @@ A foothold in any pod can scan sideways to databases and internal APIs when east
 
 Click each step only if you need a hint.
 
-.Stage the flat network the attacker wants
+.Create project 101-05-n-netpol-demo
 [%collapsible]
 ====
-Spin up an API plus two clients—one “allowed,” one “denied”—before any policy exists.
+Stay in this project for every command. You will add an API and two clients before any NetworkPolicy exists.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 101-05-n-netpol-demo
-oc create deployment api --image=registry.access.redhat.com/ubi9/python-311 -- python3 -m http.server 8080
-oc expose deployment api --port=8080 --target-port=8080
-oc run client-allowed --image=registry.access.redhat.com/ubi9/ubi -l role=allowed -- sleep infinity
-oc run client-denied  --image=registry.access.redhat.com/ubi9/ubi -l role=denied  -- sleep infinity
-SVC=$(oc get svc api -o jsonpath='{.spec.clusterIP}')
 ----
+
+TIP: `Now using project "101-05-n-netpol-demo"`.
 ====
 
-.Confirm lateral movement works with no policy
+.Deploy api on port 8080 and expose the Service
+[%collapsible]
+====
+Python http.server is the stand-in API. Expose it so clients can use the Service IP.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc create deployment api --image=registry.access.redhat.com/ubi9/python-311 -- python3 -m http.server 8080
+oc expose deployment api --port=8080 --target-port=8080
+----
+
+TIP: `oc get svc api` should show port 8080.
+====
+
+.Run client-allowed and client-denied
+[%collapsible]
+====
+Two sleep pods with different `role` labels. Labels do not matter until you add a NetworkPolicy.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc run client-allowed --image=registry.access.redhat.com/ubi9/ubi -l role=allowed -- sleep infinity
+oc run client-denied --image=registry.access.redhat.com/ubi9/ubi -l role=denied -- sleep infinity
+----
+
+TIP: `oc get pods` should show both clients `Running`.
+====
+
+.Save the api Service IP as SVC
+[%collapsible]
+====
+Later curl commands use `$SVC`. Recapture it if you open a new terminal.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+SVC=$(oc get svc api -o jsonpath='{.spec.clusterIP}')
+echo "$SVC"
+----
+
+TIP: Echo should be a cluster IP, not empty.
+====
+
+.Curl the API from both clients with no NetworkPolicy
 [%collapsible]
 ====
 Both clients should reach the API. That is the blast radius you must shrink.
@@ -55,7 +94,11 @@ Both clients should reach the API. That is the blast radius you must shrink.
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc exec client-allowed -- curl -s -o /dev/null -w '%{http_code}\n' http://$SVC:8080
-oc exec client-denied  -- curl -s -o /dev/null -w '%{http_code}\n' http://$SVC:8080
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc exec client-denied -- curl -s -o /dev/null -w '%{http_code}\n' http://$SVC:8080
 ----
 
 NOTE: Both commands print `200`. That is the correct result—there is no NetworkPolicy yet, so every pod can call the API.
@@ -79,7 +122,7 @@ flowchart LR
 ----
 ====
 
-.Drop the blast radius — default deny ingress
+.Apply NetworkPolicy default-deny-ingress
 [%collapsible]
 ====
 Close every inbound door. Compromised pods should time out instead of probing freely.
@@ -97,17 +140,34 @@ spec:
   - Ingress
 EOF
 ----
+
+TIP: `networkpolicy.networking.k8s.io/default-deny-ingress created`.
 ====
 
-.Verify the attacker’s pivots now fail
+.Confirm default-deny-ingress exists
 [%collapsible]
 ====
-Both clients should time out. Good—lateral movement is blocked until you explicitly reopen a path.
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get networkpolicy default-deny-ingress
+----
+
+TIP: `POD-SELECTOR` should be `<none>` (selects all pods).
+====
+
+.Curl the API from both clients after default deny
+[%collapsible]
+====
+Both clients should time out. Good -- lateral movement is blocked until you explicitly reopen a path.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc exec client-allowed -- sh -c "curl -s --max-time 3 -o /dev/null http://$SVC:8080" >/dev/null 2>&1 || echo TIMEOUT
-oc exec client-denied  -- sh -c "curl -s --max-time 3 -o /dev/null http://$SVC:8080" >/dev/null 2>&1 || echo TIMEOUT
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc exec client-denied -- sh -c "curl -s --max-time 3 -o /dev/null http://$SVC:8080" >/dev/null 2>&1 || echo TIMEOUT
 ----
 
 NOTE: Both commands print `TIMEOUT`. That is the correct result—default deny closed inbound traffic for every pod, including the client you will trust next.
@@ -131,7 +191,7 @@ flowchart LR
 ----
 ====
 
-.Reopen only the trusted client’s path
+.Apply NetworkPolicy allow-api-from-allowed
 [%collapsible]
 ====
 Allow TCP/8080 solely from pods labeled `role=allowed`. Everything else stays locked out.
@@ -159,17 +219,34 @@ spec:
   - Ingress
 EOF
 ----
+
+TIP: `networkpolicy.networking.k8s.io/allow-api-from-allowed created`.
 ====
 
-.Prove allow vs block (mission complete when denied stays dark)
+.List NetworkPolicies in the project
 [%collapsible]
 ====
-Allowed client returns 200; denied client times out. Business traffic works; the attacker-shaped client does not.
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get networkpolicy
+----
+
+TIP: You should see both `default-deny-ingress` and `allow-api-from-allowed`.
+====
+
+.Curl from client-allowed then client-denied
+[%collapsible]
+====
+Allowed client returns 200; denied client times out. Business traffic works; the untrusted client does not.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc exec client-allowed -- curl -s -o /dev/null -w '%{http_code}\n' http://$SVC:8080
-oc exec client-denied  -- sh -c "curl -s --max-time 3 -o /dev/null http://$SVC:8080" >/dev/null 2>&1 || echo BLOCKED
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc exec client-denied -- sh -c "curl -s --max-time 3 -o /dev/null http://$SVC:8080" >/dev/null 2>&1 || echo BLOCKED
 ----
 
 NOTE: Expected output is `200` then `BLOCKED`. The trusted client is back; the untrusted client is still dark.
@@ -193,13 +270,17 @@ flowchart LR
 ----
 ====
 
-.Cleanup
+.Delete project 101-05-n-netpol-demo
 [%collapsible]
 ====
+Optional if you will run the module cleanup script at the bottom instead.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc delete project 101-05-n-netpol-demo --wait=false
 ----
+
+TIP: The project should show `Terminating`.
 ====
 
 == Debrief
@@ -212,9 +293,9 @@ What breaks without this:
 * Over-broad labels → accidental allows for the wrong workloads
 * Missing egress rules when needed → exfil or C2 paths stay open
 
-Controls that matter: default-deny in sensitive namespaces, smallest allow set that keeps the app working, consistent app/role/tier/env labels, and validation of allow vs deny paths.
+IMPORTANT: default-deny in sensitive namespaces, smallest allow set that keeps the app working, consistent app/role/tier/env labels, and validation of allow vs deny paths.
 
-Quick facts: policies select pods; once selected, only explicit allows pass. CNI enforces at the pod interface—not a substitute for node firewalls. Optional pattern notes below can help you design the next rules.
+NOTE: policies select pods; once selected, only explicit allows pass. CNI enforces at the pod interface—not a substitute for node firewalls. Optional pattern notes below can help you design the next rules.
 
 [discrete]
 == Extra: Network Policy Patterns (Reading)

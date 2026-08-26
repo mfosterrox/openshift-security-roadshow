@@ -3,11 +3,13 @@
 :skills: Threat Modeling, STRIDE, Control Mapping, Risk Prioritization
 :mitre: STRIDE (Conceptual), T1195 (Supply Chain), T1021 (Lateral Movement), T1552 (Credentials), T1611 (Escape to Host)
 :compliance: NIST 800-53 RA-3/RA-5, ISO 27001 A.8/A.15, SOC 2 CC3/CC7
-:labid: LAB-201-01
+:labid: LAB-201-11
 
 **Duration:** ~20 minutes
 
 == Overview
+Work this module last in the 201 series. The control map should use RBAC, SCC, secrets, pipelines, audit, compliance, admission, mTLS, and isolation labs you already ran—not a blank cluster.
+
 You will turn a fuzzy “we should be secure” notion into a concise, living threat model and translate it directly into an ordered mitigation backlog that maps to concrete OpenShift / Red Hat controls.
 
 Sketch a compact threat model for an OpenShift app, map higher-value threats to platform controls, and leave with a short prioritized backlog.
@@ -17,77 +19,139 @@ Designing security without a threat model is like installing locks, cameras, and
 
 == What does it solve
 Without modeling, teams drift into:
+
 * Reactive, ticket‑whack hardening (“fix whatever the scanner yells at today”)
 * Lateral movement oversight (frontend quietly reaches database pods)
 * Everything labeled “critical,” so nothing truly is
 * Re‑litigated design debates (no shared artifact of prior reasoning)
 
 With a model:
+
 * Shared vocabulary: assets, boundaries, flows, threats
 * Traceability: every control defends an identified path
 * Faster audits: reviewers see risk rationale, not guesswork
 * Focused backlog: sequence of high leverage, low regret steps
 
 == Your Mission
-Map trust boundaries to concrete OpenShift controls. Click each step only if you need a hint.
+Map trust boundaries to the OpenShift controls you already practiced in 201-01 through 201-10. Click each step only if you need a hint.
 
-.Create visual-aid namespaces for the trust boundaries you will map
+.Create project app-frontend
 [%collapsible]
 ====
+Visual aid for the internet-facing trust zone.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project app-frontend
+----
+
+TIP: `Now using project "app-frontend"`.
+====
+
+.Create project app-backend
+[%collapsible]
+====
+Visual aid for the API / service trust zone.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc new-project app-backend
+----
+
+TIP: `Now using project "app-backend"`.
+====
+
+.Create project app-db
+[%collapsible]
+====
+Visual aid for the data trust zone.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc new-project app-db
 ----
+
+TIP: `Now using project "app-db"`.
 ====
 
-.List assets
+.List the assets you will protect
 [%collapsible]
 ====
-List assets: code, images, secrets, database, CI system, cluster API.
+Write them down. Start with code, images, secrets, database, CI, and the cluster API.
+
+TIP: You will attach one control to each asset in the Threat → Control table.
 ====
 
-.Sketch a textual data flow
+.Write a one-line data flow
 [%collapsible]
 ====
-Write a textual data flow (sample below) and adjust it to your reality—frontends, APIs, databases, CI, and the registry.
+Example: browser → Route → frontend → backend API → database; CI → registry → cluster.
+
+TIP: Keep it to the paths that cross a trust boundary.
 ====
 
-.Mark trust boundaries
+.Mark the internet-to-Route boundary
 [%collapsible]
 ====
-Mark trust boundaries: Internet ingress, CI → cluster, app → db, registry ↔ kubelet.
+Control you already used: TLS on the Route (xref:101-12-enforcing-tls-routes.adoc[101-12]) and cert-manager (xref:201-08-cert-manager-mtls.adoc[201-08]).
+
+TIP: Write “ingress TLS + redirect” next to this boundary.
 ====
 
-.Apply STRIDE sampling
+.Mark the frontend-to-backend boundary
 [%collapsible]
 ====
-Apply STRIDE sampling to 5–10 flows (avoid the exhaustiveness trap).
+Control you already used: NetworkPolicy (xref:101-05-network-policy-basics.adoc[101-05]) and optional mTLS (201-08).
+
+TIP: Write “default-deny + allow listed clients” next to this boundary.
 ====
 
-.Build a Threat → Control table
+.Mark the CI-to-cluster boundary
 [%collapsible]
 ====
-Build a Threat → Control table (start with a short excerpt; extend locally).
+Control you already used: pipeline scan/sign (xref:201-04-shift-left-pipeline.adoc[201-04]) and admission digest pins (xref:201-10-admission-governance.adoc[201-10]).
+
+TIP: Write “scan, sign, deploy by digest” next to this boundary.
 ====
 
-.Score and sort
+.Apply STRIDE to one flow
 [%collapsible]
 ====
-Qualitatively score (High/Med/Low impact and likelihood) plus effort (S/M/L); sort by leverage.
+Pick one flow (for example frontend → db). Note Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, Elevation of privilege—only the rows that apply.
+
+TIP: Five to ten flows total is enough. Do not boil the ocean.
 ====
 
-.Turn findings into backlog tickets
+.Add one row to a Threat → Control table
 [%collapsible]
 ====
-Turn the top ranked 5–7 items into backlog tickets with acceptance criteria.
+Example row: “SA token theft → custom Role + disable automount (xref:201-01-custom-rbac.adoc[201-01]).”
+
+TIP: Every threat row must name a lab control you can point at.
 ====
 
-.Commit and schedule review
+.Score that row High/Med/Low
 [%collapsible]
 ====
-Commit the artifact (`threat-model-app.md`) and schedule a quarterly review.
+Impact × likelihood, plus effort S/M/L. Sort later by leverage (high impact, low effort first).
+
+TIP: “Everything is High” means you have not ranked yet.
+====
+
+.Turn the top item into a backlog ticket
+[%collapsible]
+====
+One sentence of threat, one acceptance criterion that names the control (for example “NetworkPolicy default-deny in app-db”).
+
+TIP: Five to seven tickets is a working backlog, not a novel.
+====
+
+.Name the file you will commit
+[%collapsible]
+====
+`threat-model-app.md` in Git, with a quarterly review on the calendar.
+
+TIP: A model that is not in Git will not survive the next architecture change.
 ====
 
 == Debrief
@@ -99,9 +163,9 @@ What breaks without this:
 * Defenses without a model → locked side doors and an open front door
 * Stale models → architecture drift leaves new paths unguarded
 
-Controls that matter: map registry, service-to-service, CI→cluster, SA tokens, syscalls, and privileged RBAC to scan/sign, NetworkPolicy, secrets/RBAC, admission, SPO, and custom roles; revisit when architecture changes.
+IMPORTANT: map registry, service-to-service, CI→cluster, SA tokens, syscalls, and privileged RBAC to scan/sign, NetworkPolicy, secrets/RBAC, admission, SPO, and custom roles; revisit when architecture changes.
 
-Quick facts: start at tier (app/platform) detail enough to prioritize; re-run when you add a trust boundary or on a fixed cadence.
+NOTE: start at tier (app/platform) detail enough to prioritize; re-run when you add a trust boundary or on a fixed cadence.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExa3R1YjV5eGt3MTQ2a2UxOGM0ZThzaTQwdXE3cHdmMGo3NXUzOHB0MiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/MrCYIN3x0SgdG/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
@@ -109,5 +173,5 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExa3R1YjV5eGt3MTQ2a2UxOGM0
 
 Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
 
-:lab-cleanup-module: 201-01
+:lab-cleanup-module: 201-11
 include::partial$lab-cleanup.adoc[]

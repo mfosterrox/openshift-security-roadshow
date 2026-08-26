@@ -24,22 +24,29 @@ Finding one exec in `audit.log` does not prove the cluster would still have that
 == Your Mission
 Take the CIS audit rows from 101-09 (1.2.22–1.2.25, 3.2.1) and see how `ocp4-cis` scored them. Highlight every FAIL and what to change—without applying unsupported API server overrides on a shared cluster.
 
-SPO and RHACS still matter for runtime and image risk; this hour is the audit-log follow-up. Tailoring and bulk remediate is xref:201-08-compliance-tailoring.adoc[201-08]. Log shipping into Loki is xref:201-07-audit-monitoring-correlation.adoc[201-07].
+SPO and RHACS still matter for runtime and image risk; this hour is the audit-log follow-up. Tailoring and bulk remediate is xref:201-07-compliance-tailoring.adoc[201-07]. Log shipping into Loki is xref:201-06-audit-monitoring-correlation.adoc[201-06].
 
 Click each step only if you need a hint.
 
-.Confirm Compliance Operator is running
+.List Compliance Operator pods and the ocp4-cis profile
 [%collapsible]
 ====
+You want the **ocp4-cis** *platform* profile (API config), not `ocp4-cis-node` (RHCOS node scans). The API-server audit-log rules live on the platform profile.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get pods -n openshift-compliance
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc get profiles.compliance.openshift.io -n openshift-compliance | grep -E 'ocp4-cis$|NAME'
 ----
-TIP: You want the **ocp4-cis** *platform* profile (API config), not `ocp4-cis-node` (RHCOS node scans). The API-server audit-log rules live on the platform profile.
+
+TIP: Pods should be Running. The grep should show an `ocp4-cis` profile (not only `-node`).
 ====
 
-.Reuse a CIS scan if the instructor already ran one
+.List existing CIS scans and count audit-log results
 [%collapsible]
 ====
 Roadshow clusters often have a daily suite (for example `acs-catch-all`). Use those results if they exist.
@@ -47,19 +54,22 @@ Roadshow clusters often have a daily suite (for example `acs-catch-all`). Use th
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get scansettingbindings,compliancesuites,compliancescans -n openshift-compliance
-echo
-echo "Existing audit-log check results:"
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc get compliancecheckresults -n openshift-compliance --no-headers 2>/dev/null \
   | grep -cE 'audit-log|audit-logging|log-forward' \
   || echo 0
 ----
+
 TIP: If the count is greater than 0, skip the next apply and go to the audit-rule filter. If it is 0, bind `ocp4-cis` in the next step.
 ====
 
-.Start an ocp4-cis scan only if you have no audit results yet
+.Apply ScanSettingBinding 101-10-cis-audit
 [%collapsible]
 ====
-This binds the CIS *platform* profile to the operator’s default `ScanSetting`. Do not use RHCOS content for these API-server audit rules.
+This binds the CIS *platform* profile to the operator's default `ScanSetting`. Do not use RHCOS content for these API-server audit rules. Skip this apply if the previous count was already greater than 0.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -78,12 +88,25 @@ settingsRef:
   kind: ScanSetting
   apiGroup: compliance.openshift.io/v1alpha1
 EOF
-oc get compliancescans -n openshift-compliance
 ----
-TIP: Phase `DONE` means results are ready. `RUNNING` means wait and re-check. A full CIS platform scan can take several minutes. Re-run `oc get compliancescans -n openshift-compliance` until the scan tied to this binding is `DONE`.
+
+TIP: `scansettingbinding.compliance.openshift.io/101-10-cis-audit created` (or configured).
 ====
 
-.Filter CIS results to audit log configuration
+.Wait until the CIS scan is DONE
+[%collapsible]
+====
+A full CIS platform scan can take several minutes. Re-run until the scan tied to this binding is `DONE`.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get compliancescans -n openshift-compliance
+----
+
+TIP: Phase `DONE` means results are ready. `RUNNING` means wait and re-check.
+====
+
+.List audit-log ComplianceCheckResults
 [%collapsible]
 ====
 These rule names are the OpenShift CIS equivalent of the Kubernetes CIS rows you used in 101-09.
@@ -107,10 +130,9 @@ These rule names are the OpenShift CIS equivalent of the Kubernetes CIS rows you
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-echo 'NAME  STATUS  SEVERITY'
 oc get compliancecheckresults -n openshift-compliance --no-headers \
   | grep -iE 'audit-log|audit-logging|log-forward' \
-  || echo 'No audit-log results yet — wait for the scan, then re-run.'
+  || echo 'No audit-log results yet -- wait for the scan, then re-run.'
 ----
 
 PASS means that CIS row is met. FAIL or MANUAL is what you highlight next.
@@ -118,17 +140,27 @@ PASS means that CIS row is met. FAIL or MANUAL is what you highlight next.
 What to explain: this is the same evidence as listing `/var/log/kube-apiserver/` in 101-09, scored as a control. Path PASS plus forwarding FAIL means you can hunt today and still lose the trail on the node.
 ====
 
-.Highlight FAILs and what to change
+.List non-PASS audit-log rules
 [%collapsible]
 ====
-Print instructions only for audit rules that did **not** pass.
+Print the name, status, and severity for audit rules that did **not** pass.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-echo 'Non-PASS audit-log rules:'
 oc get compliancecheckresults -n openshift-compliance --no-headers \
   | awk 'tolower($0) ~ /audit-log|audit-logging|log-forward/ && toupper($2) != "PASS" {print $1, $2, $3}'
-echo
+----
+
+TIP: Empty output means every matching audit-log rule PASSed.
+====
+
+.Print instructions for those FAIL rows
+[%collapsible]
+====
+Highlight FAIL instructions, not every PASS. Do **not** apply `unsupportedConfigOverrides` in this lab.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc get compliancecheckresults -n openshift-compliance -o json \
   | jq -r '
     .items[]
@@ -141,16 +173,16 @@ oc get compliancecheckresults -n openshift-compliance -o json \
 What the FAILs usually mean (do **not** apply `unsupportedConfigOverrides` in this lab):
 
 * **audit-log-path** — kube-apiserver must write `/var/log/kube-apiserver/audit.log` (you listed that directory in 101-09). A FAIL here is unusual on a stock OpenShift cluster; escalate to the platform owner.
-* **audit-log-maxsize / maxbackup** — CIS wants rotation (about 100 MiB files, about 10 backups). OpenShift sets these by default. If the check still FAILs, treat it as a platform-operator finding for xref:201-08-compliance-tailoring.adoc[201-08], not a DIY kube-apiserver edit.
-* **audit-log-forwarding-enabled** — logs stay on the masters until Cluster Logging / Loki (or a SIEM) ships them off-cluster. That is the common roadshow FAIL. Fix: configure a `ClusterLogForwarder` (see xref:201-07-audit-monitoring-correlation.adoc[201-07]), not “copy files off by hand.”
+* **audit-log-maxsize / maxbackup** — CIS wants rotation (about 100 MiB files, about 10 backups). OpenShift sets these by default. If the check still FAILs, treat it as a platform-operator finding for xref:201-07-compliance-tailoring.adoc[201-07], not a DIY kube-apiserver edit.
+* **audit-log-forwarding-enabled** — logs stay on the masters until Cluster Logging / Loki (or a SIEM) ships them off-cluster. That is the common roadshow FAIL. Fix: configure a `ClusterLogForwarder` (see xref:201-06-audit-monitoring-correlation.adoc[201-06]), not “copy files off by hand.”
 
 What to explain: highlight the FAIL instructions, not every PASS. The change that usually matters after 101-09 is *shipping* the files you already grepped—not editing kube-apiserver flags.
 ====
 
-.Compare FAIL text to the live API server config
+.Read live audit-log flags from kubeapiserver cluster
 [%collapsible]
 ====
-Same object 101-09 used for “is the path set?” Now you can line it up with the scan.
+Same object 101-09 used for "is the path set?" Now you can line it up with the scan.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -172,11 +204,11 @@ What breaks without this:
 
 * Hunting logs without a scan → you cannot show auditors the CIS rows
 * PASS on path but FAIL on forwarding → evidence dies on the node
-* Applying unsupported API server overrides to silence maxsize → upgrade risk; use xref:201-08-compliance-tailoring.adoc[201-08] instead
+* Applying unsupported API server overrides to silence maxsize → upgrade risk; use xref:201-07-compliance-tailoring.adoc[201-07] instead
 
-Controls that matter: Compliance Operator `ocp4-cis` for configuration evidence, Cluster Logging for off-cluster retention, SPO for seccomp/SELinux, RHACS for image/runtime—on top of SCC and RBAC.
+IMPORTANT: Compliance Operator `ocp4-cis` for configuration evidence, Cluster Logging for off-cluster retention, SPO for seccomp/SELinux, RHACS for image/runtime—on top of SCC and RBAC.
 
-Quick facts: a Compliance scan is not an RHACS CVE scan. Start with `ocp4-cis` audit-log rules after you have hunted events once.
+NOTE: a Compliance scan is not an RHACS CVE scan. Start with `ocp4-cis` audit-log rules after you have hunted events once.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOWptdDZteGo5a3RheGc5ajc0bXh1bHNpYjN6NGJiY2NjajhsNDExayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/nbvFVPiEiJH6JOGIok/giphy.gif[link=self, window=blank, width=100%, class="center"]
 

@@ -1,5 +1,5 @@
 = Certificate Management & mTLS Basics (cert-manager Operator)
-:labid: LAB-201-09
+:labid: LAB-201-08
 :cis-summary: "Implement automated certificate management and mutual TLS (mTLS) using cert-manager Operator."
 :mitre-summary: "Prevents man-in-the-middle attacks and ensures secure service-to-service communication through automated certificate lifecycle management."
 :toc:
@@ -24,23 +24,41 @@ Manual certificate management is error-prone and leads to expired certificates c
 * Certificate provisioning complexity
 
 == Your Mission
-Complete the examples below to close the attack paths this lab covers—treat each step as defending the cluster, not just clicking through commands.
+Issue a service certificate with cert-manager so east-west traffic can use identity, not a copied PEM file. You already put TLS on a Route in xref:101-12-enforcing-tls-routes.adoc[101-12]; this lab is the in-cluster certificate object.
 
 Click each step only if you need a hint.
 
-.Check cert-manager installation
+.Get pods in openshift-cert-manager
 [%collapsible]
 ====
+Confirm the operator is already running on this cluster.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get pods -n openshift-cert-manager
-oc get crd certificates.cert-manager.io
 ----
+
+TIP: cert-manager pods should be `Running`.
 ====
 
-.Create ClusterIssuer
+.Get CRD certificates.cert-manager.io
 [%collapsible]
 ====
+Without this CRD, `Certificate` objects will not apply.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get crd certificates.cert-manager.io
+----
+
+TIP: The CRD exists. If not, install cert-manager Operator from OperatorHub.
+====
+
+.Apply ClusterIssuer selfsigned-issuer
+[%collapsible]
+====
+A self-signed issuer is enough to prove issuance. Match the CA to your trust model in production.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
@@ -52,11 +70,28 @@ spec:
   selfSigned: {}
 EOF
 ----
+
+TIP: `clusterissuer.cert-manager.io/selfsigned-issuer created` (or configured).
 ====
 
-.Create Certificate resource
+.Create project 201-08-demo
 [%collapsible]
 ====
+The Certificate lands in this namespace.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc new-project 201-08-demo
+----
+
+TIP: `Now using project "201-08-demo"`.
+====
+
+.Apply Certificate example-cert
+[%collapsible]
+====
+`secretName` is where cert-manager writes tls.crt / tls.key. `dnsNames` must match how services will call each other.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
@@ -64,35 +99,44 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: example-cert
-  namespace: 201-09-demo
+  namespace: 201-08-demo
 spec:
   secretName: example-cert-tls
   issuerRef:
     name: selfsigned-issuer
     kind: ClusterIssuer
   dnsNames:
-  - example.201-09-demo.svc.cluster.local
+  - example.201-08-demo.svc.cluster.local
 EOF
 ----
+
+TIP: `certificate.cert-manager.io/example-cert created`.
 ====
 
-.Verify certificate creation
+.Get Certificate example-cert
 [%collapsible]
 ====
+Wait until Ready is True.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc get certificate -n 201-09-demo
-oc get secret example-cert-tls -n 201-09-demo
+oc get certificate -n 201-08-demo
 ----
+
+TIP: `READY` should be `True`.
 ====
 
-.Cleanup
+.Get Secret example-cert-tls
 [%collapsible]
 ====
+That Secret is what you mount into pods for mTLS.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc delete project 201-09-demo --wait=false
+oc get secret example-cert-tls -n 201-08-demo
 ----
+
+TIP: The Secret exists and has `tls.crt` / `tls.key` data.
 ====
 
 == Debrief
@@ -104,9 +148,9 @@ What breaks without this:
 * Manual certs → outages at expiry and rushed key handling
 * Cleartext or one-way TLS only → lateral sniffing and spoofing between services
 
-Controls that matter: ClusterIssuer/Certificate CRs, auto-renew before expiry, mTLS where trust boundaries need mutual proof, and protected key material.
+IMPORTANT: ClusterIssuer/Certificate CRs, auto-renew before expiry, mTLS where trust boundaries need mutual proof, and protected key material.
 
-Quick facts: use public CA, private CA, or self-signed to match your trust model; renewal timing is the reliability win.
+NOTE: use public CA, private CA, or self-signed to match your trust model; renewal timing is the reliability win.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjJmczc4MmswYmk1cnhvZ254ZXBiZ2M3bGJzbDV5eDQ3OGlqNWdwdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QSSA5Bd56W25ytLIwz/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
@@ -114,5 +158,5 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjJmczc4MmswYmk1cnhvZ254
 
 Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
 
-:lab-cleanup-module: 201-09
+:lab-cleanup-module: 201-08
 include::partial$lab-cleanup.adoc[]

@@ -2,13 +2,13 @@
 :toc:
 :icons: font
 
-xref:index.adoc[←]
+xref:index.adoc[← Back]
 
 == Overview
 
 These labs cover Trusted Software Supply Chain (TSSC) capabilities on OpenShift: Trusted Artifact Signer (container and git signing) and Trusted Profile Analyzer (SBOM analysis).
 
-Use this track after (or alongside) the role path that owns supply-chain controls—especially DevSecOps and Security Architect. Related framework labs include xref:201-05-shift-left-pipeline.adoc[201-05] and xref:301-06-supply-chain-integrity.adoc[301-06].
+Use this track after (or alongside) the role path that owns supply-chain controls—especially DevSecOps and Security Architect. Related framework labs include xref:201-04-shift-left-pipeline.adoc[201-04] and xref:301-06-supply-chain-integrity.adoc[301-06].
 
 Audience and prerequisites:
 

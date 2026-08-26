@@ -34,18 +34,28 @@ A teammate (or a new hire following a blog post) wants to stand up a quick web s
 
 Click each step only if you need a hint.
 
-.A developer deploys a public root-friendly image
+.Create project 101-01-httpd-demo
 [%collapsible]
 ====
-Create a project and deploy the public Docker Hub `httpd` image the way many people do on day one. Admission may accept it, but OpenShift’s defaults should stop it from running with root-like power.
+Stay in this project for every command.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 101-01-httpd-demo
-oc create deployment web --image=httpd
 ----
 
-Wait a few seconds, then check whether the deployment actually stayed healthy:
+TIP: `Now using project "101-01-httpd-demo"`.
+====
+
+.Deploy the public Docker Hub httpd image
+[%collapsible]
+====
+This is how many people start on day one. Admission may accept it, but OpenShift defaults should stop it from running with root-like power.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc create deployment web --image=httpd
+----
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -53,13 +63,13 @@ oc get pods -l app=web
 oc get pods -l app=web -o wide
 ----
 
-NOTE: The pod should land in `CrashLoopBackOff/Error` with a rising restart count—the cluster refused to run this image with the privileges it assumed on a laptop.
+NOTE: The pod should land in `CrashLoopBackOff/Error` with a rising restart count.
 ====
 
-.Investigate why the deployment failed
+.Read web logs for the port 80 bind failure
 [%collapsible]
 ====
-Collect evidence before anyone asks for `anyuid`. Logs and events are your first proof that the fail was intentional hardening, not a flaky image pull.
+Collect evidence before anyone asks for `anyuid`. Logs are your first proof that the fail was intentional hardening, not a flaky image pull.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -77,68 +87,107 @@ no listening sockets available, shutting down
 AH00015: Unable to open logs
 ----
 
-Confirm with events and pod detail:
+TIP: CrashLoop with Permission denied on port 80.
+====
+
+.Get events and describe the web pod
+[%collapsible]
+====
+Confirm the same failure from events and pod detail.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get events --sort-by='.lastTimestamp' | tail -20
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc describe pod -l app=web | tail -30
 ----
 
-Privileged port 80, root-owned log paths, and an image that assumed UID 0 all defeated by the OpenShift platform. OpenShift injected a random non-root UID, so the process could neither bind nor write where it wanted.
+TIP: Privileged port 80, root-owned log paths, and an image that assumed UID 0. OpenShift injected a random non-root UID, so the process could neither bind nor write where it wanted.
 ====
 
-.Confirm the UID and port the image assumed
+.Read runAsUser from the web pod
 [%collapsible]
-======
-`oc create deployment` does not declare a `containerPort`, so do not look for port 80 in the pod spec. Prove the mismatch from the container security context (non-root UID) and the logs (process tried to bind port 80).
+====
+`oc create deployment` does not declare a `containerPort`, so do not look for port 80 in the pod spec. Prove the mismatch from the container security context.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get pod -l app=web -o jsonpath='Pod SC: {.items[0].spec.securityContext}{"\n"}'
 oc get pod -l app=web -o jsonpath='Container SC: {.items[0].spec.containers[0].securityContext}{"\n"}'
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc get pod -l app=web -o jsonpath='runAsUser: {.items[0].spec.containers[0].securityContext.runAsUser}{"\n"}'
+----
+
+TIP: `runAsUser` is a large non-zero UID (for example `1001210000`) with `runAsNonRoot: true`.
+====
+
+.Grep logs for the bind to port 80
+[%collapsible]
+====
+The process tried to bind port 80. That is the port evidence.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc logs -l app=web --tail=50 --all-containers=true | grep -E 'bind to address|:80|Permission denied' || true
 ----
 
-[NOTE]
+NOTE: Do not "fix" this by granting extra SCC power -- that trains teams to bypass defaults instead of shipping an OpenShift-ready image.
 ====
-Container `runAsUser` is a large non-zero UID (for example `1001210000`) with `runAsNonRoot: true`, and the logs show a failed bind to port `80`. That mismatch is the guardrail. Do not "fix" this by granting extra SCC power—that trains teams to bypass defaults instead of shipping an OpenShift-ready image.
-====
-======
 
-.Counter with a hardened UBI image
+.Set deployment/web to ubi9/httpd-24
 [%collapsible]
 ====
-Replace the public Docker Hub image with a Red Hat UBI image built for non-root on port 8080. No SCC escalation. You restore service while keeping the platform defaults intact.
+Replace the public Docker Hub image with a Red Hat UBI image built for non-root on port 8080. No SCC escalation.
 
 [cols="1,2",options="header"]
 |===
 |Defensive choice | Why it fits OpenShift defaults
-|Non-root user | Survives OpenShift’s random UID; shrinks post-compromise power
+|Non-root user | Survives OpenShift's random UID; shrinks post-compromise power
 |High port (8080) | Removes the need for privileged binds and caps
-|Curated & supported | Known provenance instead of an unvetted public tag
+|Curated and supported | Known provenance instead of an unvetted public tag
 |===
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc set image deployment/web *=registry.access.redhat.com/ubi9/httpd-24
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc rollout status deployment/web --timeout=120s
 ----
 
-Verify the hardened workload is actually up:
+TIP: Rollout should complete successfully.
+====
+
+.Get web pods and logs after the UBI swap
+[%collapsible]
+====
+Confirm the hardened workload is actually up.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get pods -l app=web
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc logs -l app=web --tail=15
 ----
+
+TIP: Pod `Running`. Logs should not show a bind failure on port 80.
 ====
 
-.Prove non-root still holds, then expose safely
+.Exec id in deploy/web
 [%collapsible]
 ====
-Before publishing the app, confirm the running process is still not UID 0. Then expose it with a Route so users get service—without relaxing the UID guard that just blocked the laptop-style image.
+Before publishing the app, confirm the running process is still not UID 0.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -146,23 +195,27 @@ oc exec deploy/web -- id
 oc exec deploy/web -- id -u
 ----
 
-Expect a numeric UID such as `1000690000` (not `0`). Expose a Service, then a Route, and note the hostname:
+TIP: Expect a numeric UID such as `1000690000` (not `0`).
+====
 
-NOTE: `oc expose deployment` creates a Service only. You need a second `oc expose service` step to create the publically available OpenShiftRoute.
+.Expose Service and Route for web on 8080
+[%collapsible]
+====
+`oc expose deployment` creates a Service only. You need a second `oc expose service` step to create the Route.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc expose deployment web --port=8080
 oc expose service/web
 ----
+
+TIP: `oc get route web` should show a hostname.
 ====
 
-.Verify the service answers
+.Get the web Route hostname and curl it
 [%collapsible]
 ====
-Hit the Route and confirm the hardened image serves traffic. Success means the business still works while the privilege assumptions from the public image remain closed.
-
-First, get the route and store in variable:
+Hit the Route and confirm the hardened image serves traffic. Use HTTP; this Route has no certificate.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -171,15 +224,13 @@ ROUTE=$(oc get route web -o jsonpath='{.spec.host}')
 echo "http://$ROUTE"
 ----
 
-Then, test the service with curl commands:
-
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 curl -s -o /dev/null -w "%{http_code}" "http://$ROUTE/" && echo " OK"
 curl -s "http://$ROUTE/" | head -5
 ----
 
-TIP: The service does not have a certificate, so https traffic will fail. Use http instead.
+TIP: HTTP 200 and HTML. HTTPS will fail without a certificate.
 ====
 
 == Debrief

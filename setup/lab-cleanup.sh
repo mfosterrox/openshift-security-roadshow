@@ -199,46 +199,49 @@ case "${MODULE}" in
     echo "Removed this module's ScanSettingBinding (101-10-cis-audit) and leftover cis-scan suite if present."
     echo "Instructor suites (for example acs-catch-all) are left in place."
     ;;
-  101-11|101-12)
-    # 101-12 reuses the 101-11 rebuild project
+  101-11)
     delete_projects 101-11-r-rebuild
     ;;
+  101-12)
+    rm -rf /tmp/101-12-certs 2>/dev/null || true
+    delete_projects 101-12-tls
+    ;;
   201-01)
-    delete_projects app-frontend app-backend app-db
+    delete_projects 201-01-c-rbac-lab
     ;;
   201-02)
-    delete_projects 201-02-c-rbac-lab
+    delete_projects 201-02-w-harden
     ;;
   201-03)
-    delete_projects 201-03-w-harden
+    rm -f /tmp/lab-201-03.txt /tmp/lab-scratch-* 2>/dev/null || true
+    echo "Removed temporary lab files for module 201-03."
     ;;
   201-04)
-    rm -f /tmp/lab-201-04.txt /tmp/lab-scratch-* 2>/dev/null || true
-    echo "Removed temporary lab files for module 201-04."
+    delete_projects 201-04-s-pipeline
     ;;
   201-05)
-    delete_projects 201-05-s-pipeline
-    ;;
-  201-06)
-    rm -f /tmp/lab-201-06.txt /tmp/lab-scratch-* 2>/dev/null || true
+    rm -f /tmp/lab-201-05.txt /tmp/lab-scratch-* 2>/dev/null || true
     echo "Vault workshop cleanup is handled by cleanup-vault-lab.sh; recorded module completion."
     ;;
-  201-07)
-    delete_projects 201-07-a-correlation
+  201-06)
+    delete_projects 201-06-a-correlation
     ;;
-  201-08)
+  201-07)
     oc delete compliancescans baseline-scan tailored-scan -n openshift-compliance --ignore-not-found 2>/dev/null || true
     oc delete tailoredprofile rhcos4-moderate-tailored -n openshift-compliance --ignore-not-found 2>/dev/null || true
     echo "Removed compliance scan and tailored profile objects (if present)."
     ;;
+  201-08)
+    delete_projects 201-08-demo
+    ;;
   201-09)
-    delete_projects 201-09-demo
+    delete_projects 201-09-s-sandbox
     ;;
   201-10)
-    delete_projects 201-10-s-sandbox
+    delete_projects 201-10-a-govern
     ;;
   201-11)
-    delete_projects 201-11-a-govern
+    delete_projects app-frontend app-backend app-db
     ;;
   301-10)
     rm -f /tmp/lab-301-10.txt /tmp/lab-scratch-* 2>/dev/null || true

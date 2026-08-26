@@ -28,33 +28,52 @@ This uses the supported `etcdctl` client inside an `openshift-etcd` pod—the sa
 
 Click each step only if you need a hint.
 
-.Control-plane health (etcd and API must be ready)
+.List nodes and control-plane pods
 [%collapsible]
 ====
+etcd and the Kubernetes API must be Ready before you plant a Secret or read etcd.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get nodes -o wide
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc get pods -n openshift-kube-apiserver
 oc get pods -n openshift-etcd
 ----
+
+TIP: etcd and kube-apiserver pods should be Running.
 ====
 
 === Part A: Test before encryption
 Create a lab Secret, then test it twice: through the API, and through etcd.
 
-.Plant a sentinel Secret
+.Create project 101-08-e-etcd and Secret lab-db-creds
 [%collapsible]
 ====
+The sentinel password is what you will search for in etcd. Use this exact string so the grep in later steps matches.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 101-08-e-etcd || oc project 101-08-e-etcd
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc create secret generic lab-db-creds --from-literal=password='ROADSHOW-ETCD-CLEARTEXT-TOKEN' --dry-run=client -o yaml | oc apply -f -
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc get secret lab-db-creds -o jsonpath='{.data.password}' | base64 -d; echo
 ----
+
 TIP: The API shows the password. That is expected. Etcd encryption does not hide Secrets from `oc get`.
 ====
 
-.Read the current encryption type
+.Read spec.encryption.type on APIServer cluster
 [%collapsible]
 ====
 Empty or `identity` means etcd values are stored in the clear. `aesgcm` or `aescbc` means encryption is already on.
@@ -62,44 +81,62 @@ Empty or `identity` means etcd values are stored in the clear. `aesgcm` or `aesc
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get apiserver cluster -o jsonpath='spec.encryption.type={.spec.encryption.type}{"\n"}'
-oc get kubeapiserver -o jsonpath='{range .items[0].status.conditions[?(@.type=="Encrypted")]}reason={.reason}{"\n"}message={.message}{"\n"}{end}'
 ----
-====
-
-.Test before encryption
-[%collapsible]
-====
-Run the same two checks you will run after: the API, then etcd.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-echo 'BEFORE — API (authorized oc get)'
-oc -n 101-08-e-etcd get secret lab-db-creds -o jsonpath='{.data.password}' | base64 -d; echo
+oc get kubeapiserver -o jsonpath='{range .items[0].status.conditions[?(@.type=="Encrypted")]}reason={.reason}{"\n"}message={.message}{"\n"}{end}'
+----
 
-echo 'BEFORE — etcd (stolen-backup view)'
+TIP: Note the type. You will skip the patch in Part B if it is already `aesgcm` or `aescbc`.
+====
+
+.Get the Secret password through the API
+[%collapsible]
+====
+Authorized `oc get` must still show the sentinel. Encryption at rest does not hide Secrets from the API.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc -n 101-08-e-etcd get secret lab-db-creds -o jsonpath='{.data.password}' | base64 -d; echo
+----
+
+TIP: You should see `ROADSHOW-ETCD-CLEARTEXT-TOKEN`.
+====
+
+.Grep the Secret value from etcd
+[%collapsible]
+====
+This is the stolen-backup view. Use the `etcdctl` container in an `openshift-etcd` pod.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 ETCD_POD=$(oc get pod -n openshift-etcd --no-headers | awk '/^etcd-/{print $1; exit}')
+echo "$ETCD_POD"
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc exec -n openshift-etcd -c etcdctl "$ETCD_POD" -- \
   etcdctl get /kubernetes.io/secrets/101-08-e-etcd/lab-db-creds --print-value-only \
   | grep -aE 'k8s:enc:|ROADSHOW-ETCD-CLEARTEXT-TOKEN' || echo 'FAIL: no etcd match'
 ----
 
-Pass the API test if you see `ROADSHOW-ETCD-CLEARTEXT-TOKEN`.
-
-Pass the etcd test if you see **one** of:
+Pass if you see **one** of:
 
 [source,text]
 ----
 ROADSHOW-ETCD-CLEARTEXT-TOKEN
 ----
 
-(not encrypted yet — continue to Part B) or:
+(not encrypted yet -- continue to Part B) or:
 
 [source,text]
 ----
 k8s:enc:
 ----
 
-(already encrypted — skip the patch in Part B, still run the after test).
+(already encrypted -- skip the patch in Part B, still run the after test).
 ====
 
 === Part B: Encrypt, then test again
@@ -107,68 +144,80 @@ Enabling encryption is cluster-wide and can take **20 minutes or longer**. If th
 
 IMPORTANT: Do not enable encryption on a shared roadshow cluster unless you own the cluster or the instructor asked you to. One enable is enough for everyone. Do not turn encryption back off in this lab.
 
-.Enable etcd encryption (only if still identity)
+.Patch APIServer cluster to encryption type aesgcm
 [%collapsible]
 ====
-https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/etcd/enabling-etcd-encryption[Official procedure^]: set `spec.encryption.type` on the `APIServer` object to `aesgcm`.
+https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/etcd/enabling-etcd-encryption[Official procedure^]: set `spec.encryption.type` on the `APIServer` object to `aesgcm`. Skip the patch if type is already `aesgcm` or `aescbc`.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 TYPE=$(oc get apiserver cluster -o jsonpath='{.spec.encryption.type}')
 echo "Current type: '${TYPE}'"
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 if [[ "${TYPE}" == "aesgcm" || "${TYPE}" == "aescbc" ]]; then
-  echo 'Already encrypted — skip the patch.'
+  echo 'Already encrypted -- skip the patch.'
 else
   oc patch apiserver cluster --type=merge -p '{"spec":{"encryption":{"type":"aesgcm"}}}'
   echo 'Patch applied. Encryption of existing objects can take 20+ minutes.'
 fi
 ----
+
+TIP: One enable is enough for the shared cluster. Do not turn encryption back off.
 ====
 
-.Wait until Kubernetes API encryption reports complete
+.Read Encrypted conditions on the API servers
 [%collapsible]
 ====
 Re-run this block until you see `EncryptionCompleted` and `secrets, configmaps`. `EncryptionInProgress` means wait and click again.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-echo 'OpenShift API server:'
 oc get openshiftapiserver -o jsonpath='{range .items[0].status.conditions[?(@.type=="Encrypted")]}{.reason}{"\n"}{.message}{"\n"}{end}'
-echo
-echo 'Kubernetes API server:'
-oc get kubeapiserver -o jsonpath='{range .items[0].status.conditions[?(@.type=="Encrypted")]}{.reason}{"\n"}{.message}{"\n"}{end}'
-echo
-echo 'OAuth API server:'
-oc get authentication.operator.openshift.io -o jsonpath='{range .items[0].status.conditions[?(@.type=="Encrypted")]}{.reason}{"\n"}{.message}{"\n"}{end}'
 ----
-TIP: Do not take an etcd backup until encryption has finished, or the snapshot can be only partly encrypted.
-====
-
-.Test after encryption
-[%collapsible]
-====
-Same two checks as before. Encryption is working only if **both** pass.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-echo 'AFTER — API (must still show the password)'
-oc -n 101-08-e-etcd get secret lab-db-creds -o jsonpath='{.data.password}' | base64 -d; echo
+oc get kubeapiserver -o jsonpath='{range .items[0].status.conditions[?(@.type=="Encrypted")]}{.reason}{"\n"}{.message}{"\n"}{end}'
+----
 
-echo 'AFTER — etcd (must be ciphertext, not the password)'
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get authentication.operator.openshift.io -o jsonpath='{range .items[0].status.conditions[?(@.type=="Encrypted")]}{.reason}{"\n"}{.message}{"\n"}{end}'
+----
+
+TIP: Do not take an etcd backup until encryption has finished, or the snapshot can be only partly encrypted.
+====
+
+.Get the Secret through the API after encryption
+[%collapsible]
+====
+The API must still show the password for authorized users.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc -n 101-08-e-etcd get secret lab-db-creds -o jsonpath='{.data.password}' | base64 -d; echo
+----
+
+TIP: Still `ROADSHOW-ETCD-CLEARTEXT-TOKEN`.
+====
+
+.Grep the Secret value from etcd after encryption
+[%collapsible]
+====
+The etcd value must be ciphertext (`k8s:enc:`), not the password.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 ETCD_POD=$(oc get pod -n openshift-etcd --no-headers | awk '/^etcd-/{print $1; exit}')
 oc exec -n openshift-etcd -c etcdctl "$ETCD_POD" -- \
   etcdctl get /kubernetes.io/secrets/101-08-e-etcd/lab-db-creds --print-value-only \
   | grep -aE 'k8s:enc:|ROADSHOW-ETCD-CLEARTEXT-TOKEN' || echo 'FAIL: no etcd match'
 ----
 
-[source,text]
-----
-AFTER — API (must still show the password)
-ROADSHOW-ETCD-CLEARTEXT-TOKEN
-
-AFTER — etcd (must be ciphertext, not the password)
-k8s:enc:
-----
+TIP: Pass is `k8s:enc:`. If you still see `ROADSHOW-ETCD-CLEARTEXT-TOKEN`, wait for encryption to finish and retry.
 
 [cols="1,2,2",options="header"]
 |===
@@ -194,11 +243,11 @@ What breaks without this:
 * Weak control-plane posture → larger blast radius when the API plane is probed
 * Backing up etcd *during* encryption → a mix of clear and encrypted objects
 
-Controls that matter: etcd encryption at rest (`aesgcm` or `aescbc`), store encryption keys separately from snapshots, node/API hardening, and audit so you can prove the control is on.
+IMPORTANT: etcd encryption at rest (`aesgcm` or `aescbc`), store encryption keys separately from snapshots, node/API hardening, and audit so you can prove the control is on.
 
 Leave encryption enabled. Disabling it (`type: identity`) decrypts the store again and is out of scope for this lab.
 
-Quick facts: enable at install when you can; enabling later is cluster-wide and can take 20+ minutes. Performance impact is usually small versus the data-protection win. This does not replace RBAC or xref:101-06-secrets-management.adoc[101-06] Secret hygiene.
+NOTE: enable at install when you can; enabling later is cluster-wide and can take 20+ minutes. Performance impact is usually small versus the data-protection win. This does not replace RBAC or xref:101-06-secrets-management.adoc[101-06] Secret hygiene.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMGh0OWkxemNoNmF4dG9lNHE4bncwOWpkdzR6NHJ6dDNuOW0xYnMwaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7auaKlfmip8gE/giphy.gif[link=self, window=blank, width=100%, class="center"]
 

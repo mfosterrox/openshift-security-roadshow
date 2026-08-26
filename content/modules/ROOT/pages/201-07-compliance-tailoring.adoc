@@ -1,7 +1,7 @@
 = Meaningful Compliance – Tailoring a Profile
 :role: Intermediate Compliance
 :skills: Compliance Operator, Tailored Profiles, Remediation
-:labid: LAB-201-08
+:labid: LAB-201-07
 :toc:
 :icons: font
 
@@ -22,7 +22,7 @@ Raw upstream Compliance profiles flag noise your environment cannot fix today. T
 * Audits that cannot explain why a rule was skipped
 
 == Your Mission
-Tailor a Compliance profile so attackers and auditors alike face a scan set that matches your real platform—not a one-size-fits-nobody checklist.
+Tailor a Compliance profile so attackers and auditors alike face a scan set that matches your real platform—not a one-size-fits-nobody checklist. You already ran `ocp4-cis` audit-log checks in xref:101-10-security-compliance-addons.adoc[101-10]; this lab is how you disable noise and apply remediations on purpose.
 
 === Prerequisites
 
@@ -31,9 +31,11 @@ Tailor a Compliance profile so attackers and auditors alike face a scan set that
 
 Click each step only if you need a hint.
 
-.Baseline Scan
+.Apply ComplianceScan baseline-scan
 [%collapsible]
 ====
+Start from `rhcos4-moderate` so you have a noisy baseline to compare later.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
@@ -49,32 +51,54 @@ spec:
   debug: false
 EOF
 ----
-Monitor:
+
+TIP: `compliancescan.compliance.openshift.io/baseline-scan created`.
+====
+
+.Get ComplianceScans
+[%collapsible]
+====
+Wait until `phase=DONE` before you read remediations.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get compliancescans -n openshift-compliance
 ----
+
+TIP: `baseline-scan` reaches `DONE`. This can take several minutes.
 ====
 
-.Findings
+.Get ComplianceRemediations
 [%collapsible]
 ====
-When phase=DONE:
+These CRs are the hardening knobs the operator can apply.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get complianceremediations -n openshift-compliance | head
-oc logs job/baseline-scan-rhcos4-moderate-master -n openshift-compliance | head
 ----
-Identify a rule to exclude (example id placeholder `rhcos4-useless-example`):
+
+TIP: A list of rule-named remediations. Empty means the scan is still running.
+====
+
+.Grep remediations for chrony
+[%collapsible]
+====
+Pick a real rule id from your cluster. `chrony` is only an example filter.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get complianceremediations -n openshift-compliance | grep -i chrony || true
 ----
+
+TIP: Copy a rule name you will disable in the TailoredProfile. If chrony is absent, pick another FAIL that is noise for this lab cluster.
 ====
 
-.Tailored Profile
+.Apply TailoredProfile rhcos4-moderate-tailored
 [%collapsible]
 ====
+Replace `rhcos4-useless-example` with the rule name you copied. Document why you disabled it in production.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
@@ -90,11 +114,15 @@ spec:
     - name: rhcos4-useless-example
 EOF
 ----
+
+TIP: `tailoredprofile.compliance.openshift.io/rhcos4-moderate-tailored created`.
 ====
 
-.Tailored Scan
+.Apply ComplianceScan tailored-scan
 [%collapsible]
 ====
+Point this scan at the tailored profile, not the raw one.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
@@ -109,27 +137,47 @@ spec:
   contentImage: registry.redhat.io/compliance/openshift-compliance-content-rhel9:latest
 EOF
 ----
-Compare result counts:
+
+TIP: `compliancescan.compliance.openshift.io/tailored-scan created`.
+====
+
+.Get ComplianceScans to compare baseline vs tailored
+[%collapsible]
+====
+Compare result counts after both scans are DONE.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get compliancescans -n openshift-compliance
 ----
+
+TIP: Tailored should show fewer failing rules if the disable matched a real check.
 ====
 
-.Generate Remediation
+.Get remediations for the tailored scan
 [%collapsible]
 ====
+Find a remediation you are willing to apply on this lab cluster.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get complianceremediations -n openshift-compliance | grep tailored || head
 ----
-Apply one remediation (example):
+
+TIP: Copy the remediation name for the next step.
+====
+
+.Annotate a ComplianceRemediation to apply
+[%collapsible]
+====
+Replace `<name>` with the remediation you copied. Prefer annotate over AutoApply in production.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc annotate complianceremediation <name> compliance.openshift.io/apply=true -n openshift-compliance
 ----
 
-NOTE: Prefer explicit annotate/apply in production. Auto-apply of remediations is for non-prod iterative hardening only—enable it with a change ticket and a rollback plan.
+NOTE: Auto-apply of remediations is for non-prod iterative hardening only—enable it with a change ticket and a rollback plan.
 ====
 
 == Debrief
@@ -141,9 +189,9 @@ What breaks without this:
 * Untailored profiles → alert fatigue and ignored findings
 * Manual one-off fixes → undocumentable drift from the benchmark
 
-Controls that matter: tailored profiles, scan comparison, remediation CRs, and cautious AutoApply (prefer non-prod first).
+IMPORTANT: tailored profiles, scan comparison, remediation CRs, and cautious AutoApply (prefer non-prod first).
 
-Quick facts: document why a check is disabled; re-scan after remediation to prove the close.
+NOTE: document why a check is disabled; re-scan after remediation to prove the close.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMGh0OWkxemNoNmF4dG9lNHE4bncwOWpkdzR6NHJ6dDNuOW0xYnMwaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7auaKlfmip8gE/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
@@ -151,5 +199,5 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMGh0OWkxemNoNmF4dG9lNHE4
 
 Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
 
-:lab-cleanup-module: 201-08
+:lab-cleanup-module: 201-07
 include::partial$lab-cleanup.adoc[]

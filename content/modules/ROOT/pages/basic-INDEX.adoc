@@ -2,7 +2,7 @@
 :toc:
 :icons: font
 
-xref:index.adoc[←]
+xref:index.adoc[← Back]
 
 == Overview
 

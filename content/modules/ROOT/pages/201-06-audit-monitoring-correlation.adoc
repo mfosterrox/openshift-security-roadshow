@@ -1,7 +1,7 @@
 = See the Story – Audit Log & Monitoring Correlation
 :role: Intermediate Detection & Response
 :skills: Audit Logs, Correlation, Monitoring, Threat Detection
-:labid: LAB-201-07
+:labid: LAB-201-06
 :toc:
 :icons: font
 
@@ -22,7 +22,7 @@ Audit logs alone and dashboards alone leave incident stories half-told. Correlat
 * Missed privilege misuse that never lights a metric alert alone
 
 == Your Mission
-Connect audit evidence to monitoring signals so a suspected foothold’s actions and blast radius show up as one coherent story.
+Connect audit evidence to monitoring signals so a suspected foothold’s actions and blast radius show up as one coherent story. You already hunted exec on the node in xref:101-09-audit-exec-events.adoc[101-09]; this lab joins that API event to runtime.
 
 === Prerequisites
 
@@ -31,70 +31,103 @@ Connect audit evidence to monitoring signals so a suspected foothold’s actions
 
 Click each step only if you need a hint.
 
-.Namespace & Pod
+.Create project 201-06-a-correlation
 [%collapsible]
 ====
+Stay in this project for the sleeper pod.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc new-project 201-07-a-correlation
+oc new-project 201-06-a-correlation
+----
+
+TIP: `Now using project "201-06-a-correlation"`.
+====
+
+.Run pod sleeper
+[%collapsible]
+====
+A long-running pod gives you a stable exec target.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc run sleeper --image=registry.access.redhat.com/ubi9/ubi -- sleep 600
 ----
+
+TIP: `pod/sleeper created`. Wait until it is Running before you exec.
 ====
 
-.Suspicious Exec
+.Exec id and uname on sleeper
 [%collapsible]
 ====
-Run the exec more than once so audit shows repeated probing, not a one-off mistake.
+This is the suspicious action. Run it so audit records `connect` / `exec`.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc exec sleeper -- sh -c 'id; uname -a'
-oc exec sleeper -- sh -c 'id; uname -a'
 ----
+
+TIP: You should see a uid and kernel string.
 ====
 
-.Query Audit (Conceptual Command)
+.Exec on sleeper a second time
 [%collapsible]
 ====
-If using Loki:
+Repeated exec looks like probing, not a one-off debug session.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc exec sleeper -- sh -c 'id; uname -a'
+----
+
+TIP: Same output. Two audit events should exist.
+====
+
+.Query Loki for exec on sleeper
+[%collapsible]
+====
+If Loki indexes kube-apiserver audit, search `connect` + `exec` + `sleeper`.
+
 [source,promql]
 ----
 {log_type="kube-apiserver"} |= `connect` |= `exec` |= `sleeper` | json
 ----
-TIP: Look for these fields in the results.
 
-* `user.username`
-* `objectRef.name` / namespace
-* verb (`connect`) + `subresource=exec`
-* `sourceIPs[]`
+TIP: Read `user.username`, `objectRef.name`, verb `connect`, `subresource=exec`, and `sourceIPs[]`.
 ====
 
-.Extract Fields (API Example)
+.Grep node audit logs for sleeper exec
 [%collapsible]
 ====
+Same hunt as xref:101-09-audit-exec-events.adoc[101-09] if you have control-plane file access.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-# If you have direct file access (control plane), pseudo:
-grep sleeper /var/log/kube-apiserver/audit* | grep exec | tail -1
+grep sleeper /var/log/kube-apiserver/audit.log | grep exec | tail -1
 ----
-Parse JSON: identify timestamp, user, pod.
+
+TIP: Parse JSON for timestamp, user, and pod name.
 ====
 
-.Metrics / Logs Correlation
+.Read sleeper logs from the last two minutes
 [%collapsible]
 ====
-Check pod logs around timestamp:
+Join the audit timestamp to what the container printed.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc logs sleeper -n 201-07-a-correlation --since=2m
+oc logs sleeper -n 201-06-a-correlation --since=2m
 ----
-If using ACS runtime, find corresponding process execution alert conceptually.
+
+TIP: The sleep image may log little; empty logs still prove you checked the runtime side. In RHACS, look for a matching process-exec finding.
 ====
 
 == Detection Logic Draft
 
 Rule: IF (exec to prod namespace pod) AND (user not in admin group) THEN alert severity=high.
-Data Points:
+
+Data points:
+
 * Audit: user, verb=connect, subresource=exec
 * RBAC: subject group membership
 * Namespace label: env=prod
@@ -109,9 +142,9 @@ What breaks without this:
 * Siloed audit vs runtime → missed exec campaigns and privilege grants
 * No join keys → alerts without investigation context
 
-Controls that matter: ship audit immutably, align clocks, query by identity and verb, and build anomaly rules (for example non-admin exec in prod).
+IMPORTANT: ship audit immutably, align clocks, query by identity and verb, and build anomaly rules (for example non-admin exec in prod).
 
-Quick facts: this lab is the foundation for later ACS/IR correlation—not a replacement for runtime sensors.
+NOTE: this lab is the foundation for later ACS/IR correlation—not a replacement for runtime sensors.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbTkyMGVyZW5qaG84dHB1cWM3Z3l0eWlpNWhseW9vODZocTVyZmZhMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7abGQa0aRJUurpII/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
@@ -119,5 +152,5 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbTkyMGVyZW5qaG84dHB1cWM3
 
 Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
 
-:lab-cleanup-module: 201-07
+:lab-cleanup-module: 201-06
 include::partial$lab-cleanup.adoc[]

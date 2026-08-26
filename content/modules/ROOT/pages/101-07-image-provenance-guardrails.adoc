@@ -34,17 +34,35 @@ Click each step only if you need a hint.
 === Part A: Allow-list the registries
 Mark one namespace, install the policy, then prove `docker.io` and `ghcr.io` cannot create a Deployment there. Leave the cluster-scoped policy in place until the module cleanup at the end.
 
-.Open a sandbox and mark it for registry lockdown
+.Create project 101-07-i-trusted
+[%collapsible]
+====
+Stay in this project for Part A. The allow-list will only evaluate namespaces you label in the next step.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc new-project 101-07-i-trusted || oc project 101-07-i-trusted
+----
+
+TIP: `oc project` should print `Now using project "101-07-i-trusted"`.
+====
+
+.Label the namespace trusted-registry-enforce=true
 [%collapsible]
 ====
 The label is the opt-in switch. Namespaces without it are not evaluated by this policy.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc new-project 101-07-i-trusted || oc project 101-07-i-trusted
 oc label namespace 101-07-i-trusted trusted-registry-enforce=true --overwrite
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc get ns 101-07-i-trusted --show-labels | grep trusted-registry-enforce
 ----
+
+TIP: The grep should print `trusted-registry-enforce=true`.
 ====
 
 .See what the cluster already allows (platform Image config)
@@ -126,6 +144,8 @@ spec:
         trusted-registry-enforce: "true"
 EOF
 ----
+
+TIP: `oc apply` should create two ValidatingAdmissionPolicy objects and two bindings.
 ====
 
 .Read the allow-list back
@@ -136,13 +156,17 @@ Confirm the four prefixes and that the binding is label-scoped—not cluster-wid
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get validatingadmissionpolicy allow-trusted-registries-deployments -o jsonpath='{.spec.validations[0].message}{"\n"}'
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc get validatingadmissionpolicybinding trusted-images-only-deployments -o yaml | grep -A6 'namespaceSelector:'
 ----
 
 What to explain: CREATE and UPDATE both go through this gate. A later `oc set image` to `docker.io` is denied the same way as the first create.
 ====
 
-.Launch an untrusted payload — expect Deny
+.Dry-run a docker.io Deployment and expect Deny
 [%collapsible]
 ====
 `--dry-run=server` still hits admission, so you get the deny without starting an image pull.
@@ -162,7 +186,7 @@ error: failed to create deployment: admission webhook ... denied the request: De
 Exact wording varies by OpenShift version. Look for `denied` and the trusted-registry message.
 ====
 
-.Prove it is not only docker.io
+.Dry-run a ghcr.io Deployment and expect Deny
 [%collapsible]
 ====
 GitHub Container Registry is public and still not on the allow-list.
@@ -189,35 +213,60 @@ flowchart LR
 ----
 ====
 
-.Prove the label is the switch
+.Create unlabeled project 101-07-i-open
 [%collapsible]
 ====
-A second project *without* the label should pass server-side dry-run for `docker.io`. Do not actually roll out that Deployment—you only need the admission result.
+A second project *without* the label should not be evaluated by the policy.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 101-07-i-open || oc project 101-07-i-open
+----
+
+TIP: Do not add `trusted-registry-enforce` on this namespace.
+====
+
+.Dry-run docker.io in the unlabeled project
+[%collapsible]
+====
+Server-side dry-run should admit `docker.io` here. Do not actually roll out that Deployment.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc -n 101-07-i-open create deployment probe --image=docker.io/library/nginx:latest --dry-run=server -o name
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc project 101-07-i-trusted
 ----
-TIP: Dry-run prints `deployment.apps/probe` (admitted). The policy is opt-in per namespace, not a silent cluster-wide lock.
+
+TIP: Dry-run prints `deployment.apps/probe` (admitted). Switch back to `101-07-i-trusted` for Part B.
 ====
 
 === Part B: Trusted image, digest, and pin
 Run UBI from an approved registry, prove host plus digest, pin the digest so the tag cannot drift, then show that changing the image back to `docker.io` is still denied.
 
-.Deploy only from an approved registry
+.Deploy UBI 9.6 as deployment/good
 [%collapsible]
 ====
+This host is on the allow-list. Admission should accept it.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc -n 101-07-i-trusted create deployment good --image=registry.access.redhat.com/ubi9/ubi:9.6 -- sleep infinity
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc -n 101-07-i-trusted wait --for=condition=Available deployment/good --timeout=90s
 oc -n 101-07-i-trusted get pods -l app=good
 ----
+
+TIP: Pod should be `Running`.
 ====
 
-.Fingerprint provenance — host + digest
+.Show Image and Image ID from the running pod
 [%collapsible]
 ====
 Prove what actually runs so a floated `:latest` tag cannot quietly swap in attacker content.
@@ -252,20 +301,37 @@ oc -n 101-07-i-trusted get pod -l app=good -o jsonpath='Image:     {.items[0].st
 TIP: Image ID includes `@sha256:…`. That string is what you pin next.
 ====
 
-.Pin the running digest
+.Capture the running Image ID into DIGEST
 [%collapsible]
 ====
-Point the Deployment at the exact Image ID. After this, retagging `ubi:9.6` on the registry cannot change what this workload pulls.
+Strip the `docker://` prefix so `oc set image` can use the digest.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 DIGEST=$(oc -n 101-07-i-trusted get pod -l app=good -o jsonpath='{.items[0].status.containerStatuses[0].imageID}')
 DIGEST="${DIGEST#*://}"
 echo "Pinning to: $DIGEST"
+----
+
+TIP: Echo should include `@sha256:`.
+====
+
+.Pin deployment/good to that digest
+[%collapsible]
+====
+After this, retagging `ubi:9.6` on the registry cannot change what this workload pulls.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc -n 101-07-i-trusted set image deployment/good "*=${DIGEST}"
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc -n 101-07-i-trusted rollout status deployment/good --timeout=90s
 oc -n 101-07-i-trusted get deploy good -o jsonpath='{.spec.template.spec.containers[0].image}{"\n"}'
 ----
+
 TIP: The Deployment spec should now contain `@sha256:`, not only `:9.6`.
 ====
 
@@ -277,6 +343,10 @@ CREATE was blocked in Part A. Attackers also patch running workloads. `oc set im
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc -n 101-07-i-trusted set image deployment/good *=docker.io/library/nginx:latest || true
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc -n 101-07-i-trusted get deploy good -o jsonpath='{.spec.template.spec.containers[0].image}{"\n"}'
 ----
 NOTE: The set-image command fails; the spec still shows the pinned digest. Admission protects the running shape, not only new Deployments.
@@ -293,16 +363,16 @@ What breaks without this:
 * CREATE-only gates → a later `oc set image` sneaks untrusted content in
 * Cluster-wide policy with no label switch → you cannot roll out gradually
 
-Controls that matter: trusted-registry allow-lists (admission), digest pins for important workloads, progressive labels for opt-in, and later signature verification.
+IMPORTANT: trusted-registry allow-lists (admission), digest pins for important workloads, progressive labels for opt-in, and later signature verification.
 
 Kubernetes Secrets and digest pins are still not signatures. Stronger supply-chain controls in later modules:
 
 * xref:101-11-rebuilding-images.adoc[101-11] — rebuild on UBI so the image itself is OpenShift-ready
-* xref:201-11-admission-governance.adoc[201-11] — Gatekeeper constraints beyond a single CEL allow-list
+* xref:201-10-admission-governance.adoc[201-10] — Gatekeeper constraints beyond a single CEL allow-list
 * xref:301-06-supply-chain-integrity.adoc[301-06] — signing, SBOM, and end-to-end provenance
 * xref:tssc-01-git-signing.adoc[TSSC git signing] — signed commits and trusted artifacts
 
-Quick facts: mirror public images into a registry you control; treat `:latest` as a demo habit, not production practice. Remove the ValidatingAdmissionPolicy objects in cleanup so they do not linger on the shared cluster.
+NOTE: mirror public images into a registry you control; treat `:latest` as a demo habit, not production practice. Remove the ValidatingAdmissionPolicy objects in cleanup so they do not linger on the shared cluster.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbTkyMGVyZW5qaG84dHB1cWM3Z3l0eWlpNWhseW9vODZocTVyZmZhMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7abGQa0aRJUurpII/giphy.gif[link=self, window=blank, width=100%, class="center"]
 

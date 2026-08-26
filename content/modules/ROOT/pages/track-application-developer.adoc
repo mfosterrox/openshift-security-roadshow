@@ -2,7 +2,7 @@
 :toc:
 :icons: font
 
-xref:index.adoc[←]
+xref:index.adoc[← Back]
 
 == Role overview
 
@@ -39,9 +39,9 @@ No Advanced labs are assigned to this role—grow into the xref:track-devsecops-
 
 === Intermediate
 
-. xref:201-01-threat-modeling-control-mapping.adoc[201-01 — Threat Modeling & Control Mapping]
-. xref:201-05-shift-left-pipeline.adoc[201-05 — CI/CD Scanning & Image Signing]
-. xref:201-06-vault-csi.adoc[201-06 — Secret Lifecycle Externalization]
+. xref:201-04-shift-left-pipeline.adoc[201-04 — CI/CD Scanning & Image Signing]
+. xref:201-05-vault-csi.adoc[201-05 — Secret Lifecycle Externalization]
+. xref:201-11-threat-modeling-control-mapping.adoc[201-11 — Threat Modeling & Control Mapping]
 
 === Advanced
 

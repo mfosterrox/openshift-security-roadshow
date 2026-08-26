@@ -3,7 +3,7 @@
 :skills: SCC Hardening, Capability Reduction, seccomp, SELinux Contexts
 :mitre: T1611 (Escape to Host), T1068 (Privilege Escalation), T1548 (Abuse Elevation Control Mechanisms)
 :compliance: NIST 800-53 CM-6 / SC-7, CIS Kubernetes 5.x, ISO 27001 A.12, PCI DSS 6.5
-:labid: LAB-201-03
+:labid: LAB-201-02
 
 **Duration:** ~25 minutes
 
@@ -17,6 +17,7 @@ Default settings are like issuing every warehouse worker a multi‑tool with bla
 
 == What does it solve
 Broad SCC usage silently enables:
+
 * Leftover Linux capabilities (each one is an exploration vector)
 * Accidental root UID usage (scripts work as root, drift ignored)
 * Looser SELinux contexts (more permissive file/process access)
@@ -25,20 +26,28 @@ Broad SCC usage silently enables:
 Hardening prunes that list down to essentials. Negative tests (deliberate failing pods) ensure protections aren’t theoretical.
 
 == Your Mission
+Prove restricted-plus is not enough for this workload: apply a tighter SCC, run a good pod, then watch capability-add and root-UID pods fail.
+
 Click each step only if you need a hint.
 
-.Inspect baseline
+.Inspect SCC restricted
 [%collapsible]
 ====
+Know the baseline before you invent a custom SCC. Prefer restricted plus an image fix when that already fits.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get scc restricted -o yaml | head -n 40
 ----
+
+TIP: You should see `allowPrivilegedContainer: false` and a non-root `runAsUser` strategy.
 ====
 
-.Create hardened SCC
+.Apply SCC hardened-nonroot
 [%collapsible]
 ====
+This SCC drops all capabilities, forces a UID range, sets SELinux, and pins `runtime/default` seccomp. Apply it cluster-wide as an object, then bind it only to this lab’s service accounts.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc apply -f - <<'EOF'
@@ -80,24 +89,44 @@ users: []
 priority: 10
 EOF
 ----
+
+TIP: `securitycontextconstraints.security.openshift.io/hardened-nonroot created` (or configured).
 ====
 
-.Namespace + bind SCC
+.Create project 201-02-w-harden
 [%collapsible]
 ====
+Stay in this project for the pod tests.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc new-project 201-03-w-harden
-oc adm policy add-scc-to-group hardened-nonroot system:serviceaccounts:201-03-w-harden
+oc new-project 201-02-w-harden
 ----
+
+TIP: `Now using project "201-02-w-harden"`.
 ====
 
-.Valid pod (should Run)
+.Bind SCC hardened-nonroot to this project's service accounts
 [%collapsible]
 ====
+An SCC does nothing until identities can use it.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc apply -n 201-03-w-harden -f - <<'EOF'
+oc adm policy add-scc-to-group hardened-nonroot system:serviceaccounts:201-02-w-harden
+----
+
+TIP: The SCC is now available to SAs in `201-02-w-harden`.
+====
+
+.Apply pod good
+[%collapsible]
+====
+Match the SCC UID range and drop privilege escalation. This pod should Run.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc apply -n 201-02-w-harden -f - <<'EOF'
 apiVersion: v1
 kind: Pod
 metadata:
@@ -110,21 +139,37 @@ spec:
     fsGroup: 1000660001
   containers:
   - name: app
-  image: registry.access.redhat.com/ubi9/ubi
+    image: registry.access.redhat.com/ubi9/ubi
     command: ["sh","-c","id; sleep 1000"]
     securityContext:
       allowPrivilegeEscalation: false
 EOF
-oc get pod good -n 201-03-w-harden -o jsonpath='{.metadata.annotations.openshift\.io/scc}{"\n"}'
 ----
+
+TIP: `pod/good created`.
 ====
 
-.Negative test – disallowed capability
+.Read the SCC annotation on pod good
 [%collapsible]
 ====
+Confirm the scheduler actually used `hardened-nonroot`, not `restricted`.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc apply -n 201-03-w-harden -f - <<'EOF'
+oc get pod good -n 201-02-w-harden -o jsonpath='{.metadata.annotations.openshift\.io/scc}{"\n"}'
+----
+
+TIP: Output is `hardened-nonroot`.
+====
+
+.Apply pod bad-cap with NET_RAW
+[%collapsible]
+====
+Adding a capability the SCC does not allow is the attacker’s “just one more tool” request. Expect a deny.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc apply -n 201-02-w-harden -f - <<'EOF'
 apiVersion: v1
 kind: Pod
 metadata:
@@ -132,22 +177,38 @@ metadata:
 spec:
   containers:
   - name: app
-  image: registry.access.redhat.com/ubi9/ubi
+    image: registry.access.redhat.com/ubi9/ubi
     command: ["sh","-c","sleep 1000"]
     securityContext:
       capabilities:
         add: ["NET_RAW"]
 EOF
-oc describe pod bad-cap -n 201-03-w-harden | grep -i deni || true
 ----
+
+TIP: Create may succeed then fail to schedule, or admission may reject it.
 ====
 
-.Negative test – root UID
+.Describe pod bad-cap for the denial
 [%collapsible]
 ====
+Look for a capability or SCC denial in events.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc apply -n 201-03-w-harden -f - <<'EOF'
+oc describe pod bad-cap -n 201-02-w-harden | grep -i deni || true
+----
+
+TIP: A denial line should mention capabilities, SCC, or forbidden.
+====
+
+.Apply pod bad-uid with runAsUser 0
+[%collapsible]
+====
+Root in the container is the privilege ladder from xref:101-04-scc-resource-guardrails.adoc[101-04]. This SCC’s UID range must reject it.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc apply -n 201-02-w-harden -f - <<'EOF'
 apiVersion: v1
 kind: Pod
 metadata:
@@ -157,20 +218,25 @@ spec:
     runAsUser: 0
   containers:
   - name: app
-  image: registry.access.redhat.com/ubi9/ubi
+    image: registry.access.redhat.com/ubi9/ubi
     command: ["sh","-c","sleep 1000"]
 EOF
 ----
+
 NOTE: Expect a rejection or scheduling failure.
 ====
 
-.Prove seccomp still blocks risky syscalls on the hardened pod
+.Exec unshare on pod good
 [%collapsible]
 ====
+seccomp `runtime/default` should block a risky syscall such as `unshare`. Failure is the correct result.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc exec good -- unshare -m true || echo "Blocked or not permitted (expected)"
 ----
+
+TIP: The command fails and the expected message prints.
 ====
 
 == Debrief
@@ -182,9 +248,9 @@ What breaks without this:
 * Leftover capabilities / loose syscalls → privilege escalation after container compromise
 * Invented custom SCCs everywhere → unmaintainable exception sprawl
 
-Controls that matter: hardened SCC only when needed, SPO/seccomp profiles, drop ALL then add back, SELinux types, and RHACS drift detection.
+IMPORTANT: hardened SCC only when needed, SPO/seccomp profiles, drop ALL then add back, SELinux types, and RHACS drift detection.
 
-Quick facts: do not invent a custom SCC if restricted (plus image fixes) already fits. Detect capability drift continuously.
+NOTE: do not invent a custom SCC if restricted (plus image fixes) already fits. Detect capability drift continuously.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcTYwZWZlazBoanhlcXV3NjkxdWg5YW52djBvMW1vYzkwZ3ZuYW4wOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/YrMrSUfeh5do2FISt8/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
@@ -192,5 +258,5 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcTYwZWZlazBoanhlcXV3Njkx
 
 Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
 
-:lab-cleanup-module: 201-03
+:lab-cleanup-module: 201-02
 include::partial$lab-cleanup.adoc[]

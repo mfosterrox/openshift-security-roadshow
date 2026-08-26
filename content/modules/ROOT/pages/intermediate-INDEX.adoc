@@ -2,15 +2,14 @@
 :toc:
 :icons: font
 
-xref:index.adoc[←]
+xref:index.adoc[← Back]
 
 == Overview
 
-These intermediate labs move from knowing defaults to integrating and adapting controls: custom RBAC/SCC, shift-left pipelines, external secrets, audit correlation, compliance tailoring, and admission governance.
+These intermediate labs move from knowing defaults to integrating and adapting controls: custom RBAC/SCC, shift-left pipelines, external secrets, audit correlation, compliance tailoring, and admission governance. Finish with threat modeling so the control map can use every lab you already ran.
 
 Topics covered:
 
-* Practical threat modeling
 * Advanced RBAC and service account hardening
 * Custom workload security controls (SCC/PSA, SELinux, seccomp)
 * Tighter isolation / restriction profiles
@@ -21,6 +20,7 @@ Topics covered:
 * Audit/monitoring correlation
 * Automated compliance assessment and remediation
 * Admission and policy controllers
+* Practical threat modeling (capstone — maps the controls above)
 
 Audience: follow a xref:index.adoc#choose-your-role[role track] for the ordered subset your role owns.
 
@@ -30,45 +30,45 @@ Audience: follow a xref:index.adoc#choose-your-role[role track] for the ordered 
 |===
 |Lab | Title | Roles
 
-|xref:201-01-threat-modeling-control-mapping.adoc[201-01]
-|Threat Modeling & Control Mapping
-|App Dev, DevSecOps, Architect
-
-|xref:201-02-custom-rbac.adoc[201-02]
+|xref:201-01-custom-rbac.adoc[201-01]
 |Custom RBAC & ClusterRoles
 |Platform, DevSecOps, Architect
 
-|xref:201-03-workload-hardening.adoc[201-03]
+|xref:201-02-workload-hardening.adoc[201-02]
 |Custom SCC, Seccomp, SELinux & User Namespaces
 |Platform, DevSecOps
 
-|xref:201-10-sandboxed-containers-intro.adoc[201-10]
+|xref:201-09-sandboxed-containers-intro.adoc[201-09]
 |Sandboxed Containers & Workload Isolation
 |Platform, Architect (DevSecOps adjacent)
 
-|xref:201-09-cert-manager-mtls.adoc[201-09] (+ xref:101-05-network-policy-basics.adoc[101-05] foundation)
+|xref:201-08-cert-manager-mtls.adoc[201-08] (+ xref:101-05-network-policy-basics.adoc[101-05] foundation)
 |Certificate Management & mTLS / segmentation bridge
 |Platform, Architect, Network
 
-|xref:201-05-shift-left-pipeline.adoc[201-05]
+|xref:201-04-shift-left-pipeline.adoc[201-04]
 |CI/CD Scanning, Image Signing & Cosign/Sigstore
 |App Dev, DevSecOps
 
-|xref:201-06-vault-csi.adoc[201-06]
+|xref:201-05-vault-csi.adoc[201-05]
 |Secret Lifecycle Externalization (Vault, ESO, CSI)
 |App Dev, Platform, DevSecOps, Architect
 
-|xref:201-07-audit-monitoring-correlation.adoc[201-07]
+|xref:201-06-audit-monitoring-correlation.adoc[201-06]
 |Audit Log Correlation & Anomaly Detection
 |Platform, DevSecOps, Architect, Network
 
-|xref:201-08-compliance-tailoring.adoc[201-08]
+|xref:201-07-compliance-tailoring.adoc[201-07]
 |Advanced Compliance Operator Usage & Tailoring
 |Platform, DevSecOps, Architect
 
-|xref:201-11-admission-governance.adoc[201-11]
+|xref:201-10-admission-governance.adoc[201-10]
 |Admission Controllers & Policy Enforcement
 |Platform, DevSecOps, Architect, Network
+
+|xref:201-11-threat-modeling-control-mapping.adoc[201-11]
+|Threat Modeling & Control Mapping
+|App Dev, DevSecOps, Architect
 |===
 
 == Related labs
@@ -77,12 +77,12 @@ Audience: follow a xref:index.adoc#choose-your-role[role track] for the ordered 
 |===
 |Lab | Title | Roles | Notes
 
-|xref:201-04-file-integrity-monitoring.adoc[201-04]
+|xref:201-03-file-integrity-monitoring.adoc[201-03]
 |File Integrity Monitoring & Node Hardening
 |Platform
 |Platform hardening adjacency; use with Platform Operator track
 
-|xref:201-09-cert-manager-mtls.adoc[201-09]
+|xref:201-08-cert-manager-mtls.adoc[201-08]
 |Certificate Management & mTLS Basics
 |Network, Architect, Platform
 |Also listed above as the trust-fabric bridge

@@ -2,7 +2,7 @@
 :toc:
 :icons: font
 
-xref:index.adoc[←]
+xref:index.adoc[← Back]
 
 == Role overview
 
@@ -40,14 +40,14 @@ Core responsibilities (framework):
 
 === Intermediate
 
-. xref:201-01-threat-modeling-control-mapping.adoc[201-01 — Threat Modeling & Control Mapping]
-. xref:201-02-custom-rbac.adoc[201-02 — Custom RBAC & ClusterRoles]
-. xref:201-10-sandboxed-containers-intro.adoc[201-10 — Sandboxed Containers & Isolation]
-. xref:101-05-network-policy-basics.adoc[101-05 — NetworkPolicy Basics] and xref:201-09-cert-manager-mtls.adoc[201-09 — cert-manager & mTLS]
-. xref:201-06-vault-csi.adoc[201-06 — Secret Lifecycle Externalization]
-. xref:201-07-audit-monitoring-correlation.adoc[201-07 — Audit Correlation & Anomaly Detection]
-. xref:201-08-compliance-tailoring.adoc[201-08 — Compliance Operator Tailoring]
-. xref:201-11-admission-governance.adoc[201-11 — Admission & Policy Enforcement]
+. xref:201-01-custom-rbac.adoc[201-01 — Custom RBAC & ClusterRoles]
+. xref:201-09-sandboxed-containers-intro.adoc[201-09 — Sandboxed Containers & Isolation]
+. xref:101-05-network-policy-basics.adoc[101-05 — NetworkPolicy Basics] and xref:201-08-cert-manager-mtls.adoc[201-08 — cert-manager & mTLS]
+. xref:201-05-vault-csi.adoc[201-05 — Secret Lifecycle Externalization]
+. xref:201-06-audit-monitoring-correlation.adoc[201-06 — Audit Correlation & Anomaly Detection]
+. xref:201-07-compliance-tailoring.adoc[201-07 — Compliance Operator Tailoring]
+. xref:201-10-admission-governance.adoc[201-10 — Admission & Policy Enforcement]
+. xref:201-11-threat-modeling-control-mapping.adoc[201-11 — Threat Modeling & Control Mapping]
 
 === Advanced
 

@@ -1,7 +1,7 @@
 = Shift Left – CI/CD Scanning & Signing Pipeline
 :role: Intermediate Supply Chain
 :skills: Tekton, Image Scanning, Signing, Admission Gating
-:labid: LAB-201-05
+:labid: LAB-201-04
 :toc:
 :icons: font
 
@@ -31,24 +31,53 @@ Build a Tekton path that refuses unscanned or unsigned images—then deploy only
 
 Click each step only if you need a hint.
 
-.Namespace & Service Account
+.Create project 201-04-s-pipeline
 [%collapsible]
 ====
-Tekton CRDs require YAML; only typos fixed and kept minimal.
+Stay in this project for Tasks, Pipeline, and the digest deploy.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc new-project 201-05-s-pipeline
-och create sa pipeline -n 201-05-s-pipeline
-oc adm policy add-scc-to-user anyuid -z pipeline -n 201-05-s-pipeline  # only if build strategy requires
+oc new-project 201-04-s-pipeline
 ----
+
+TIP: `Now using project "201-04-s-pipeline"`.
 ====
 
-.Build Task (S2I or Buildah Simplified)
+.Create ServiceAccount pipeline
 [%collapsible]
 ====
+Tekton runs as this SA. Do not reuse `default`.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc apply -n 201-05-s-pipeline -f - <<'EOF'
+oc create sa pipeline -n 201-04-s-pipeline
+----
+
+TIP: `serviceaccount/pipeline created`.
+====
+
+.Grant anyuid to SA pipeline if the build strategy requires it
+[%collapsible]
+====
+Buildah often needs `anyuid`. Treat this as pipeline-only debt, not an app SCC.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc adm policy add-scc-to-user anyuid -z pipeline -n 201-04-s-pipeline
+----
+
+TIP: Skip this grant if your cluster already lets the pipeline SA build without it.
+====
+
+.Apply Task build-image
+[%collapsible]
+====
+This Task builds, pushes, and writes an image digest result. Tekton YAML lives in the hint because you cannot guess the CR shape.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc apply -n 201-04-s-pipeline -f - <<'EOF'
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
@@ -71,14 +100,18 @@ spec:
       echo -n "$DIGEST" > $(results.image-digest.path)
 EOF
 ----
+
+TIP: `task.tekton.dev/build-image created`.
 ====
 
-.Scan Task (Simulated)
+.Apply Task scan-image
 [%collapsible]
 ====
+The scan is simulated. `FAIL=1` in the script is how you will fail the gate later.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc apply -n 201-05-s-pipeline -f - <<'EOF'
+oc apply -n 201-04-s-pipeline -f - <<'EOF'
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
@@ -99,14 +132,18 @@ spec:
       echo -n PASS > $(results.scan-status.path)
 EOF
 ----
+
+TIP: `task.tekton.dev/scan-image created`.
 ====
 
-.Sign Task (Cosign Simulated)
+.Apply Task sign-image
 [%collapsible]
 ====
+Signing is simulated. Real clusters replace this step with cosign.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc apply -n 201-05-s-pipeline -f - <<'EOF'
+oc apply -n 201-04-s-pipeline -f - <<'EOF'
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
@@ -124,14 +161,18 @@ spec:
       echo "signature-ok" > /tekton/home/signature.txt
 EOF
 ----
+
+TIP: `task.tekton.dev/sign-image created`.
 ====
 
-.Pipeline Definition
+.Apply Pipeline secure-build
 [%collapsible]
 ====
+`when` on the sign task is the gate: scan result must be `PASS`.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc apply -n 201-05-s-pipeline -f - <<'EOF'
+oc apply -n 201-04-s-pipeline -f - <<'EOF'
 apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
@@ -168,14 +209,18 @@ spec:
       value: $(tasks.build.results.image-digest)
 EOF
 ----
+
+TIP: `pipeline.tekton.dev/secure-build created`.
 ====
 
-.Run Pipeline
+.Apply PipelineRun secure-build-run
 [%collapsible]
 ====
+Point the IMAGE param at this project’s internal registry.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc apply -n 201-05-s-pipeline -f - <<'EOF'
+oc apply -n 201-04-s-pipeline -f - <<'EOF'
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
@@ -186,29 +231,60 @@ spec:
     name: secure-build
   params:
   - name: IMAGE
-    value: image-registry.openshift-image-registry.svc:5000/201-05-s-pipeline/demo:latest
+    value: image-registry.openshift-image-registry.svc:5000/201-04-s-pipeline/demo:latest
 EOF
 ----
-Monitor:
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-oc get pipelineruns -n 201-05-s-pipeline
-och describe pipelinerun secure-build-run -n 201-05-s-pipeline | grep -i status
-----
-Get digest:
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-oc get pipelinerun secure-build-run -n 201-05-s-pipeline -o jsonpath='{.status.pipelineResults}'
-----
+
+TIP: `pipelinerun.tekton.dev/secure-build-run created`.
 ====
 
-.Deployment Using Digest (Gate Simulation)
+.Get PipelineRuns
 [%collapsible]
 ====
-Replace <DIGEST> with extracted digest:
+Wait until the run is not still `Unknown` / `Running`.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc apply -n 201-05-s-pipeline -f - <<'EOF'
+oc get pipelineruns -n 201-04-s-pipeline
+----
+
+TIP: `secure-build-run` should move to `True` / `Succeeded` if the scan passed.
+====
+
+.Describe PipelineRun secure-build-run
+[%collapsible]
+====
+Confirm each task (build, scan, sign) completed.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc describe pipelinerun secure-build-run -n 201-04-s-pipeline | grep -i status
+----
+
+TIP: Look for Succeeded on the pipeline and on the sign task.
+====
+
+.Get pipelineResults from secure-build-run
+[%collapsible]
+====
+Copy the digest. You will pin the Deployment to it.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get pipelinerun secure-build-run -n 201-04-s-pipeline -o jsonpath='{.status.pipelineResults}'
+----
+
+TIP: You should see an image-digest value. If empty, check Task results on the build task.
+====
+
+.Apply Deployment app pinned to the digest
+[%collapsible]
+====
+Replace `<DIGEST>` with the sha256 from the previous step. Do not deploy `:latest`.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc apply -n 201-04-s-pipeline -f - <<'EOF'
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -223,14 +299,16 @@ spec:
     spec:
       containers:
       - name: web
-        image: image-registry.openshift-image-registry.svc:5000/201-05-s-pipeline/demo@sha256:<DIGEST>
+        image: image-registry.openshift-image-registry.svc:5000/201-04-s-pipeline/demo@sha256:<DIGEST>
 EOF
 ----
+
+TIP: `deployment.apps/app created`. Image must contain `@sha256:`.
 ====
 
 == Failure Simulation
 
-Re-run with FAIL=1 env (edit scan task to export) and confirm sign task skipped.
+Re-run with `FAIL=1` in the scan Task script and confirm the sign task is skipped.
 
 == Debrief
 
@@ -241,9 +319,9 @@ What breaks without this:
 * Unscanned or unsigned images → known-bad artifacts reach the cluster
 * Tag-based deploys → non-reproducible, retaggable runtime
 
-Controls that matter: Tekton (or equivalent) gates, conditional sign tasks, digest pins, and admission that extends trust (signatures/SBOM) at deploy time—see xref:201-11-admission-governance.adoc[201-11] for Gatekeeper / cosign enforcement on tag-based images.
+IMPORTANT: Tekton (or equivalent) gates, conditional sign tasks, digest pins, and admission that extends trust (signatures/SBOM) at deploy time—see xref:201-10-admission-governance.adoc[201-10] for Gatekeeper / cosign enforcement on tag-based images.
 
-Quick facts: the when-clause is the gate; admission and SBOM checks are the natural next layers.
+NOTE: the when-clause is the gate; admission and SBOM checks are the natural next layers.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDR4amFzZ2ZiNGNkaTVwM3lscmxycDMzMnB4bTdwYWd0emlsOHJiYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/qunFC4tNsyA8y9M36d/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
@@ -251,5 +329,5 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDR4amFzZ2ZiNGNkaTVwM3ls
 
 Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
 
-:lab-cleanup-module: 201-05
+:lab-cleanup-module: 201-04
 include::partial$lab-cleanup.adoc[]

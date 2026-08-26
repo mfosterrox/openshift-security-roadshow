@@ -36,17 +36,23 @@ Without project boundaries, one compromised identity or runaway workload can rea
 
 Click each step only if you need a hint.
 
-.Claim a defended territory with security labels
+.Create project 101-02-demo
 [%collapsible]
 ====
-Stand up a dedicated project so this tenant has its own boundary—not shared free-for-all space.
+Stand up a dedicated project so this tenant has its own boundary -- not shared free-for-all space.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 101-02-demo --display-name="Security Demo" --description="101-02 Lab Project"
 ----
 
-Label the namespace so policy engines (and operators) can target this tenant by security tier and environment:
+TIP: `Now using project "101-02-demo"`.
+====
+
+.Label namespace 101-02-demo security-tier and environment
+[%collapsible]
+====
+Label the namespace so policy engines (and operators) can target this tenant by security tier and environment.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -59,19 +65,27 @@ Confirm the labels stuck on the project:
 ----
 oc get namespace 101-02-demo --show-labels
 ----
+
+TIP: Labels should include `security-tier=basic` and `environment=dev`.
 ====
 
-.Stop casual privilege sprawl with namespace RBAC
+.Create RoleBinding dev-team with clusterrole edit
 [%collapsible]
 ====
-Bind a team to `edit` only inside this project. That scopes privilege to the boundary you just created—not the whole cluster.
+Bind group `dev-team` to `edit` only inside this project.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create rolebinding dev-team --clusterrole=edit --group=dev-team -n 101-02-demo
 ----
 
-Now prove the project’s default service account cannot create pods until you grant it. That closes the “any SA can do anything” path:
+TIP: `rolebinding.rbac.authorization.k8s.io/dev-team created`.
+====
+
+.Confirm the default SA cannot create pods
+[%collapsible]
+====
+The default service account is still denied. That closes the "any SA can do anything" path.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -81,7 +95,7 @@ oc auth can-i create pods --as=system:serviceaccount:101-02-demo:default -n 101-
 NOTE: Expect `no`. The RoleBinding targets the `dev-team` group; the default service account is still denied.
 ====
 
-.Cap a noisy-neighbor DoS with ResourceQuota
+.Create ResourceQuota demo-quota in 101-02-demo
 [%collapsible]
 ====
 Buggy apps (and noisy neighbors) burn the cluster with oversized requests. Put a ceiling on CPU, memory, and pods so one namespace cannot starve the rest.
@@ -97,6 +111,8 @@ Inspect the quota to confirm the hard limits and current usage:
 ----
 oc describe quota demo-quota -n 101-02-demo
 ----
+
+TIP: Hard limits should show 2 CPU request, 2Gi memory, 10 pods.
 ====
 
 == Challenge: onboard a new team
@@ -154,30 +170,44 @@ Before you open the solution, verify your own work:
 
 Click each step only if you need a hint.
 
-.Step 1 — Create the project
+.Create project team-payments-dev
 [%collapsible]
 ====
+Use the display name and description from the requirements table.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project team-payments-dev \
   --display-name="Payments Team (Dev)" \
   --description="Default project for Payments team development workloads"
 ----
+
+TIP: `Now using project "team-payments-dev"`.
 ====
 
-.Step 2 — Apply standard tenant labels
+.Label team-payments-dev with team, environment, and security-tier
 [%collapsible]
 ====
+Labels: `team=payments`, `environment=dev`, `security-tier=basic`.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc label namespace team-payments-dev team=payments environment=dev security-tier=basic
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc get namespace team-payments-dev --show-labels
 ----
+
+TIP: All three labels should appear on the namespace.
 ====
 
-.Step 3 — Bind the team group to edit in this project only
+.Create RoleBinding payments-devs with clusterrole edit
 [%collapsible]
 ====
+Grant ClusterRole `edit` to group `payments-devs` in this project only.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create rolebinding payments-devs \
@@ -185,11 +215,15 @@ oc create rolebinding payments-devs \
   --group=payments-devs \
   -n team-payments-dev
 ----
+
+TIP: `rolebinding.rbac.authorization.k8s.io/payments-devs created`.
 ====
 
-.Step 4 — Confirm the default SA is still denied
+.Confirm the default SA cannot create pods
 [%collapsible]
 ====
+The default service account in `team-payments-dev` should still be denied.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc auth can-i create pods \
@@ -197,19 +231,27 @@ oc auth can-i create pods \
   -n team-payments-dev
 ----
 
-Expect `no`.
+TIP: Expect `no`.
 ====
 
-.Step 5 — Apply the team ResourceQuota and inspect it
+.Create ResourceQuota team-quota and describe it
 [%collapsible]
 ====
+Hard limits: `requests.cpu=1`, `requests.memory=1Gi`, `limits.cpu=2`, `limits.memory=2Gi`, `pods=5`.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create quota team-quota \
   --hard=requests.cpu=1,requests.memory=1Gi,limits.cpu=2,limits.memory=2Gi,pods=5 \
   -n team-payments-dev
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc describe quota team-quota -n team-payments-dev
 ----
+
+TIP: `oc describe` should list the hard limits from the table.
 ====
 
 == Debrief

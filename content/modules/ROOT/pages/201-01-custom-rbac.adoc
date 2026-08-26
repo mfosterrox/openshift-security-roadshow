@@ -3,7 +3,7 @@
 :skills: Custom RBAC, Least Privilege Design, Scoped Identities, Service Account Hardening
 :mitre: T1078 (Valid Accounts), TA0004 (Privilege Escalation), T1552 (Credential Access)
 :compliance: NIST 800-53 AC-6, ISO 27001 A.9, SOC 2 CC6, PCI DSS 7
-:labid: LAB-201-02
+:labid: LAB-201-01
 
 **Duration:** ~20 minutes
 
@@ -17,6 +17,7 @@ Imagine an office where every employee’s badge opens every room—including fi
 
 == What does it solve
 Most real security incidents aren’t cinematic hacks—they’re ordinary credentials used in extraordinary places. Over-broad roles quietly enable:
+
 * Unapproved pod deployments (persistence footholds)
 * Reading secrets far outside an app’s scope (data leakage)
 * Creating new RoleBindings to escalate (privilege stacking)
@@ -25,95 +26,261 @@ Most real security incidents aren’t cinematic hacks—they’re ordinary crede
 Crafting a custom Role removes silent “just in case” powers. It converts vague responsibility (“Dev team rights”) into precise intent (“May adjust non-sensitive app configuration values and rotate one secret”). That precision speeds investigations and compliance reviews.
 
 == Your Mission
+Stop using `edit`/`admin` as the default developer badge. Cut a Role that can only touch ConfigMaps and Secrets, then prove pods, RoleBindings, and Secret delete stay denied.
+
 Click each step only if you need a hint.
 
-.Create a lab namespace
+.Create project 201-01-c-rbac-lab
 [%collapsible]
 ====
+Stay in this project for every later command.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc new-project 201-02-c-rbac-lab
+oc new-project 201-01-c-rbac-lab
 ----
+
+TIP: `Now using project "201-01-c-rbac-lab"`.
 ====
 
-.Create a minimal Role (include patch so modern tooling works)
+.Create Role config-secret-updater
 [%collapsible]
 ====
+Grant `get`, `list`, `update`, and `patch` on ConfigMaps and Secrets. Include `patch` so `oc patch` and modern controllers work.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create role config-secret-updater \
   --verb=get --verb=list --verb=update --verb=patch \
   --resource=configmaps,secrets
 ----
+
+TIP: `role.rbac.authorization.k8s.io/config-secret-updater created`.
 ====
 
-.Bind the Role to a (demo) user
+.Create RoleBinding updater-binding for user devuser
 [%collapsible]
 ====
+Bind the Role to the demo user. Do not bind `edit` or `admin`.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create rolebinding updater-binding \
   --role=config-secret-updater --user=devuser
 ----
+
+TIP: `rolebinding.rbac.authorization.k8s.io/updater-binding created`.
 ====
 
-.Seed sample objects
+.Create ConfigMap app-config
 [%collapsible]
 ====
+Seed a ConfigMap so you have something allowed to patch.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create configmap app-config --from-literal=flag=on
-oc create secret generic db-creds --from-literal=password=Initial123!
 ----
+
+TIP: `configmap/app-config created`.
 ====
 
-.Show allowed operations
+.Create Secret db-creds
 [%collapsible]
 ====
+Seed a Secret you will rotate (update/patch) but must not be able to delete.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc create secret generic db-creds --from-literal=password=Initial123!
+----
+
+TIP: `secret/db-creds created`.
+====
+
+.Check whether devuser can list ConfigMaps
+[%collapsible]
+====
+This verb is on the Role. Impersonate `devuser`.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc auth can-i list configmaps --as devuser
-oc auth can-i update secret/db-creds --as devuser
-oc patch configmap app-config -p '{"data":{"flag":"off"}}' --type=merge --as devuser
-oc patch secret db-creds -p '{"stringData":{"password":"Rotated456!"}}' --type=merge --as devuser
 ----
+
+TIP: Result is `yes`.
 ====
 
-.Show explicit denials (proof of least privilege)
+.Check whether devuser can update secret/db-creds
 [%collapsible]
 ====
+Rotation is an update, not a delete.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc auth can-i update secret/db-creds --as devuser
+----
+
+TIP: Result is `yes`.
+====
+
+.Patch ConfigMap app-config as devuser
+[%collapsible]
+====
+Prove the allowed path with a real write, not only `can-i`.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc patch configmap app-config -p '{"data":{"flag":"off"}}' --type=merge --as devuser
+----
+
+TIP: `configmap/app-config patched`.
+====
+
+.Patch Secret db-creds as devuser
+[%collapsible]
+====
+Rotate the password in place. `stringData` avoids hand-rolled base64.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc patch secret db-creds -p '{"stringData":{"password":"Rotated456!"}}' --type=merge --as devuser
+----
+
+TIP: `secret/db-creds patched`.
+====
+
+.Check whether devuser can create pods
+[%collapsible]
+====
+Pod create is how an attacker plants a foothold. This Role must not allow it.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc auth can-i create pods --as devuser
-oc run test --image=registry.access.redhat.com/ubi9/ubi --as devuser || echo DENIED
-oc auth can-i create rolebinding --as devuser
-oc create rolebinding bogus --clusterrole=view --user=devuser --as devuser || echo DENIED
-oc auth can-i delete secret/db-creds --as devuser
-oc delete secret db-creds --as devuser || echo DENIED
 ----
+
+TIP: Result is `no`.
 ====
 
-.Service Account variant (typical for automation)
+.Try oc run as devuser
 [%collapsible]
 ====
+Confirm admission/RBAC actually blocks the create, not just `can-i`.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc run test --image=registry.access.redhat.com/ubi9/ubi --as devuser || echo DENIED
+----
+
+TIP: The create fails and `DENIED` prints.
+====
+
+.Check whether devuser can create RoleBindings
+[%collapsible]
+====
+RoleBinding create is the persistence path from xref:101-03-rbac-basics.adoc[101-03].
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc auth can-i create rolebinding --as devuser
+----
+
+TIP: Result is `no`.
+====
+
+.Try creating RoleBinding bogus as devuser
+[%collapsible]
+====
+Prove they cannot mint a second binding to `view` (or anything else).
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc create rolebinding bogus --clusterrole=view --user=devuser --as devuser || echo DENIED
+----
+
+TIP: The create fails and `DENIED` prints.
+====
+
+.Check whether devuser can delete secret/db-creds
+[%collapsible]
+====
+Rotation needs update/patch. Delete is extra blast radius—leave it off the Role.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc auth can-i delete secret/db-creds --as devuser
+----
+
+TIP: Result is `no`.
+====
+
+.Try deleting Secret db-creds as devuser
+[%collapsible]
+====
+Confirm the Secret survives.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc delete secret db-creds --as devuser || echo DENIED
+----
+
+TIP: Delete fails, `DENIED` prints, and `db-creds` still exists.
+====
+
+.Create ServiceAccount app-sa
+[%collapsible]
+====
+Automation should use a dedicated SA, not the default SA and not a human user.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc create sa app-sa
-oc create rolebinding sa-updater \
-  --role=config-secret-updater \
-  --serviceaccount=201-02-c-rbac-lab:app-sa
-oc auth can-i patch configmap/app-config \
-  --as system:serviceaccount:201-02-c-rbac-lab:app-sa
 ----
+
+TIP: `serviceaccount/app-sa created`.
 ====
 
-.Disable default token automount to shrink passive risk
+.Bind config-secret-updater to app-sa
 [%collapsible]
 ====
+Same Role, different subject. Scope the binding to this project’s SA.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc create rolebinding sa-updater \
+  --role=config-secret-updater \
+  --serviceaccount=201-01-c-rbac-lab:app-sa
+----
+
+TIP: `rolebinding.rbac.authorization.k8s.io/sa-updater created`.
+====
+
+.Check whether app-sa can patch ConfigMap app-config
+[%collapsible]
+====
+Impersonate the SA the same way a compromised pod would.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc auth can-i patch configmap/app-config \
+  --as system:serviceaccount:201-01-c-rbac-lab:app-sa
+----
+
+TIP: Result is `yes`.
+====
+
+.Disable automountServiceAccountToken on app-sa
+[%collapsible]
+====
+If a pod does not need the API, do not mount a token by default.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc patch sa app-sa -p '{"automountServiceAccountToken":false}'
 ----
+
+TIP: `serviceaccount/app-sa patched`. Pods that need the API must opt in.
 ====
 
 == Debrief
@@ -125,9 +292,9 @@ What breaks without this:
 * Broad namespaced roles → pod create persistence, Secret sprawl, RBAC self-escalation
 * ClusterRole for namespace objects → accidental cluster reach
 
-Controls that matter: minimal Roles, separated ServiceAccounts, disable unused automount, `oc auth can-i` matrices, and RHACS/wildcard reviews.
+IMPORTANT: minimal Roles, separated ServiceAccounts, disable unused automount, `oc auth can-i` matrices, and RHACS/wildcard reviews.
 
-Quick facts: include `patch` when updates need it; avoid “just in case” `delete`; prefer Role over ClusterRole for namespace-scoped work.
+NOTE: include `patch` when updates need it; avoid “just in case” `delete`; prefer Role over ClusterRole for namespace-scoped work.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNxZGd5Zm5qMnlpOHhrbm1hY2pwcG5ydSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/p18ohAgD3H60LSoI1C/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
@@ -135,5 +302,5 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnY0NDA0ZnJqNXh6cGNqeHNx
 
 Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
 
-:lab-cleanup-module: 201-02
+:lab-cleanup-module: 201-01
 include::partial$lab-cleanup.adoc[]

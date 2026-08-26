@@ -25,14 +25,14 @@ When something goes wrong, audit logs show the API calls: user, verb, object, ti
 == Your Mission
 Someone may already have exec’d into a pod. Your mission: know the log locations CIS cares about, make an exec yourself, then pull the audit trail fast enough to name the actor, pod, and time. Complete *Part A*, then *Part B*.
 
-Deeper correlation with Loki and RHACS is xref:201-07-audit-monitoring-correlation.adoc[201-07]. Compliance Operator scans are xref:101-10-security-compliance-addons.adoc[101-10].
+Deeper correlation with Loki and RHACS is xref:201-06-audit-monitoring-correlation.adoc[201-06]. Compliance Operator scans are xref:101-10-security-compliance-addons.adoc[101-10].
 
 Click each step only if you need a hint.
 
 === Part A: CIS controls and where the logs live
 OpenShift writes **three** API audit streams on every control plane node. `oc adm node-logs` reads them without SSH. You need permission to get `nodes/log` (`cluster-admin` or the roadshow `node-log-viewer` ClusterRole).
 
-.Map the log locations
+.List kube-apiserver audit files on the masters
 [%collapsible]
 ====
 On-disk paths are on the **control plane node**, not the bastion. The `oc adm` path argument is relative to `/var/log/`.
@@ -59,7 +59,7 @@ On-disk paths are on the **control plane node**, not the bastion. The `oc adm` p
 
 |Cluster Logging / Loki
 |indexed store (`log_type=kube-apiserver`)
-|xref:201-07-audit-monitoring-correlation.adoc[201-07]
+|xref:201-06-audit-monitoring-correlation.adoc[201-06]
 |===
 
 List the kube-apiserver audit files that actually exist:
@@ -71,7 +71,7 @@ oc adm node-logs --role=master --path=kube-apiserver/ | head -40
 TIP: You should see `audit.log` and rotated `audit-YYYY-…log` files. That is the CIS “audit log path is set” evidence.
 ====
 
-.Match this to CIS
+.Read kube-apiserver audit-log-path and CIS check names
 [%collapsible]
 ====
 Kubernetes CIS (kube-apiserver) is what this module maps to. OpenShift CIS (`ocp4-cis` in Compliance Operator) asks the same questions with OpenShift rule names.
@@ -110,7 +110,11 @@ Local files **rotate and age out**. CIS also expects you to *forward* them (SIEM
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get kubeapiserver cluster -o jsonpath='{.spec.observedConfig.apiServerArguments.audit-log-path}{"\n"}' 2>/dev/null || true
-oc get compliancecheckresults.compliance.openshift.io -n openshift-compliance 2>/dev/null | grep -iE 'audit|1.2.22|3.2' | head || echo 'Compliance Operator results not in this cluster — use the table above.'
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get compliancecheckresults.compliance.openshift.io -n openshift-compliance 2>/dev/null | grep -iE 'audit|1.2.22|3.2' | head || echo 'Compliance Operator results not in this cluster -- use the table above.'
 ----
 TIP: Treat any FAIL rows as a teaser. xref:101-10-security-compliance-addons.adoc[101-10] filters the audit-log rules and prints what to change.
 ====
@@ -118,41 +122,68 @@ TIP: Treat any FAIL rows as a teaser. xref:101-10-security-compliance-addons.ado
 === Part B: Generate exec and hunt it
 Create a pod, exec into it, then search the Kubernetes API audit log. Metadata-level audit still records *who* and *which pod*; the command string is present only when the policy logs the request body.
 
-.Leave an exec fingerprint
+.Create project 101-09-a-audit and deploy audit-sleeper
 [%collapsible]
 ====
+You need a running pod so the next step can `oc exec` into it.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc new-project 101-09-a-audit || oc project 101-09-a-audit
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc create deployment audit-sleeper --image=registry.access.redhat.com/ubi9/ubi -- sleep infinity
 oc rollout status deployment/audit-sleeper --timeout=90s
+----
+
+TIP: Rollout should complete. Pod `Running`.
+====
+
+.Exec id and uname in audit-sleeper
+[%collapsible]
+====
+These two execs are the events you will hunt in the audit log.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc exec deploy/audit-sleeper -- id
 oc exec deploy/audit-sleeper -- uname -n
 ----
+
+TIP: You should see a UID and a hostname. Give the log a few seconds to catch up before the next step.
 ====
 
-.Pull matching lines from kube-apiserver audit.log
+.Grep kube-apiserver audit.log for this namespace and exec
 [%collapsible]
 ====
-This reads `/var/log/kube-apiserver/audit.log` on the first control plane node. Give the exec a few seconds to land in the file.
+This reads `/var/log/kube-apiserver/audit.log` on the first control plane node. Give the exec a few seconds to land in the file. This is one pipeline; count greater than 0 means your exec is in the file.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 MASTER=$(oc get nodes -l node-role.kubernetes.io/master -o jsonpath='{.items[0].metadata.name}')
 echo "Reading audit.log on ${MASTER}"
 sleep 5
+----
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
 oc adm node-logs "${MASTER}" --path=kube-apiserver/audit.log \
   | grep -F '101-09-a-audit' \
   | grep -E '"exec"|portforward' \
   | tee /tmp/lab-101-09-audit.json \
   | wc -l
 ----
-TIP: Count greater than 0 means your exec (or a port-forward) is in the Kubernetes API audit file. If 0, wait and re-run, or try another master (`oc get nodes -l node-role.kubernetes.io/master`).
+
+TIP: Count greater than 0. If 0, wait and re-run, or try another master (`oc get nodes -l node-role.kubernetes.io/master`).
 ====
 
-.Hunt every pod/exec — classic post-compromise foothold
+.jq exec events from /tmp/lab-101-09-audit.json
 [%collapsible]
 ====
+Look for your user, namespace `101-09-a-audit`, and pod name `audit-sleeper-...`.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 jq -c 'select(.objectRef.subresource=="exec") | {time:.requestReceivedTimestamp,user:.user.username,ns:.objectRef.namespace,pod:.objectRef.name,verb:.verb,sourceIPs:.sourceIPs}' /tmp/lab-101-09-audit.json
@@ -167,7 +198,7 @@ grep -F '"exec"' /tmp/lab-101-09-audit.json | head
 Look for your user, namespace `101-09-a-audit`, and pod name `audit-sleeper-…`.
 ====
 
-.Hunt port-forward tunnels
+.jq portforward events from the same file
 [%collapsible]
 ====
 You did not open a port-forward. Empty output is a pass—this query is how you would catch a tunnel.
@@ -178,13 +209,17 @@ jq -c 'select(.objectRef.subresource=="portforward") | {time:.requestReceivedTim
 ----
 ====
 
-.Unique exec actors in this slice
+.Count unique exec usernames in this slice
 [%collapsible]
 ====
+This is who appears as the actor on exec in the saved JSON.
+
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 jq -r 'select(.objectRef.subresource=="exec") | .user.username' /tmp/lab-101-09-audit.json | sort | uniq -c
 ----
+
+TIP: Your current user should appear at least once.
 ====
 
 .Write the one-line incident summary
@@ -208,9 +243,9 @@ What breaks without this:
 * Ignoring exec/port-forward → classic post-compromise footholds stay invisible
 * Knowing only Loki or only the node file → you fail the auditor’s “where does it live?” question
 
-Controls that matter: keep OpenShift audit on, know the three `/var/log/…-apiserver/` trees, aggregate immutably off the node (CIS intent of 1.2.23–1.2.25 plus log forwarding), correlate with RHACS/runtime in later modules, and alert on anomalous verbs for sensitive namespaces.
+IMPORTANT: keep OpenShift audit on, know the three `/var/log/…-apiserver/` trees, aggregate immutably off the node (CIS intent of 1.2.23–1.2.25 plus log forwarding), correlate with RHACS/runtime in later modules, and alert on anomalous verbs for sensitive namespaces.
 
-Quick facts: audit shows API intent; it complements (does not replace) runtime detection. Metadata logs prove the exec; RequestResponse may also capture the command. Confirm retention and SIEM forwarding before you need them. Next: xref:101-10-security-compliance-addons.adoc[101-10] grades those CIS rows (path, rotation, forwarding) as PASS/FAIL.
+NOTE: audit shows API intent; it complements (does not replace) runtime detection. Metadata logs prove the exec; RequestResponse may also capture the command. Confirm retention and SIEM forwarding before you need them. Next: xref:101-10-security-compliance-addons.adoc[101-10] grades those CIS rows (path, rotation, forwarding) as PASS/FAIL.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjJmczc4MmswYmk1cnhvZ254ZXBiZ2M3bGJzbDV5eDQ3OGlqNWdwdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QSSA5Bd56W25ytLIwz/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
