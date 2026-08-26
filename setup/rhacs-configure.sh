@@ -37,7 +37,7 @@ Usage: rhacs-configure.sh [options]
 Phases:
   1) Sequential: API token, RHACS verify/upgrade
   2) Parallel:   collector networks + Compliance Operator install
-  3) Parallel:   settings, scans, 4.11, monitoring, MCP (+ demo-apps check)
+  3) Parallel:   settings, CO scan schedule+run, 4.11, monitoring, MCP (+ demo-apps check)
   4) Sequential: Lightspeed helpers (after MCP)
 
 Options:
@@ -89,7 +89,7 @@ TOTAL=$((TOTAL + PHASE2))
 # phase 3 parallel units
 PHASE3=1 # demo apps check always
 PHASE3=$((PHASE3 + 1)) # settings always
-[[ "${SKIP_COMPLIANCE}" != true ]] && PHASE3=$((PHASE3 + 2)) # 06 + 07
+[[ "${SKIP_COMPLIANCE}" != true ]] && PHASE3=$((PHASE3 + 1)) # 06 then 07
 [[ "${SKIP_411}" != true ]] && PHASE3=$((PHASE3 + 1))
 [[ "${SKIP_MONITORING}" != true ]] && PHASE3=$((PHASE3 + 1))
 [[ "${SKIP_MCP}" != true ]] && PHASE3=$((PHASE3 + 1))
@@ -154,8 +154,8 @@ phase3_args=()
 phase3_args+=("Demo apps check" "oc get deployments -l demo=roadshow -A 2>/dev/null || echo 'No demo=roadshow deployments yet'")
 phase3_args+=("RHACS settings" "bash '${RHACS_DIR}/05-configure-rhacs-settings.sh'")
 if [[ "${SKIP_COMPLIANCE}" != true ]]; then
-  phase3_args+=("Compliance schedule" "bash '${RHACS_DIR}/06-setup-co-scan-schedule.sh'")
-  phase3_args+=("Compliance scans" "bash '${RHACS_DIR}/07-trigger-compliance-scan.sh'")
+  # 07 needs the v2 schedule from 06; classic V1 /compliance/standards was removed in RHACS 4.11.
+  phase3_args+=("Compliance scans" "bash '${RHACS_DIR}/06-setup-co-scan-schedule.sh' && bash '${RHACS_DIR}/07-trigger-compliance-scan.sh'")
 fi
 if [[ "${SKIP_411}" != true ]]; then
   phase3_args+=("RHACS 4.11 features" "bash '${RHACS_DIR}/08-configure-rhacs-411-features.sh'")

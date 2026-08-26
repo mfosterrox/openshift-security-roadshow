@@ -30,7 +30,7 @@ This configures ACME incident prerequisites, then runs `setup/rhacs-configure.sh
 
 * Verify/align RHACS (console plugin, route TLS, channel)
 * Collector `ROX_NON_AGGREGATED_NETWORKS` for non-RFC1918 CIDRs
-* Compliance Operator + daily `acs-catch-all` schedule + classic compliance runs
+* Compliance Operator + daily `acs-catch-all` schedule + on-demand Coverage scan (RHACS v2; classic V1 APIs were removed in 4.11)
 * Central API settings, metrics, base-image registration
 * RHACS 4.11 TP flags + Attach-to-Pod policy check
 * Monitoring stack (COO / Perses / RHACS Monitoring auth)

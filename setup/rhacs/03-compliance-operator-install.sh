@@ -90,6 +90,102 @@ get_compliance_operator_version() {
     fi
 }
 
+# Compliance Operator must watch openshift-compliance. An empty targetNamespaces
+# list can leave ProfileBundles unreconciled (no ocp4/rhcos4 parser pods).
+ensure_operatorgroup() {
+    print_info "Ensuring OperatorGroup targets ${COMPLIANCE_NAMESPACE}..."
+    local og_name
+    og_name=$(oc get operatorgroup -n "${COMPLIANCE_NAMESPACE}" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+
+    if [ -z "${og_name}" ]; then
+        if ! cat <<EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: compliance-operator
+  namespace: ${COMPLIANCE_NAMESPACE}
+spec:
+  targetNamespaces:
+  - ${COMPLIANCE_NAMESPACE}
+EOF
+        then
+            print_error "Failed to create OperatorGroup"
+            return 1
+        fi
+        print_info "✓ OperatorGroup created"
+        return 0
+    fi
+
+    local targets
+    targets=$(oc get operatorgroup "${og_name}" -n "${COMPLIANCE_NAMESPACE}" -o jsonpath='{.spec.targetNamespaces[*]}' 2>/dev/null || true)
+    if echo " ${targets} " | grep -q " ${COMPLIANCE_NAMESPACE} "; then
+        print_info "✓ OperatorGroup ${og_name} already targets ${COMPLIANCE_NAMESPACE}"
+        return 0
+    fi
+
+    print_info "Patching OperatorGroup ${og_name} to include ${COMPLIANCE_NAMESPACE}..."
+    if ! oc patch operatorgroup "${og_name}" -n "${COMPLIANCE_NAMESPACE}" --type merge \
+        -p "{\"spec\":{\"targetNamespaces\":[\"${COMPLIANCE_NAMESPACE}\"]}}" >/dev/null; then
+        print_error "Failed to patch OperatorGroup ${og_name}"
+        return 1
+    fi
+    print_info "✓ OperatorGroup patched"
+    return 0
+}
+
+wait_for_profile_parser_pods() {
+    print_step "Waiting for Compliance Operator profile parser pods..."
+    local required_pods=("ocp4-openshift-compliance-pp" "rhcos4-openshift-compliance-pp")
+    local max_wait=180
+    local interval=10
+    local elapsed=0
+
+    while [ ${elapsed} -lt ${max_wait} ]; do
+        local all_ready=true
+        local pod_prefix pod_count
+        for pod_prefix in "${required_pods[@]}"; do
+            pod_count=$(oc get pods -n "${COMPLIANCE_NAMESPACE}" --field-selector=status.phase=Running --no-headers 2>/dev/null | grep -c "${pod_prefix}" || true)
+            pod_count=${pod_count:-0}
+            if [ "${pod_count}" -eq 0 ]; then
+                all_ready=false
+                break
+            fi
+        done
+        if [ "${all_ready}" = true ]; then
+            print_info "✓ Profile parser pods are running"
+            return 0
+        fi
+        if [ $((elapsed % 30)) -eq 0 ]; then
+            print_info "Waiting for profile parser pods... (${elapsed}s/${max_wait}s)"
+        fi
+        sleep ${interval}
+        elapsed=$((elapsed + interval))
+    done
+
+    print_warn "Profile parser pods not ready within ${max_wait}s (RHACS may need a few more minutes to list profiles)"
+    return 0
+}
+
+# RHACS installed before the Compliance Operator does not pick up profiles until Sensor restarts.
+restart_rhacs_sensor() {
+    print_step "Restarting RHACS Sensor so it discovers the Compliance Operator..."
+    if ! oc get pods -l app.kubernetes.io/component=sensor -n "${RHACS_NAMESPACE}" --no-headers 2>/dev/null | grep -q .; then
+        print_warn "No Sensor pods found in ${RHACS_NAMESPACE}; skip restart"
+        return 0
+    fi
+    oc delete pods -l app.kubernetes.io/component=sensor -n "${RHACS_NAMESPACE}" --wait=false >/dev/null 2>&1 || {
+        print_warn "Could not delete Sensor pods"
+        return 0
+    }
+    sleep 5
+    oc wait --for=condition=Ready pod -l app.kubernetes.io/component=sensor -n "${RHACS_NAMESPACE}" --timeout=180s >/dev/null 2>&1 || {
+        print_warn "Sensor may still be restarting"
+        return 0
+    }
+    print_info "✓ Sensor is ready"
+    return 0
+}
+
 # Function to install compliance operator
 install_compliance_operator() {
     print_step "Installing Compliance Operator..."
@@ -102,22 +198,9 @@ install_compliance_operator() {
     }
     print_info "✓ Namespace ready"
     
-    # Create OperatorGroup
-    print_info "Creating OperatorGroup..."
-    if ! cat <<EOF | oc apply -f -
-apiVersion: operators.coreos.com/v1
-kind: OperatorGroup
-metadata:
-  name: compliance-operator
-  namespace: ${COMPLIANCE_NAMESPACE}
-spec:
-  targetNamespaces: []
-EOF
-    then
-        print_error "Failed to create OperatorGroup"
+    if ! ensure_operatorgroup; then
         return 1
     fi
-    print_info "✓ OperatorGroup created"
     
     # Determine channel
     print_info "Determining operator channel..."
@@ -231,6 +314,11 @@ main() {
         
         print_info "✓ Compliance Operator installed successfully"
     fi
+
+    # Existing installs may still have an empty OperatorGroup from an older script.
+    ensure_operatorgroup || true
+    wait_for_profile_parser_pods
+    restart_rhacs_sensor
     
     print_info ""
     print_info "=========================================="
@@ -238,7 +326,7 @@ main() {
     print_info "=========================================="
     print_info "Namespace: ${COMPLIANCE_NAMESPACE}"
     print_info ""
-    print_info "Note: RHACS sensor will automatically sync compliance results"
+    print_info "Note: RHACS Sensor was restarted so Compliance Operator profiles can sync"
     print_info ""
 }
 

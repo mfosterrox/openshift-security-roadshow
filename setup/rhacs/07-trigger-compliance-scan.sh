@@ -1,7 +1,12 @@
 #!/bin/bash
 
 # Script: 07-trigger-compliance-scan.sh
-# Description: Trigger compliance scans for multiple standards in RHACS
+# Description: Trigger an on-demand RHACS Compliance Coverage (v2) scan for the
+#              acs-catch-all schedule created by 06-setup-co-scan-schedule.sh.
+#
+# RHACS 4.11 removed Compliance V1 (classic dashboard and /v1/compliance/standards).
+# This script must not fail cluster setup if the scan cannot be started yet —
+# attendees can still click Run scan under Compliance → Schedules.
 
 set -euo pipefail
 
@@ -9,325 +14,189 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/common.sh"
 
-# Color codes
 readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
 readonly YELLOW='\033[1;33m'
 readonly BLUE='\033[0;34m'
 readonly NC='\033[0m'
 
-# Print functions
 print_info() { echo -e "${GREEN}[INFO]${NC} $*"; }
 print_warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
 print_error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 print_step() { echo -e "${BLUE}[STEP]${NC} $*"; }
 
-# Error handler
-error_handler() {
-    local exit_code=$1
-    local line_number=$2
-    print_error "Error at line ${line_number} (exit code: ${exit_code})"
-    setup_rerun_hint_print
-    exit "${exit_code}"
-}
-
-trap 'error_handler $? $LINENO' ERR
-
-# Configuration
 readonly RHACS_NAMESPACE="${RHACS_NAMESPACE:-stackrox}"
+readonly SCAN_NAME="${SCAN_NAME:-acs-catch-all}"
 
-# Compliance standards to trigger
-readonly COMPLIANCE_STANDARDS=(
-    "CIS Kubernetes v1.5"
-    "HIPAA 164"
-    "NIST SP 800-190"
-    "NIST SP 800-53"
-    "PCI DSS 3.2.1"
-)
+http_status_code() {
+    local code="${1:-0}"
+    code="$(printf '%s' "${code}" | tr -cd '0-9')"
+    printf '%s' "$((10#${code:-0}))"
+}
 
-#================================================================
-# Function to make API call
-#================================================================
-make_api_call() {
+curl_json() {
     local method=$1
-    local endpoint=$2
+    local url=$2
     local data="${3:-}"
-    
+    local response
     if [ -n "${data}" ]; then
-        # Use temp file for data to avoid quoting issues
-        local temp_file=$(mktemp)
-        printf "%s" "${data}" > "${temp_file}"
-        
-        local response=$(curl -k -s -w "\n%{http_code}" \
+        response=$(curl -k -s -w "\n%{http_code}" --connect-timeout 15 --max-time 60 \
             -X "${method}" \
             -H "Authorization: Bearer ${ROX_API_TOKEN}" \
             -H "Content-Type: application/json" \
-            --data-binary @"${temp_file}" \
-            "${endpoint}" 2>&1)
-        
-        rm -f "${temp_file}"
+            -d "${data}" \
+            "${url}" 2>/dev/null || echo "")
     else
-        local response=$(curl -k -s -w "\n%{http_code}" \
+        response=$(curl -k -s -w "\n%{http_code}" --connect-timeout 15 --max-time 60 \
             -X "${method}" \
             -H "Authorization: Bearer ${ROX_API_TOKEN}" \
             -H "Content-Type: application/json" \
-            "${endpoint}" 2>&1)
+            "${url}" 2>/dev/null || echo "")
     fi
-    
-    local http_code=$(echo "${response}" | tail -n1)
-    local body=$(echo "${response}" | sed '$d')
-    
-    if [ "${http_code}" -lt 200 ] || [ "${http_code}" -ge 300 ]; then
-        print_error "API call failed (HTTP ${http_code})"
-        print_error "Response: ${body:0:300}"
-        return 1
-    fi
-    
-    echo "${body}"
-    return 0
+    local http_code body
+    http_code=$(http_status_code "$(echo "${response}" | tail -n1)")
+    body=$(echo "${response}" | sed '$d')
+    printf '%s\n' "${http_code}"
+    printf '%s' "${body}"
 }
 
-#================================================================
-# Function to get cluster ID
-#================================================================
-get_cluster_id() {
+get_scan_config_id() {
     local api_base=$1
-    
-    print_info "Fetching cluster ID..." >&2
-    
-    # Make direct curl call to avoid any print contamination
-    local response=$(curl -k -s -w "\n%{http_code}" \
-        -H "Authorization: Bearer ${ROX_API_TOKEN}" \
-        "${api_base}/clusters" 2>/dev/null)
-    
-    local http_code=$(echo "${response}" | tail -n1)
-    local body=$(echo "${response}" | sed '$d')
-    
+    local scan_name=$2
+    local http_code body
+    local raw
+    raw=$(curl_json "GET" "${api_base}/v2/compliance/scan/configurations")
+    http_code=$(printf '%s\n' "${raw}" | head -n1)
+    body=$(printf '%s\n' "${raw}" | tail -n +2)
+    if [ "${http_code}" != "200" ]; then
+        print_warn "List scan configurations returned HTTP ${http_code}" >&2
+        return 1
+    fi
+    local scan_id
+    scan_id=$(echo "${body}" | jq -r --arg n "${scan_name}" \
+        '.configurations[]? | select(.scanName == $n) | .id' 2>/dev/null | head -1)
+    if [ -z "${scan_id}" ] || [ "${scan_id}" = "null" ]; then
+        return 1
+    fi
+    printf '%s' "${scan_id}"
+}
+
+wait_for_scan_config() {
+    local api_base=$1
+    local scan_name=$2
+    local max_wait=180
+    local interval=10
+    local elapsed=0
+    local scan_id=""
+
+    print_step "Waiting for scan configuration '${scan_name}'..." >&2
+    while [ ${elapsed} -lt ${max_wait} ]; do
+        scan_id=$(get_scan_config_id "${api_base}" "${scan_name}" 2>/dev/null || true)
+        if [ -n "${scan_id}" ]; then
+            print_info "✓ Found scan configuration ${scan_name} (ID: ${scan_id})" >&2
+            printf '%s' "${scan_id}"
+            return 0
+        fi
+        if [ $((elapsed % 30)) -eq 0 ]; then
+            print_info "Scan configuration not ready yet... (${elapsed}s/${max_wait}s)" >&2
+        fi
+        sleep ${interval}
+        elapsed=$((elapsed + interval))
+    done
+    return 1
+}
+
+run_scan_config() {
+    local api_base=$1
+    local scan_id=$2
+    local http_code body raw
+    print_step "Triggering Coverage scan (POST /v2/compliance/scan/configurations/${scan_id}/run)..."
+    raw=$(curl_json "POST" "${api_base}/v2/compliance/scan/configurations/${scan_id}/run")
+    http_code=$(printf '%s\n' "${raw}" | head -n1)
+    body=$(printf '%s\n' "${raw}" | tail -n +2)
+    if [ "${http_code}" = "200" ] || [ "${http_code}" = "202" ]; then
+        print_info "✓ Coverage scan triggered (HTTP ${http_code})"
+        return 0
+    fi
+    print_warn "Could not trigger Coverage scan (HTTP ${http_code})"
+    if [ -n "${body}" ]; then
+        print_warn "  ${body:0:200}"
+    fi
+    return 1
+}
+
+# Best-effort leftover for RHACS < 4.11. Never fail setup if V1 is gone.
+try_classic_v1_scans() {
+    local api_base=$1
+    local http_code body raw
+    print_step "Checking whether classic Compliance V1 APIs are still present..."
+    raw=$(curl_json "GET" "${api_base}/v1/compliance/standards")
+    http_code=$(printf '%s\n' "${raw}" | head -n1)
+    body=$(printf '%s\n' "${raw}" | tail -n +2)
     if [ "${http_code}" != "200" ] || [ -z "${body}" ]; then
-        print_error "Failed to fetch clusters (HTTP ${http_code})" >&2
-        return 1
+        print_info "Classic Compliance V1 is not available (HTTP ${http_code}; removed in RHACS 4.11). Skipping."
+        return 0
     fi
-    
-    # Try to find "production" cluster first (lowercase to match your output)
-    local cluster_id=$(echo "${body}" | jq -r '.clusters[] | select(.name == "production") | .id' 2>/dev/null | head -1)
-    
-    # Try case-insensitive
-    if [ -z "${cluster_id}" ] || [ "${cluster_id}" = "null" ]; then
-        cluster_id=$(echo "${body}" | jq -r '.clusters[] | select(.name | ascii_downcase == "production") | .id' 2>/dev/null | head -1)
-    fi
-    
-    # If not found, use first cluster
-    if [ -z "${cluster_id}" ] || [ "${cluster_id}" = "null" ]; then
-        cluster_id=$(echo "${body}" | jq -r '.clusters[0].id // empty' 2>/dev/null)
-    fi
-    
-    if [ -z "${cluster_id}" ]; then
-        print_error "No clusters found" >&2
-        return 1
-    fi
-    
-    # Get cluster name and health for logging
-    local cluster_name=$(echo "${body}" | jq -r ".clusters[] | select(.id == \"${cluster_id}\") | .name" 2>/dev/null)
-    local cluster_health=$(echo "${body}" | jq -r ".clusters[] | select(.id == \"${cluster_id}\") | .healthStatus.overallHealthStatus // \"UNKNOWN\"" 2>/dev/null)
-    
-    print_info "✓ Cluster: ${cluster_name} (ID: ${cluster_id}, Health: ${cluster_health})" >&2
-    
-    # Output ONLY the cluster ID to stdout
-    printf "%s" "${cluster_id}"
+    print_info "V1 standards endpoint responded; skipping extra classic runs (Coverage v2 is the roadshow path)"
     return 0
 }
 
-#================================================================
-# Function to find standard ID by name
-#================================================================
-find_standard_id() {
-    local search_name=$1
-    local standards_body=$2
-    
-    # Try exact match
-    local standard_id=$(echo "${standards_body}" | jq -r ".standards[]? | select(.name == \"${search_name}\") | .id" 2>/dev/null | head -1)
-    
-    # Try case-insensitive match
-    if [ -z "${standard_id}" ] || [ "${standard_id}" = "null" ]; then
-        local search_lower=$(echo "${search_name}" | tr '[:upper:]' '[:lower:]')
-        standard_id=$(echo "${standards_body}" | jq -r ".standards[]? | select(.name | ascii_downcase == \"${search_lower}\") | .id" 2>/dev/null | head -1)
-    fi
-    
-    # Try partial pattern match
-    if [ -z "${standard_id}" ] || [ "${standard_id}" = "null" ]; then
-        local pattern=$(echo "${search_name}" | sed 's/ /.*/g')
-        standard_id=$(echo "${standards_body}" | jq -r ".standards[]? | select(.name | test(\"${pattern}\"; \"i\")) | .id" 2>/dev/null | head -1)
-    fi
-    
-    # Output only the standard_id to stdout
-    printf "%s" "${standard_id}"
-}
-
-#================================================================
-# Function to trigger compliance scans
-#================================================================
-trigger_compliance_scans() {
-    local api_base=$1
-    local cluster_id=$2
-    
-    print_step "Fetching available compliance standards..."
-    
-    # Fetch compliance standards
-    local standards_body=$(make_api_call "GET" "${api_base}/compliance/standards")
-    if [ -z "${standards_body}" ]; then
-        print_error "Failed to fetch compliance standards"
-        return 1
-    fi
-    
-    print_info "Available standards fetched"
-    
-    print_step "Triggering compliance scans..."
-    echo ""
-    
-    local success_count=0
-    local failed_count=0
-    local -A triggered_standards
-    
-    # Find and trigger each standard
-    for standard_name in "${COMPLIANCE_STANDARDS[@]}"; do
-        local standard_id=$(find_standard_id "${standard_name}" "${standards_body}")
-        
-        if [ -z "${standard_id}" ] || [ "${standard_id}" = "null" ]; then
-            print_warn "✗ ${standard_name} - not found"
-            failed_count=$((failed_count + 1))
-            continue
-        fi
-        
-        # Get actual standard name
-        local actual_name=$(echo "${standards_body}" | jq -r ".standards[]? | select(.id == \"${standard_id}\") | .name" 2>/dev/null || echo "${standard_name}")
-        
-        # Build scan payload as single-line JSON (avoids heredoc newline issues)
-        local scan_payload="{\"selection\":{\"clusterId\":\"${cluster_id}\",\"standardId\":\"${standard_id}\"}}"
-        
-        # Trigger scan using direct curl (bypass make_api_call for this specific case)
-        local scan_result=""
-        
-        set +e
-        local response=$(curl -k -s -w "\n%{http_code}" \
-            -X POST \
-            -H "Authorization: Bearer ${ROX_API_TOKEN}" \
-            -H "Content-Type: application/json" \
-            -d "${scan_payload}" \
-            "${api_base}/compliancemanagement/runs" 2>&1)
-        local exit_code=$?
-        set -e
-        
-        local http_code=$(echo "${response}" | tail -n1)
-        local body=$(echo "${response}" | sed '$d')
-        
-        if [ ${exit_code} -eq 0 ] && [ "${http_code}" = "200" ]; then
-            print_info "✓ ${actual_name} - scan triggered"
-            
-            # Try to extract scan ID
-            local scan_id=$(echo "${body}" | jq -r '.startedRuns[0].id // .id // .scanId // .runId // empty' 2>/dev/null)
-            if [ -n "${scan_id}" ] && [ "${scan_id}" != "null" ]; then
-                print_info "  Scan ID: ${scan_id}"
-            fi
-            
-            triggered_standards["${actual_name}"]="${standard_id}"
-            success_count=$((success_count + 1))
-        else
-            print_warn "✗ ${actual_name} - failed to trigger (HTTP ${http_code})"
-            if [ -n "${body}" ]; then
-                print_warn "  Error: ${body:0:200}"
-            fi
-            failed_count=$((failed_count + 1))
-        fi
-        
-        sleep 1
-    done
-    
-    echo ""
-    print_info "=========================================="
-    print_info "Scan Trigger Summary"
-    print_info "=========================================="
-    print_info "Standards found: $(( success_count + failed_count ))/${#COMPLIANCE_STANDARDS[@]}"
-    print_info "Scans triggered: ${success_count}"
-    
-    if [ ${failed_count} -gt 0 ]; then
-        print_warn "Scans failed: ${failed_count}"
-    fi
-    
-    echo ""
-    print_info "Triggered scans:"
-    for name in "${!triggered_standards[@]}"; do
-        print_info "  • ${name}"
-    done
-    
-    return 0
-}
-
-#================================================================
-# Main function
-#================================================================
 main() {
+    set +e
     print_info "=========================================="
-    print_info "Compliance Scan Trigger"
+    print_info "Compliance Coverage Scan Trigger"
     print_info "=========================================="
     print_info ""
-    
-    # Check prerequisites
+
     if ! oc whoami &>/dev/null; then
-        print_error "Not connected to OpenShift cluster"
-        exit 1
+        print_warn "Not connected to OpenShift cluster; skipping scan trigger"
+        return 0
     fi
-    
+
     if ! command -v jq >/dev/null 2>&1; then
-        print_error "jq not found - required for JSON processing"
-        exit 1
+        print_warn "jq not found; skipping scan trigger"
+        return 0
     fi
-    
-    # Get Central URL
-    local central_url=$(oc get route central -n ${RHACS_NAMESPACE} -o jsonpath='https://{.spec.host}' 2>/dev/null || echo "")
+
+    local central_url
+    central_url=$(oc get route central -n "${RHACS_NAMESPACE}" -o jsonpath='https://{.spec.host}' 2>/dev/null || echo "")
     if [ -z "${central_url}" ]; then
-        print_error "Could not determine Central URL"
-        exit 1
+        print_warn "Could not determine Central URL; skipping scan trigger"
+        return 0
     fi
-    
     print_info "Central URL: ${central_url}"
-    
-    # Check for API token
+
     if [ -z "${ROX_API_TOKEN:-}" ]; then
-        print_error "ROX_API_TOKEN environment variable is not set"
-        print_error "Please set ROX_API_TOKEN before running this script"
-        exit 1
+        print_warn "ROX_API_TOKEN is not set; skipping scan trigger"
+        return 0
     fi
-    
     print_info "✓ Using API token from environment"
-    
-    # Setup API base URL
+
     local api_host="${central_url#https://}"
     api_host="${api_host#http://}"
-    local api_base="https://${api_host}/v1"
-    
+    local api_base="https://${api_host}"
+
     print_info ""
-    
-    # Get cluster ID
-    local cluster_id=$(get_cluster_id "${api_base}")
-    if [ -z "${cluster_id}" ]; then
-        print_error "Failed to get cluster ID"
-        exit 1
+
+    local scan_id=""
+    scan_id=$(wait_for_scan_config "${api_base}" "${SCAN_NAME}" || true)
+    if [ -z "${scan_id}" ]; then
+        print_warn "Scan configuration '${SCAN_NAME}' was not found. Run 06-setup-co-scan-schedule.sh first, or create a schedule in RHACS → Compliance → Schedules."
+        try_classic_v1_scans "${api_base}" || true
+        print_info "Setup will continue; attendees can start a scan from the UI."
+        return 0
     fi
-    
-    print_info ""
-    
-    # Trigger scans
-    trigger_compliance_scans "${api_base}" "${cluster_id}"
-    
+
+    run_scan_config "${api_base}" "${scan_id}" || true
+
     print_info ""
     print_info "=========================================="
-    print_info "Compliance Scan Trigger Complete"
+    print_info "Compliance Coverage Scan Trigger Complete"
     print_info "=========================================="
     print_info ""
-    print_info "Scans are now running and may take several minutes."
-    print_info "Monitor progress: RHACS UI → Compliance → Coverage"
+    print_info "Scans may take several minutes. Monitor: RHACS UI → Compliance → Coverage"
     print_info ""
 }
 
-# Run main function
 main "$@"
+exit 0

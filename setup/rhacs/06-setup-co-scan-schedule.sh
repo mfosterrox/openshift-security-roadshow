@@ -268,6 +268,58 @@ get_tailored_profile_names() {
         jq -r '.items[]? | select(.metadata.name != null) | .metadata.name' 2>/dev/null || true
 }
 
+http_status_code() {
+    local code="${1:-0}"
+    code="$(printf '%s' "${code}" | tr -cd '0-9')"
+    printf '%s' "$((10#${code:-0}))"
+}
+
+# Wait until RHACS v2 API lists Compliance Operator profiles (Sensor sync).
+wait_for_v2_profiles() {
+    local token=$1
+    local api_base=$2
+    local max_wait=180
+    local interval=10
+    local elapsed=0
+
+    print_step "Waiting for Compliance Operator profiles in RHACS..."
+    while [ ${elapsed} -lt ${max_wait} ]; do
+        local response http_code body count
+        response=$(curl -k -s -w "\n%{http_code}" --connect-timeout 15 --max-time 30 \
+            -H "Authorization: Bearer ${token}" \
+            "${api_base}/v2/compliance/profiles?pagination.limit=100" 2>/dev/null || echo "")
+        http_code=$(http_status_code "$(echo "${response}" | tail -n1)")
+        body=$(echo "${response}" | sed '$d')
+        count=$(echo "${body}" | jq -r '(.profiles | length) // (.totalCount // 0)' 2>/dev/null || echo "0")
+        if [ "${http_code}" = "200" ] && [ "${count}" -gt 0 ] 2>/dev/null; then
+            print_info "✓ ${count} compliance profiles available in RHACS"
+            return 0
+        fi
+        if [ $((elapsed % 30)) -eq 0 ]; then
+            print_info "Profiles not ready yet (HTTP ${http_code})... (${elapsed}s/${max_wait}s)"
+        fi
+        sleep ${interval}
+        elapsed=$((elapsed + interval))
+    done
+    print_warn "Profiles not yet visible in RHACS; scan configuration may be empty until Sensor syncs"
+    return 0
+}
+
+list_available_profile_names() {
+    local token=$1
+    local api_base=$2
+    local response http_code body
+    response=$(curl -k -s -w "\n%{http_code}" --connect-timeout 15 --max-time 30 \
+        -H "Authorization: Bearer ${token}" \
+        "${api_base}/v2/compliance/profiles?pagination.limit=200" 2>/dev/null || echo "")
+    http_code=$(http_status_code "$(echo "${response}" | tail -n1)")
+    body=$(echo "${response}" | sed '$d')
+    if [ "${http_code}" != "200" ]; then
+        return 0
+    fi
+    echo "${body}" | jq -r '.profiles[]?.name // empty' 2>/dev/null || true
+}
+
 # Function to create scan configuration
 create_scan_config() {
     local token=$1
@@ -295,8 +347,39 @@ create_scan_config() {
         done
     fi
 
+    local available_names=()
+    while IFS= read -r name; do
+        [ -n "${name}" ] && available_names+=("${name}")
+    done < <(list_available_profile_names "${token}" "${api_base}")
+
+    local selected=()
+    local candidate
+    for candidate in "${stock_profiles[@]}" "${tailored[@]}"; do
+        if [ ${#available_names[@]} -eq 0 ]; then
+            selected+=("${candidate}")
+            continue
+        fi
+        local found=false
+        for name in "${available_names[@]}"; do
+            if [ "${name}" = "${candidate}" ]; then
+                found=true
+                break
+            fi
+        done
+        if [ "${found}" = true ]; then
+            selected+=("${candidate}")
+        else
+            print_warn "Skipping profile not yet in RHACS: ${candidate}"
+        fi
+    done
+
+    if [ ${#selected[@]} -eq 0 ]; then
+        print_warn "No Compliance Operator profiles available to schedule yet"
+        return 0
+    fi
+
     local profiles_json
-    profiles_json=$(printf '%s\n' "${stock_profiles[@]}" "${tailored[@]}" | jq -R . | jq -s .)
+    profiles_json=$(printf '%s\n' "${selected[@]}" | jq -R . | jq -s .)
     
     # Create JSON payload in a temp file for reliable transmission
     local temp_file=$(mktemp)
@@ -396,8 +479,9 @@ main() {
     
     print_info ""
     
-    # Wait for Compliance Operator pods to be ready
+    # Wait for Compliance Operator pods and RHACS profile sync
     wait_for_compliance_pods || true
+    wait_for_v2_profiles "${token}" "${api_base}" || true
     
     print_info ""
     

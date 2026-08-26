@@ -25,7 +25,7 @@ Many Showroom / roadshow clusters already have the Compliance Operator installed
 oc get pods -n openshift-compliance
 ----
 
-*If the operator pods are Running*, skip the OperatorHub install and sensor restart below and continue with *Execute Your First Compliance Scan* (or review the existing daily schedule named `acs-catch-all` under *Compliance → Schedules*).
+*If the operator pods are Running*, skip the OperatorHub install and sensor restart below and continue with *Managing the Compliance Coverage Feature* (or review the existing daily schedule named `acs-catch-all` under *Compliance → Schedules*).
 
 *If the operator is not installed*, follow this procedure:
 
@@ -67,9 +67,11 @@ oc delete pods -l app.kubernetes.io/component=sensor -n stackrox
 
 With the Sensor restarted, kick off a compliance scan in ACS to see the updated results.
 
-== Execute Your First Compliance Scan
+IMPORTANT: RHACS 4.11 removed the classic *Compliance → Dashboard* (Scan environment, NIST/HIPAA/PCI workload scores). Use *Compliance → Coverage* and *Compliance → Schedules* instead. Instructor setup already installs the Compliance Operator and creates a daily `acs-catch-all` schedule.
 
-When installing RHACS you need to kick off a compliance scan to ensure that the Compliance results are available. So let’s execute our first compliance scan.
+== Execute Your First Compliance Scan (RHACS 4.10 and earlier)
+
+When installing RHACS 4.10 or earlier you can kick off a classic compliance scan so the legacy dashboard has data. Skip this section on RHACS 4.11.
 
 *Procedure*
 
@@ -82,6 +84,8 @@ image::06-comp-3.png[link=self, window=blank, width=100%]
 Wait a few seconds and your dashboard should populate.
 
 == Review the Compliance Reports in the Compliance Dashboard
+
+NOTE: Skip this section on RHACS 4.11 (classic dashboard removed). Continue with *Managing the Compliance Coverage Feature*.
 
 The compliance reports gather information for configuration, industry standards, and best practices for container-based workloads running in Kubernetes and OpenShift.
 
@@ -382,7 +386,7 @@ Discuss which controls would have flagged this before the breach:
 
 What he said ^!
 
-In this lab, you installed the Compliance Operator and set up a daily scan that will report against OpenShift CIS benchmarks. You also reviewed workload compliance in the OpenShift Compliance dashboard. 
+In this lab, you installed the Compliance Operator and set up a daily scan that will report against OpenShift CIS benchmarks. You also reviewed platform compliance in the RHACS Compliance Coverage view. 
 
 On to xref:05-acs-notifications-api.adoc[Notifications, API, and Integrations]!
 
