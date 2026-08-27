@@ -81,7 +81,13 @@ Use the *Terminal* / bastion tab (or SSH) for CLI work (`oc`, `roxctl`, `podman`
 |Password| {bastion_ssh_password}
 |===
 
-[[choose-your-role]]
+== Product specific deep-dives 
+
+Use these after (or alongside) the role track that owns the capability—especially DevSecOps, Platform Operator, and Security Architect.
+
+* xref:acs-INDEX.adoc[Advanced Cluster Security (RHACS)] — Setup, vulnerabilities, policy and risk, CI/CD gates, compliance, notifications and API, network and runtime, and installation.
+* xref:tssc-INDEX.adoc[Trusted Software Supply Chain (TSSC)] — Trusted Artifact Signer (container and git signing) and Trusted Profile Analyzer (SBOM analysis).
+
 == Choose your role
 
 Start here. Open the track for your role, then follow the recommended sequence (Basic → Intermediate → Advanced).
@@ -94,9 +100,3 @@ Start here. Open the track for your role, then follow the recommended sequence (
 
 Browse full catalogs by skill level: xref:basic-INDEX.adoc[101 Foundations], xref:intermediate-INDEX.adoc[201 Intermediate], xref:advanced-INDEX.adoc[301 Advanced].
 
-== Product specific deep-dives
-
-Use these after (or alongside) the role track that owns the capability—especially DevSecOps, Platform Operator, and Security Architect.
-
-* xref:acs-INDEX.adoc[Advanced Cluster Security (RHACS)] — Setup, vulnerabilities, policy and risk, CI/CD gates, compliance, notifications and API, network and runtime, and installation.
-* xref:tssc-INDEX.adoc[Trusted Software Supply Chain (TSSC)] — Trusted Artifact Signer (container and git signing) and Trusted Profile Analyzer (SBOM analysis).
