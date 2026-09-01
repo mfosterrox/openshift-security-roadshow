@@ -1,0 +1,155 @@
+= Per-VM Device Pass-through and Memory Overcommit
+:role: Virtualization Workload Hardening
+:skills: VM hostDevices, GPU Pass-through, overcommitGuestOverhead
+:labid: LAB-VIRT-04
+:toc:
+:icons: font
+
+**Duration:** ~20 minutes
+
+== Overview
+xref:virt-02-devices-ksm-permissions.adoc[virt-02] locked the *cluster* allow-list (`permittedHostDevices`). This module looks at each VirtualMachine spec: `domain.devices.gpus`, `domain.devices.hostDevices`, and `domain.resources.overcommitGuestOverhead`.
+
+Audit every VM, then inspect `rhel-webserver` as the lab's production-like guest. Do not patch that VM. A finding on any other VM is a real exception to document or remove.
+
+== Why it matters
+HCO can forbid a device and a VM spec can still *request* one (it will not schedule). The inverse is worse: HCO allows a GPU and a forgotten VM still has it attached after the business need ended. Memory overcommit tells the scheduler the guest needs less RAM than the hypervisor actually uses. If the guest fills memory, kubelet OOM-kills the virt-launcher.
+
+== What does it solve
+
+* GPUs or host NICs left on a VM after a POC
+* NVMe pass-through "for performance" on a VM that does not need it
+* `overcommitGuestOverhead: true` used as silent density, then random virt-launcher deaths
+
+== Your Mission
+List VMs with GPUs, hostDevices, or overcommit. Confirm `rhel-webserver` is clean. Know the jsonpatch that removes a device or the overcommit flag.
+
+=== Prerequisites
+
+* xref:virt-03-virtualization-rbac.adoc[virt-03] complete
+* `jq` on the bastion
+* Get access to VirtualMachines cluster-wide (or at least `rhel-webserver`)
+
+Click each step only if you need a hint.
+
+=== Control: Restrict pass-through of GPUs and host devices to the VM
+
+**Level:** 1
+
+Attaching a GPU, NVMe, or other host device maps that hardware into the guest. Performance goes up. So does the blast radius if the device firmware or driver is hostile.
+
+*Pros:* Guests stay on virtio and shared, mediated I/O unless a named device is required.
+
+*Cons / impact:* GPU training jobs, DPDK NICs, or NVMe that need vfio will not run until you attach an *approved* device (and it must also appear on HCO's allow-list from virt-02).
+
+*Default:* No `gpus` or `hostDevices` on `spec.template.spec.domain.devices`.
+
+.Audit GPUs and hostDevices on all VMs
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get vm -A -o json | jq -c '
+  .items[]
+  | select((.spec.template.spec.domain.devices.gpus // []) | length > 0)
+  | {vm: (.metadata.namespace + "/" + .metadata.name), gpus: .spec.template.spec.domain.devices.gpus}
+'
+echo '--- hostDevices ---'
+oc get vm -A -o json | jq -c '
+  .items[]
+  | select((.spec.template.spec.domain.devices.hostDevices // []) | length > 0)
+  | {vm: (.metadata.namespace + "/" + .metadata.name), hostDevices: .spec.template.spec.domain.devices.hostDevices}
+'
+----
+
+TIP: Empty output (aside from the separator) is a pass. Any JSON object is a VM with pass-through to review.
+====
+
+.Audit rhel-webserver only
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get vm rhel-webserver -n rhel-webserver -o jsonpath='gpus={.spec.template.spec.domain.devices.gpus}{"\n"}hostDevices={.spec.template.spec.domain.devices.hostDevices}{"\n"}'
+----
+
+TIP: Both fields empty is the expected lab baseline. Do not add devices to this VM.
+====
+
+.Remediation
+[%collapsible]
+====
+Remove host device index 0 from a VM you *intend* to change. Do not run this against `rhel-webserver`.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+# oc patch vm VM_NAME -n NAMESPACE --type='json' -p='[
+#   {"op": "remove", "path": "/spec/template/spec/domain/devices/hostDevices/0"}
+# ]'
+----
+
+GPUs use `/spec/template/spec/domain/devices/gpus/0`. Stop the VM if the API requires it, patch, then start.
+
+TIP: Re-run the cluster-wide `jq`. That VM should disappear from the list.
+====
+
+=== Control: Disable overcommitting guest memory
+
+**Level:** 1
+
+`overcommitGuestOverhead: true` asks the scheduler to ignore hypervisor overhead so more VMs fit on a node. If the guest actually uses its full RAM plus overhead, the virt-launcher pod is the process kubelet kills.
+
+*Pros:* Scheduling stays honest. Guests get the memory the spec claims. You avoid surprise OOM of the launcher.
+
+*Cons / impact:* You fit fewer VMs per node. Density has to come from right-sizing guests, not from hiding overhead.
+
+*Default:* The flag is unset/false. The audit list should be empty.
+
+.Audit overcommitGuestOverhead
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get vm -A -o json | jq -r '
+  .items[]
+  | select(.spec.template.spec.domain.resources.overcommitGuestOverhead == true)
+  | .metadata.namespace + "/" + .metadata.name
+'
+oc get vm rhel-webserver -n rhel-webserver -o jsonpath='{.spec.template.spec.domain.resources.overcommitGuestOverhead}{"\n"}'
+----
+
+TIP: First command empty, second command empty or `false`.
+====
+
+.Remediation
+[%collapsible]
+====
+Stop the guest, remove the flag, start it. Example for a non-lab VM:
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+# oc patch vm VM_NAME -n NAMESPACE --type='json' -p='[
+#   {"op": "remove", "path": "/spec/template/spec/domain/resources/overcommitGuestOverhead"}
+# ]'
+----
+
+TIP: The VM should no longer appear in the `jq` select. Do not patch `rhel-webserver` unless you set this flag yourself (you should not have).
+====
+
+== Debrief
+
+Cluster allow-list (virt-02) plus per-VM spec (this lab) is two gates for the same hardware. Memory overcommit is a density knob that turns into an availability incident.
+
+What breaks without this:
+
+* Stale GPU attachments
+* virt-launcher OOM that looks like "the VM crashed" to the guest owner
+
+NOTE: Next is xref:virt-05-storage-isolation.adoc[virt-05] -- DataVolume cloning, shareable disks, and disk errorPolicy.
+
+== Cleanup
+
+Progress only. `rhel-webserver` is unchanged.
+
+:lab-cleanup-module: virt-04
+include::partial$lab-cleanup.adoc[]

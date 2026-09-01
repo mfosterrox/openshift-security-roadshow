@@ -1,0 +1,201 @@
+= DataVolume Cloning, Shareable Disks, and Disk Error Policy
+:role: Virtualization Storage Isolation
+:skills: DataVolume Clone RBAC, Shareable Disks, errorPolicy
+:labid: LAB-VIRT-05
+:toc:
+:icons: font
+
+**Duration:** ~25 minutes
+
+== Overview
+xref:virt-04-vm-configuration.adoc[virt-04] locked devices and memory on the VM spec. Storage is the next isolation boundary: who can clone a DataVolume across namespaces, whether a disk is marked `shareable`, and whether I/O errors are `ignore` instead of `stop` or `report`.
+
+Default CDI cloning stays inside one namespace unless a cluster admin creates a RoleBinding that grants `datavolumes/source` to a service account in another project. That binding is the control.
+
+== Why it matters
+A clone across namespaces is a data copy the destination owners did not take from a signed registry; they took it from someone else's PVC. Shareable disks without a clustered filesystem corrupt data. `errorPolicy: ignore` hides failed writes so the guest thinks the disk is fine.
+
+== What does it solve
+
+* Project A cloning Project B's gold image (and whatever secrets landed on that volume)
+* Two VMs writing the same disk without SCSI reservations or a clustered FS (see also virt-01 `persistentReservation`)
+* Windows clustered FS needing `report`, vs a lab that set `ignore` to quiet logs
+
+== Your Mission
+Find RoleBindings that grant DataVolume clone across namespaces, list VMs with `shareable: true`, and list VMs with `errorPolicy: ignore`. Expect empty on a fresh lab. Do not patch `rhel-webserver`.
+
+=== Prerequisites
+
+* xref:virt-04-vm-configuration.adoc[virt-04] complete
+* `jq` on the bastion
+* Permission to get RoleBindings, ClusterRoles, and VirtualMachines
+
+Click each step only if you need a hint.
+
+=== Control: Restrict access to cross-namespace DataVolume cloning
+
+**Level:** 1
+
+CDI allows a DataVolume in namespace D to clone from namespace S only when S contains a RoleBinding whose subject is a ServiceAccount in D and whose role includes `datavolumes/source`.
+
+*Pros:* Namespace isolation holds for virtual disks, not only for pods. Data does not silently flow to another tenant.
+
+*Cons / impact:* Self-service "copy this gold VM into my project" needs a platform-owned binding or a registry/PVC workflow inside the same namespace.
+
+*Default:* Only cluster administrators can arrange cross-namespace clones. There is no such RoleBinding until someone creates it.
+
+.Audit clone RoleBindings
+[%collapsible]
+====
+Look for ClusterRoles that mention `datavolumes/source`, then RoleBindings that use them.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get clusterrole -o json | jq -r '
+  .items[]
+  | select(.rules[]? | .resources[]? == "datavolumes/source")
+  | .metadata.name
+'
+echo '--- rolebindings with a foreign-namespace SA subject ---'
+oc get rolebinding -A -o json | jq -c '
+  .items[]
+  | select(.subjects[]? | .kind == "ServiceAccount" and .namespace != null and .namespace != .metadata.namespace)
+  | {ns: .metadata.namespace, name: .metadata.name, role: .roleRef.name, subjects}
+'
+----
+
+TIP: Zero ClusterRoles (or only ones you documented) plus no foreign-SA RoleBindings is a pass. A binding from `src-ns` to `default` in `dst-ns` with role `datavolume-cloner` is the textbook finding from the guide.
+====
+
+.Inspect a known cloner ClusterRole (if it exists)
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get clusterrole datavolume-cloner -o yaml 2>/dev/null || echo "No datavolume-cloner ClusterRole (typical on a default install)"
+----
+
+TIP: If the ClusterRole exists, its `rules` should be the clone API only, and RoleBindings that use it should be rare and named.
+====
+
+.Remediation
+[%collapsible]
+====
+Delete RoleBindings that grant unintended cross-namespace clone. Do not delete CDI operator Roles.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+# oc delete rolebinding BINDING -n SOURCE_NAMESPACE
+----
+
+TIP: Re-run the foreign-SA `jq`. The extra binding should be gone. See link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/virtualization/virt-cloning-a-datavolume[OpenShift Virtualization DataVolume cloning^] for the supported grant procedure when clone *is* required.
+====
+
+=== Control: Disable shareable disks
+
+**Level:** 1
+
+`shareable: true` on a disk lets more than one VM attach it. That is valid only with a clustered filesystem or a distributed application that understands shared block.
+
+*Pros:* No silent dual-write corruption. Each disk has one writer unless you opted into clustered I/O.
+
+*Cons / impact:* You cannot use shared-block clustering without this flag (and often without `persistentReservation` from virt-01). Treat that as a named exception.
+
+*Default:* Shareable is off. The VM list should be empty.
+
+.Audit shareable disks
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get vm -A -o json | jq -r '
+  .items[]
+  | select([.spec.template.spec.domain.devices.disks[]? | select(.shareable == true)] | length > 0)
+  | .metadata.namespace + "/" + .metadata.name
+'
+oc get vm rhel-webserver -n rhel-webserver -o json | jq '
+  [.spec.template.spec.domain.devices.disks[]? | {name, shareable}]
+'
+----
+
+TIP: First command empty. Second command: disks with `shareable` null or `false`.
+====
+
+.Remediation
+[%collapsible]
+====
+Remove the flag on disk index 0 of a VM you own (not `rhel-webserver`):
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+# oc patch vm VM_NAME -n NAMESPACE --type='json' -p='[
+#   {"op": "remove", "path": "/spec/template/spec/domain/devices/disks/0/shareable"}
+# ]'
+----
+
+TIP: Re-run the cluster `jq`. The VM should drop off the list.
+====
+
+=== Control: Make sure errorPolicy is not ignore
+
+**Level:** 1
+
+Disk `errorPolicy` decides what happens on a failed read/write. `ignore` continues as if the I/O succeeded. `stop` (default) pauses the VM. `report` surfaces the error to the guest (needed for some Windows clustered filesystems).
+
+*Pros:* Failed writes become an incident, not silent corruption.
+
+*Cons / impact:* Noisy storage may pause VMs (`stop`) instead of hiding errors. Maintenance windows that set `ignore` to reduce logs are a temporary exception, not a baseline.
+
+*Default:* Unset, which means `stop`. The ignore-list should be empty.
+
+.Audit errorPolicy ignore
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get vm -A -o json | jq -r '
+  .items[]
+  | select([.spec.template.spec.domain.devices.disks[]? | select(.errorPolicy == "ignore")] | length > 0)
+  | .metadata.namespace + "/" + .metadata.name
+'
+oc get vm rhel-webserver -n rhel-webserver -o json | jq '
+  [.spec.template.spec.domain.devices.disks[]? | {name, errorPolicy}]
+'
+----
+
+TIP: First command empty. Second: `errorPolicy` null or `stop`/`report`, never `ignore`.
+====
+
+.Remediation
+[%collapsible]
+====
+Remove a bad policy (revert to default `stop`) or set `report` when Windows clustered FS needs it.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+# oc patch vm VM_NAME -n NAMESPACE --type='json' -p='[
+#   {"op": "remove", "path": "/spec/template/spec/domain/devices/disks/0/errorPolicy"}
+# ]'
+----
+
+TIP: The VM should leave the ignore-list. Prefer `report` over `ignore` for clustered Windows disks; do not use `ignore` as the fleet default.
+====
+
+== Debrief
+
+Storage isolation is RBAC (clone), shared-writer flags, and honest I/O errors. Combined with virt-01 persistent reservations, you now have the clustered-disk story: off unless Windows shared FS is a documented exception.
+
+What breaks without this:
+
+* Tenant B reading tenant A's disk via clone
+* Dual-write corruption on a "shared" PVC
+* Guests that never see a failed write
+
+NOTE: Next is xref:virt-06-network-segmentation.adoc[virt-06] -- VLANs, MAC spoof filtering, and MultiNetworkPolicy.
+
+== Cleanup
+
+Progress only. DataVolumes and `rhel-webserver` stay.
+
+:lab-cleanup-module: virt-05
+include::partial$lab-cleanup.adoc[]

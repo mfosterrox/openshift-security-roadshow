@@ -46,9 +46,11 @@ Not owning: compliance scanning automation, supply-chain gates, or organization-
 == Related modules
 
 * xref:06-acs-network-and-runtime.adoc[RHACS — Network and Runtime Security] for visualization and enforcement patterns after the 101/201 network labs
+* xref:virt-INDEX.adoc[OpenShift Virtualization Security] — especially xref:virt-06-network-segmentation.adoc[virt-06] (VLAN, MAC spoof filtering, MultiNetworkPolicy) and xref:virt-07-host-firmware-and-kernel.adoc[virt-07] (nested virt and CPU mitigations)
 
 == Catalogs
 
 * xref:basic-INDEX.adoc[101 Labs Overview]
 * xref:intermediate-INDEX.adoc[201 Labs Overview]
 * xref:advanced-INDEX.adoc[301 Labs Overview]
+* xref:virt-INDEX.adoc[OpenShift Virtualization Security]

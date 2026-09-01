@@ -1,0 +1,77 @@
+= OpenShift Virtualization Security Labs Overview
+:toc:
+:icons: font
+
+xref:index.adoc[← Back to HOME]
+
+
+== Overview
+
+These labs walk the link:https://www.redhat.com/en/resources/openshift-virtualization-hardening-guide[Red Hat OpenShift Virtualization hardening guide^] (December 2025) on a cluster that already has OpenShift Virtualization installed. You audit every control, compare it to the secure default, and record what you would change to reach a hardened baseline.
+
+This is a product deep-dive, not a 101/201/301 skill level. Harden the OpenShift platform first (xref:101-10-security-compliance-addons.adoc[101-10], xref:201-07-compliance-tailoring.adoc[201-07]). Guest operating system CIS/STIG work inside the VM is out of scope.
+
+Use this track after (or alongside) the role path that owns the hypervisor: Platform Operator, Security Architect, and Network and Infrastructure Engineer. Kata sandboxed *pods* are xref:201-09-sandboxed-containers-intro.adoc[201-09]; this pathway is full virtual machines on the `kubevirt-hyperconverged` stack.
+
+Audience and prerequisites:
+
+* OpenShift cluster with OpenShift Virtualization (CNV) in `openshift-cnv`
+* Cluster-admin (or equivalent) for HyperConverged, RBAC `who-can`, and node debug
+* A running VM to inspect: this environment uses `rhel-webserver` in project `rhel-webserver`
+* Credentials and console links are on the xref:index.adoc[home page]
+
+Modules are sequential. Later labs reuse the HyperConverged object, VM, and any NetworkAttachmentDefinitions you already inspected. Cleanup records progress only; it does not delete those objects.
+
+== Recommended sequence
+
+. xref:virt-00-scope-and-hco.adoc[virt-00 -- Scope, defaults, and the HyperConverged object]
+. xref:virt-01-feature-gates-and-trusted-config.adoc[virt-01 -- Feature gates and trusted HCO config]
+. xref:virt-02-devices-ksm-permissions.adoc[virt-02 -- Host devices, KSM, and virt-handler files]
+. xref:virt-03-virtualization-rbac.adoc[virt-03 -- Migration, exec, VNC, and shared types]
+. xref:virt-04-vm-configuration.adoc[virt-04 -- Per-VM devices and memory overcommit]
+. xref:virt-05-storage-isolation.adoc[virt-05 -- DataVolume cloning, shareable disks, I/O errors]
+. xref:virt-06-network-segmentation.adoc[virt-06 -- VLAN, MAC spoof, MultiNetworkPolicy]
+. xref:virt-07-host-firmware-and-kernel.adoc[virt-07 -- Host firmware and kernel]
+
+== Virtualization labs index
+
+[cols="1,3,2",options="header"]
+|===
+|Lab | Title | Roles
+
+|xref:virt-00-scope-and-hco.adoc[00]
+|Scope, defaults, and the HyperConverged object
+|Platform, Architect, Network
+
+|xref:virt-01-feature-gates-and-trusted-config.adoc[01]
+|Feature gates, TLS registries, HCO jsonpatch
+|Platform, Architect
+
+|xref:virt-02-devices-ksm-permissions.adoc[02]
+|Host device pass-through, KSM, virt-handler permissions
+|Platform
+
+|xref:virt-03-virtualization-rbac.adoc[03]
+|Migration, exec, VNC, instance types, CDI
+|Platform, Architect
+
+|xref:virt-04-vm-configuration.adoc[04]
+|Per-VM GPUs/hostDevices and memory overcommit
+|Platform
+
+|xref:virt-05-storage-isolation.adoc[05]
+|Cross-namespace clone, shareable disks, errorPolicy
+|Platform, Architect
+
+|xref:virt-06-network-segmentation.adoc[06]
+|Dedicated VLANs, MAC spoof filtering, MultiNetworkPolicy
+|Network, Architect, Platform
+
+|xref:virt-07-host-firmware-and-kernel.adoc[07]
+|Intel TXT, nested virt, vCPU metrics, CPU mitigations
+|Platform, Network
+|===
+
+Role abbreviations: Platform = Platform Operator; Architect = Security Architect; Network = Network and Infrastructure Engineer.
+
+The guide uses CIS-style Level 1 / Level 2 labels. It is not an official CIS benchmark yet. Level 2 controls in this pathway are Kernel Samepage Merging, dedicated VLANs, and MultiNetworkPolicy.

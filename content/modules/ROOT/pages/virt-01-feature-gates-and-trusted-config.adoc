@@ -1,0 +1,257 @@
+= Feature Gates and Trusted HyperConverged Config
+:role: Virtualization Platform Hardening
+:skills: HCO Feature Gates, Insecure Registries, jsonpatch Annotations
+:labid: LAB-VIRT-01
+:toc:
+:icons: font
+
+**Duration:** ~25 minutes
+
+== Overview
+xref:virt-00-scope-and-hco.adoc[virt-00] found `HyperConverged/kubevirt-hyperconverged`. This module scores the *least functionality* controls on that object: non-root virt-launcher, persistent SCSI reservations, downward metrics into the guest, TLS-only registries for CDI imports, and the jsonpatch annotations that bypass HCO.
+
+Most of these are already at the secure default. Your job is to prove it and know the patch you would apply if an audit ever fails.
+
+== Why it matters
+Feature gates and annotations are how a platform team quietly reintroduces privileged helpers (`qemu-pr-helper`), host metrics in the guest, or experimental patches that are not supported. Auditors will ask what is enabled on HCO, not whether the VM "looks fine."
+
+== What does it solve
+
+* Root virt-launcher on clusters older than 4.18
+* Persistent reservations left on when no Windows Shared Cluster Filesystem exists
+* Host/VM performance data exposed to guests (`downwardMetrics`)
+* CDI pulling disk images over HTTP from unknown registries
+* jsonpatch annotations that mutate KubeVirt, CDI, network add-ons, or SSP outside HCO
+
+== Your Mission
+Audit five HCO controls. Leave the live object at the secure default. Use the remediation blocks only if an audit already fails.
+
+=== Prerequisites
+
+* xref:virt-00-scope-and-hco.adoc[virt-00] complete (`HyperConverged` exists)
+* Cluster-admin to get and, if needed, patch HCO
+* `jq` on the bastion for annotation checks
+
+Click each step only if you need a hint.
+
+=== Control: Enable nonRoot (pre-4.18)
+
+**Level:** 1
+
+The `nonRoot` feature gate makes virt-launcher run without root. From OpenShift Virtualization 4.18 the field is ignored and non-root is always on.
+
+*Pros:* Removes a classic container-to-host escalation path; matches OpenShift's non-root default for pods.
+
+*Cons / impact:* Anything that still assumed root in the launcher breaks. You need a supported identification path for remaining admin tasks.
+
+*Default:* Non-root is the KubeVirt default. From 4.18 the gate is deprecated and always enabled.
+
+.Audit nonRoot
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get hyperconverged kubevirt-hyperconverged -n openshift-cnv \
+  -o jsonpath='{.spec.featureGates.nonRoot}{"\n"}'
+oc get csv -n openshift-cnv -o jsonpath='{range .items[*]}{.spec.version}{"\n"}{end}'
+----
+
+TIP: `true` is the pass on pre-4.18. On 4.18+ the field may be empty or ignored; CSV version 4.18 or later means the secure default is already enforced.
+====
+
+.Remediation (pre-4.18 only)
+[%collapsible]
+====
+Skip this patch on 4.18+. On older clusters set the gate to `true`:
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc patch hyperconverged kubevirt-hyperconverged -n openshift-cnv --type='json' -p='[
+  {"op": "replace", "path": "/spec/featureGates/nonRoot", "value": true}
+]'
+----
+
+TIP: Re-run the audit. Output should be `true`.
+====
+
+=== Control: Disable persistentReservation
+
+**Level:** 1
+
+Persistent SCSI reservations share a LUN among VMs. They exist for Windows Shared Cluster Filesystem and pull in `qemu-pr-helper` with extra privilege.
+
+*Pros:* Least functionality; no privileged helper unless that Windows clustered-disk use case is real.
+
+*Cons / impact:* Those clustered Windows filesystems cannot reserve the LUN. Leave the gate off unless that workload is an explicit exception.
+
+*Default:* Disabled (`false`).
+
+.Audit persistentReservation
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get hyperconverged kubevirt-hyperconverged -n openshift-cnv \
+  -o jsonpath='{.spec.featureGates.persistentReservation}{"\n"}'
+----
+
+TIP: `false` or empty is a pass. Do not enable this gate to "see what happens" on a shared cluster.
+====
+
+.Remediation
+[%collapsible]
+====
+Only if the audit returned `true` and you do not run Windows Shared Cluster Filesystem:
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc patch hyperconverged kubevirt-hyperconverged -n openshift-cnv --type='json' -p='[
+  {"op": "replace", "path": "/spec/featureGates/persistentReservation", "value": false}
+]'
+----
+
+TIP: Audit should return `false`.
+====
+
+=== Control: Disable downwardMetrics
+
+**Level:** 1
+
+`downwardMetrics` exposes extra host and VM performance data to the guest.
+
+*Pros:* Shrinks reconnaissance data a compromised guest can read about the node.
+
+*Cons / impact:* Guests cannot consume those host metrics. Use Prometheus on the cluster (virt-07 vCPU metrics) instead of leaking them into the VM.
+
+*Default:* `false`.
+
+.Audit downwardMetrics
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get hyperconverged kubevirt-hyperconverged -n openshift-cnv \
+  -o jsonpath='{.spec.featureGates.downwardMetrics}{"\n"}'
+----
+
+TIP: `false` or empty is a pass.
+====
+
+.Remediation
+[%collapsible]
+====
+Only if the audit returned `true`:
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc patch hyperconverged kubevirt-hyperconverged -n openshift-cnv --type='json' -p='[
+  {"op": "replace", "path": "/spec/featureGates/downwardMetrics", "value": false}
+]'
+----
+
+TIP: Audit should return `false`.
+====
+
+=== Control: Enforce trusted registries using TLS
+
+**Level:** 1
+
+`spec.storageImport.insecureRegistries` is the allow-list of registries CDI may contact *without* TLS. Empty means TLS-only trusted registries.
+
+*Pros:* Disk images and container sources are not imported over cleartext or from unknown HTTP endpoints.
+
+*Cons / impact:* Air-gapped or lab registries that only speak HTTP will fail until you put TLS in front of them (or accept a documented exception).
+
+*Default:* No insecure registries. The jsonpath should be empty.
+
+.Audit insecureRegistries
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get hyperconverged kubevirt-hyperconverged -n openshift-cnv \
+  -o jsonpath='{.spec.storageImport.insecureRegistries}{"\n"}'
+----
+
+TIP: Empty output is a pass. Any hostname listed is a finding.
+====
+
+.Remediation
+[%collapsible]
+====
+Remove the entire allow-list (only if it is populated and you intend to break those HTTP imports):
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc patch hyperconverged kubevirt-hyperconverged -n openshift-cnv --type='json' -p='[
+  {"op": "remove", "path": "/spec/storageImport/insecureRegistries"}
+]'
+----
+
+TIP: Re-run the audit. It should print nothing.
+====
+
+=== Control: Restrict HCO jsonpatch annotations
+
+**Level:** 1
+
+HCO honors experimental jsonpatch annotations on itself: `kubevirt.kubevirt.io/jsonpatch`, `containerizeddataimporter.kubevirt.io/jsonpatch`, `networkaddonsconfigs.kubevirt.io/jsonpatch`, and `ssp.kubevirt.io/jsonpatch`. Those patches mutate child operands outside the supported HCO spec.
+
+*Pros:* Administrators configure Virtualization through HCO fields, not unsupported patches that can disable security defaults.
+
+*Cons / impact:* Experimental or preview settings that exist only as jsonpatch cannot be used. That is the point.
+
+*Default:* None of the annotations are set. `jq has(...)` returns `false`.
+
+.Audit jsonpatch annotations
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get hyperconverged kubevirt-hyperconverged -n openshift-cnv -o json | jq '
+  .metadata.annotations // {}
+  | {
+      kubevirt: has("kubevirt.kubevirt.io/jsonpatch"),
+      cdi: has("containerizeddataimporter.kubevirt.io/jsonpatch"),
+      network: has("networkaddonsconfigs.kubevirt.io/jsonpatch"),
+      ssp: has("ssp.kubevirt.io/jsonpatch")
+    }
+'
+----
+
+TIP: All four values should be `false`. Missing annotations (`{}`) is a pass.
+====
+
+.Remediation
+[%collapsible]
+====
+Remove a specific annotation (example: CDI). Repeat for any `true` result above. The trailing `-` deletes the key.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc annotate --overwrite -n openshift-cnv hyperconverged kubevirt-hyperconverged \
+  'containerizeddataimporter.kubevirt.io/jsonpatch-'
+----
+
+TIP: Re-run the four `has(...)` checks. They should be `false`.
+====
+
+== Debrief
+
+HCO is the supported control plane for these five settings. Empty/false is the hardened baseline. Do not turn gates on just to demonstrate a patch.
+
+What breaks without this:
+
+* `qemu-pr-helper` and clustered SCSI reservations you do not need
+* Guest-visible host metrics
+* HTTP registry imports of VM disks
+* jsonpatch that silently undoes HCO security fields on reconcile
+
+NOTE: Next is xref:virt-02-devices-ksm-permissions.adoc[virt-02] -- host devices, KSM, and virt-handler file permissions.
+
+== Cleanup
+
+Progress only. HCO stays as you left it (hopefully still at the secure defaults).
+
+:lab-cleanup-module: virt-01
+include::partial$lab-cleanup.adoc[]

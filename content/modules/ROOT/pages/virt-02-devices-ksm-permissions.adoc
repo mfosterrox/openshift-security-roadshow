@@ -1,0 +1,222 @@
+= Host Devices, KSM, and virt-handler File Permissions
+:role: Virtualization Platform Hardening
+:skills: permittedHostDevices, KSM, virt-handler Permissions
+:labid: LAB-VIRT-02
+:toc:
+:icons: font
+
+**Duration:** ~25 minutes
+
+== Overview
+xref:virt-01-feature-gates-and-trusted-config.adoc[virt-01] locked feature gates on HyperConverged. This module covers four more platform controls: which PCI/USB/mediated devices CNV will pass through, Kernel Samepage Merging (Level 2), and two node-local files virt-handler uses (seccomp profile mode 700, cache directory mode 755).
+
+Cluster-wide pass-through is configured on HCO (`spec.permittedHostDevices`). Per-VM attachment is xref:virt-04-vm-configuration.adoc[virt-04]. You still audit both layers.
+
+== Why it matters
+A GPU or USB device that is passed through is no longer mediated by the hypervisor the way a virtio disk is. KSM merges identical pages across VMs, which is a known side-channel class. virt-handler's seccomp profile and private cache are the last files you want world-writable on the node.
+
+== What does it solve
+
+* An unused GPU/USB allow-list sitting on HCO "for later"
+* KSM enabled for density without accepting the information-disclosure tradeoff
+* A writable `kubevirt.json` seccomp profile (syscall policy for virt-launcher)
+* A world-writable `/var/run/kubevirt-private` cache of VM config
+
+== Your Mission
+List permitted host devices (expect empty), confirm KSM is not configured, and `stat` the seccomp file and private directory from each virt-handler pod.
+
+=== Prerequisites
+
+* xref:virt-01-feature-gates-and-trusted-config.adoc[virt-01] complete
+* Permission to get HCO and to `oc exec` into `virt-handler` in `openshift-cnv`
+
+Click each step only if you need a hint.
+
+=== Control: Restrict GPU and USB pass-through to approved devices
+
+**Level:** 1
+
+`spec.permittedHostDevices` on HCO is the cluster allow-list for mediated devices, PCI devices, and USB devices that VMs may consume.
+
+*Pros:* Unknown or unneeded hardware cannot be attached to a VM even if a user puts it in the VM spec. Shrinks accidental data paths out of the guest.
+
+*Cons / impact:* Workloads that need a specific GPU, NVMe, or USB device fail until an administrator adds *that* device to the list. That review is the control.
+
+*Default:* OpenShift Virtualization does not configure pass-through devices. The audit should be empty.
+
+.Audit permittedHostDevices
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get hyperconverged kubevirt-hyperconverged -n openshift-cnv \
+  -o jsonpath='{.spec.permittedHostDevices}{"\n"}'
+----
+
+TIP: Empty output is a pass. If JSON appears, every `pciHostDevices`, `usbHostDevices`, and `mediatedDevices` entry must be a documented exception.
+====
+
+.Remediation
+[%collapsible]
+====
+Remove a single PCI allow-list entry by index (example: index 0), or remove the entire `permittedHostDevices` stanza.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+# Example: drop PCI allow-list index 0 (only if the audit listed devices you do not want)
+# oc patch hyperconverged kubevirt-hyperconverged -n openshift-cnv --type='json' -p='[
+#   {"op": "remove", "path": "/spec/permittedHostDevices/pciHostDevices/0"}
+# ]'
+
+# Remove all permitted devices (only if the entire list is unjustified)
+# oc patch hyperconverged kubevirt-hyperconverged -n openshift-cnv --type='json' -p='[
+#   {"op": "remove", "path": "/spec/permittedHostDevices"}
+# ]'
+----
+
+The commands are commented so a shared lab does not drop a device someone else needs. Uncomment on a cluster you own after you have recorded the current JSON.
+
+TIP: Re-run the audit. Empty is the hardened state.
+====
+
+=== Control: Make sure KSM is disabled
+
+**Level:** 2
+
+Kernel Samepage Merging shares identical memory pages across VMs on a host. It can save RAM. It also creates a cross-VM memory side channel.
+
+*Pros:* No shared pages between tenants; lower risk of memory disclosure or corruption across guests.
+
+*Cons / impact:* Memory-heavy consolidations may need more RAM per node. Density is the thing you are giving up.
+
+*Default:* KSM is disabled. `spec.ksmConfiguration` should be empty or clearly not enabling KSM.
+
+.Audit ksmConfiguration
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get hyperconverged kubevirt-hyperconverged -n openshift-cnv \
+  -o jsonpath='{.spec.ksmConfiguration}{"\n"}'
+----
+
+TIP: Empty or a config that does not enable KSM is a pass. If KSM is on, treat it as a Level 2 finding and an explicit density exception.
+====
+
+.Remediation
+[%collapsible]
+====
+Edit HCO and disable KSM (field names vary slightly by version; set the configuration so KSM is not enabled):
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc edit hyperconverged kubevirt-hyperconverged -n openshift-cnv
+----
+
+Set `spec.ksmConfiguration` so the feature is off, save, then re-run the audit. Prefer `oc edit` here so you see the live schema instead of guessing a jsonpatch path.
+
+TIP: Do not enable KSM in this lab to "try density."
+====
+
+=== Control: kubevirt seccomp profile mode 700
+
+**Level:** 1
+
+If the KubeVirt seccomp feature is enabled, virt-handler places `kubevirt.json` under the kubelet seccomp directory. Mode `700` means only root on the node can change the syscall profile for virt-launcher.
+
+*Pros:* Attackers with a foothold that is not root cannot rewrite the allowed syscalls.
+
+*Cons / impact:* None for normal operations.
+
+*Default:* `700` when the file exists. If the file is missing, the feature gate is off and you can ignore this check.
+
+.Audit seccomp file mode
+[%collapsible]
+====
+`stat` from each virt-handler container. If `stat` fails with "No such file", record "not applicable" and continue.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+for pod in $(oc get pod -n openshift-cnv -l kubevirt.io=virt-handler --no-headers -o custom-columns=':metadata.name'); do
+  echo "== $pod"
+  oc exec -n openshift-cnv "$pod" -c virt-handler -- \
+    stat -c %a /proc/1/root/var/lib/kubelet/seccomp/kubevirt/kubevirt.json \
+    || echo "file absent (feature not enabled; skip)"
+done
+----
+
+TIP: Each existing file should print `700`.
+====
+
+.Remediation
+[%collapsible]
+====
+Only if a file exists and mode is weaker than 700:
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+# Replace POD with a virt-handler pod name from the audit
+# oc exec -n openshift-cnv POD -c virt-handler -- \
+#   chmod 700 /proc/1/root/var/lib/kubelet/seccomp/kubevirt/kubevirt.json
+----
+
+TIP: Re-run the loop. Modes should be `700`.
+====
+
+=== Control: kubevirt-private directory mode 755
+
+**Level:** 1
+
+`/var/run/kubevirt-private` is where virt-handler caches VM configuration. Mode `755` (or stricter) keeps that cache to root and the virt-handler process.
+
+*Pros:* Other node users cannot rewrite cached VM config.
+
+*Cons / impact:* None for normal operations.
+
+*Default:* `755`.
+
+.Audit kubevirt-private mode
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+for pod in $(oc get pod -n openshift-cnv -l kubevirt.io=virt-handler --no-headers -o custom-columns=':metadata.name'); do
+  echo "== $pod"
+  oc exec -n openshift-cnv "$pod" -- \
+    stat -c %a /var/run/kubevirt-private \
+    || echo "path absent (skip)"
+done
+----
+
+TIP: Each existing directory should print `755` or stricter (for example `750` or `700`).
+====
+
+.Remediation
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+# oc exec -n openshift-cnv POD -- chmod 755 /var/run/kubevirt-private
+----
+
+TIP: Re-run the loop after chmod on any handler that was too open.
+====
+
+== Debrief
+
+Pass-through is off unless you allow-list it. KSM is a Level 2 density vs isolation choice. virt-handler file modes are boring until they are not.
+
+What breaks without this:
+
+* A USB or GPU path into a guest you did not intend
+* Shared pages across tenant VMs
+* A rewritten seccomp profile for every virt-launcher on the node
+
+NOTE: Next is xref:virt-03-virtualization-rbac.adoc[virt-03] -- who can migrate, exec, open VNC, and edit cluster-wide instance types.
+
+== Cleanup
+
+Progress only. Do not delete virt-handler pods.
+
+:lab-cleanup-module: virt-02
+include::partial$lab-cleanup.adoc[]

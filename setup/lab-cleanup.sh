@@ -17,7 +17,7 @@ usage() {
   cat <<'EOF'
 Usage: lab-cleanup.sh --module MODULE
 
-MODULE examples: 00-07 (ACS), 101-01, 201-06, 301-08, tssc-00, tssc-01, tssc-02
+MODULE examples: 00-07 (ACS), 101-01, 201-06, 301-08, tssc-00, virt-00
 EOF
 }
 
@@ -35,7 +35,7 @@ if [[ -z "${MODULE}" ]]; then
   exit 1
 fi
 
-if [[ ! "${MODULE}" =~ ^(0[0-7]|101-[0-9]{2}|201-[0-9]{2}|301-[0-9]{2}|tssc-0[0-2])$ ]]; then
+if [[ ! "${MODULE}" =~ ^(0[0-7]|101-[0-9]{2}|201-[0-9]{2}|301-[0-9]{2}|tssc-0[0-2]|virt-0[0-7])$ ]]; then
   echo "Error: unsupported module id '${MODULE}'" >&2
   usage
   exit 1
@@ -305,6 +305,12 @@ case "${MODULE}" in
   tssc-00|tssc-01|tssc-02)
     rm -f "/tmp/lab-${MODULE}.txt" /tmp/lab-scratch-* 2>/dev/null || true
     echo "Removed temporary lab files for module ${MODULE}."
+    ;;
+  virt-00|virt-01|virt-02|virt-03|virt-04|virt-05|virt-06)
+    echo "Virtualization pathway is cumulative. No cluster objects deleted (HCO, rhel-webserver, NADs stay)."
+    ;;
+  virt-07)
+    echo "Virtualization pathway complete. Cluster objects were left in place on purpose."
     ;;
   *)
     rm -f "/tmp/lab-${MODULE}.txt" /tmp/lab-scratch-* 2>/dev/null || true
