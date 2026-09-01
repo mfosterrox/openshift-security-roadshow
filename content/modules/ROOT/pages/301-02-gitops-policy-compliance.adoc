@@ -1,100 +1,134 @@
-= Implement GitOps-Driven Policy and Compliance Pipelines at Scale
+= GitOps a Hardened Python Image (Red Hat catalog)
 :role: Advanced Automation & Compliance
-:skills: GitOps Reconciliation, Policy-as-Code Repositories, Automated Drift Detection, Compliance Pipelines
+:skills: GitOps Reconciliation, Digest Pinning, Red Hat Hardened Images
 :labid: LAB-301-02
 :toc:
 :icons: font
 
-**Duration:** ~30 minutes
+**Duration:** ~25 minutes
 
 == Overview
-Design and implement GitOps-driven policy and compliance pipelines that automatically reconcile desired state, detect configuration drift, and enforce compliance at scale across multiple clusters and environments.
+xref:201-11-threat-modeling-control-mapping.adoc[201-11] Tampering: unsigned or floating tags get admitted. This lab deploys a **Red Hat catalog Python image** from https://images.redhat.com/[Red Hat Images] (`registry.access.redhat.com/ubi9/python-311`) as GitOps YAML, **pinned to a digest**, with no automounted SA token.
 
-Manage policy and compliance as GitOps-managed code with drift detection, enforcement, and auditable change history across environments.
+That image is signed by Red Hat, runs as non-root, and is the workload xref:301-04-runtime-threat-detection.adoc[301-04] will police at runtime. It is *not* Docker Hub `python:alpine` and *not* the workshop `python-alpine-golden` FROM used in xref:201-04-shift-left-pipeline.adoc[201-04].
+
+If OpenShift GitOps (Argo CD) is installed, the same directory is what an Application would sync. This roadshow applies it with `oc` so you do not need a public Git remote.
 
 == Why it matters
-
-GitOps-driven policy and compliance provide:
-
-* **Declarative Configuration**: Policies defined as code in version control
-* **Automated Reconciliation**: Continuous enforcement of desired state
-* **Drift Detection**: Automatic identification of configuration deviations
-* **Audit Trail**: Complete history of policy changes and compliance status
-* **Scalability**: Consistent policy enforcement across multiple clusters
-* **Collaboration**: Policy changes through pull requests and code review
+Click-ops Deployments on `:latest` are how a registry swap becomes production. Git + digest is the reviewable, auditable path (Repudiation as well as Tampering). UBI Python is the enterprise default for a small HTTP service you can still exec into for runtime policy tests.
 
 == What does it solve
 
-Traditional policy management faces challenges:
-
-* Manual policy application is error-prone and doesn't scale
-* Configuration drift goes undetected until incidents occur
-* Compliance validation is reactive rather than continuous
-* Policy changes lack proper version control and review
-* Multi-cluster policy management becomes inconsistent
-
-GitOps-driven pipelines solve these by:
-
-* Automating policy reconciliation and enforcement
-* Detecting drift in real-time
-* Providing continuous compliance validation
-* Enabling policy-as-code with version control
-* Ensuring consistency across all environments
+* Mutable tags that silently change what the cluster runs
+* Public Python bases that are not in your approved catalog
+* GitOps theater (Argo installed, workloads still created in the console)
+* ServiceAccounts that still automount tokens on a simple app
 
 == Your Mission
-Put policy and compliance in Git so drift and silent exceptions cannot hide. Treat every unauthorized change as something reconciliation should expose.
+Resolve the UBI Python digest, apply the in-repo manifests, prove the running image is digest-pinned, and (optional) show Argo CD would sync the same path.
 
-== Understanding the Architecture
+=== Prerequisites
 
-[cols="1,2,2",options="header"]
-|===
-|Component | Purpose | OpenShift/K8s Implementation
-|GitOps Reconciliation | Continuous state synchronization | ArgoCD, Flux, GitOps Operator
-|Policy-as-Code | Version-controlled policy definitions | Git repositories, policy manifests, Kustomize/Helm
-|Drift Detection | Identify configuration deviations | Comparison tools, compliance scanners, monitoring
-|Compliance Pipelines | Automated validation and enforcement | CI/CD pipelines, policy engines, admission controllers
-|Multi-Cluster Management | Scale across environments | Cluster management tools, GitOps multi-cluster patterns
-|===
+* `oc` logged in with permission to create namespaces and Deployments
+* Egress to `registry.access.redhat.com` (or a cluster mirror of UBI)
+* Optional: OpenShift GitOps Operator (`applications.argoproj.io`)
 
-== Lab Content
+Click each step only if you need a hint.
 
-[NOTE]
+=== Part A: Catalog image
+
+.Look up the image on Red Hat Images
+[%collapsible]
 ====
-This lab is currently under development. Content will include:
+Open https://images.redhat.com/[images.redhat.com] and search for **Python** / **ubi9/python-311**. The pull spec this lab uses is `registry.access.redhat.com/ubi9/python-311` (the same catalog image; `registry.redhat.io` if your cluster is authenticated to the entitlements registry).
 
-* GitOps reconciliation setup for policies
-* Policy-as-code repository structure and patterns
-* Automated drift detection implementation
-* Compliance pipeline design and execution
-* Multi-cluster policy management strategies
-* Integration with CI/CD and compliance reporting tools
+TIP: Catalog pages show architecture, security metadata, and the recommended pull spec. Do not switch this lab to `docker.io/library/python`.
 ====
 
-== Prerequisites
+.Resolve the digest
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc image info registry.access.redhat.com/ubi9/python-311:latest --filter-by-os=linux/amd64
+----
 
-* OpenShift cluster with cluster-admin access
-* Git repository access and GitOps tooling (ArgoCD/Flux)
-* Understanding of GitOps principles and practices
-* Familiarity with policy engines and admission controllers
-* Experience with CI/CD pipelines
+TIP: Note the `Digest: sha256:…` line. That is what GitOps should pin. If `oc image info` fails, the apply script falls back to the tag and prints a warning.
+====
+
+=== Part B: Apply desired state
+
+.Apply the pinned manifests
+[%collapsible]
+====
+YAML lives in this roadshow repo (`setup/gitops-lab/`). The helper rewrites the Deployment image to `image@sha256:…` then `oc apply`.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+cd ~/openshift-security-roadshow/setup/gitops-lab
+chmod +x apply-pinned.sh
+./apply-pinned.sh
+----
+
+TIP: `Applied python-app in 301-02-python using registry.access.redhat.com/ubi9/python-311@sha256:…`.
+====
+
+.Wait for the pod and confirm the digest
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc rollout status deploy/python-app -n 301-02-python --timeout=120s
+oc get deploy python-app -n 301-02-python -o jsonpath='{.spec.template.spec.containers[0].image}{"\n"}'
+oc get sa app -n 301-02-python -o jsonpath='{.automountServiceAccountToken}{"\n"}'
+oc get pods -n 301-02-python -o jsonpath='{.items[0].status.containerStatuses[0].imageID}{"\n"}'
+----
+
+TIP: Deployment image contains `@sha256:`. SA automount is `false`. `imageID` is the same digest the node pulled.
+====
+
+.Hit the app from inside the cluster
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc exec deploy/python-app -n 301-02-python -- python3 -c "import urllib.request; print(urllib.request.urlopen('http://127.0.0.1:8080/', timeout=5).status)"
+----
+
+TIP: Prints `200`. The process is `python3`; ACS can still see exec in 301-04/05.
+====
+
+=== Part C: GitOps operator (optional)
+
+.If Argo CD is present, inspect it — do not require a new Git remote
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get crd applications.argoproj.io 2>/dev/null && oc get argocd -A || echo "OpenShift GitOps not installed — oc apply -k is the GitOps path for this lab"
+ls ~/openshift-security-roadshow/setup/gitops-lab
+----
+
+TIP: The kustomize directory *is* the desired state. On a customer cluster you would point an `Application` at this path in Git. You already applied it; skip creating an Application that needs a clone URL.
+====
 
 == Debrief
 
-GitOps-driven policy makes desired security state reviewable and drift visible—silent console exceptions stop being invisible.
+GitOps of a **Red Hat catalog Python image by digest** is Tampering control at deploy time. Runtime is xref:301-04-runtime-threat-detection.adoc[301-04]. Provenance depth (SBOM, signatures, admit unsigned) is xref:301-06-supply-chain-integrity.adoc[301-06].
 
-What this module targets:
+What breaks without this:
 
-* Policy-as-code in Git
-* Reconciliation (Argo CD / Flux) for continuous enforcement
-* Compliance pipelines and multi-cluster consistency
+* `:latest` in production → yesterday’s scan is not what ran today
+* Docker Hub Python in a “hardened” program → you skipped the catalog you already pay for
+* Policy YAML only on the hub, workloads still click-ops → two sources of truth
 
-Until full exercises land: note one control you only enforce by click-ops today and sketch the Git path that would own it.
+IMPORTANT: pin digest, UBI Python from https://images.redhat.com/[images.redhat.com], no automount. Leave `301-02-python` running if you are continuing to 301-04.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExa3R1YjV5eGt3MTQ2a2UxOGM0ZThzaTQwdXE3cHdmMGo3NXUzOHB0MiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/MrCYIN3x0SgdG/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
 == Cleanup
 
-Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+Deletes project `301-02-python`. Skip cleanup if you are going straight to 301-04 / 301-06.
 
 :lab-cleanup-module: 301-02
 include::partial$lab-cleanup.adoc[]

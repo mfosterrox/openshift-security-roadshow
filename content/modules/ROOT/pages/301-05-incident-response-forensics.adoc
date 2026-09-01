@@ -1,104 +1,197 @@
-= Lead Coordinated Incident Response and Forensic Investigation on the Platform
+= Incident Response with Splunk Audit and RHACS
 :role: Advanced Incident Response & Forensics
-:skills: Forensic Data Collection, Timeline Reconstruction, Threat Intel Correlation, Root Cause Analysis
+:skills: Splunk, ClusterLogForwarder, RHACS Violations, Timeline Reconstruction
 :labid: LAB-301-05
 :toc:
 :icons: font
 
-**Duration:** ~30 minutes
+**Duration:** ~25 minutes
 
 == Overview
-Lead comprehensive incident response and forensic investigations on OpenShift platforms. You will collect forensic data, reconstruct attack timelines, correlate threat intelligence, perform root cause analysis, and coordinate response efforts across teams.
+xref:201-11-threat-modeling-control-mapping.adoc[201-11] Repudiation: an `exec` or policy kill with no durable trail is an incident you cannot explain. xref:201-06-audit-monitoring-correlation.adoc[201-06] stood up Splunk and kube-apiserver audit. xref:301-04-runtime-threat-detection.adoc[301-04] made ACS **kill** a violating process.
 
-Lead a coordinated OpenShift incident response with clear roles, evidence capture, and forensic steps that hold up after the fact.
+This lab is the **use** of those two sensors together: generate (or reuse) a bad action, hunt it in Splunk (API audit + optional `stackrox-*`), join it to the ACS violation, and write a five-line timeline a SOC lead could hand to an incident commander.
 
 == Why it matters
-
-Effective incident response and forensics are essential for:
-
-* **Rapid Containment**: Quickly identify and stop active attacks
-* **Impact Assessment**: Understand the scope and severity of incidents
-* **Root Cause Analysis**: Identify how attacks succeeded to prevent recurrence
-* **Threat Intelligence**: Learn from attacks to improve defenses
-* **Compliance**: Meet regulatory requirements for incident handling
-* **Continuous Improvement**: Use lessons learned to enhance security
+ACS names the *process*. Audit names the *Kubernetes user* and verb. Neither stream alone answers “who exec’d `dnf` into which pod, and did runtime enforce fire?” CIS still cares that audit left the masters (1.2.21); IR cares that you can *query* it under time pressure.
 
 == What does it solve
 
-Incident response challenges include:
-
-* Incomplete data collection misses critical evidence
-* Timeline reconstruction is manual and time-consuming
-* Threat intelligence is not integrated with investigations
-* Root cause analysis lacks systematic approach
-* Coordination across teams is ad-hoc and inefficient
-* Documentation is inconsistent and incomplete
-
-This lab addresses these by:
-
-* Providing systematic forensic data collection procedures
-* Automating timeline reconstruction from multiple sources
-* Integrating threat intelligence into investigation workflows
-* Using structured root cause analysis methodologies
-* Establishing clear coordination processes
-* Creating standardized documentation templates
+* Violations in ACS with no API identity
+* Splunk `exec` hits with no process name
+* Rewriting the timeline from memory after the pod is gone
+* Forensics theater (snapshots, chain-of-custody binders) before you can search
 
 == Your Mission
-Lead a response that preserves evidence and names owners. An attacker counts on chaos; your playbook removes it.
+Confirm Splunk is up (reinstall if 201-07 cleanup tore it down), generate an exec against the 301-04 probe or a sleeper, hunt both indexes, and fill in the timeline table.
 
-== Understanding the Architecture
+=== Prerequisites
+
+* Splunk + `ClusterLogForwarder` from 201-06, **or** re-run `setup/splunk-lab/install.sh`
+* RHACS Central (optional notifier into Splunk if `ROX_API_TOKEN` was set at install)
+* Something to hunt: leftover `301-04-runtime` probe, or a sleeper in this lab
+
+Click each step only if you need a hint.
+
+=== Part A: SIEM still there?
+
+.Splunk route and password
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get route splunk-web -n splunk -o jsonpath='https://{.spec.host}{"\n"}' 2>/dev/null || echo "Splunk missing — reinstall"
+----
+
+If the route is missing (typical after xref:201-07-compliance-tailoring.adoc[201-07] cleanup):
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+cd ~/openshift-security-roadshow/setup/splunk-lab
+SPLUNK_RUN_CLEAN_FIRST=false ./install.sh
+----
+
+Then:
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get route splunk-web -n splunk -o jsonpath='https://{.spec.host}{"\n"}'
+echo "admin password:"
+oc -n splunk get secret splunk-auth -o jsonpath='{.data.password}' | base64 -d; echo
+----
+
+TIP: Sign in as `admin`. Hunt in **Search & Reporting**. First boot can take 10–25 minutes if you reinstall.
+====
+
+=== Part B: Generate the bad action
+
+.Exec into the 301-04 probe (or a sleeper)
+[%collapsible]
+====
+Prefer the probe if 301-04 is still deployed—then ACS and audit line up on the same pod.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+if oc get deploy pkgmgr-probe -n 301-04-runtime >/dev/null 2>&1; then
+  POD=$(oc get pod -l app=pkgmgr-probe -n 301-04-runtime -o jsonpath='{.items[0].metadata.name}')
+  echo "Using probe $POD"
+  oc exec "$POD" -n 301-04-runtime -- /bin/bash -c 'dnf --version || true; echo IR-LAB-EXEC'
+else
+  oc new-project 301-05-ir || oc project 301-05-ir
+  oc run sleeper --image=registry.access.redhat.com/ubi9/ubi -- sleep infinity
+  oc wait pod/sleeper --for=condition=Ready --timeout=90s
+  oc exec sleeper -- echo IR-LAB-EXEC
+fi
+date -u +%Y-%m-%dT%H:%M:%SZ
+----
+
+TIP: Note the UTC timestamp. If ACS runtime enforce is still on, the probe pod may be killed (that is evidence, not failure).
+====
+
+.Seed Splunk if the forwarder is slow
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+cd ~/openshift-security-roadshow/setup/splunk-lab
+chmod +x push-recent-audit.sh
+./push-recent-audit.sh
+----
+
+TIP: Same helper as 201-06. Gives you kube-apiserver lines without waiting on the collector.
+====
+
+=== Part C: Hunt and join
+
+.API audit in Splunk
+[%collapsible]
+====
+Search:
+
+----
+index=main sourcetype="kube:apiserver:audit" (pkgmgr-probe OR sleeper OR 301-04-runtime OR 301-05-ir) exec
+----
+
+TIP: Expand an event: `user.username`, `objectRef.namespace`, `objectRef.name`, `objectRef.subresource` (`exec`), `verb` (`create` / `connect`), `sourceIPs`. That is **who** called the API.
+====
+
+.RHACS in Splunk (if the notifier is installed)
+[%collapsible]
+====
+----
+index=* sourcetype="stackrox-*" (pkgmgr-probe OR 301-04-runtime OR "Package Manager")
+----
+
+TIP: Empty `stackrox-*` means the notifier was not configured—open **Violations** in Central for the same window. You still have the audit half.
+====
+
+.ACS console + pod logs
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get route central -n stackrox -o jsonpath='https://{.spec.host}{"\n"}'
+oc get events -n 301-04-runtime --sort-by='.lastTimestamp' 2>/dev/null | tail -20
+oc get events -n 301-05-ir --sort-by='.lastTimestamp' 2>/dev/null | tail -20
+----
+
+TIP: Central **Violations**: policy, deployment, process, enforcement. Events: `Killing` / `Started`. Together with Splunk you can fill the table below.
+====
+
+=== Part D: Five-line timeline
+
+Fill this in from the hunts (example answers in the hint).
 
 [cols="1,2,2",options="header"]
 |===
-|Component | Purpose | OpenShift/K8s Implementation
-|Forensic Data Collection | Gather evidence from multiple sources | Audit logs, pod logs, events, metrics, snapshots
-|Timeline Reconstruction | Build chronological attack narrative | Log correlation tools, timeline visualization, event sequencing
-|Threat Intel Correlation | Match observed activity with known threats | Threat intel feeds, IOCs, TTPs, MITRE ATT&CK mapping
-|Root Cause Analysis | Identify underlying attack vectors | Analysis frameworks, attack trees, vulnerability assessment
-|Incident Coordination | Manage response across teams | Communication tools, ticketing systems, runbooks
-|Documentation | Record investigation findings | Report templates, evidence preservation, lessons learned
+|# |Question |Your evidence (source)
+
+|1
+|When (UTC)?
+|Splunk `_time` / `date` from the exec step
+
+|2
+|Which Kubernetes user?
+|Audit `user.username` (not the container UID)
+
+|3
+|Which namespace / pod?
+|`objectRef` + ACS deployment
+
+|4
+|What process ran?
+|ACS violation (e.g. `dnf`) / `echo IR-LAB-EXEC`
+
+|5
+|Did runtime enforce fire?
+|ACS enforcement + OpenShift `Killing` event
 |===
 
-== Lab Content
-
-[NOTE]
+.Example filled row (collapsible)
+[%collapsible]
 ====
-This lab is currently under development. Content will include:
+`14:02:11Z` — `lab-user` — `301-04-runtime` / `pkgmgr-probe-…` — `dnf --version` — yes, ACS runtime enforce killed the pod; Deployment recreated a replica.
 
-* Forensic data collection procedures and tools
-* Timeline reconstruction techniques and automation
-* Threat intelligence integration and correlation
-* Root cause analysis methodologies
-* Incident coordination and communication
-* Documentation and post-incident reporting
+Detection rule worth keeping: IF (`exec` in a prod-like namespace) AND (ACS package-manager violation within 60s) THEN page the on-call.
 ====
-
-== Prerequisites
-
-* OpenShift cluster with cluster-admin access
-* Access to audit logs and monitoring data
-* Understanding of incident response procedures
-* Familiarity with forensic investigation techniques
-* Experience with threat intelligence platforms
-* Leadership and coordination skills
 
 == Debrief
 
-Incident response and forensics need named owners, evidence preservation, and a timeline—before the heat of an event.
+IR on OpenShift is **Splunk audit + RHACS**, not a separate forensics appliance for the first hour. Preserve the SIEM and Central; snapshot the node later if you need disk.
 
-What this module targets:
+What breaks without this:
 
-* Forensic collection and chain of custody on OpenShift
-* Timeline reconstruction with audit + ACS
-* RCA and coordinated roles
+* ACS-only → you know `dnf` ran, not which API user
+* Audit-only → you know `exec` happened, not which binary
+* Tearing Splunk down after 201-07 and never reinstalling → 301 has no hunt UI
 
-Until full exercises land: write a one-page IR card—who freezes namespaces, who pulls audit, who talks to app owners.
+IMPORTANT: Cleanup only deletes `301-05-ir` (not Splunk, not ACS policies).
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcW84bjNhdDZnN3VhbjkwOGdta2s5Yzg5anFscmU0Mm94cmVmcXVjZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/cEODGfeOYMRxK/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
 == Cleanup
 
-Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+Deletes project `301-05-ir` if you created the sleeper. Does not uninstall Splunk or ACS.
 
 :lab-cleanup-module: 301-05
 include::partial$lab-cleanup.adoc[]

@@ -7,20 +7,18 @@ xref:index.adoc[← Back to HOME]
 
 == Overview
 
-These advanced labs cover enterprise security architecture and zero-trust patterns: governance, GitOps policy, multi-tenant networking, runtime detection, forensics, supply chain integrity, remediation automation, culture, cryptography, and workload identity.
+These advanced labs are the **enterprise scale-up of the xref:201-11-threat-modeling-control-mapping.adoc[201-11] STRIDE map**: RHACM PolicySet, GitOps of a Red Hat catalog Python image, AdminNetworkPolicy, ACS runtime enforce, Splunk+ACS IR, supply-chain admission, encryption inventory, and SPIFFE workload identity.
 
 Topics covered:
 
-* Platform-wide security governance
-* GitOps-driven policy and compliance pipelines
-* Multi-tenant zero-trust network and service segmentation
-* Runtime threat detection pipelines and response integration
-* Coordinated incident response and forensics
-* End-to-end supply chain integrity and provenance
-* Automated remediation and policy enforcement
-* Security culture and maturity
-* Advanced cryptography and encryption strategies
-* Zero-trust workload identity and confidential computing
+* Platform-wide security governance (STRIDE PolicySet)
+* GitOps of a digest-pinned UBI Python image (https://images.redhat.com/[Red Hat Images])
+* Multi-tenant zero-trust with AdminNetworkPolicy
+* RHACS runtime policies that kill violating processes
+* Incident response with Splunk audit + RHACS
+* Supply-chain digest admission for catalog images
+* Encryption inventory (etcd, TLS, no secret-as-env)
+* Zero-trust workload identity (SPIFFE)
 
 Application Developer has no Advanced labs in the framework—complete Intermediate, then continue with DevSecOps or Architect.
 
@@ -37,65 +35,36 @@ Audience and prerequisites:
 |Lab | Title | Roles
 
 |xref:301-01-platform-security-governance.adoc[301-01]
-|Platform-Wide Security Governance & Policy as Code
+|STRIDE PolicySet (RHACM governance)
 |Platform, Architect
 
 |xref:301-02-gitops-policy-compliance.adoc[301-02]
-|GitOps-Driven Policy and Compliance Pipelines
+|GitOps UBI Python (digest-pinned catalog image)
 |DevSecOps, Architect
 
 |xref:301-03-multi-tenant-zero-trust-network.adoc[301-03]
-|Multi-Tenant Zero-Trust Network Segmentation
+|AdminNetworkPolicy zero-trust east-west
 |Architect, Network
 
 |xref:301-04-runtime-threat-detection.adoc[301-04]
-|Runtime Threat Detection with ACS Deep Dive
+|RHACS runtime enforce (kill violating actions)
 |DevSecOps
 
 |xref:301-05-incident-response-forensics.adoc[301-05]
-|Incident Response, Forensics & ACS Integration
+|Splunk audit + RHACS incident timeline
 |Architect
 
 |xref:301-06-supply-chain-integrity.adoc[301-06]
-|Supply Chain Integrity, Provenance & Trusted Artifact Signer
+|Catalog image provenance and digest admission
 |DevSecOps, Architect
 
-|xref:301-07-automated-remediation.adoc[301-07]
-|Automated Remediation, Policy Enforcement & ACS Response
-|Platform, DevSecOps, Architect
-
-|xref:301-08-security-culture-maturity.adoc[301-08]
-|Building Security Culture & Maturity Models
-|Platform, Architect
-
-|xref:301-09-advanced-cryptography.adoc[301-09]
-|Advanced Cryptography: Post-Quantum mTLS, Encryption Strategies
+|xref:301-07-advanced-cryptography.adoc[301-07]
+|Prove etcd encryption, TLS, no secret-as-env
 |DevSecOps, Architect, Network
 
-|xref:301-10-zero-trust-workload-identity.adoc[301-10]
-|Zero-Trust Workload Identity, Federation & SPIFFE/SPIRE
+|xref:301-08-zero-trust-workload-identity.adoc[301-08]
+|Zero-Trust Workload Identity (SPIFFE/ZTWIM)
 |DevSecOps, Architect, Network
-
-|xref:301-11-confidential-containers.adoc[301-11]
-|Confidential Containers & Secure Enclaves
-|DevSecOps, Architect, Network
-|===
-
-== Related advanced labs
-
-[cols="2,3,2,1",options="header"]
-|===
-|Lab | Title | Roles | Notes
-
-|xref:301-12-sovereign-cloud-security.adoc[301-12]
-|Sovereign Cloud & Digital Sovereignty Controls
-|Architect
-|Governance / residency adjacency
-
-|xref:301-13-advanced-runtime-hunting.adoc[301-13]
-|Advanced Runtime Threat Hunting & ACS Automation
-|DevSecOps
-|Extends runtime hunting and response automation
 |===
 
 Role abbreviations: App Dev = Application Developer; Platform = Platform Operator; DevSecOps = DevSecOps Engineer; Architect = Security Architect; Network = Network & Infrastructure Engineer.

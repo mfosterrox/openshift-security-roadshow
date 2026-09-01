@@ -25,7 +25,7 @@ When something goes wrong, audit logs show the API calls: user, verb, object, ti
 == Your Mission
 Someone may already have exec’d into a pod. Your mission: know the log locations CIS cares about, make an exec yourself, then pull the audit trail fast enough to name the actor, pod, and time. Complete *Part A*, then *Part B*.
 
-Deeper correlation with Loki and RHACS is xref:201-06-audit-monitoring-correlation.adoc[201-06]. Compliance Operator scans are xref:101-10-security-compliance-addons.adoc[101-10].
+Deeper correlation in Splunk (SIEM + ClusterLogForwarder) with RHACS is xref:201-06-audit-monitoring-correlation.adoc[201-06]. Compliance Operator scans are xref:101-10-security-compliance-addons.adoc[101-10].
 
 Click each step only if you need a hint.
 
@@ -57,8 +57,8 @@ On-disk paths are on the **control plane node**, not the bastion. The `oc adm` p
 |journald on the node
 |`oc adm node-logs <node>` (no `--path`)
 
-|Cluster Logging / Loki
-|indexed store (`log_type=kube-apiserver`)
+|Cluster Logging / Splunk
+|indexed store (HEC, `sourcetype=kube:apiserver:audit`)
 |xref:201-06-audit-monitoring-correlation.adoc[201-06]
 |===
 
@@ -241,7 +241,7 @@ What breaks without this:
 
 * No retention or shipping → you cannot answer who/what/when after an incident
 * Ignoring exec/port-forward → classic post-compromise footholds stay invisible
-* Knowing only Loki or only the node file → you fail the auditor’s “where does it live?” question
+* Knowing only the node file and never a SIEM → you fail the auditor’s “where does it live?” question
 
 IMPORTANT: keep OpenShift audit on, know the three `/var/log/…-apiserver/` trees, aggregate immutably off the node (CIS intent of 1.2.23–1.2.25 plus log forwarding), correlate with RHACS/runtime in later modules, and alert on anomalous verbs for sensitive namespaces.
 

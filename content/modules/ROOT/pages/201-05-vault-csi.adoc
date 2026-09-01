@@ -30,28 +30,14 @@ This lab tracks the https://github.com/validatedpatterns/layered-zero-trust[Laye
 
 Click each step only if you need a hint.
 
-.Clone openshift-days-ops-showroom
-[%collapsible]
-====
-The vault-config-scripts live in this repo. Clone it on the bastion if you do not already have it.
-
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-cd ~/
-git clone https://github.com/rhpds/openshift-days-ops-showroom.git
-----
-
-TIP: Skip clone if the directory already exists.
-====
-
 .Run install-vault.sh
 [%collapsible]
 ====
-The installer deploys the HashiCorp Helm chart into `vault` with the Agent Injector enabled.
+The installer lives in this roadshow repo. It deploys the HashiCorp Helm chart into `vault` with the Agent Injector enabled (dev mode, root token `root`).
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-cd ~/openshift-days-ops-showroom/setup-scripts/vault-config-scripts
+cd ~/openshift-security-roadshow/setup/vault-lab
 ./install-vault.sh
 ----
 
@@ -543,19 +529,16 @@ What breaks without this:
 
 IMPORTANT: Vault (or equivalent) as source of truth, Kubernetes auth bound to namespace/SA, injector for file delivery, ESO when apps need native Secret mounts, and least-privilege Vault roles.
 
-NOTE: prefer short-lived, identity-bound access over copied passwords. Lab cleanup uses the Vault workshop scripts plus `lab-cleanup.sh --module 201-05`.
+NOTE: prefer short-lived, identity-bound access over copied passwords. Lab cleanup runs `setup/vault-lab/cleanup-vault-lab.sh` via `lab-cleanup.sh --module 201-05`.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzMyaHRsNTdwZWRlejRycGtpNTkxOGlyMjJsODE4OHFiaWd3NjFpNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/rVVFWyTINqG7C/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
 == Cleanup
 
-When you finish this module, run the workshop cleanup script from the bastion. It removes External Secrets Operator, all demo applications, Vault, and related namespaces. Then run the roadshow module cleanup script.
+When you finish this module, run the roadshow cleanup script. It uninstalls External Secrets Operator and Vault and removes the related namespaces.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-cd ~/openshift-days-ops-showroom/setup-scripts/vault-config-scripts
-./cleanup-vault-lab.sh
-
 cd ~/openshift-security-roadshow
 bash setup/lab-cleanup.sh --module 201-05
 ----

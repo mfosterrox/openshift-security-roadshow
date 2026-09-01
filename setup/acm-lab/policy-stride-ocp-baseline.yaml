@@ -1,0 +1,286 @@
+# STRIDE control map delivered as RHACM Policy + PolicySet.
+# Hub objects live in namespace `policies`. Targets local-cluster via Placement.
+#
+# Maps 201-11 rows to musthave objects:
+#   Spoofing              — ServiceAccount automountServiceAccountToken: false
+#   Information disclosure / lateral — default-deny NetworkPolicy
+#   Denial of service     — LimitRange + ResourceQuota
+#   Elevation of privilege — Namespace PSA restricted
+#
+# Standards (Governance UI columns): NIST SP 800-53, DISA STIG, DoD CC SRG
+#
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: policies
+  labels:
+    app.kubernetes.io/part-of: openshift-security-roadshow
+    app.kubernetes.io/component: 301-01-acm
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: policy-stride-ns-psa
+  namespace: policies
+  labels:
+    app.kubernetes.io/part-of: openshift-security-roadshow
+    app.kubernetes.io/component: 301-01-acm
+    stride.example.com/category: elevation-of-privilege
+  annotations:
+    policy.open-cluster-management.io/standards: NIST SP 800-53, DISA STIG, DoD CC SRG
+    policy.open-cluster-management.io/categories: AC Access Control, CM Configuration Management
+    policy.open-cluster-management.io/controls: AC-6, CM-6
+spec:
+  remediationAction: inform
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: stride-workloads-namespace
+        spec:
+          remediationAction: inform
+          severity: high
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                kind: Namespace
+                metadata:
+                  name: stride-workloads
+                  labels:
+                    compliance-framework: nist-800-53
+                    stride.example.com/app: python
+                    dod.cc-srg/impact-level: il2
+                    pod-security.kubernetes.io/enforce: restricted
+                    pod-security.kubernetes.io/audit: restricted
+                    pod-security.kubernetes.io/warn: restricted
+                  annotations:
+                    compliance.example.com/stride: Elevation of privilege
+                    compliance.example.com/controls: AC-6, CM-6
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: policy-stride-quota-limits
+  namespace: policies
+  labels:
+    app.kubernetes.io/part-of: openshift-security-roadshow
+    app.kubernetes.io/component: 301-01-acm
+    stride.example.com/category: denial-of-service
+  annotations:
+    policy.open-cluster-management.io/standards: NIST SP 800-53
+    policy.open-cluster-management.io/categories: CM Configuration Management
+    policy.open-cluster-management.io/controls: CM-6, CM-7, SC-5
+spec:
+  remediationAction: inform
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: stride-workloads-limitrange
+        spec:
+          remediationAction: inform
+          severity: medium
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                kind: LimitRange
+                metadata:
+                  name: bounded-defaults
+                  namespace: stride-workloads
+                spec:
+                  limits:
+                    - type: Container
+                      default:
+                        cpu: 200m
+                        memory: 128Mi
+                      defaultRequest:
+                        cpu: 50m
+                        memory: 64Mi
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: stride-workloads-quota
+        spec:
+          remediationAction: inform
+          severity: medium
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                kind: ResourceQuota
+                metadata:
+                  name: bounded-quota
+                  namespace: stride-workloads
+                spec:
+                  hard:
+                    pods: "20"
+                    requests.cpu: "2"
+                    requests.memory: 2Gi
+                    limits.cpu: "4"
+                    limits.memory: 4Gi
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: policy-stride-netpol-sa
+  namespace: policies
+  labels:
+    app.kubernetes.io/part-of: openshift-security-roadshow
+    app.kubernetes.io/component: 301-01-acm
+    stride.example.com/category: spoofing-disclosure
+  annotations:
+    policy.open-cluster-management.io/standards: NIST SP 800-53
+    policy.open-cluster-management.io/categories: SC System and Communications Protection, AC Access Control
+    policy.open-cluster-management.io/controls: SC-7, AC-6, IA-2
+spec:
+  remediationAction: inform
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: stride-default-deny-networkpolicy
+        spec:
+          remediationAction: inform
+          severity: high
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: networking.k8s.io/v1
+                kind: NetworkPolicy
+                metadata:
+                  name: default-deny-ingress
+                  namespace: stride-workloads
+                spec:
+                  podSelector: {}
+                  policyTypes:
+                    - Ingress
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: stride-app-sa-no-automount
+        spec:
+          remediationAction: inform
+          severity: medium
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                kind: ServiceAccount
+                metadata:
+                  name: app
+                  namespace: stride-workloads
+                automountServiceAccountToken: false
+---
+apiVersion: policy.open-cluster-management.io/v1beta1
+kind: PolicySet
+metadata:
+  name: stride-ocp-baseline
+  namespace: policies
+  labels:
+    app.kubernetes.io/part-of: openshift-security-roadshow
+    app.kubernetes.io/component: 301-01-acm
+  annotations:
+    policy.open-cluster-management.io/standards: NIST SP 800-53, DISA STIG, DoD CC SRG
+spec:
+  description: 201-11 STRIDE control map as RHACM policies (EoP, DoS, Spoofing, disclosure).
+  policies:
+    - policy-stride-ns-psa
+    - policy-stride-quota-limits
+    - policy-stride-netpol-sa
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: placement-stride-ocp-baseline
+  namespace: policies
+  labels:
+    app.kubernetes.io/part-of: openshift-security-roadshow
+    app.kubernetes.io/component: 301-01-acm
+spec:
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchExpressions:
+            - key: local-cluster
+              operator: In
+              values:
+                - "true"
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: binding-stride-ocp-baseline
+  namespace: policies
+  labels:
+    app.kubernetes.io/part-of: openshift-security-roadshow
+    app.kubernetes.io/component: 301-01-acm
+placementRef:
+  name: placement-stride-ocp-baseline
+  kind: Placement
+  apiGroup: cluster.open-cluster-management.io
+subjects:
+  - name: stride-ocp-baseline
+    kind: PolicySet
+    apiGroup: policy.open-cluster-management.io
+---
+# Bind each Policy as well so inform/enforce works if PolicySet placement is UI-only.
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: binding-stride-ns-psa
+  namespace: policies
+  labels:
+    app.kubernetes.io/part-of: openshift-security-roadshow
+    app.kubernetes.io/component: 301-01-acm
+placementRef:
+  name: placement-stride-ocp-baseline
+  kind: Placement
+  apiGroup: cluster.open-cluster-management.io
+subjects:
+  - name: policy-stride-ns-psa
+    kind: Policy
+    apiGroup: policy.open-cluster-management.io
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: binding-stride-quota-limits
+  namespace: policies
+  labels:
+    app.kubernetes.io/part-of: openshift-security-roadshow
+    app.kubernetes.io/component: 301-01-acm
+placementRef:
+  name: placement-stride-ocp-baseline
+  kind: Placement
+  apiGroup: cluster.open-cluster-management.io
+subjects:
+  - name: policy-stride-quota-limits
+    kind: Policy
+    apiGroup: policy.open-cluster-management.io
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: binding-stride-netpol-sa
+  namespace: policies
+  labels:
+    app.kubernetes.io/part-of: openshift-security-roadshow
+    app.kubernetes.io/component: 301-01-acm
+placementRef:
+  name: placement-stride-ocp-baseline
+  kind: Placement
+  apiGroup: cluster.open-cluster-management.io
+subjects:
+  - name: policy-stride-netpol-sa
+    kind: Policy
+    apiGroup: policy.open-cluster-management.io

@@ -8,7 +8,7 @@ xref:index.adoc[← Back to HOME]
 
 These labs go deep on Red Hat Advanced Cluster Security (RHACS): setup and navigation, vulnerability management, policy and risk, CI/CD gates, compliance, notifications and API, network and runtime security, and installation.
 
-Use this track after (or alongside) the role path that owns the capability—especially DevSecOps, Platform Operator, and Security Architect. Related framework labs include xref:301-04-runtime-threat-detection.adoc[301-04], xref:301-05-incident-response-forensics.adoc[301-05], and xref:301-07-automated-remediation.adoc[301-07].
+Use this track after (or alongside) the role path that owns the capability—especially DevSecOps, Platform Operator, and Security Architect. Related framework labs include xref:301-04-runtime-threat-detection.adoc[301-04] and xref:301-05-incident-response-forensics.adoc[301-05].
 
 Audience and prerequisites:
 

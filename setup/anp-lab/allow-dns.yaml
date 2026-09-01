@@ -1,0 +1,29 @@
+# Higher priority: tenants still resolve cluster DNS after default-deny ANP.
+apiVersion: policy.networking.k8s.io/v1alpha1
+kind: AdminNetworkPolicy
+metadata:
+  name: stride-allow-dns
+  labels:
+    app.kubernetes.io/part-of: openshift-security-roadshow
+    app.kubernetes.io/component: 301-03-anp
+spec:
+  priority: 10
+  subject:
+    namespaces:
+      matchLabels:
+        stride.example.com/workshop: "301-03"
+  egress:
+    - name: allow-to-openshift-dns
+      action: Allow
+      to:
+        - namespaces:
+            namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: openshift-dns
+      ports:
+        - portNumber:
+            protocol: UDP
+            port: 53
+        - portNumber:
+            protocol: TCP
+            port: 53

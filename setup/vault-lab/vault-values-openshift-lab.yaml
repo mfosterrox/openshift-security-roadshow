@@ -1,0 +1,46 @@
+# HashiCorp Vault Helm values for OpenShift workshop labs.
+# Chart: https://github.com/hashicorp/vault-helm
+# Docs: https://developer.hashicorp.com/vault/docs/platform/k8s/helm
+#
+# Route host is set at install time by install-vault.sh:
+#   vault.<cluster-ingress-domain>  (domain is usually already apps.<cluster>.<tld>)
+# cert-manager annotations are added by install-vault.sh when the operator is present.
+#
+# Use docker.io/ image paths so OpenShift does not rewrite short names to
+# registry.connect.redhat.com (where hashicorp/vault tags are not published).
+
+global:
+  openshift: true
+
+injector:
+  enabled: true
+  image:
+    repository: "docker.io/hashicorp/vault-k8s"
+    tag: "1.7.2"
+  agentImage:
+    repository: "docker.io/hashicorp/vault"
+    tag: "1.21.2"
+
+server:
+  image:
+    repository: "docker.io/hashicorp/vault"
+    tag: "1.21.2"
+
+  dev:
+    enabled: true
+    devRootToken: "root"
+
+  ui:
+    enabled: true
+
+  route:
+    enabled: true
+    # host: set via helm --set-string in install-vault.sh (do not use chart-example.local)
+    activeService: true
+    # Dev server listens on HTTP; terminate TLS at the OpenShift router.
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Allow
+
+csi:
+  enabled: false

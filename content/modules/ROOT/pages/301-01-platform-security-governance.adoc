@@ -1,100 +1,193 @@
-= Lead Platform-Wide Security Governance and Multi-Team Architecture Decisions
+= Lead Platform-Wide Security Governance (STRIDE PolicySet)
 :role: Advanced Security Leadership & Architecture
-:skills: Security Operating Model, RBAC & Namespace Strategy, Segmentation Blueprints, Multi-Team Architecture
+:skills: Security Operating Model, RHACM PolicySet, NIST 800-53, DISA STIG
 :labid: LAB-301-01
 :toc:
 :icons: font
 
-**Duration:** ~30 minutes
+**Duration:** ~25 minutes
 
 == Overview
-Lead the design and implementation of platform-wide security governance frameworks and multi-team architecture decisions. You will establish security operating models, design RBAC and namespace strategies, create segmentation blueprints, and coordinate security architecture across multiple teams and organizations.
+xref:201-11-threat-modeling-control-mapping.adoc[201-11] named the controls. This lab **ships them as an RHACM PolicySet** so every cluster in the Placement gets the same namespace, PSA, Quota, default-deny NetworkPolicy, and a ServiceAccount that does not automount a token.
 
-Frame platform-wide security governance decisions that multiple teams can follow consistently across the cluster estate.
+That is the platform operating model: the security team owns the PolicySet; application teams consume `stride-workloads`. Inform first (report drift), then enforce (create the missing objects)—the same loop as xref:201-10-admission-governance.adoc[201-10], expanded to the STRIDE rows.
 
 == Why it matters
-
-Platform-wide security governance ensures consistent security practices across all teams and applications. Without proper governance:
-
-* Security practices become inconsistent across teams
-* RBAC and namespace strategies become fragmented
-* Network segmentation lacks coherent architecture
-* Security decisions are made in isolation
-* Compliance becomes difficult to maintain at scale
-
-Effective governance provides:
-
-* Consistent security posture across the platform
-* Clear decision-making frameworks for security architecture
-* Scalable RBAC and namespace strategies
-* Coordinated segmentation blueprints
-* Alignment between security and business objectives
+A threat model in a slide deck does not configure the next cluster. RHACM Policy objects do. DoD CC SRG, DISA STIG, and NIST SP 800-53 expect an *approved baseline*, not tribal knowledge. The Governance UI columns (`standards`, `categories`, `controls`) are how an ISSO traces a green cluster back to AC-6, CM-6, SC-7, and SC-5.
 
 == What does it solve
 
-This lab addresses the challenges of scaling security governance:
-
-* **Security Operating Model**: Defines how security decisions are made, who makes them, and how they're enforced
-* **RBAC & Namespace Strategy**: Provides scalable patterns for access control and resource organization
-* **Segmentation Blueprints**: Creates reusable templates for network and workload segmentation
-* **Multi-Team Coordination**: Establishes processes for coordinating security architecture across teams
-* **Governance Frameworks**: Defines policies, standards, and procedures for platform security
+* EoP — workloads landing in namespaces without restricted PSA
+* DoS — unbounded CPU/memory in a shared tenant namespace
+* Spoofing — app ServiceAccounts that still automount API tokens
+* Disclosure / lateral movement — namespaces with no default-deny NetworkPolicy
+* Drift — each cluster’s “baseline” living in a different wiki
 
 == Your Mission
-Design governing decisions so teams cannot freestyle privilege, namespaces, or segmentation. Leave with a model others can follow without inventing one-off exceptions.
-
-== Understanding the Architecture
+Apply PolicySet `stride-ocp-baseline`, watch it NonCompliant while `inform` is on, enforce it so the cluster configures itself, then prove restricted PSA still denies a privileged pod.
 
 [cols="1,2,2",options="header"]
 |===
-|Component | Purpose | OpenShift/K8s Implementation
-|Security Operating Model | Framework for security decision-making | Governance policies, decision matrices, approval workflows
-|RBAC Strategy | Scalable access control patterns | ClusterRoles, RoleBindings, namespace-level RBAC
-|Namespace Strategy | Resource organization and isolation | Namespace design patterns, resource quotas, network policies
-|Segmentation Blueprints | Reusable security architecture templates | NetworkPolicy templates, workload isolation patterns
-|Multi-Team Coordination | Processes for cross-team security decisions | Architecture review boards, security guilds, documentation standards
+|Policy in the set |STRIDE row |Objects
+
+|`policy-stride-ns-psa`
+|Elevation of privilege
+|Namespace `stride-workloads` + restricted PSA labels
+
+|`policy-stride-quota-limits`
+|Denial of service
+|LimitRange + ResourceQuota
+
+|`policy-stride-netpol-sa`
+|Spoofing + Information disclosure
+|default-deny NetworkPolicy + SA `app` with `automountServiceAccountToken: false`
 |===
 
-== Lab Content
+=== Prerequisites
 
-[NOTE]
+* Red Hat Advanced Cluster Management (or MCE with the governance policy add-on). CRD: `policies.policy.open-cluster-management.io`
+* A `ManagedCluster` (hub is usually `local-cluster`)
+* Cluster-admin on the hub
+* xref:201-10-admission-governance.adoc[201-10] recommended (same `policies` namespace and ClusterSet binding)
+
+Click each step only if you need a hint.
+
+=== Part A: Hub inventory
+
+.Confirm RHACM Policy CRDs and local-cluster
+[%collapsible]
 ====
-This lab is currently under development. Content will include:
+If this fails, install **Advanced Cluster Management for Kubernetes** from OperatorHub (or ask the platform owner).
 
-* Security operating model design and implementation
-* RBAC strategy development for multi-team environments
-* Namespace strategy and resource organization patterns
-* Segmentation blueprint creation and documentation
-* Multi-team architecture coordination processes
-* Governance framework establishment and enforcement
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get crd policies.policy.open-cluster-management.io
+oc get managedcluster
+oc get managedcluster local-cluster --show-labels 2>/dev/null || oc get managedcluster --show-labels
+----
+
+TIP: CRD exists. `local-cluster=true` is the usual hub label.
 ====
 
-== Prerequisites
+.Bind a ClusterSet into namespace policies
+[%collapsible]
+====
+Skip if you already ran this in 201-10. Placement selects **zero** clusters until a `ManagedClusterSetBinding` exists.
 
-* OpenShift cluster with cluster-admin access
-* Understanding of organizational structure and team dynamics
-* Experience with RBAC and namespace design
-* Familiarity with security governance frameworks
-* Leadership and coordination skills
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+cd ~/openshift-security-roadshow/setup/acm-lab
+chmod +x bind-clusterset.sh
+./bind-clusterset.sh
+----
+
+TIP: `managedclustersetbinding` created (or already configured) in `policies`.
+====
+
+=== Part B: Inform (report drift)
+
+.Apply the STRIDE PolicySet (inform)
+[%collapsible]
+====
+Three Policies + a PolicySet + Placement. Remediation starts as **inform**—RHACM reports NonCompliant until the objects exist.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc apply -f ~/openshift-security-roadshow/setup/acm-lab/policy-stride-ocp-baseline.yaml
+----
+
+TIP: Policies, PolicySet `stride-ocp-baseline`, Placement, and PlacementBinding created in `policies`.
+====
+
+.Read PolicySet status (expect NonCompliant)
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get policyset,policy,placement,placementbinding -n policies
+oc get ns stride-workloads 2>/dev/null || echo "stride-workloads not created yet (inform does not remediate)"
+----
+
+TIP: `COMPLIANT` is `NonCompliant` (or empty for a few seconds). Namespace `stride-workloads` should **not** exist yet. Console: **Fleet Management → Governance → PolicySets**.
+====
+
+=== Part C: Enforce (configure the cluster from policy)
+
+.Switch the three Policies to enforce
+[%collapsible]
+====
+The PolicySet groups them; each Policy still has its own `remediationAction`. Patch all three.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+for p in policy-stride-ns-psa policy-stride-quota-limits policy-stride-netpol-sa; do
+  oc patch policy "$p" -n policies --type merge -p '{"spec":{"remediationAction":"enforce"}}'
+done
+----
+
+TIP: Three `patched` messages. Wait 15–30 seconds.
+====
+
+.Confirm the STRIDE objects exist
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get policy -n policies -l app.kubernetes.io/component=301-01-acm
+oc get ns stride-workloads --show-labels
+oc get networkpolicy,limitrange,resourcequota,sa -n stride-workloads
+oc get sa app -n stride-workloads -o jsonpath='{.automountServiceAccountToken}{"\n"}'
+----
+
+TIP: Policies `Compliant`. Namespace labels include `pod-security.kubernetes.io/enforce=restricted`. `default-deny-ingress`, `bounded-defaults`, `bounded-quota`, and SA `app` with automount `false`.
+====
+
+=== Part D: Admission still matches the baseline
+
+.Apply a privileged pod in stride-workloads (expect deny)
+[%collapsible]
+====
+`privileged: true` violates restricted PSA (AC-6 / EoP).
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc apply -n stride-workloads -f - <<'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: privileged-denied
+spec:
+  containers:
+  - name: app
+    image: registry.access.redhat.com/ubi9/ubi
+    securityContext:
+      privileged: true
+    command: ["sleep","5"]
+EOF
+----
+
+TIP: Admission rejects the pod (`Forbidden` / `violates PodSecurity`). The PolicySet stayed Compliant—the deny is the baseline working.
+====
 
 == Debrief
 
-Platform security governance is the operating model so teams cannot freestyle privilege, namespaces, or segmentation—decisions become reusable blueprints, not one-off exceptions.
+Platform governance is the STRIDE map **as Policy**: who may change SCC and ANP is a platform decision; app teams do not freestyle namespaces. Inform then enforce is how drift is corrected. xref:301-02-gitops-policy-compliance.adoc[301-02] puts these YAML files in Git.
 
-What this module targets:
+What breaks without this:
 
-* Security operating model and approval paths
-* Scalable RBAC and namespace strategy
-* Segmentation blueprints others can copy
-* Multi-team coordination (reviews, guilds, docs)
+* Threat model with no delivery mechanism → next cluster is a snowflake
+* Hand-crafted namespaces → STIG drift
+* Automount left on by default → stolen tokens (Spoofing) still work
 
-Until full exercises land: map your org’s exception path today—who can grant `cluster-admin` or open NetworkPolicy holes, and how those grants expire.
+IMPORTANT: PolicySet + Placement + inform then enforce. Do not rewrite cluster `restricted` SCC in this lab.
+
+NOTE: GitOps of these same CRs is 301-02. Tenant NetworkPolicy still cannot beat platform ANP (xref:301-03-multi-tenant-zero-trust-network.adoc[301-03]).
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeXdiMmFwaTNrbW02cTNod3BmaTh2aGRrdDJsc3d4NHpqNXY5ZzkwNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/073QSCJf2tIbtWjZpb/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
 == Cleanup
 
-Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+Removes the STRIDE PolicySet and `stride-workloads`. Leaves RHACM and the 201-10 DoD Policy (if present).
 
 :lab-cleanup-module: 301-01
 include::partial$lab-cleanup.adoc[]

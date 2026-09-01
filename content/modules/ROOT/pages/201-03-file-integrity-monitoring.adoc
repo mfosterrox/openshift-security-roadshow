@@ -1,44 +1,245 @@
 = File Integrity Monitoring & Node Hardening
 :labid: LAB-201-03
+:role: Intermediate Platform Security
+:skills: File Integrity Operator, AIDE, Node Hardening, Integrity Monitoring
+:mitre: T1565 (Data Manipulation), T1036 (Masquerading), T1070 (Indicator Removal), T1543 (Create or Modify System Process)
+:compliance: PCI DSS 11.5.2, NIST 800-53 SI-7 / CM-6, CIS Kubernetes 1.1 / 4.1, ISO 27001 A.8.9 / A.8.16, SOC 2 CC7 / CC8
 :cis-summary: "Implement file integrity monitoring and node-level security hardening using the File Integrity Operator."
 :mitre-summary: "Detects unauthorized file system changes and implements node-level security controls."
 :toc:
 :icons: font
 
-**Duration:** ~20 minutes
+**Duration:** ~30 minutes
 
 == Overview
-Learn how to deploy and configure the File Integrity Operator to monitor file system integrity on OpenShift nodes, detect unauthorized changes, and implement node-level security hardening measures.
-
-Configure file integrity monitoring and related node hardening so unexpected host file changes become visible and actionable.
+Learn how to deploy and configure the File Integrity Operator to monitor file system integrity on OpenShift nodes, detect unauthorized changes, and implement node-level security hardening measures. This is a foundational capability for incident response and compliance monitoring.
 
 == Why it matters
 File integrity monitoring detects unauthorized changes to critical system files, which could indicate compromise or misconfiguration. Combined with node hardening, this provides defense-in-depth for the control plane and worker nodes, meeting compliance requirements for system integrity monitoring.
 
+A point-in-time CIS scan of kubelet and API-server file permissions is not enough. Auditors want a *continuous* change-detection story: baseline critical paths, alert on add/change/delete, and show who investigated. File Integrity Operator (AIDE on RHCOS) is that story on OpenShift.
+
+[cols="2,2,3",options="header"]
+|===
+|Standard |Control |What FIM plus node hardening shows
+
+|PCI DSS 4.0
+|Req **11.5.2** (was 11.5 in 3.2.1)
+|Change-detection on critical files, with alerting when someone tampers with them
+
+|NIST SP 800-53 Rev. 5
+|**SI-7** (Software, Firmware, and Information Integrity); **CM-3** / **CM-6**
+|Integrity monitoring of software and config; unauthorized baseline drift is visible
+
+|CIS Kubernetes / OpenShift (`ocp4-cis`)
+|Control plane **1.1.x** and worker **4.1.x** file-permission checks
+|CIS proves mode/owner at scan time; FIM proves those files did not change afterward
+
+|ISO/IEC 27001:2022
+|**A.8.9** Configuration management; **A.8.16** Monitoring activities
+|Config is controlled and monitored, not only documented
+
+|SOC 2 TSC
+|**CC7.1** / **CC7.2** detection and monitoring; **CC8.1** change management
+|Anomalies on node binaries/config are detected; changes are not silent
+
+|HIPAA
+|**164.312(c)(1)** Integrity
+|ePHI-supporting systems can show unauthorized alteration of system files was monitored
+|===
+
+FedRAMP inherits SI-7 from 800-53. Pair FIM with xref:101-10-security-compliance-addons.adoc[101-10] (CIS evidence) and xref:201-07-compliance-tailoring.adoc[201-07] (tailoring) so the scan and the integrity feed tell the same story.
+
+File Integrity Operator is **one** integrity step: AIDE on the *node* (kubelet configs, host binaries, `/etc` on RHCOS). It does not see what a process inside a pod writes. That file activity is RHACS Collector: runtime events and policies on unexpected writes, dropped binaries, and package-manager execution in the container. You need both; neither replaces the other.
+
+[cols="1,2,2",options="header"]
+|===
+|Control |Watches |What a hit means
+
+|File Integrity Operator (this lab)
+|Host filesystem on selected nodes
+|A critical *node* file was added, changed, or removed versus the AIDE baseline
+
+|RHACS runtime (Collector)
+|Process and file activity *inside pods*
+|A workload executed or wrote something the policy did not expect (package manager, crypto miner dropper, write to a sensitive path)
+|===
+
+Hands-on ACS runtime enforcement is xref:06-acs-network-and-runtime.adoc[ACS 06] (kill a pod that runs a package manager). Deeper hunting is xref:301-04-runtime-threat-detection.adoc[301-04]. This module stays on the node/FIO side.
+
 == What does it solve
 
-* Undetected file system tampering
-* Compliance monitoring requirements
+* Undetected file system tampering on the *node*
+* Silent file activity *inside* pods if you stop at FIO and never turn on RHACS runtime
+* PCI / NIST / CIS / ISO / SOC 2 integrity-monitoring evidence with no operator story
 * Node-level security gaps
 * Unauthorized configuration changes
 * Security baseline drift
 
 == Your Mission
-Turn on File Integrity Operator for worker nodes so a silent binary or config change on the host is a report, not a surprise during incident response.
+Turn on File Integrity Operator for worker nodes so a silent binary or config change on the host is a report, not a surprise during incident response. Treat that as the node layer only—RHACS still has to watch file activity in the workload.
 
 Click each step only if you need a hint.
 
-.Get pods in openshift-file-integrity
+.Install File Integrity Operator
 [%collapsible]
 ====
-Confirm the operator is already installed on this cluster.
+The operator is cluster-scoped in effect (AIDE on nodes) but OLM-installs into `openshift-file-integrity`. The namespace needs privileged PSA so the operator and AIDE pods can run. This is the documented CLI install — no OperatorHub click-path.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc apply -f - <<'EOF'
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-file-integrity
+  labels:
+    openshift.io/cluster-monitoring: "true"
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: file-integrity-operator
+  namespace: openshift-file-integrity
+spec:
+  targetNamespaces:
+  - openshift-file-integrity
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: file-integrity-operator
+  namespace: openshift-file-integrity
+spec:
+  channel: stable
+  installPlanApproval: Automatic
+  name: file-integrity-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+EOF
+----
+
+TIP: Namespace, OperatorGroup, and Subscription created (or already configured). Image pull can take a few minutes.
+====
+
+.Wait until File Integrity Operator is Succeeded
+[%collapsible]
+====
+Do not create a `FileIntegrity` object until the CSV is `Succeeded`.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+echo "Waiting for File Integrity Operator CSV..."
+for i in $(seq 1 36); do
+  PHASE=$(oc get csv -n openshift-file-integrity -o jsonpath='{.items[0].status.phase}' 2>/dev/null || true)
+  echo "  attempt $i: ${PHASE:-none}"
+  [ "$PHASE" = "Succeeded" ] && break
+  sleep 5
+done
+oc get csv -n openshift-file-integrity
+oc get pods -n openshift-file-integrity
+----
+
+TIP: CSV `PHASE` is `Succeeded` and the operator pod is `Running`. If the CSV never appears, check `oc get packagemanifest file-integrity-operator -n openshift-marketplace`.
+====
+
+.Install File Integrity console plugin
+[%collapsible]
+====
+Optional UI: **Compute → File Integrity** in the admin console. This is a separate community operator in its own namespace. It reads File Integrity CRs with *your* token; it does not need to live next to the operator. Skip this step if `community-operators` is not on the cluster.
+
+The install form defaults the plugin to *Disabled*. The next step enables it with `oc`.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+PLUGIN_CHANNEL=$(oc get packagemanifest file-integrity-console-plugin -n openshift-marketplace -o jsonpath='{.status.defaultChannel}' 2>/dev/null || true)
+if [ -z "$PLUGIN_CHANNEL" ]; then
+  echo "Packagemanifest file-integrity-console-plugin not found — skip (community catalog missing)."
+else
+  echo "Using plugin channel: $PLUGIN_CHANNEL"
+  oc apply -f - <<EOF
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: file-integrity-console-plugin
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: file-integrity-console-plugin
+  namespace: file-integrity-console-plugin
+spec:
+  targetNamespaces:
+  - file-integrity-console-plugin
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: file-integrity-console-plugin
+  namespace: file-integrity-console-plugin
+spec:
+  channel: ${PLUGIN_CHANNEL}
+  installPlanApproval: Automatic
+  name: file-integrity-console-plugin
+  source: community-operators
+  sourceNamespace: openshift-marketplace
+EOF
+fi
+----
+
+TIP: `subscription.operators.coreos.com/file-integrity-console-plugin created` (or configured). Channel comes from the packagemanifest so it matches this OpenShift version.
+====
+
+.Wait for the plugin and enable it on the console
+[%collapsible]
+====
+Community plugins are not trusted by default. Enabling adds `file-integrity-console-plugin` to the cluster Console CR. The console restarts once; refresh the browser afterward.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+echo "Waiting for console plugin CSV..."
+for i in $(seq 1 36); do
+  PHASE=$(oc get csv -n file-integrity-console-plugin -o jsonpath='{.items[0].status.phase}' 2>/dev/null || true)
+  echo "  attempt $i: ${PHASE:-none}"
+  [ "$PHASE" = "Succeeded" ] && break
+  [ -z "$PHASE" ] && [ "$i" -ge 3 ] && echo "No CSV yet — skip enable if you skipped the plugin install." && break
+  sleep 5
+done
+oc get csv -n file-integrity-console-plugin 2>/dev/null || true
+oc get pods -n file-integrity-console-plugin 2>/dev/null || true
+
+PLUGIN=file-integrity-console-plugin
+ENABLED=$(oc get consoles.operator.openshift.io cluster -o jsonpath='{.spec.plugins[*]}' 2>/dev/null || true)
+if echo " $ENABLED " | grep -q " $PLUGIN "; then
+  echo "Console plugin already enabled: $ENABLED"
+elif [ -z "$ENABLED" ]; then
+  oc patch consoles.operator.openshift.io cluster --type=json \
+    -p "[{\"op\":\"add\",\"path\":\"/spec/plugins\",\"value\":[\"$PLUGIN\"]}]"
+else
+  oc patch consoles.operator.openshift.io cluster --type=json \
+    -p "[{\"op\":\"add\",\"path\":\"/spec/plugins/-\",\"value\":\"$PLUGIN\"}]"
+fi
+oc get consoles.operator.openshift.io cluster -o jsonpath='{.spec.plugins}{"\n"}'
+oc get consoleplugin "$PLUGIN" 2>/dev/null || echo "ConsolePlugin CR appears after the plugin pod starts."
+----
+
+TIP: `spec.plugins` includes `file-integrity-console-plugin`. OpenShift Console → Compute → File Integrity after a browser refresh.
+====
+
+.Confirm operator pods in openshift-file-integrity
+[%collapsible]
+====
+AIDE daemonset pods appear after you create the `FileIntegrity` object in the next steps. Right now you should see the operator itself.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get pods -n openshift-file-integrity
 ----
 
-TIP: Operator pods should be `Running`. If the namespace is missing, install File Integrity Operator from OperatorHub first.
+TIP: Operator pod(s) `Running`. `No resources found` means the Subscription has not reconciled yet — re-run the wait step.
 ====
 
 .Get FileIntegrity objects cluster-wide
@@ -121,16 +322,23 @@ TIP: An empty change list means the baseline is clean. A hit is a host-file chan
 
 == Debrief
 
-File Integrity Operator is a camera for node-critical paths—catch unexpected file and config changes before they become incidents.
+File Integrity Operator is a camera for node-critical paths—catch unexpected file and config changes before they become incidents. It is not the whole integrity story. A container that writes a miner binary under `/tmp` never touches the RHCOS AIDE baseline; that shows up as RHACS file/process activity, not a FileIntegrityReport.
 
 What breaks without this:
 
 * Silent binary or config drift on nodes → malware or misconfig with no early signal
-* Compliance asks for FIM with no operator story
+* PCI DSS 11.5.2 / NIST SI-7 / CIS 1.1 & 4.1 ask for FIM with no operator story
+* FIO only → host is watched, workload file drops are invisible
 
-IMPORTANT: File Integrity Operator, clear monitored paths, alerting into your ops channel, and pairing with node hardening baselines.
+[IMPORTANT]
+====
+Run File Integrity Operator on the nodes you care about (clear AIDE paths, alert into the same channel as other platform events, pair with node-hardening baselines). Add RHACS runtime policies for *pod* file and process activity—xref:06-acs-network-and-runtime.adoc[ACS 06] is the first enforcement lab. Compliance evidence for 11.5.2 / SI-7 is stronger when you can show both the node baseline and the workload runtime feed.
+====
 
-NOTE: focus on critical system/bin/config files; overhead is usually light; intervals are configurable.
+[NOTE]
+====
+Keep FIO scoped to critical host system/bin/config files; overhead is usually light and the scan interval is configurable. Do not try to replace ACS Collector with a tighter AIDE config, or replace FIO with a runtime policy that only sees the container overlay. They answer different auditors' questions.
+====
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcW84bjNhdDZnN3VhbjkwOGdta2s5Yzg5anFscmU0Mm94cmVmcXVjZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/cEODGfeOYMRxK/giphy.gif[link=self, window=blank, width=100%, class="center"]
 

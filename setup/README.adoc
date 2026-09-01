@@ -95,7 +95,7 @@ Module 00 done
 Module 101-01 done
 ----
 
-Supported module ids include ACS (`00`–`10`), OpenShift security tracks (`101-01`, `201-06`, `301-10`, etc.), and `tssc-00`–`tssc-02`.
+Supported module ids include ACS (`00`–`10`), OpenShift security tracks (`101-01`, `201-06`, `301-08`, etc.), and `tssc-00`–`tssc-02`.
 
 [source,bash]
 ----

@@ -1,0 +1,45 @@
+# Allow in-namespace traffic so tenant NetworkPolicy is not the only intra-ns path.
+# Cross-tenant remains denied by stride-deny-cross-tenant (lower priority number wins first).
+apiVersion: policy.networking.k8s.io/v1alpha1
+kind: AdminNetworkPolicy
+metadata:
+  name: stride-allow-intra-tenant-a
+  labels:
+    app.kubernetes.io/part-of: openshift-security-roadshow
+    app.kubernetes.io/component: 301-03-anp
+spec:
+  priority: 20
+  subject:
+    namespaces:
+      matchLabels:
+        kubernetes.io/metadata.name: 301-03-tenant-a
+  ingress:
+    - name: allow-same-namespace
+      action: Allow
+      from:
+        - namespaces:
+            namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: 301-03-tenant-a
+---
+apiVersion: policy.networking.k8s.io/v1alpha1
+kind: AdminNetworkPolicy
+metadata:
+  name: stride-allow-intra-tenant-b
+  labels:
+    app.kubernetes.io/part-of: openshift-security-roadshow
+    app.kubernetes.io/component: 301-03-anp
+spec:
+  priority: 21
+  subject:
+    namespaces:
+      matchLabels:
+        kubernetes.io/metadata.name: 301-03-tenant-b
+  ingress:
+    - name: allow-same-namespace
+      action: Allow
+      from:
+        - namespaces:
+            namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: 301-03-tenant-b

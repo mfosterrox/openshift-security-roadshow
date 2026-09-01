@@ -38,14 +38,6 @@ Audience: follow a xref:index.adoc#choose-your-role[role track] for the ordered 
 |Custom SCC, Seccomp, SELinux & User Namespaces
 |Platform, DevSecOps
 
-|xref:201-09-sandboxed-containers-intro.adoc[201-09]
-|Sandboxed Containers & Workload Isolation
-|Platform, Architect (DevSecOps adjacent)
-
-|xref:201-08-cert-manager-mtls.adoc[201-08] (+ xref:101-05-network-policy-basics.adoc[101-05] foundation)
-|Certificate Management & mTLS / segmentation bridge
-|Platform, Architect, Network
-
 |xref:201-04-shift-left-pipeline.adoc[201-04]
 |CI/CD Scanning, Image Signing & Cosign/Sigstore
 |App Dev, DevSecOps
@@ -62,12 +54,20 @@ Audience: follow a xref:index.adoc#choose-your-role[role track] for the ordered 
 |Advanced Compliance Operator Usage & Tailoring
 |Platform, DevSecOps, Architect
 
+|xref:201-08-cert-manager-mtls.adoc[201-08] (+ xref:101-05-network-policy-basics.adoc[101-05] foundation)
+|Certificate Management & mTLS / segmentation bridge
+|Platform, Architect, Network
+
+|xref:201-09-sandboxed-containers-intro.adoc[201-09]
+|Sandboxed Containers & Workload Isolation
+|Platform, Architect (DevSecOps adjacent)
+
 |xref:201-10-admission-governance.adoc[201-10]
-|Admission Controllers & Policy Enforcement
+|RHACM Policy Governance (DoD / NIST baseline)
 |Platform, DevSecOps, Architect, Network
 
 |xref:201-11-threat-modeling-control-mapping.adoc[201-11]
-|Threat Modeling & Control Mapping
+|STRIDE control map (capstone → 301)
 |App Dev, DevSecOps, Architect
 |===
 

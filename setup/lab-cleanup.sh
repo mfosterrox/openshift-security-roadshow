@@ -7,6 +7,8 @@
 # Exported env vars (ROX_*, APP_HOME, etc.) are already inherited from the parent shell.
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 MODULE=""
 PROGRESS_DIR="${HOME}/.acs-roadshow"
 PROGRESS_FILE="${PROGRESS_DIR}/progress"
@@ -15,7 +17,7 @@ usage() {
   cat <<'EOF'
 Usage: lab-cleanup.sh --module MODULE
 
-MODULE examples: 00-07 (ACS), 101-01, 201-06, 301-10, tssc-00, tssc-01, tssc-02
+MODULE examples: 00-07 (ACS), 101-01, 201-06, 301-08, tssc-00, tssc-01, tssc-02
 EOF
 }
 
@@ -225,42 +227,80 @@ case "${MODULE}" in
     delete_projects 201-04-s-pipeline
     ;;
   201-05)
+    bash "${SCRIPT_DIR}/vault-lab/cleanup-vault-lab.sh"
     rm -f /tmp/lab-201-05.txt /tmp/lab-scratch-* 2>/dev/null || true
-    echo "Vault workshop cleanup is handled by cleanup-vault-lab.sh; recorded module completion."
     ;;
   201-06)
+    # Keep Splunk + ClusterLogForwarder so 201-07 can re-scan ocp4-cis and show
+    # audit-log-forwarding PASS. Tear-down is 201-07 (or splunk-lab/clean.sh).
     delete_projects 201-06-a-correlation
+    echo "Left Splunk and the audit ClusterLogForwarder running for 201-07."
     ;;
   201-07)
-    oc delete compliancescans baseline-scan tailored-scan -n openshift-compliance --ignore-not-found 2>/dev/null || true
-    oc delete tailoredprofile rhcos4-moderate-tailored -n openshift-compliance --ignore-not-found 2>/dev/null || true
-    echo "Removed compliance scan and tailored profile objects (if present)."
+    oc delete scansettingbinding 201-07-cis 201-07-cis-lab -n openshift-compliance --ignore-not-found 2>/dev/null || true
+    oc delete compliancescans baseline-scan tailored-scan 201-07-cis-lab ocp4-cis-lab -n openshift-compliance --ignore-not-found 2>/dev/null || true
+    oc delete tailoredprofile ocp4-cis-lab rhcos4-moderate-tailored -n openshift-compliance --ignore-not-found 2>/dev/null || true
+    echo "Removed 201-07 ScanSettingBinding / TailoredProfile / scans (if present)."
+    if [[ -x "${SCRIPT_DIR}/splunk-lab/clean.sh" ]]; then
+      bash "${SCRIPT_DIR}/splunk-lab/clean.sh" || echo "WARNING: Splunk cleanup returned non-zero."
+    fi
     ;;
   201-08)
     oc delete clusterissuer selfsigned-issuer --ignore-not-found >/dev/null 2>&1 || true
-    echo "Removed ClusterIssuer selfsigned-issuer (if present)."
+    echo "Removed leftover ClusterIssuer selfsigned-issuer (if present). Left selfsigned and ACME issuers in place."
+    rm -rf /tmp/201-08 2>/dev/null || true
     delete_projects 201-08-demo
     ;;
   201-09)
     delete_projects 201-09-s-sandbox
     ;;
   201-10)
+    if [[ -x "${SCRIPT_DIR}/acm-lab/cleanup-acm-lab.sh" ]]; then
+      bash "${SCRIPT_DIR}/acm-lab/cleanup-acm-lab.sh" || echo "WARNING: ACM policy cleanup returned non-zero."
+    fi
     oc delete k8snonrootuid nonroot-required --ignore-not-found >/dev/null 2>&1 || true
     oc delete k8snetpolrequired netpol-required --ignore-not-found >/dev/null 2>&1 || true
     oc delete k8sdigestonly digest-only --ignore-not-found >/dev/null 2>&1 || true
     oc delete constrainttemplate k8snonrootuid k8snetpolrequired k8sdigestonly --ignore-not-found >/dev/null 2>&1 || true
-    echo "Removed Gatekeeper constraints and templates from this lab (if present)."
+    echo "Removed 201-10 RHACM DoD baseline (and leftover Gatekeeper objects if present)."
     delete_projects 201-10-a-govern
     ;;
   201-11)
     delete_projects 201-11-app-frontend 201-11-app-backend 201-11-app-db
+    echo "201-11 is discussion-only; leftover visual-aid namespaces removed if present."
     ;;
-  301-10)
-    rm -f /tmp/lab-301-10.txt /tmp/lab-scratch-* 2>/dev/null || true
-    echo "ZTWIM workshop cleanup is handled by configure-ztwim-postgresql-lab.sh; recorded module completion."
+  301-01)
+    if [[ -x "${SCRIPT_DIR}/acm-lab/cleanup-stride-acm.sh" ]]; then
+      bash "${SCRIPT_DIR}/acm-lab/cleanup-stride-acm.sh" || echo "WARNING: STRIDE ACM cleanup returned non-zero."
+    fi
     ;;
-  301-11)
-    delete_projects 301-11-demo
+  301-02)
+    delete_projects 301-02-python
+    ;;
+  301-03)
+    if [[ -x "${SCRIPT_DIR}/anp-lab/cleanup-anp-lab.sh" ]]; then
+      bash "${SCRIPT_DIR}/anp-lab/cleanup-anp-lab.sh" || echo "WARNING: ANP cleanup returned non-zero."
+    fi
+    ;;
+  301-04)
+    delete_projects 301-04-runtime
+    echo "Cloned RHACS policies are left in Central; delete them in the UI if you do not want them."
+    ;;
+  301-05)
+    delete_projects 301-05-ir
+    echo "Left Splunk and ACS policies in place."
+    ;;
+  301-06)
+    oc delete validatingadmissionpolicy require-digest-deployments --ignore-not-found=true || true
+    oc delete validatingadmissionpolicybinding require-digest-deployments --ignore-not-found=true || true
+    delete_projects 301-06-supply
+    ;;
+  301-07)
+    echo "No cluster objects created by this module."
+    ;;
+  301-08)
+    bash "${SCRIPT_DIR}/ztwim-lab/configure-ztwim-postgresql-lab.sh" cleanup
+    rm -f /tmp/lab-301-08.txt /tmp/lab-scratch-* 2>/dev/null || true
     ;;
   tssc-00|tssc-01|tssc-02)
     rm -f "/tmp/lab-${MODULE}.txt" /tmp/lab-scratch-* 2>/dev/null || true

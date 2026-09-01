@@ -10,24 +10,27 @@
 == Overview
 Integrate security scanning and policy checks into pipelines.
 
-Build a Tekton pipeline that builds, scans, gates, and signs an image, then deploy by digest from the signed result.
+Build a Tekton pipeline that starts **FROM** the workshop golden Python base (`python-alpine-golden:0.1` in Quay — already pulled and pushed by `setup/lab-environment.sh`), then scans, gates, and signs the result and deploys by digest.
 
 == Why it matters
-Unsigned, unscanned images reach production when security sits after deploy. Pipelines that build, scan, gate, and sign shrink the window where attackers swap in a poisoned tag.
+Unsigned, unscanned images reach production when security sits after deploy. Pipelines that build, scan, gate, and sign shrink the window where attackers swap in a poisoned tag. Starting FROM an approved golden base — not `docker.io/python` at build time — is the other half of that story: the cluster only consumes a base you already scanned and parked in Quay.
 
 == What does it solve
 
 * Silent promotion of unscanned images
+* Builds that pull a mutable public base instead of your golden image
 * Deployments that float on mutable tags instead of digests
 * Missing signature evidence for admission and audit
 
 == Your Mission
-Build a Tekton path that refuses unscanned or unsigned images—then deploy only by digest so a supply-chain swap cannot silently replace what you ran.
+Build a Tekton path FROM `python-alpine-golden` that refuses unscanned or unsigned images—then deploy only by digest so a supply-chain swap cannot silently replace what you ran.
 
 === Prerequisites
 
 * OpenShift Pipelines (Tekton) Operator installed
 * Cosign installed locally, or simulate signing in the pipeline tasks
+* Lab setup already ran (`source ~/.bashrc` or `source ~/.acs-roadshow/env`): `QUAY_URL`, `QUAY_USER`, and the golden image `${QUAY_URL}/${QUAY_USER}/python-alpine-golden:0.1`
+* The `python-alpine-golden` repository is **public** in Quay (same Settings path as `frontend` in xref:00-acs-setup-install-navigation.adoc#navigating-the-registry[00-acs]) so the cluster can import it
 
 Click each step only if you need a hint.
 
@@ -44,6 +47,37 @@ oc new-project 201-04-s-pipeline
 TIP: `Now using project "201-04-s-pipeline"`.
 ====
 
+.Confirm the golden Python image
+[%collapsible]
+====
+This is the approved base from setup — not Docker Hub at pipeline time. Pull proves the tag exists before you import it.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+source ~/.acs-roadshow/env 2>/dev/null || source ~/.bashrc
+echo "${QUAY_URL}/${QUAY_USER}/python-alpine-golden:0.1"
+podman pull "${QUAY_URL}/${QUAY_USER}/python-alpine-golden:0.1"
+----
+
+TIP: The pull should complete without `unauthorized` or `manifest unknown`. If `QUAY_URL` is empty, re-run lab setup or `source ~/.acs-roadshow/env`.
+====
+
+.Import python-alpine-golden into this project
+[%collapsible]
+====
+Copy the golden image into the project ImageStream so the pipeline FROM line stays on-cluster.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+source ~/.acs-roadshow/env 2>/dev/null || source ~/.bashrc
+oc import-image python-alpine-golden:0.1 \
+  --from="${QUAY_URL}/${QUAY_USER}/python-alpine-golden:0.1" \
+  --confirm --insecure -n 201-04-s-pipeline
+----
+
+TIP: `imagestreamtag.image.openshift.io/python-alpine-golden:0.1 imported`. If this fails with unauthorized, make the Quay repository public and retry.
+====
+
 .Create ServiceAccount pipeline
 [%collapsible]
 ====
@@ -57,23 +91,24 @@ oc create sa pipeline -n 201-04-s-pipeline
 TIP: `serviceaccount/pipeline created`.
 ====
 
-.Grant anyuid to SA pipeline if the build strategy requires it
+.Grant anyuid and image-builder to SA pipeline
 [%collapsible]
 ====
-Buildah often needs `anyuid`. Treat this as pipeline-only debt, not an app SCC.
+Buildah often needs `anyuid`. `system:image-builder` lets the Task push `demo` to this project’s internal registry. Treat both as pipeline-only debt, not an app SCC.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc adm policy add-scc-to-user anyuid -z pipeline -n 201-04-s-pipeline
+oc policy add-role-to-user system:image-builder -z pipeline -n 201-04-s-pipeline
 ----
 
-TIP: Skip this grant if your cluster already lets the pipeline SA build without it.
+TIP: Skip the SCC grant if your cluster already lets the pipeline SA build without it.
 ====
 
 .Apply Task build-image
 [%collapsible]
 ====
-This Task builds, pushes, and writes an image digest result. Tekton YAML lives in the hint because you cannot guess the CR shape.
+The Task builds FROM the imported golden ImageStream, adds a non-root Python HTTP server, pushes, and writes an image digest result.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -87,16 +122,25 @@ spec:
   - name: image-digest
   params:
   - name: IMAGE
+  - name: BASE_IMAGE
+    description: Golden Python base already in this project
   steps:
   - name: build
     image: registry.access.redhat.com/ubi9/buildah
     script: |
       #!/usr/bin/env bash
-      set -e
-      touch index.html; echo Hello > index.html
-      buildah bud -t $(params.IMAGE) .
-      buildah push $(params.IMAGE)
-      DIGEST=$(skopeo inspect docker://$(params.IMAGE) | jq -r .Digest)
+      set -euo pipefail
+      cat > Dockerfile <<DOCKER
+      FROM $(params.BASE_IMAGE)
+      WORKDIR /opt/app
+      RUN mkdir -p /opt/app && echo 'shift-left' > /opt/app/index.html && chown -R 1001:0 /opt/app
+      USER 1001
+      EXPOSE 8080
+      CMD ["python", "-m", "http.server", "8080"]
+      DOCKER
+      buildah bud --tls-verify=false -f Dockerfile -t $(params.IMAGE) .
+      buildah push --tls-verify=false $(params.IMAGE)
+      DIGEST=$(skopeo inspect --tls-verify=false docker://$(params.IMAGE) | jq -r .Digest)
       echo -n "$DIGEST" > $(results.image-digest.path)
 EOF
 ----
@@ -168,7 +212,7 @@ TIP: `task.tekton.dev/sign-image created`.
 .Apply Pipeline secure-build
 [%collapsible]
 ====
-`when` on the sign task is the gate: scan result must be `PASS`.
+`when` on the sign task is the gate: scan result must be `PASS`. `BASE_IMAGE` is the golden Python ImageStream in this project.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -180,6 +224,7 @@ metadata:
 spec:
   params:
   - name: IMAGE
+  - name: BASE_IMAGE
   tasks:
   - name: build
     taskRef:
@@ -187,6 +232,8 @@ spec:
     params:
     - name: IMAGE
       value: $(params.IMAGE)
+    - name: BASE_IMAGE
+      value: $(params.BASE_IMAGE)
   - name: scan
     runAfter: [build]
     taskRef:
@@ -216,7 +263,7 @@ TIP: `pipeline.tekton.dev/secure-build created`.
 .Apply PipelineRun secure-build-run
 [%collapsible]
 ====
-Point the IMAGE param at this project’s internal registry.
+Build FROM the imported golden tag. Push the app image to this project’s internal registry.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -232,6 +279,8 @@ spec:
   params:
   - name: IMAGE
     value: image-registry.openshift-image-registry.svc:5000/201-04-s-pipeline/demo:latest
+  - name: BASE_IMAGE
+    value: image-registry.openshift-image-registry.svc:5000/201-04-s-pipeline/python-alpine-golden:0.1
 EOF
 ----
 
@@ -312,14 +361,15 @@ Re-run with `FAIL=1` in the scan Task script and confirm the sign task is skippe
 
 == Debrief
 
-Your pipeline enforced scan-before-sign, skipped signing on failure, and deployed by digest so mutable tags cannot sneak into production.
+Your pipeline built FROM the Quay golden Python base, enforced scan-before-sign, skipped signing on failure, and deployed by digest so mutable tags cannot sneak into production.
 
 What breaks without this:
 
 * Unscanned or unsigned images → known-bad artifacts reach the cluster
 * Tag-based deploys → non-reproducible, retaggable runtime
+* `FROM python:3.12-alpine` at build time → you no longer know which golden digest you inherited
 
-IMPORTANT: Tekton (or equivalent) gates, conditional sign tasks, digest pins, and admission that extends trust (signatures/SBOM) at deploy time—see xref:201-10-admission-governance.adoc[201-10] for Gatekeeper / cosign enforcement on tag-based images.
+IMPORTANT: Tekton (or equivalent) gates, conditional sign tasks, digest pins, and admission that extends trust (signatures/SBOM) at deploy time—see xref:201-10-admission-governance.adoc[201-10] for RHACM Policy that configures restricted PSA (and fleet-wide baselines) so tag-based privileged workloads still fail at the API.
 
 NOTE: the when-clause is the gate; admission and SBOM checks are the natural next layers.
 

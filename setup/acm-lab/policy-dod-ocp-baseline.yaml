@@ -1,0 +1,138 @@
+# DoD / NIST-shaped OpenShift baseline delivered as RHACM Policy.
+# Hub objects live in namespace `policies`. Targets local-cluster (or every
+# cluster in the bound ClusterSet) via Placement + PlacementBinding.
+#
+# Standards (Governance UI columns):
+#   NIST SP 800-53  CM-6, AC-6, SC-7, CM-7
+#   DISA STIG for OpenShift / DoD Cloud Computing SRG (Impact Level labeling)
+#
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: policies
+  labels:
+    app.kubernetes.io/part-of: openshift-security-roadshow
+    app.kubernetes.io/component: 201-10-acm
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: policy-dod-ocp-baseline
+  namespace: policies
+  labels:
+    app.kubernetes.io/part-of: openshift-security-roadshow
+    app.kubernetes.io/component: 201-10-acm
+  annotations:
+    policy.open-cluster-management.io/standards: NIST SP 800-53, DISA STIG, DoD CC SRG
+    policy.open-cluster-management.io/categories: CM Configuration Management, AC Access Control, SC System and Communications Protection
+    policy.open-cluster-management.io/controls: CM-6, AC-6, SC-7, CM-7
+spec:
+  remediationAction: inform
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: dod-workloads-namespace
+        spec:
+          remediationAction: inform
+          severity: high
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                kind: Namespace
+                metadata:
+                  name: dod-workloads
+                  labels:
+                    compliance-framework: nist-800-53
+                    disa.stig: ocp4
+                    dod.cc-srg/impact-level: il2
+                    pod-security.kubernetes.io/enforce: restricted
+                    pod-security.kubernetes.io/audit: restricted
+                    pod-security.kubernetes.io/warn: restricted
+                  annotations:
+                    compliance.example.com/regulation: NIST SP 800-53 Rev. 5 / DISA STIG for OpenShift
+                    compliance.example.com/controls: AC-6, CM-6, CM-7
+                    compliance.example.com/contact: isso@example.mil
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: dod-default-deny-networkpolicy
+        spec:
+          remediationAction: inform
+          severity: high
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: networking.k8s.io/v1
+                kind: NetworkPolicy
+                metadata:
+                  name: default-deny-ingress
+                  namespace: dod-workloads
+                spec:
+                  podSelector: {}
+                  policyTypes:
+                    - Ingress
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: dod-workloads-limitrange
+        spec:
+          remediationAction: inform
+          severity: medium
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                kind: LimitRange
+                metadata:
+                  name: bounded-defaults
+                  namespace: dod-workloads
+                spec:
+                  limits:
+                    - type: Container
+                      default:
+                        cpu: 200m
+                        memory: 128Mi
+                      defaultRequest:
+                        cpu: 50m
+                        memory: 64Mi
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: placement-dod-ocp-baseline
+  namespace: policies
+  labels:
+    app.kubernetes.io/part-of: openshift-security-roadshow
+    app.kubernetes.io/component: 201-10-acm
+spec:
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchExpressions:
+            - key: local-cluster
+              operator: In
+              values:
+                - "true"
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: binding-dod-ocp-baseline
+  namespace: policies
+  labels:
+    app.kubernetes.io/part-of: openshift-security-roadshow
+    app.kubernetes.io/component: 201-10-acm
+placementRef:
+  name: placement-dod-ocp-baseline
+  kind: Placement
+  apiGroup: cluster.open-cluster-management.io
+subjects:
+  - name: policy-dod-ocp-baseline
+    kind: Policy
+    apiGroup: policy.open-cluster-management.io

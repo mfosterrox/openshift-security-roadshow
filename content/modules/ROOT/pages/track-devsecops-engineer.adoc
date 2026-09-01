@@ -44,18 +44,16 @@ Core responsibilities (framework):
 . xref:201-06-audit-monitoring-correlation.adoc[201-06 — Audit Correlation & Anomaly Detection]
 . xref:201-07-compliance-tailoring.adoc[201-07 — Compliance Operator Tailoring]
 . xref:201-09-sandboxed-containers-intro.adoc[201-09 — Sandboxed Containers & Isolation]
-. xref:201-10-admission-governance.adoc[201-10 — Admission & Policy Enforcement]
+. xref:201-10-admission-governance.adoc[201-10 — RHACM Policy Governance (DoD / NIST)]
 . xref:201-11-threat-modeling-control-mapping.adoc[201-11 — Threat Modeling & Control Mapping]
 
 === Advanced
 
-. xref:301-02-gitops-policy-compliance.adoc[301-02 — GitOps Policy & Compliance Pipelines]
-. xref:301-04-runtime-threat-detection.adoc[301-04 — Runtime Threat Detection (ACS)]
-. xref:301-06-supply-chain-integrity.adoc[301-06 — Supply Chain Integrity]
-. xref:301-07-automated-remediation.adoc[301-07 — Automated Remediation]
-. xref:301-09-advanced-cryptography.adoc[301-09 — Advanced Cryptography]
-. xref:301-10-zero-trust-workload-identity.adoc[301-10 — Zero-Trust Workload Identity]
-. xref:301-11-confidential-containers.adoc[301-11 — Confidential Containers]
+. xref:301-02-gitops-policy-compliance.adoc[301-02 — GitOps UBI Python]
+. xref:301-04-runtime-threat-detection.adoc[301-04 — RHACS Runtime Enforce]
+. xref:301-06-supply-chain-integrity.adoc[301-06 — Catalog Image Provenance]
+. xref:301-07-advanced-cryptography.adoc[301-07 — Encryption Inventory]
+. xref:301-08-zero-trust-workload-identity.adoc[301-08 — Zero-Trust Workload Identity]
 
 == Product deep-dives
 

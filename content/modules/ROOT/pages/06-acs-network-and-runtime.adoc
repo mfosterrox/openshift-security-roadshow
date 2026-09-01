@@ -131,7 +131,7 @@ apk update
 
 NOTE: After a few seconds, the pod is deleted and recreated and your exec session ends. Type *exit*, press *Ctrl+c* to stop the watch, and exit tmux.
 
-Confirm the event in *Violations* (policy name, deployment, runtime stage, enforcement). Deeper hunting, response playbooks, and ACS automation are xref:301-04-runtime-threat-detection.adoc[301-04].
+Confirm the event in *Violations* (policy name, deployment, runtime stage, enforcement). UBI package-manager enforce is xref:301-04-runtime-threat-detection.adoc[301-04]; Splunk+ACS IR is xref:301-05-incident-response-forensics.adoc[301-05].
 
 == Hands-on with the RHACS Network UI
 

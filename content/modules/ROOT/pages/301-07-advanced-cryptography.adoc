@@ -1,90 +1,87 @@
-= Design Advanced Cryptography, Observability, and Encryption Strategies
+= Prove Encryption at Rest and in Transit (Information Disclosure)
 :role: Advanced Security Architecture
-:skills: Key Management Integration, Service-to-Service Encryption, Observability Pipeline Design, Audit Telemetry
-:labid: LAB-301-09
+:skills: etcd Encryption, Route TLS, No Secret-as-Env, Vault Pointer
+:labid: LAB-301-07
 :toc:
 :icons: font
 
-**Duration:** ~25 minutes
+**Duration:** ~20 minutes
 
 == Overview
-Design and implement comprehensive encryption strategies for OpenShift environments, including key management integration, service-to-service encryption architecture, and observability/audit telemetry pipeline design. You will learn to architect encryption at rest, in transit, and in use across the entire platform.
+xref:201-11-threat-modeling-control-mapping.adoc[201-11] Information disclosure: secrets in env, etcd plaintext, cleartext Routes. You already **did** the deep labs—xref:101-08-etcd-encryption-control-plane.adoc[101-08], xref:101-12-enforcing-tls-routes.adoc[101-12], xref:201-08-cert-manager-mtls.adoc[201-08], xref:201-05-vault-csi.adoc[201-05]. This module **inventories and proves** those controls on the current cluster, including the 301-02 Python Deployment not passing secrets in env.
 
-Design encryption at rest and in transit with external key management, rotation, and enough observability to prove it is working.
+This is not a post-quantum implementation lab.
 
 == Why it matters
-
-Advanced cryptography and encryption are fundamental to protecting sensitive data in cloud-native environments. This lab covers:
-
-* Protecting data at rest in persistent volumes and etcd
-* Ensuring end-to-end encryption for service communication
-* Managing encryption keys securely and at scale
-* Providing observability into encryption operations
-* Meeting compliance requirements for data protection
+Crypto that is “on the roadmap” does not help a stolen etcd snapshot. You need `aesgcm`/`aescbc` on the APIServer, TLS on the Route, and workloads that do not dump credentials into `env:`.
 
 == What does it solve
 
-Modern security requirements demand encryption at multiple layers:
-
-* **Encryption at Rest**: Protecting data stored in persistent volumes, databases, and etcd
-* **Encryption in Transit**: Securing all network communications between services
-* **Encryption in Use**: Protecting data during processing (confidential computing)
-* **Key Management**: Centralized, secure key lifecycle management
-* **Observability**: Monitoring encryption operations and key usage
+* Assuming etcd encryption from a 101 lab that ran on a different cluster
+* Secret-as-env on the “hardened” Python app
+* Cleartext edge Routes after 101-12 was skipped
 
 == Your Mission
-Close cleartext and weak-key paths with encryption at rest and in transit, managed keys, and enough telemetry to prove the crypto is real.
+Read APIServer encryption, confirm the Python app has no Secret env, and check default IngressController redirect to HTTPS.
 
-== Understanding the Architecture
+Click each step only if you need a hint.
 
-[cols="1,2,2",options="header"]
-|===
-|Component | Purpose | OpenShift/K8s Implementation
-|Key Management Integration | Centralized key lifecycle management | KMS provider integration, Key Management Service
-|Service-to-Service Encryption | End-to-end encryption for all communications | Service mesh mTLS, application-level encryption
-|Encryption at Rest | Protect stored data | Storage encryption, etcd encryption, volume encryption
-|Observability Pipeline | Monitor encryption operations | Audit logs, metrics, telemetry collection
-|Key Rotation | Automated key lifecycle management | Key rotation policies and automation
-|===
-
-== Lab Content
-
-[NOTE]
+.etcd encryption type
+[%collapsible]
 ====
-This lab is currently under development. Content will include:
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get apiserver cluster -o jsonpath='{.spec.encryption.type}{"\n"}'
+----
 
-* Key management system (KMS) integration with OpenShift
-* Encryption at rest configuration for storage and etcd
-* Service-to-service encryption architecture design
-* Observability pipeline setup for encryption monitoring
-* Audit telemetry collection and analysis
-* Encryption key rotation strategies and automation
+TIP: `aesgcm` or `aescbc` means encryption at rest is on. Empty or `identity` means xref:101-08-etcd-encryption-control-plane.adoc[101-08] still applies—do not skip it on a real cluster.
 ====
 
-== Prerequisites
+.No secret-as-env on the catalog Python app
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get deploy python-app -n 301-02-python -o jsonpath='{.spec.template.spec.containers[0].env}{"\n"}' 2>/dev/null || echo "301-02-python not deployed — skip or re-run 301-02"
+oc get deploy python-app -n 301-02-python -o json | jq -r '.spec.template.spec.containers[0].envFrom // empty'
+----
 
-* OpenShift cluster with cluster-admin access
-* Access to external key management system (or simulated)
-* Understanding of encryption concepts and key management
-* Familiarity with observability tools (Prometheus, Grafana, etc.)
+TIP: Empty env / envFrom. Credentials belong in Vault/ESO (201-05) or SPIFFE (301-08), not `valueFrom.secretKeyRef` on this app.
+====
+
+.Ingress HTTPS redirect
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get ingresscontroller default -n openshift-ingress-operator -o jsonpath='{.spec.defaultCertificate}{"\n"}'
+oc get ingresscontroller default -n openshift-ingress-operator -o yaml | grep -A2 -i redirect || true
+oc get route -A | head
+----
+
+TIP: Edge Routes should be TLS (101-12). cert-manager (201-08) is how you get a globally trusted cert. `.svc.cluster.local` stays internal.
+====
+
+.Vault still the KMS-adjacent pattern
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get pods -n vault 2>/dev/null || echo "Vault not running — 201-05 is the install path if you need CSI secrets"
+----
+
+TIP: External keys and rotation live there; this lab does not reinstall Vault.
+====
 
 == Debrief
 
-Advanced cryptography closes cleartext and weak-key paths—KMS, transit encryption architecture, rotation, and observability that proves crypto is actually on.
-
-What this module targets:
-
-* Key management integration
-* Service-to-service and storage encryption strategies
-* Crypto observability and audit telemetry
-
-Until full exercises land: inventory where TLS terminates today and where secrets still sit unencrypted at rest.
+Information disclosure at 301 is **proof**: etcd type, no env secrets, TLS at the edge. Sandboxed isolation (Kata) is xref:201-09-sandboxed-containers-intro.adoc[201-09].
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMGh0OWkxemNoNmF4dG9lNHE4bncwOWpkdzR6NHJ6dDNuOW0xYnMwaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7auaKlfmip8gE/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
 == Cleanup
 
-Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+No objects created.
 
-:lab-cleanup-module: 301-09
+:lab-cleanup-module: 301-07
 include::partial$lab-cleanup.adoc[]

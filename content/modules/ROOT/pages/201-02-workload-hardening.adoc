@@ -13,7 +13,9 @@ You’ll author and apply a hardened SecurityContextConstraints object, combine 
 Harden a workload with a custom SCC where needed, plus seccomp and SELinux controls, and verify the pod still runs under stronger constraints.
 
 == Why it matters
-Default settings are like issuing every warehouse worker a multi‑tool with blades, saws, and pry hooks when they only needed a flat screwdriver. Extra capabilities become unintended weapons if someone misuses or compromises the account. Hardened runtime boundaries (SCC + seccomp + SELinux) strip the “just in case” powers that attackers love to discover after a simple pod foothold. Business outcome: lower chance a minor pod compromise escalates into node‑level panic, plus clearer evidence of least privilege for auditors.
+Default settings are like issuing every warehouse worker a multi‑tool with blades, saws, and pry hooks when they only needed a flat screwdriver. Extra capabilities become unintended weapons if someone misuses or compromises the account. Hardened runtime boundaries (SCC + seccomp + SELinux) strip the “just in case” powers that attackers love to discover after a simple pod foothold. 
+
+End goal is a lower chance a minor pod compromise escalates into node‑level panic, plus clearer evidence of least privilege for auditors.
 
 == What does it solve
 Broad SCC usage silently enables:
@@ -22,8 +24,6 @@ Broad SCC usage silently enables:
 * Accidental root UID usage (scripts work as root, drift ignored)
 * Looser SELinux contexts (more permissive file/process access)
 * Unfiltered syscalls (toolbox open for exploitation chains)
-
-Hardening prunes that list down to essentials. Negative tests (deliberate failing pods) ensure protections aren’t theoretical.
 
 == Your Mission
 Prove restricted-plus is not enough for this workload: apply a tighter SCC, run a good pod, then watch capability-add and root-UID pods fail.
@@ -46,7 +46,9 @@ TIP: You should see `allowPrivilegedContainer: false` and a non-root `runAsUser`
 .Apply SCC hardened-nonroot
 [%collapsible]
 ====
-This SCC drops all capabilities, forces a UID range, sets SELinux, and pins `runtime/default` seccomp. Apply it cluster-wide as an object, then bind it only to this lab’s service accounts.
+This SCC drops all capabilities, forces a UID range, sets SELinux, and pins `runtime/default` seccomp. SCCs are cluster-scoped (they cannot live in a project), but an unbound SCC is inert: empty `users` and `groups` means admission will not pick it for OpenShift system pods or anyone else. The next bind step grants `use` only to this lab’s service accounts.
+
+Do not add `system:authenticated` or `system:serviceaccounts` to this object. That would make it eligible for every pod, including platform workloads.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
@@ -86,11 +88,12 @@ volumes:
   - secret
   - downwardAPI
 users: []
+groups: []
 priority: 10
 EOF
 ----
 
-TIP: `securitycontextconstraints.security.openshift.io/hardened-nonroot created` (or configured).
+TIP: `securitycontextconstraints.security.openshift.io/hardened-nonroot created` (or configured). Platform namespaces keep their existing SCCs (`restricted-v2`, `privileged`, and so on).
 ====
 
 .Create project 201-02-w-harden
@@ -109,14 +112,15 @@ TIP: `Now using project "201-02-w-harden"`.
 .Bind SCC hardened-nonroot to this project's service accounts
 [%collapsible]
 ====
-An SCC does nothing until identities can use it.
+An SCC does nothing until identities can use it. This grant is `system:serviceaccounts:201-02-w-harden` only — not every service account in the cluster.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc adm policy add-scc-to-group hardened-nonroot system:serviceaccounts:201-02-w-harden
+oc create rolebinding default-edit --clusterrole=edit --serviceaccount=201-02-w-harden:default -n 201-02-w-harden || true
 ----
 
-TIP: The SCC is now available to SAs in `201-02-w-harden`.
+TIP: The SCC is now available to SAs in `201-02-w-harden`. OpenShift pods in other namespaces are unchanged. `default-edit` lets that SA create pods for the deny tests without using your cluster-admin `privileged` SCC.
 ====
 
 .Apply pod good
@@ -162,14 +166,16 @@ oc get pod good -n 201-02-w-harden -o jsonpath='{.metadata.annotations.openshift
 TIP: Output is `hardened-nonroot`.
 ====
 
-.Apply pod bad-cap with NET_RAW
+.Apply pod bad-cap with NET_RAW as the project SA
 [%collapsible]
 ====
-Adding a capability the SCC does not allow is the attacker’s “just one more tool” request. Expect a deny.
+Adding a capability the SCC does not allow is the attacker’s “just one more tool” request. Create as the project SA, not your bastion user. `lab-user` can use `privileged`, so the pod is admitted and you only see a PodSecurity *warning* — not an SCC deny.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc apply -n 201-02-w-harden -f - <<'EOF'
+oc create rolebinding default-edit --clusterrole=edit --serviceaccount=201-02-w-harden:default -n 201-02-w-harden || true
+oc delete pod bad-cap -n 201-02-w-harden --ignore-not-found
+oc apply -n 201-02-w-harden --as=system:serviceaccount:201-02-w-harden:default -f - <<'EOF' || echo DENIED
 apiVersion: v1
 kind: Pod
 metadata:
@@ -185,30 +191,24 @@ spec:
 EOF
 ----
 
-TIP: Create may succeed then fail to schedule, or admission may reject it.
+NOTE: `Forbidden` plus `DENIED` is the correct result. The long SCC provider list is normal; look for `NET_RAW` and `hardened-nonroot`.
+
+[source,text]
+----
+Error from server (Forbidden): pods "bad-cap" is forbidden: unable to validate against any security context constraint: ... capabilities.add: Invalid value: "NET_RAW" ... provider "hardened-nonroot": ... NET_RAW is not allowed
+DENIED
+----
 ====
 
-.Describe pod bad-cap for the denial
+.Apply pod bad-uid with runAsUser 0 as the project SA
 [%collapsible]
 ====
-Look for a capability or SCC denial in events.
+Root in the container is the privilege ladder from xref:101-04-scc-resource-guardrails.adoc[101-04]. This SCC’s UID range must reject it. Same impersonation as `bad-cap`.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc describe pod bad-cap -n 201-02-w-harden | grep -i deni || true
-----
-
-TIP: A denial line should mention capabilities, SCC, or forbidden.
-====
-
-.Apply pod bad-uid with runAsUser 0
-[%collapsible]
-====
-Root in the container is the privilege ladder from xref:101-04-scc-resource-guardrails.adoc[101-04]. This SCC’s UID range must reject it.
-
-[source,bash,subs="+macros,+attributes",role=execute]
-----
-oc apply -n 201-02-w-harden -f - <<'EOF'
+oc delete pod bad-uid -n 201-02-w-harden --ignore-not-found
+oc apply -n 201-02-w-harden --as=system:serviceaccount:201-02-w-harden:default -f - <<'EOF' || echo DENIED
 apiVersion: v1
 kind: Pod
 metadata:
@@ -223,7 +223,13 @@ spec:
 EOF
 ----
 
-NOTE: Expect a rejection or scheduling failure.
+NOTE: `Forbidden` plus `DENIED` is the correct result. Look for `runAsUser: Invalid value: 0` and `must be in the ranges`.
+
+[source,text]
+----
+Error from server (Forbidden): pods "bad-uid" is forbidden: unable to validate against any security context constraint: ... runAsUser: Invalid value: 0: must be in the ranges: [{1000660000 1000669999}] ...
+DENIED
+----
 ====
 
 .Exec unshare on pod good
@@ -236,7 +242,14 @@ seccomp `runtime/default` should block a risky syscall such as `unshare`. Failur
 oc exec good -- unshare -m true || echo "Blocked or not permitted (expected)"
 ----
 
-TIP: The command fails and the expected message prints.
+NOTE: The command fails and the expected message prints.
+
+[source,text]
+----
+unshare: unshare failed: Function not implemented
+command terminated with exit code 1
+Blocked or not permitted (expected)
+----
 ====
 
 == Debrief
@@ -248,9 +261,24 @@ What breaks without this:
 * Leftover capabilities / loose syscalls → privilege escalation after container compromise
 * Invented custom SCCs everywhere → unmaintainable exception sprawl
 
-IMPORTANT: hardened SCC only when needed, SPO/seccomp profiles, drop ALL then add back, SELinux types, and RHACS drift detection.
+[IMPORTANT]
+====
+Treat a custom SCC as an exception, not a platform default. Start from `restricted` / `restricted-v2` (xref:101-04-scc-resource-guardrails.adoc[101-04]). Rebuild the image when the app wants root, extra caps, or a privileged port (xref:101-11-rebuilding-images.adoc[101-11]). Only author a tighter SCC—like `hardened-nonroot`—when a named workload still needs a narrower UID range, volume list, or capability set than restricted already provides, and bind `use` to that project's service accounts only.
 
-NOTE: do not invent a custom SCC if restricted (plus image fixes) already fits. Detect capability drift continuously.
+Layer the runtime controls instead of stuffing everything into the SCC:
+
+* *Capabilities:* `requiredDropCapabilities: ["ALL"]`, then add back only what the process has proven it needs.
+* *seccomp:* pin `runtime/default` at minimum; use the xref:101-10-security-compliance-addons.adoc[Security Profiles Operator] when you need a recorded, workload-specific profile.
+* *SELinux:* keep `MustRunAs` (MCS labels). Do not relax to `RunAsAny` to silence a volume-permission failure.
+* *Drift:* RHACS (xref:06-acs-network-and-runtime.adoc[runtime policies]) should flag new `capabilities.add`, `privileged`, host mounts, and SCC annotation changes so a cluster-admin create does not silently bypass the exception you just designed.
+====
+
+[NOTE]
+====
+If the workload already runs under restricted after an image fix, stop there. A second SCC is another cluster-scoped object to bind, audit, and forget. The sprawl mode is a new SCC per team “because production is special,” which becomes an unreviewable allow-list.
+
+Watch for drift after the exception ships: a later Deployment bump that adds `NET_RAW` or `runAsUser: 0` will succeed if the creator can use `privileged` (as `lab-user` just did without `--as`). Continuous detection—ACS policy, admission (xref:201-10-admission-governance.adoc[201-10]), or a Compliance Operator check—is what keeps the deny you demonstrated from rotting.
+====
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcTYwZWZlazBoanhlcXV3NjkxdWg5YW52djBvMW1vYzkwZ3ZuYW4wOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/YrMrSUfeh5do2FISt8/giphy.gif[link=self, window=blank, width=100%, class="center"]
 

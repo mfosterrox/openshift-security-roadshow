@@ -1,102 +1,138 @@
-= Engineer Runtime Threat Detection Pipelines and Integrate into Response Workflows
+= Enforce Runtime Policies that Block Violating Actions (RHACS)
 :role: Advanced Detection & Response
-:skills: Runtime Detection Rulesets, Streaming Telemetry Enrichment, Alert Routing Design, Pre-Incident Response Playbooks
+:skills: RHACS Runtime Policies, Process Enforcement, STRIDE Elevation of Privilege
 :labid: LAB-301-04
 :toc:
 :icons: font
 
-**Duration:** ~30 minutes
+**Duration:** ~25 minutes
 
 == Overview
-Design and implement comprehensive runtime threat detection pipelines that continuously monitor workloads, enrich telemetry data, route alerts effectively, and integrate seamlessly into incident response workflows with pre-defined playbooks.
+xref:201-11-threat-modeling-control-mapping.adoc[201-11] Elevation of privilege / Tampering at *runtime*: a pod that was admitted can still run `dnf`, a shell gadget, or a packager. xref:06-acs-network-and-runtime.adoc[ACS 06] already killed Alpine `apk` on the patient-portal frontend. This lab does the same job for a **Red Hat UBI** workload: clone **Red Hat Package Manager Execution**, set **Inform and enforce** at **Runtime**, and prove RHACS **kills the pod** when `dnf`/`yum`/`microdnf` runs.
 
-Build runtime threat detection that feeds response workflows so suspicious pod behavior is caught and acted on quickly.
+The sensor is the ACS Collector. The response is OpenShift killing the pod so cluster state stays consistent.
 
 == Why it matters
-
-Runtime threat detection is critical for identifying active attacks:
-
-* **Early Detection**: Identify threats before significant damage occurs
-* **Continuous Monitoring**: 24/7 surveillance of runtime behavior
-* **Context Enrichment**: Correlate events to understand attack patterns
-* **Automated Response**: Trigger response actions automatically
-* **Investigation Readiness**: Pre-defined playbooks accelerate response
-* **Threat Intelligence**: Integrate external threat feeds
+Admission cannot see a process that did not exist at `create`. Runtime enforce is the control that turns “we alerted” into “the violating action did not finish.” Package managers in running containers are how attackers install a tool after they get `exec`.
 
 == What does it solve
 
-Traditional security monitoring faces limitations:
-
-* Detection rules are static and miss novel attacks
-* Telemetry lacks context and correlation
-* Alerts overwhelm security teams with noise
-* Response workflows are ad-hoc and slow
-* Integration between tools is manual and fragmented
-
-Advanced detection pipelines solve these by:
-
-* Using behavioral analysis and anomaly detection
-* Enriching telemetry with context and threat intelligence
-* Implementing intelligent alert routing and filtering
-* Automating response through playbooks
-* Integrating seamlessly with existing security tools
+* Inform-only policies that page the SOC while the process keeps running
+* Alpine-only runtime demos on a fleet that actually runs UBI
+* Confusion between “scale to zero” (not what ACS runtime does) and **kill this pod**
 
 == Your Mission
-Wire runtime detection so suspicious process and network behavior is raised fast enough to contain—not discover after the exfil.
+Deploy a UBI probe (and reuse xref:301-02-gitops-policy-compliance.adoc[301-02] Python if it is still up), clone the Red Hat package-manager policy with runtime enforce, exec `dnf` or `microdnf`, and watch the pod get killed.
 
-== Understanding the Architecture
+=== Prerequisites
 
-[cols="1,2,2",options="header"]
-|===
-|Component | Purpose | OpenShift/K8s Implementation
-|Runtime Detection Rulesets | Identify attack patterns and anomalies | Falco rules, custom detection logic, ML models
-|Streaming Telemetry | Real-time event collection and processing | Prometheus, Fluentd, OpenTelemetry, event streams
-|Telemetry Enrichment | Add context and threat intelligence | Enrichment pipelines, threat intel feeds, correlation engines
-|Alert Routing | Intelligent alert distribution | AlertManager, notification systems, escalation policies
-|Response Playbooks | Pre-defined incident response procedures | SOAR platforms, automation scripts, runbooks
-|SIEM/SOAR Integration | Centralized security operations | Log aggregation, event correlation, automation platforms
-|===
+* RHACS Central reachable (xref:00-acs-setup-install-navigation.adoc[ACS 00])
+* Cluster-admin or permission to exec in the lab namespace
+* Collector running on worker nodes
 
-== Lab Content
+Click each step only if you need a hint.
 
-[NOTE]
+=== Part A: Workload
+
+.Deploy the UBI package-manager probe
+[%collapsible]
 ====
-This lab is currently under development. Content will include:
+`ubi9/ubi` includes `dnf`. Restricted PSA + `runAsNonRoot`. Leave `301-02-python` running if you still have it—ACS will show both namespaces.
 
-* Runtime detection ruleset development
-* Streaming telemetry pipeline setup
-* Telemetry enrichment and correlation
-* Alert routing and escalation design
-* Pre-incident response playbook creation
-* SIEM/SOAR integration and automation
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc apply -f ~/openshift-security-roadshow/setup/acs-runtime-lab/pkgmgr-probe.yaml
+oc rollout status deploy/pkgmgr-probe -n 301-04-runtime --timeout=120s
+oc get route central -n stackrox -o jsonpath='https://{.spec.host}{"\n"}'
+----
+
+TIP: Probe `Running`. Open the Central URL for Policy Management.
 ====
 
-== Prerequisites
+=== Part B: Clone and enforce
 
-* OpenShift cluster with cluster-admin access
-* Runtime security tools (Falco, FalcoSidekick, etc.)
-* Monitoring and observability stack
-* Understanding of threat detection concepts
-* Familiarity with SIEM/SOAR platforms
-* Experience with incident response procedures
+.Find Red Hat Package Manager Execution
+[%collapsible]
+====
+In RHACS: **Platform Configuration → Policy Management**. Search **Red Hat Package Manager Execution** (criteria include `yum` / `dnf` / `rpm` / `microdnf`).
+
+If you already cloned the Alpine policy in ACS 06, leave it. This clone is the UBI equivalent.
+
+TIP: Open the policy and confirm it is **Runtime** capable and currently **Inform** (or disabled). You will clone, not edit the default.
+====
+
+.Clone with Inform and enforce at Runtime
+[%collapsible]
+====
+**Actions → Clone policy**. Name:
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+Red Hat Package Manager Execution - Runtime
+----
+
+Then **Policy Behavior → Actions**:
+
+* Lifecycle: **Runtime**
+* Enable **Inform and enforce**
+* Enforcement: **Enforce at Runtime** (kills the pod; it does not scale the Deployment to zero)
+
+Save the policy.
+
+TIP: Same click path as xref:06-acs-network-and-runtime.adoc#runtime-enforce[ACS 06 runtime enforce], different policy name.
+====
+
+=== Part C: Trigger the kill
+
+.Watch events, then exec the package manager
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get events -n 301-04-runtime -w
+----
+
+In a second terminal:
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+POD=$(oc get pod -l app=pkgmgr-probe -n 301-04-runtime -o jsonpath='{.items[0].metadata.name}')
+oc exec "$POD" -n 301-04-runtime -- /bin/bash -c 'dnf --version || microdnf --version || yum --version'
+----
+
+TIP: The exec session ends (often exit 137). Events show RHACS **Killing** the pod and the Deployment creating a replacement. In Central **Violations**, filter policy name and namespace `301-04-runtime`.
+====
+
+.Optional: confirm the Python app is still the catalog image
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get deploy python-app -n 301-02-python -o jsonpath='{.spec.template.spec.containers[0].image}{"\n"}' 2>/dev/null || echo "301-02-python not deployed (optional)"
+----
+
+TIP: If 301-02 is up, you now have a digest-pinned Python service *and* a UBI probe ACS will kill. Hunt both in xref:301-05-incident-response-forensics.adoc[301-05].
+====
 
 == Debrief
 
-Runtime threat detection closes the gap between “admitted” and “behaving”—rules, telemetry enrichment, and alert routing so you can contain fast.
+RHACS runtime enforce **blocks the violating action** by killing the pod. That is EoP/Tampering at runtime, not a new detection product. Build-time is removing the packager from the image (xref:101-11-rebuilding-images.adoc[101-11], xref:201-04-shift-left-pipeline.adoc[201-04]). Deploy-time is xref:02-acs-policy-and-risk.adoc[ACS 02].
 
-What this module targets:
+What breaks without this:
 
-* Runtime rulesets (ACS / Falco-class signals)
-* Streaming enrichment and SIEM/SOAR handoff
-* Pre-built response playbooks
+* Inform-only → the process finishes, the ticket arrives later
+* Alpine-only demos → UBI fleets never exercise the policy they actually need
+* Assuming ACS scales the Deployment to zero → replica comes back, which is correct; the *process* did not persist
 
-Until full exercises land: list which process or network behaviors in prod would be high-signal if alerted within minutes.
+IMPORTANT: save the cloned policy. Collector must be running on the node that scheduled the probe.
+
+NOTE: Next is xref:301-05-incident-response-forensics.adoc[301-05] — join this kill to kube-apiserver `exec` in Splunk.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcTYwZWZlazBoanhlcXV3NjkxdWg5YW52djBvMW1vYzkwZ3ZuYW4wOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/YrMrSUfeh5do2FISt8/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
 == Cleanup
 
-Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+Deletes `301-04-runtime`. The cloned ACS policy stays in Central unless you delete it in the UI (leave it if you are continuing to 301-05).
 
 :lab-cleanup-module: 301-04
 include::partial$lab-cleanup.adoc[]

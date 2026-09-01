@@ -27,7 +27,7 @@ Pulls from arbitrary registries mean unknown builders and unvetted contents. An 
 == Your Mission
 Supply-chain attackers ship malware through any registry that will take a tag. Put an allow-list on the door, prove untrusted images are denied, then run only a trusted UBI workload you can fingerprint and pin by digest. Complete *Part A*, then *Part B*.
 
-This is the 101 baseline (ValidatingAdmissionPolicy on a labeled namespace). Later modules add Gatekeeper, signing, and SBOMs.
+This is the 101 baseline (ValidatingAdmissionPolicy on a labeled namespace). Later modules add RHACM Policy, signing, and SBOMs.
 
 Click each step only if you need a hint.
 
@@ -368,7 +368,7 @@ IMPORTANT: trusted-registry allow-lists (admission), digest pins for important w
 Kubernetes Secrets and digest pins are still not signatures. Stronger supply-chain controls in later modules:
 
 * xref:101-11-rebuilding-images.adoc[101-11] — rebuild on UBI so the image itself is OpenShift-ready
-* xref:201-10-admission-governance.adoc[201-10] — Gatekeeper constraints beyond a single CEL allow-list
+* xref:201-10-admission-governance.adoc[201-10] — RHACM Policy (NIST / DISA / DoD CC SRG baseline) beyond a single CEL allow-list
 * xref:301-06-supply-chain-integrity.adoc[301-06] — signing, SBOM, and end-to-end provenance
 * xref:tssc-01-git-signing.adoc[TSSC git signing] — signed commits and trusted artifacts
 

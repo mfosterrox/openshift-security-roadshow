@@ -1,7 +1,7 @@
 = Zero-Trust Database Access with SPIFFE mTLS
 :role: Advanced Runtime Security
 :skills: Workload Identity Frameworks, Confidential Execution Runtimes, Hardware-Backed Attestation
-:labid: LAB-301-10
+:labid: LAB-301-08
 :toc:
 :icons: font
 :page-toclevels: 1
@@ -9,7 +9,9 @@
 **Duration:** ~20 minutes
 
 == Overview
-Replace shared database passwords with SPIFFE workload identity and mutual TLS via the Zero Trust Workload Identity Manager (ZTWIM)—short-lived certificates tied to Kubernetes service accounts instead of static Secrets.
+xref:201-11-threat-modeling-control-mapping.adoc[201-11] **Spoofing**: a stolen or long-lived service account token is still a password. This lab is the scale-up of xref:201-01-custom-rbac.adoc[201-01] / `automountServiceAccountToken: false` (xref:301-01-platform-security-governance.adoc[301-01]): identity becomes a **short-lived X.509 certificate** (SPIFFE) instead of a Secret.
+
+Replace shared database passwords with SPIFFE workload identity and mutual TLS via the Zero Trust Workload Identity Manager (ZTWIM)—certificates tied to Kubernetes service accounts instead of static Secrets.
 
 include::partial$console-access.adoc[]
 
@@ -46,10 +48,7 @@ ZTWIM is already installed on this cluster. You'll register the trust domain and
 +
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-cd ~/
-git clone https://github.com/rhpds/openshift-days-ops-showroom.git
-git pull
-cd ~/openshift-days-ops-showroom/setup-scripts/ztwim-config-scripts
+cd ~/openshift-security-roadshow/setup/ztwim-lab
 ./configure-ztwim-lab.sh
 ----
 +
@@ -61,7 +60,7 @@ TIP: The script configures SPIRE server, agents, the CSI driver, and OIDC discov
 +
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-cd ~/openshift-days-ops-showroom/setup-scripts/ztwim-config-scripts
+cd ~/openshift-security-roadshow/setup/ztwim-lab
 ./configure-ztwim-postgresql-lab.sh deploy
 ----
 +
@@ -326,13 +325,10 @@ image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjJmczc4MmswYmk1cnhvZ254
 
 == Cleanup
 
-Run the ZTWIM lab cleanup, then the roadshow module cleanup script.
+Run the roadshow module cleanup script. It removes the PostgreSQL SPIFFE namespaces and leaves the ZTWIM operator in place.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-cd ~/openshift-days-ops-showroom/setup-scripts/ztwim-config-scripts
-./configure-ztwim-postgresql-lab.sh cleanup
-
 cd ~/openshift-security-roadshow
-bash setup/lab-cleanup.sh --module 301-10
+bash setup/lab-cleanup.sh --module 301-08
 ----

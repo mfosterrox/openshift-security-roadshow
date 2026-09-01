@@ -24,7 +24,7 @@ Finding one exec in `audit.log` does not prove the cluster would still have that
 == Your Mission
 Take the CIS audit rows from 101-09 (1.2.22–1.2.25, 3.2.1) and see how `ocp4-cis` scored them. Highlight every FAIL and what to change—without applying unsupported API server overrides on a shared cluster.
 
-SPO and RHACS still matter for runtime and image risk; this hour is the audit-log follow-up. Tailoring and bulk remediate is xref:201-07-compliance-tailoring.adoc[201-07]. Log shipping into Loki is xref:201-06-audit-monitoring-correlation.adoc[201-06].
+SPO and RHACS still matter for runtime and image risk; this hour is the audit-log follow-up. Tailoring and bulk remediate is xref:201-07-compliance-tailoring.adoc[201-07]. Log shipping into Splunk is xref:201-06-audit-monitoring-correlation.adoc[201-06].
 
 Click each step only if you need a hint.
 
@@ -113,19 +113,22 @@ These rule names are the OpenShift CIS equivalent of the Kubernetes CIS rows you
 
 [cols="1,2",options="header"]
 |===
-|101-09 CIS |Typical ComplianceCheckResult name (scan prefix may vary)
+|CIS OCP 1.7 (Kubernetes CIS in parentheses) |Typical ComplianceCheckResult name (scan prefix may vary)
 
-|1.2.22 path
+|1.2.20 path (was 1.2.22)
 |`…-api-server-audit-log-path`
 
-|1.2.24 maxbackup
+|1.2.21 forwarding (retention / shipping)
+|`…-audit-log-forwarding-enabled`
+
+|1.2.22 maxbackup (was 1.2.24)
 |`…-api-server-audit-log-maxbackup`
 
-|1.2.25 maxsize
+|1.2.23 maxsize (was 1.2.25)
 |`…-api-server-audit-log-maxsize`
 
-|Retention / shipping
-|`…-audit-log-forwarding-enabled` or `…-audit-logging-enabled`
+|3.2.1 audit enabled
+|`…-audit-logging-enabled`
 |===
 
 [source,bash,subs="+macros,+attributes",role=execute]
@@ -174,7 +177,7 @@ What the FAILs usually mean (do **not** apply `unsupportedConfigOverrides` in th
 
 * **audit-log-path** — kube-apiserver must write `/var/log/kube-apiserver/audit.log` (you listed that directory in 101-09). A FAIL here is unusual on a stock OpenShift cluster; escalate to the platform owner.
 * **audit-log-maxsize / maxbackup** — CIS wants rotation (about 100 MiB files, about 10 backups). OpenShift sets these by default. If the check still FAILs, treat it as a platform-operator finding for xref:201-07-compliance-tailoring.adoc[201-07], not a DIY kube-apiserver edit.
-* **audit-log-forwarding-enabled** — logs stay on the masters until Cluster Logging / Loki (or a SIEM) ships them off-cluster. That is the common roadshow FAIL. Fix: configure a `ClusterLogForwarder` (see xref:201-06-audit-monitoring-correlation.adoc[201-06]), not “copy files off by hand.”
+* **audit-log-forwarding-enabled** (CIS OpenShift **1.2.21**) — logs stay on the masters until Cluster Logging / a SIEM ships them off-cluster. That is the common roadshow FAIL. Fix: configure a `ClusterLogForwarder` to Splunk (xref:201-06-audit-monitoring-correlation.adoc[201-06]), then re-scan in xref:201-07-compliance-tailoring.adoc[201-07] to record PASS. Do not copy files off by hand.
 
 What to explain: highlight the FAIL instructions, not every PASS. The change that usually matters after 101-09 is *shipping* the files you already grepped—not editing kube-apiserver flags.
 ====
@@ -198,7 +201,7 @@ TIP: If `path` is `/var/log/kube-apiserver/audit.log` and the scan still FAILs f
 
 == Debrief
 
-101-09 proved exec shows up in `/var/log/kube-apiserver/audit.log`. 101-10 asked Compliance Operator whether that logging *control* meets CIS: path, rotation, and forwarding. FAIL on forwarding is the usual gap: hunt works today; an attacker with master access (or a rotated-away file) can still erase the trail.
+101-09 proved exec shows up in `/var/log/kube-apiserver/audit.log`. 101-10 asked Compliance Operator whether that logging *control* meets CIS: path, rotation, and forwarding. FAIL on forwarding is the usual gap: hunt works today; an attacker with master access (or a rotated-away file) can still erase the trail. xref:201-06-audit-monitoring-correlation.adoc[201-06] ships the logs; xref:201-07-compliance-tailoring.adoc[201-07] re-scans `ocp4-cis` so 1.2.21 / 3.2.1 can PASS.
 
 What breaks without this:
 

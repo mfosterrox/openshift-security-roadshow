@@ -5,12 +5,19 @@
 :toc:
 :icons: font
 
-**Duration:** ~20 minutes
+**Duration:** ~15 minutes
 
 == Overview
-Advanced workload restriction (runtime isolation enhancements).
+A standard pod shares the worker’s Linux kernel. Namespaces, cgroups, seccomp, and SCCs shrink what that process can do; they do not give you a second kernel. Customers pick a sandboxed pod when a breakout to that shared kernel is an unacceptable business or tenancy risk—not because every microservice needs a VM.
 
-Run a workload with sandboxed containers and contrast isolation trade-offs against standard pods.
+Typical reasons to set `runtimeClassName: kata` on *some* workloads:
+
+* **Untrusted or third-party code** — CI jobs that build customer repos, plugins, student labs, or a vendor binary you have not fully audited. The pipeline stays on OpenShift; the job does not share the node kernel with production.
+* **Multi-tenant / SaaS** — more than one customer (or business unit) on the same nodes. A container escape should not become “read the neighbor’s secrets from the host.”
+* **High-impact data** — payment, health, or similarly sensitive processing where the isolation story has to survive a kernel-level container CVE, not only an SCC deny.
+* **“I need privileges inside the workload, not on the node”** — tools that expect a full guest (custom kernel modules, nested isolation) without putting `privileged` on the worker.
+
+They do **not** sandbox everything. Kata starts slower and costs more CPU/memory than a runc pod. Pair it with the rest of the stack (SCC, NetworkPolicy, RHACS). Confidential computing (hardware memory encryption) is a later platform choice when the threat includes a privileged host—not a follow-on lab in this roadshow.
 
 == Why it matters
 Standard containers share a kernel with the node. A breakout from a high-risk workload can reach everything else on that host. Sandboxed runtimes raise the wall when that risk is unacceptable.
@@ -22,7 +29,7 @@ Standard containers share a kernel with the node. A breakout from a high-risk wo
 * Ambiguity about when stronger runtime isolation is worth the cost
 
 == Your Mission
-Run a sandboxed workload and contrast it with a normal pod so you know when stronger isolation is the right defense—not just a novelty.
+Run a sandboxed workload and contrast it with a normal pod so you know when stronger isolation is justified.
 
 === Prerequisites
 

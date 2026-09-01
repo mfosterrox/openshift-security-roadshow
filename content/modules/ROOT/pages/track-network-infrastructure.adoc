@@ -35,14 +35,13 @@ Not owning: compliance scanning automation, supply-chain gates, or organization-
 
 . xref:101-05-network-policy-basics.adoc[101-05 — NetworkPolicy Basics] and xref:201-08-cert-manager-mtls.adoc[201-08 — Certificate Management & mTLS]
 . xref:201-06-audit-monitoring-correlation.adoc[201-06 — Audit Correlation & Anomaly Detection]
-. xref:201-10-admission-governance.adoc[201-10 — Admission & Policy Enforcement]
+. xref:201-10-admission-governance.adoc[201-10 — RHACM Policy Governance (DoD / NIST)]
 
 === Advanced
 
-. xref:301-03-multi-tenant-zero-trust-network.adoc[301-03 — Multi-Tenant Zero-Trust Network]
-. xref:301-09-advanced-cryptography.adoc[301-09 — Advanced Cryptography]
-. xref:301-10-zero-trust-workload-identity.adoc[301-10 — Zero-Trust Workload Identity]
-. xref:301-11-confidential-containers.adoc[301-11 — Confidential Containers]
+. xref:301-03-multi-tenant-zero-trust-network.adoc[301-03 — AdminNetworkPolicy]
+. xref:301-07-advanced-cryptography.adoc[301-07 — Encryption Inventory]
+. xref:301-08-zero-trust-workload-identity.adoc[301-08 — Zero-Trust Workload Identity]
 
 == Related modules
 

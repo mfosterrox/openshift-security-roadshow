@@ -390,12 +390,12 @@ Certificates expire. If nobody renews them, TLS becomes an outage. Three pattern
 |Tool | What it rotates | When to use it
 |cert-manager (this lab) | Secrets from `Certificate` CRs, before expiry | Route and ingress certificates, including ACME. This cluster already renews `cert-manager-ingress-cert`.
 |HashiCorp Vault PKI | Short-lived certificates from a secrets engine, with TTL and revocation | App or service certificates whose source of truth should stay off the cluster. Hands-on secrets wiring is xref:201-05-vault-csi.adoc[201-05].
-|Zero Trust Workload Identity Manager (ZTWIM) | SPIFFE SVIDs bound to namespace and ServiceAccount; `spiffe-helper` renews them in the pod | East-west mTLS and workload identity, not the public Route. Hands-on is xref:301-10-zero-trust-workload-identity.adoc[301-10].
+|Zero Trust Workload Identity Manager (ZTWIM) | SPIFFE SVIDs bound to namespace and ServiceAccount; `spiffe-helper` renews them in the pod | East-west mTLS and workload identity, not the public Route. Hands-on is xref:301-08-zero-trust-workload-identity.adoc[301-08].
 |===
 
 cert-manager solves "the Route cert expired at 2 a.m." Vault PKI solves "I need short-lived certs from a central PKI." ZTWIM solves "this pod must prove *who* it is to another service," not "the internet must trust my hostname."
 
-Service-to-service mTLS with cert-manager is xref:201-08-cert-manager-mtls.adoc[201-08].
+Service-to-service mTLS with cert-manager is xref:201-08-cert-manager-mtls.adoc[201-08] (that lab also points a Certificate at this cluster’s ACME ClusterIssuer so a Route hostname is trusted without `-k`).
 
 == Debrief
 

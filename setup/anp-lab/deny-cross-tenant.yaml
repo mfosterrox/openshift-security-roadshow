@@ -1,0 +1,23 @@
+# Lower priority than DNS/intra-ns allows. Denies tenant-to-tenant ingress.
+# Do not replace BaselineAdminNetworkPolicy/default — this is a named ANP.
+apiVersion: policy.networking.k8s.io/v1alpha1
+kind: AdminNetworkPolicy
+metadata:
+  name: stride-deny-cross-tenant
+  labels:
+    app.kubernetes.io/part-of: openshift-security-roadshow
+    app.kubernetes.io/component: 301-03-anp
+spec:
+  priority: 50
+  subject:
+    namespaces:
+      matchLabels:
+        stride.example.com/workshop: "301-03"
+  ingress:
+    - name: deny-other-workshop-tenants
+      action: Deny
+      from:
+        - namespaces:
+            namespaceSelector:
+              matchLabels:
+                stride.example.com/workshop: "301-03"

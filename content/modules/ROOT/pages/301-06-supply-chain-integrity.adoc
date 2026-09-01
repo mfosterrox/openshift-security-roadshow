@@ -1,104 +1,171 @@
-= Establish End-to-End Supply Chain Integrity and Artifact Provenance
+= Supply Chain Integrity for a Red Hat Python Image
 :role: Advanced Supply Chain Security
-:skills: Artifact Signing Frameworks, SBOM Generation & Attestation, Supply Chain Assurance Levels, Policy Enforcement
+:skills: Digest Pinning, Image Signatures, SBOM Evidence, Admission
 :labid: LAB-301-06
 :toc:
 :icons: font
 
-**Duration:** ~30 minutes
+**Duration:** ~25 minutes
 
 == Overview
-Design and implement comprehensive supply chain security frameworks that ensure end-to-end integrity of artifacts, provide complete provenance tracking, generate Software Bills of Materials (SBOMs), and enforce supply chain policies throughout the development and deployment lifecycle.
+xref:201-11-threat-modeling-control-mapping.adoc[201-11] Tampering at supply-chain depth. xref:201-04-shift-left-pipeline.adoc[201-04] already built FROM workshop `python-alpine-golden` and simulated cosign. This lab stays on the **Red Hat catalog Python image** (https://images.redhat.com/[images.redhat.com] / `ubi9/python-311`): inspect Red Hat signature metadata, treat ACS or `oc image info` as SBOM-adjacent evidence, and **deny tag-only Deployments** in a labeled namespace.
 
-Establish end-to-end artifact provenance so builds, signatures, and deployments can be trusted from source to runtime.
+Full Sigstore/TAS signing of *your* builds is xref:tssc-00-intro.adoc[TSSC-00]—do not install a second signing stack here unless TAS is already on the cluster.
 
 == Why it matters
-
-Supply chain attacks are increasingly common and dangerous:
-
-* **Artifact Integrity**: Ensure artifacts haven't been tampered with
-* **Provenance Tracking**: Know the origin and history of every artifact
-* **SBOM Requirements**: Meet regulatory requirements for software transparency
-* **Policy Enforcement**: Prevent unauthorized or untrusted artifacts
-* **Vulnerability Management**: Track vulnerabilities through supply chain
-* **Compliance**: Meet supply chain security standards (SLSA, NIST SSDF)
+A GitOps deploy (xref:301-02-gitops-policy-compliance.adoc[301-02]) is only as strong as admission. If someone can still `oc create deploy --image=…:latest` in the same namespace, the digest pin was a suggestion.
 
 == What does it solve
 
-Supply chain security challenges include:
-
-* Artifacts lack cryptographic signatures
-* Provenance information is incomplete or missing
-* SBOMs are not generated or attested
-* Supply chain policies are not enforced automatically
-* Vulnerability tracking is fragmented
-* Compliance evidence is difficult to produce
-
-This lab addresses these by:
-
-* Implementing comprehensive signing frameworks
-* Providing complete provenance tracking
-* Automating SBOM generation and attestation
-* Enforcing policies at multiple enforcement points
-* Integrating supply chain security throughout the lifecycle
-* Creating audit trails for compliance
+* Tag-mutable Deployments next to “we pin digests”
+* No evidence that the base image is a Red Hat catalog artifact
+* Cosign workshops that never gate the API
+* Inventing a second Tekton curriculum in 301
 
 == Your Mission
-Prove builds, signatures, and deployments form a chain an attacker cannot quietly splice. From source to runtime, unbroken provenance is the mission.
+Inspect the UBI Python image, apply a digest-only ValidatingAdmissionPolicy to a labeled namespace, prove `:latest` is denied and `@sha256:` is allowed.
 
-== Understanding the Architecture
+=== Prerequisites
 
-[cols="1,2,2",options="header"]
-|===
-|Component | Purpose | OpenShift/K8s Implementation
-|Artifact Signing | Cryptographic signatures for artifacts | Cosign, Sigstore, signing keys, signature verification
-|SBOM Generation | Software Bills of Materials | Syft, SPDX, CycloneDX, SBOM formats
-|Attestation | Proof of artifact properties | In-toto attestations, SLSA provenance, policy attestations
-|Supply Chain Assurance | Trust levels and policies | Assurance level definitions, policy frameworks
-|Policy Enforcement | Prevent untrusted artifacts | Admission controllers, image policies, signature verification
-|Provenance Tracking | Complete artifact history | Provenance metadata, attestation storage, tracking systems
-|===
+* Cluster-admin for ValidatingAdmissionPolicy
+* Pull access to `registry.access.redhat.com/ubi9/python-311`
+* Optional: RHACS image scan UI; optional: `cosign` / TAS from TSSC-00
 
-== Lab Content
+Click each step only if you need a hint.
 
-[NOTE]
+=== Part A: Provenance of the catalog image
+
+.Inspect UBI Python (digest + config)
+[%collapsible]
 ====
-This lab is currently under development. Content will include:
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc image info registry.access.redhat.com/ubi9/python-311:latest --filter-by-os=linux/amd64
+----
 
-* Artifact signing framework setup (Cosign/Sigstore)
-* SBOM generation and attestation workflows
-* Supply chain assurance level definitions
-* Policy enforcement at admission and runtime
-* Provenance tracking and verification
-* CI/CD pipeline integration
+TIP: Record `Digest: sha256:…`. Catalog page: https://images.redhat.com/[images.redhat.com] → Python / ubi9. That digest is what 301-02 pinned.
 ====
 
-== Prerequisites
+.Optional: ACS image scan as the SBOM stand-in
+[%collapsible]
+====
+In Central: **Vulnerability Management → Images** (or **Workload CVEs**). Filter `python-311` or `301-02-python`.
 
-* OpenShift cluster with cluster-admin access
-* Access to container registries and artifact repositories
-* Understanding of supply chain security concepts
-* Familiarity with signing tools (Cosign, Sigstore)
-* Experience with SBOM generation tools
-* Knowledge of SLSA and supply chain frameworks
+TIP: ACS lists components and CVEs. That is the bill of materials evidence this lab needs. Generating SPDX with Syft is optional and not required if the binary is not on the bastion.
+====
+
+.Optional: cosign/TAS if already installed
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+command -v cosign && cosign version || echo "cosign not on PATH — use TSSC-00 for signing your own images; Red Hat catalog signatures are registry/RPM metadata, not a cosign key you hold"
+----
+
+TIP: Do not expect `cosign verify` of `ubi9/python-311` with a workshop Rekor key. Your *application* images get TAS in TSSC-00.
+====
+
+=== Part B: Admit only digest-pinned Deployments
+
+.Label a namespace and apply the VAP
+[%collapsible]
+====
+Bindings match `digest-pin-enforce=true` only—not cluster-wide.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc new-project 301-06-supply || oc project 301-06-supply
+oc label ns 301-06-supply digest-pin-enforce=true --overwrite
+oc apply -f ~/openshift-security-roadshow/setup/supply-chain-lab/require-digest-vap.yaml
+----
+
+TIP: `validatingadmissionpolicy.admissionregistration.k8s.io/require-digest-deployments` created.
+====
+
+.Tag-only Deployment (expect deny)
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc apply -n 301-06-supply -f - <<'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tag-only
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tag-only
+  template:
+    metadata:
+      labels:
+        app: tag-only
+    spec:
+      containers:
+      - name: app
+        image: registry.access.redhat.com/ubi9/python-311:latest
+        command: ["sleep", "infinity"]
+EOF
+----
+
+TIP: Admission denies (`pin every container image to a digest`). Tampering control at the API.
+====
+
+.Digest-pinned Deployment (expect allow)
+[%collapsible]
+====
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+DIGEST=$(oc image info registry.access.redhat.com/ubi9/python-311:latest --filter-by-os=linux/amd64 | awk '/Digest:/ {print $2; exit}')
+echo "Using $DIGEST"
+oc apply -n 301-06-supply -f - <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pinned
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pinned
+  template:
+    metadata:
+      labels:
+        app: pinned
+    spec:
+      containers:
+      - name: app
+        image: registry.access.redhat.com/ubi9/python-311@${DIGEST}
+        command: ["sleep", "infinity"]
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          runAsNonRoot: true
+EOF
+----
+
+TIP: Deployment created. Same rule 301-02 followed in GitOps.
+====
 
 == Debrief
 
-Supply chain integrity is unbroken provenance from source to runtime: sign, attest, admit only what you can verify.
+Supply-chain integrity here is **catalog image + digest pin + admission**. Signing *your* builds remains TSSC-00 / 201-04. ACS deploy-time policies (xref:02-acs-policy-and-risk.adoc[ACS 02]) are the other admission door for CVEs and labels.
 
-What this module targets:
+What breaks without this:
 
-* Cosign/Sigstore and Trusted Artifact Signer patterns
-* SBOM and attestation
-* Admission enforcement of provenance
+* GitOps pin in one namespace, `:latest` allowed next door
+* Cosign demo with no API gate → attackers skip the pipeline
+* Treating Docker Hub Python as “close enough” to UBI
 
-Until full exercises land: decide which registry paths must be signed tomorrow versus still tag-mutable today.
+IMPORTANT: remove the VAP in cleanup so it does not linger on the shared cluster.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDR4amFzZ2ZiNGNkaTVwM3lscmxycDMzMnB4bTdwYWd0emlsOHJiYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/qunFC4tNsyA8y9M36d/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
 == Cleanup
 
-Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+Deletes `301-06-supply` and the digest VAP/binding.
 
 :lab-cleanup-module: 301-06
 include::partial$lab-cleanup.adoc[]

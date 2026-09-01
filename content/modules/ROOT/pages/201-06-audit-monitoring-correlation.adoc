@@ -1,35 +1,72 @@
 = See the Story – Audit Log & Monitoring Correlation
 :role: Intermediate Detection & Response
-:skills: Audit Logs, Correlation, Monitoring, Threat Detection
+:skills: Audit Logs, Correlation, Monitoring, Threat Detection, Splunk, ClusterLogForwarder
 :labid: LAB-201-06
 :toc:
 :icons: font
 
-**Duration:** ~20 minutes
+**Duration:** ~30 minutes
 
 == Overview
-Correlate audit logs & monitoring signals.
-
-Correlate API audit events with monitoring signals so you can tell a coherent story about who did what and what the cluster observed.
+Stand up a searchable audit store (Splunk), ship OpenShift API audit into it, then correlate an `oc exec` with runtime so you can tell a coherent story about who did what.
 
 == Why it matters
-Audit logs alone and dashboards alone leave incident stories half-told. Correlating API verbs with monitoring signals lets you prove who did what while the cluster’s health signals confirm impact.
+`oc adm node-logs` on a master (xref:101-09-audit-exec-events.adoc[101-09]) proves the file exists. Auditors and SOC analysts still ask: *where is the durable, queryable copy?* CIS `audit-log-forwarding-enabled` fails when those files never leave the control plane (xref:101-10-security-compliance-addons.adoc[101-10]). A SIEM plus `ClusterLogForwarder` is that copy: identity, verb, object, and time in one place, joined to RHACS and container logs.
 
 == What does it solve
 
+* Audit stuck on masters with no hunt interface
 * Blind spots between “API says X” and “cluster measured Y”
 * Slow incident narratives that re-debate timelines
 * Missed privilege misuse that never lights a metric alert alone
 
 == Your Mission
-Connect audit evidence to monitoring signals so a suspected foothold’s actions and blast radius show up as one coherent story. You already hunted exec on the node in xref:101-09-audit-exec-events.adoc[101-09]; this lab joins that API event to runtime.
+Deploy Splunk as the lab SIEM, forward kube-apiserver audit to it, generate a suspicious exec, and hunt that event in Search—then join runtime. You already found exec on the node in xref:101-09-audit-exec-events.adoc[101-09]; this lab puts the same event in a database you can query.
 
 === Prerequisites
 
-* Cluster logging or LokiStack configured (audit indexed)
-* Permissions to read audit indices
+* `oc` logged in with permission to create namespaces, operators, and ClusterRoles (lab-user / cluster-admin)
+* `jq` and `curl` on the bastion
+* Storage for Splunk PVCs (about 20Gi + 5Gi)
 
 Click each step only if you need a hint.
+
+=== Part A: SIEM and audit forwarding
+
+IMPORTANT: Splunk’s first boot often takes **10–25 minutes**. Start `install.sh`, then keep reading Why it matters / Detection Logic while it rolls.
+
+.Deploy Splunk and forward OpenShift audit
+[%collapsible]
+====
+Scripts live in this roadshow repo (vendored from https://github.com/mfosterrox/rhacs-demo/tree/main/splunk-setup[rhacs-demo/splunk-setup], plus ClusterLogForwarder wiring). `install.sh` deploys Splunk, installs the RHACS add-on when `ROX_API_TOKEN` is set, then creates an HEC token and a `ClusterLogForwarder` that ships `audit` to Splunk.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+cd ~/openshift-security-roadshow/setup/splunk-lab
+SPLUNK_RUN_CLEAN_FIRST=false ./install.sh
+----
+
+TIP: End of the run prints Splunk Web URL, `admin` password, HEC endpoint, and example searches. First boot waits on `deployment/splunk` in namespace `splunk`.
+====
+
+.Confirm Splunk Web and the collector
+[%collapsible]
+====
+Open Splunk Web from the route. Collector pods appear in `openshift-logging` after the Cluster Logging Operator reconciles the forwarder.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+oc get route splunk-web -n splunk -o jsonpath='https://{.spec.host}{"\n"}'
+echo "admin password:"
+oc -n splunk get secret splunk-auth -o jsonpath='{.data.password}' | base64 -d; echo
+oc get clusterlogforwarder -A 2>/dev/null || true
+oc get pods -n openshift-logging 2>/dev/null || true
+----
+
+TIP: Sign in as `admin`. Home may already be the **RHACS Security Operations Dashboard**. You will hunt kube-apiserver audit in **Search & Reporting**, not only that dashboard. If there is no ClusterLogForwarder yet, Part C still works via `push-recent-audit.sh`.
+====
+
+=== Part B: Generate a suspicious exec
 
 .Create project 201-06-a-correlation
 [%collapsible]
@@ -83,31 +120,56 @@ oc exec sleeper -- sh -c 'id; uname -a'
 TIP: Same output. Two audit events should exist.
 ====
 
-.Query Loki for exec on sleeper
+=== Part C: Hunt in Splunk
+
+.Seed Splunk with recent kube-apiserver audit
 [%collapsible]
 ====
-If Loki indexes kube-apiserver audit, search `connect` + `exec` + `sleeper`.
-
-[source,promql]
-----
-{log_type="kube-apiserver"} |= `connect` |= `exec` |= `sleeper` | json
-----
-
-TIP: Read `user.username`, `objectRef.name`, verb `connect`, `subresource=exec`, and `sourceIPs[]`.
-====
-
-.Grep node audit logs for sleeper exec
-[%collapsible]
-====
-Same hunt as xref:101-09-audit-exec-events.adoc[101-09] if you have control-plane file access.
+ClusterLogForwarder collectors can take several minutes. This copies the last lines of each master’s `kube-apiserver/audit.log` into HEC so Search is not empty for the demo. It uses `oc adm node-logs` (same path as 101-09), not a file on the bastion.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-grep sleeper /var/log/kube-apiserver/audit.log | grep exec | tail -1
+cd ~/openshift-security-roadshow/setup/splunk-lab
+./push-recent-audit.sh
 ----
 
-TIP: Parse JSON for timestamp, user, and pod name.
+TIP: `Posted from <master>`. Re-run after more execs if the first window was too early.
 ====
+
+.Search Splunk for sleeper exec
+[%collapsible]
+====
+Splunk Web → **Search & Reporting**. Set the time picker to **Last 1 hour**. Run:
+
+[source]
+----
+index=main (sleeper AND (exec OR connect))
+----
+
+Also try the sourcetype the HEC token sets:
+
+[source]
+----
+index=main sourcetype="kube:apiserver:audit" sleeper
+----
+
+TIP: Expand an event and read `user.username` (or `user.groups`), `objectRef.namespace`, `objectRef.name` (`sleeper`), `objectRef.subresource` (`exec`), `verb` (`create` / `connect`), and `sourceIPs`. That is the API half of the story.
+====
+
+.Correlate with RHACS in the same SIEM (optional)
+[%collapsible]
+====
+If `install.sh` created the RHACS Splunk notifier (`ROX_API_TOKEN` was set), Central also writes alerts into HEC.
+
+[source]
+----
+index=* sourcetype="stackrox-*" sleeper
+----
+
+TIP: API audit names the Kubernetes user and verb. RHACS names the process inside the container. Same pod, two sensors. Empty `stackrox-*` means the notifier or add-on inputs have not run yet—kube-apiserver hits are still enough for this lab.
+====
+
+=== Part D: Join runtime
 
 .Read sleeper logs from the last two minutes
 [%collapsible]
@@ -122,35 +184,63 @@ oc logs sleeper -n 201-06-a-correlation --since=2m
 TIP: The sleep image may log little; empty logs still prove you checked the runtime side. In RHACS, look for a matching process-exec finding.
 ====
 
+.Confirm the node file still matches Splunk
+[%collapsible]
+====
+Spot-check that the SIEM did not invent the event. Use `oc adm node-logs`, not `grep` on the bastion—the audit file is on the control plane.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+MASTER=$(oc get nodes -l node-role.kubernetes.io/control-plane -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+if [ -z "$MASTER" ]; then
+  MASTER=$(oc get nodes -l node-role.kubernetes.io/master -o jsonpath='{.items[0].metadata.name}')
+fi
+oc adm node-logs "$MASTER" --path=kube-apiserver/audit.log | grep sleeper | grep exec | tail -3
+----
+
+TIP: JSON lines with `sleeper` and `exec`. Same user and pod you saw in Splunk.
+====
+
 == Detection Logic Draft
 
 Rule: IF (exec to prod namespace pod) AND (user not in admin group) THEN alert severity=high.
 
 Data points:
 
-* Audit: user, verb=connect, subresource=exec
+* Audit (Splunk): user, verb=`create`/`connect`, subresource=`exec`, `objectRef.name`, `sourceIPs`
 * RBAC: subject group membership
 * Namespace label: env=prod
-* SIEM enrichment: cluster and namespace labels on forwarded audit events so queries stay simple
+* SIEM enrichment: cluster and namespace fields on forwarded events so queries stay simple
+* RHACS: process-exec / violation on the same pod name and time window
 
 == Debrief
 
-Audit shows API intent; logs and metrics show runtime. Correlate on namespace, pod, user, verb, and time to spot pivots that neither stream alone catches.
+Audit shows API intent; logs, metrics, and RHACS show runtime. Correlate on namespace, pod, user, verb, and time to spot pivots that neither stream alone catches.
+
+What “configured for OpenShift audit logging” means here:
+
+* **Store** — Splunk (HEC + index `main`) instead of grepping a node file during an incident
+* **Ship** — `ClusterLogForwarder` `inputRefs: [audit]` to that HEC (CIS OpenShift **1.2.21**)
+* **Enabled** — API audit profile is not `None` (CIS **3.2.1**); you do not turn that off
+* **Seed** — `push-recent-audit.sh` so the lab hunt does not wait on collector rollout
+* **Evidence** — leave Splunk and the forwarder up; xref:201-07-compliance-tailoring.adoc[201-07] re-scans `ocp4-cis` so 1.2.21 / 3.2.1 show PASS
 
 What breaks without this:
 
 * Siloed audit vs runtime → missed exec campaigns and privilege grants
 * No join keys → alerts without investigation context
+* CIS `audit-log-forwarding-enabled` (1.2.21) stays FAIL because the files never leave the masters
+* No 201-07 rescan → Splunk works, but the CIS report still shows the 101-10 FAIL
 
 IMPORTANT: ship audit immutably, align clocks, query by identity and verb, and build anomaly rules (for example non-admin exec in prod).
 
-NOTE: this lab is the foundation for later ACS/IR correlation—not a replacement for runtime sensors.
+NOTE: this lab is the foundation for later ACS/IR correlation—not a replacement for runtime sensors. Splunk first boot is slow. **Do not tear down Splunk or the ClusterLogForwarder yet** — xref:201-07-compliance-tailoring.adoc[201-07] re-scans `ocp4-cis` against this forwarder. Module cleanup only deletes the sleeper project.
 
 image::https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbTkyMGVyZW5qaG84dHB1cWM3Z3l0eWlpNWhseW9vODZocTVyZmZhMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7abGQa0aRJUurpII/giphy.gif[link=self, window=blank, width=100%, class="center"]
 
 == Cleanup
 
-Before moving to the next module, run the lab cleanup script to reset transient resources from this module.
+This module’s cleanup removes project `201-06-a-correlation` only. Splunk and the audit `ClusterLogForwarder` stay for 201-07. After 201-07, lab cleanup removes those too (`setup/splunk-lab/clean.sh`).
 
 :lab-cleanup-module: 201-06
 include::partial$lab-cleanup.adoc[]

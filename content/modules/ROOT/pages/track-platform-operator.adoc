@@ -44,15 +44,13 @@ Core responsibilities (framework):
 . xref:201-05-vault-csi.adoc[201-05 — Secret Lifecycle Externalization]
 . xref:201-06-audit-monitoring-correlation.adoc[201-06 — Audit Correlation & Anomaly Detection]
 . xref:201-07-compliance-tailoring.adoc[201-07 — Compliance Operator Tailoring]
-. xref:201-10-admission-governance.adoc[201-10 — Admission & Policy Enforcement]
+. xref:201-10-admission-governance.adoc[201-10 — RHACM Policy Governance (DoD / NIST)]
 
 For deeper segmentation, also use NetworkPolicy foundations in 101-05 and coordinate with the xref:track-network-infrastructure.adoc[Network & Infrastructure] track.
 
 === Advanced
 
-. xref:301-01-platform-security-governance.adoc[301-01 — Platform Security Governance]
-. xref:301-07-automated-remediation.adoc[301-07 — Automated Remediation & Policy Enforcement]
-. xref:301-08-security-culture-maturity.adoc[301-08 — Security Culture & Maturity]
+. xref:301-01-platform-security-governance.adoc[301-01 — STRIDE PolicySet]
 
 == Product deep-dives
 
