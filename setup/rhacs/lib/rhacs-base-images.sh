@@ -3,7 +3,7 @@
 #
 # Default references (repo|tag, space-separated via RHACS_BASE_IMAGE_REFERENCES):
 #   - registry.access.redhat.com/hi/python:3.13  (Hummingbird / HI demo)
-#   - docker.io/library/python:3.12-alpine        (medical-app frontend and similar)
+#   - docker.io/library/python:3.12-alpine3.20    (workshop golden / frontend base)
 #
 # Requires: print_info, print_warn, print_error, print_step (from calling script)
 
@@ -18,6 +18,7 @@ rhacs_default_base_image_references() {
     fi
     printf '%s\n' \
         "${RHACS_BASE_IMAGE_REPO_PATH}|${RHACS_BASE_IMAGE_TAG_PATTERN}" \
+        "docker.io/library/python|3.12-alpine3.20" \
         "docker.io/library/python|3.12-alpine"
 }
 

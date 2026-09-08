@@ -24,14 +24,14 @@ Modules are sequential. Later labs reuse the HyperConverged object, VM, and any 
 
 == Recommended sequence
 
-. xref:virt-00-scope-and-hco.adoc[virt-00 -- Scope, defaults, and the HyperConverged object]
-. xref:virt-01-feature-gates-and-trusted-config.adoc[virt-01 -- Feature gates and trusted HCO config]
-. xref:virt-02-devices-ksm-permissions.adoc[virt-02 -- Host devices, KSM, and virt-handler files]
-. xref:virt-03-virtualization-rbac.adoc[virt-03 -- Migration, exec, VNC, and shared types]
-. xref:virt-04-vm-configuration.adoc[virt-04 -- Per-VM devices and memory overcommit]
-. xref:virt-05-storage-isolation.adoc[virt-05 -- DataVolume cloning, shareable disks, I/O errors]
-. xref:virt-06-network-segmentation.adoc[virt-06 -- VLAN, MAC spoof, MultiNetworkPolicy]
-. xref:virt-07-host-firmware-and-kernel.adoc[virt-07 -- Host firmware and kernel]
+. xref:virt-00-scope-and-hco.adoc[Scope and HyperConverged]
+. xref:virt-01-feature-gates-and-trusted-config.adoc[Feature Gates and Trusted Config]
+. xref:virt-02-devices-ksm-permissions.adoc[Host Devices, KSM, and File Permissions]
+. xref:virt-03-virtualization-rbac.adoc[Migration, Exec, VNC, and Shared Types]
+. xref:virt-04-vm-configuration.adoc[Per-VM Devices and Memory Overcommit]
+. xref:virt-05-storage-isolation.adoc[DataVolume Cloning and Disk Isolation]
+. xref:virt-06-network-segmentation.adoc[VLAN, MAC Spoof, and MultiNetworkPolicy]
+. xref:virt-07-host-firmware-and-kernel.adoc[Host Firmware and Kernel]
 
 == Virtualization labs index
 
@@ -40,35 +40,35 @@ Modules are sequential. Later labs reuse the HyperConverged object, VM, and any 
 |Lab | Title | Roles
 
 |xref:virt-00-scope-and-hco.adoc[00]
-|Scope, defaults, and the HyperConverged object
+|Scope and HyperConverged
 |Platform, Architect, Network
 
 |xref:virt-01-feature-gates-and-trusted-config.adoc[01]
-|Feature gates, TLS registries, HCO jsonpatch
+|Feature Gates and Trusted Config
 |Platform, Architect
 
 |xref:virt-02-devices-ksm-permissions.adoc[02]
-|Host device pass-through, KSM, virt-handler permissions
+|Host Devices, KSM, and File Permissions
 |Platform
 
 |xref:virt-03-virtualization-rbac.adoc[03]
-|Migration, exec, VNC, instance types, CDI
+|Migration, Exec, VNC, and Shared Types
 |Platform, Architect
 
 |xref:virt-04-vm-configuration.adoc[04]
-|Per-VM GPUs/hostDevices and memory overcommit
+|Per-VM Devices and Memory Overcommit
 |Platform
 
 |xref:virt-05-storage-isolation.adoc[05]
-|Cross-namespace clone, shareable disks, errorPolicy
+|DataVolume Cloning and Disk Isolation
 |Platform, Architect
 
 |xref:virt-06-network-segmentation.adoc[06]
-|Dedicated VLANs, MAC spoof filtering, MultiNetworkPolicy
+|VLAN, MAC Spoof, and MultiNetworkPolicy
 |Network, Architect, Platform
 
 |xref:virt-07-host-firmware-and-kernel.adoc[07]
-|Intel TXT, nested virt, vCPU metrics, CPU mitigations
+|Host Firmware and Kernel
 |Platform, Network
 |===
 

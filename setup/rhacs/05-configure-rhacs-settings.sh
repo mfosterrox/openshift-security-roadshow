@@ -45,7 +45,7 @@ trap 'error_handler $? $LINENO' ERR
 # Default values
 RHACS_NAMESPACE="${RHACS_NAMESPACE:-stackrox}"
 ROX_CENTRAL_ADDRESS="${ROX_CENTRAL_ADDRESS:-}"
-# Base images for layer filtering (Hummingbird HI + demo-apps frontend python:3.12-alpine)
+# Base images for layer filtering (Hummingbird HI + demo-apps frontend python:3.12-alpine3.20)
 # Override all with space-separated repo|tag pairs, e.g.:
 #   RHACS_BASE_IMAGE_REFERENCES="registry.access.redhat.com/hi/python|3.13 docker.io/library/python|3.12-alpine"
 RHACS_BASE_IMAGE_REPO_PATH="${RHACS_BASE_IMAGE_REPO_PATH:-registry.access.redhat.com/hi/python}"
@@ -395,7 +395,7 @@ main() {
     print_info "    • 90-day vulnerability request retention"
     print_info "  - Base image references:"
     print_info "    • ${RHACS_BASE_IMAGE_REPO_PATH}:${RHACS_BASE_IMAGE_TAG_PATTERN}"
-    print_info "    • docker.io/library/python:3.12-alpine"
+    print_info "    • docker.io/library/python:3.12-alpine3.20"
     print_info "  - Configuration validated successfully"
     print_info ""
 }

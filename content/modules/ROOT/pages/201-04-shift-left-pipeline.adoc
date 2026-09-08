@@ -367,7 +367,7 @@ What breaks without this:
 
 * Unscanned or unsigned images → known-bad artifacts reach the cluster
 * Tag-based deploys → non-reproducible, retaggable runtime
-* `FROM python:3.12-alpine` at build time → you no longer know which golden digest you inherited
+* `FROM python:3.12-alpine` (floating tag) at build time → Alpine minor (and Clair matching) drift under you; use the pinned golden digest instead
 
 IMPORTANT: Tekton (or equivalent) gates, conditional sign tasks, digest pins, and admission that extends trust (signatures/SBOM) at deploy time—see xref:201-10-admission-governance.adoc[201-10] for RHACM Policy that configures restricted PSA (and fleet-wide baselines) so tag-based privileged workloads still fail at the API.
 

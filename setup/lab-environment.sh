@@ -30,6 +30,10 @@ WORK_DIR="${HOME}"
 DEMO_APPS_REPO="${DEMO_APPS_REPO:-https://github.com/mfosterrox/demo-apps.git}"
 SKUPPER_REPO="${SKUPPER_REPO:-https://github.com/mfosterrox/skupper-security-demo.git}"
 ROADSHOW_ENV_FILE="${HOME}/.acs-roadshow/env"
+# Pin Alpine minor so Clair can match apk CVEs. Floating python:3.12-alpine tracks
+# current Alpine (3.24.1 today); catalog Clair indexes it but leaves version_id
+# empty, so Quay's Security Scan column shows Passed / namespace "".
+PYTHON_ALPINE_BASE="${PYTHON_ALPINE_BASE:-docker.io/library/python:3.12-alpine3.20}"
 
 # Persist lab vars to a dedicated env file (safe to source from scripts) and ~/.bashrc
 # (for interactive shells). Never source ~/.bashrc from this script — bastion images
@@ -284,8 +288,8 @@ do_quay_login() {
 
 do_golden_image() {
   ensure_podman || return 1
-  podman pull python:3.12-alpine
-  podman tag docker.io/library/python:3.12-alpine "${QUAY_URL}/${QUAY_USER}/python-alpine-golden:0.1"
+  podman pull "${PYTHON_ALPINE_BASE}"
+  podman tag "${PYTHON_ALPINE_BASE}" "${QUAY_URL}/${QUAY_USER}/python-alpine-golden:0.1"
   podman push "${QUAY_URL}/${QUAY_USER}/python-alpine-golden:0.1"
 }
 
@@ -296,7 +300,7 @@ do_frontend_image() {
     echo "Error: TUTORIAL_HOME / QUAY_URL / QUAY_USER must be set before building the frontend image." >&2
     return 1
   fi
-  sed -i "s|^FROM python:3\.12-alpine AS \(\w\+\)|FROM ${QUAY_URL}/${QUAY_USER}/python-alpine-golden:0.1 AS \1|" \
+  sed -i "s|^FROM python:3\.12-alpine[^ ]* AS \(\w\+\)|FROM ${QUAY_URL}/${QUAY_USER}/python-alpine-golden:0.1 AS \1|" \
     "${TUTORIAL_HOME}/app-images/frontend/Dockerfile"
   cd "${TUTORIAL_HOME}/app-images/frontend/"
   podman build -t "${QUAY_URL}/${QUAY_USER}/frontend:0.1" .
