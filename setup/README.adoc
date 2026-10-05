@@ -75,7 +75,7 @@ Attendees use the Showroom attribute `{workshop_user_suffix}` matching their ass
 
 == Attendee lab environment (bastion)
 
-Attendees clone the roadshow repository, then run `setup/lab-environment.sh`. That script runs `rhacs-configure.sh` (RHACS settings, compliance, monitoring, MCP, Lightspeed helpers), then CLI token setup, demo-apps, and Quay images:
+Attendees clone the roadshow repository, then run `setup/lab-environment.sh`. That script configures Quay first (if the MinIO pod is in `ImagePullBackOff`, it switches the deployment to `docker.io/pgsty/minio:RELEASE.2026-08-04T00-00-00Z`), then runs `rhacs-configure.sh` (RHACS settings, compliance, monitoring, MCP, Lightspeed helpers), CLI token setup, demo-apps, and Quay images:
 
 [source,bash]
 ----
