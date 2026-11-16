@@ -97,7 +97,7 @@ Priority: 10 DNS, 20/21 intra-namespace, 50 deny other workshop tenants. Lower n
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-cd ~/openshift-security-roadshow/setup/anp-lab
+cd ~/ocp5-rhacs-showroom/setup/anp-lab
 oc apply -f allow-dns.yaml
 oc apply -f allow-intra-tenant.yaml
 oc apply -f deny-cross-tenant.yaml

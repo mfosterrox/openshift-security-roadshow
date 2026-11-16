@@ -76,7 +76,7 @@ Bindings match `digest-pin-enforce=true` only—not cluster-wide.
 ----
 oc new-project 301-06-supply || oc project 301-06-supply
 oc label ns 301-06-supply digest-pin-enforce=true --overwrite
-oc apply -f ~/openshift-security-roadshow/setup/supply-chain-lab/require-digest-vap.yaml
+oc apply -f ~/ocp5-rhacs-showroom/setup/supply-chain-lab/require-digest-vap.yaml
 ----
 
 TIP: `validatingadmissionpolicy.admissionregistration.k8s.io/require-digest-deployments` created.

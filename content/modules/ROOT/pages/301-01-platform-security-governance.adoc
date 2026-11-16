@@ -76,7 +76,7 @@ Skip if you already ran this in 201-10. Placement selects **zero** clusters unti
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-cd ~/openshift-security-roadshow/setup/acm-lab
+cd ~/ocp5-rhacs-showroom/setup/acm-lab
 chmod +x bind-clusterset.sh
 ./bind-clusterset.sh
 ----
@@ -93,7 +93,7 @@ Three Policies + a PolicySet + Placement. Remediation starts as **inform**—RHA
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc apply -f ~/openshift-security-roadshow/setup/acm-lab/policy-stride-ocp-baseline.yaml
+oc apply -f ~/ocp5-rhacs-showroom/setup/acm-lab/policy-stride-ocp-baseline.yaml
 ----
 
 TIP: Policies, PolicySet `stride-ocp-baseline`, Placement, and PlacementBinding created in `policies`.

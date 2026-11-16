@@ -18,7 +18,7 @@ From the bastion terminal tab, run the following commands to setup the lab envir
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 git clone https://github.com/mfosterrox/openshift-security-roadshow.git
-cd openshift-security-roadshow
+cd ocp5-rhacs-showroom
 bash setup/lab-environment.sh \
   --quay-user {quay_admin_username} \
   --quay-password '{quay_admin_password}'

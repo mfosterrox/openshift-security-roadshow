@@ -34,6 +34,19 @@ Build a Tekton path FROM `python-alpine-golden` that refuses unscanned or unsign
 
 Click each step only if you need a hint.
 
+.Install podman
+[%collapsible]
+====
+Install podman if not already available on your bastion host.
+
+[source,bash,subs="+macros,+attributes",role=execute]
+----
+sudo dnf install -y podman
+----
+
+TIP: If podman is already installed, you'll see "Package podman is already installed."
+====
+
 .Create project 201-04-s-pipeline
 [%collapsible]
 ====

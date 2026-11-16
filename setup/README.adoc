@@ -80,7 +80,7 @@ Attendees clone the roadshow repository, then run `setup/lab-environment.sh`. Th
 [source,bash]
 ----
 git clone https://github.com/mfosterrox/openshift-security-roadshow.git
-cd openshift-security-roadshow
+cd ocp5-rhacs-showroom
 bash setup/lab-environment.sh --quay-user QUAYADMIN --quay-password 'password'
 bash setup/lab-environment.sh --deploy-skupper-only
 ----

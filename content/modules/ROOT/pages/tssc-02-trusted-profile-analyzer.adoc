@@ -79,6 +79,6 @@ Reset TSSC module content for the next user, then run the roadshow module cleanu
 ----
 curl -fsSL https://raw.githubusercontent.com/redhat-tssc-tmm/security-roadshow/main/cleanup_tssc-module.sh | bash -s {quay_admin_username} {quay_admin_password}
 
-cd ~/openshift-security-roadshow
+cd ~/ocp5-rhacs-showroom
 bash setup/lab-cleanup.sh --module tssc-02
 ----
