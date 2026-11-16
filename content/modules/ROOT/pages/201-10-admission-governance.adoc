@@ -79,7 +79,7 @@ Placement in a custom namespace selects **zero** clusters until a `ManagedCluste
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-cd ~/openshift-security-roadshow/setup/acm-lab
+cd ~/ocp5-rhacs-showroom/setup/acm-lab
 chmod +x bind-clusterset.sh
 ./bind-clusterset.sh
 ----
@@ -98,7 +98,7 @@ YAML lives in this roadshow repo (`setup/acm-lab/policy-dod-ocp-baseline.yaml`).
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc apply -f ~/openshift-security-roadshow/setup/acm-lab/policy-dod-ocp-baseline.yaml
+oc apply -f ~/ocp5-rhacs-showroom/setup/acm-lab/policy-dod-ocp-baseline.yaml
 ----
 
 TIP: `policy.policy.open-cluster-management.io/policy-dod-ocp-baseline created` (and Placement / PlacementBinding).

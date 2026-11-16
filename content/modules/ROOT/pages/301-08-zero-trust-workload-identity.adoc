@@ -48,7 +48,7 @@ ZTWIM is already installed on this cluster. You'll register the trust domain and
 +
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-cd ~/openshift-security-roadshow/setup/ztwim-lab
+cd ~/ocp5-rhacs-showroom/setup/ztwim-lab
 ./configure-ztwim-lab.sh
 ----
 +
@@ -60,7 +60,7 @@ TIP: The script configures SPIRE server, agents, the CSI driver, and OIDC discov
 +
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-cd ~/openshift-security-roadshow/setup/ztwim-lab
+cd ~/ocp5-rhacs-showroom/setup/ztwim-lab
 ./configure-ztwim-postgresql-lab.sh deploy
 ----
 +
@@ -329,6 +329,6 @@ Run the roadshow module cleanup script. It removes the PostgreSQL SPIFFE namespa
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-cd ~/openshift-security-roadshow
+cd ~/ocp5-rhacs-showroom
 bash setup/lab-cleanup.sh --module 301-08
 ----

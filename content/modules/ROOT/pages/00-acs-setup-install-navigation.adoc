@@ -84,7 +84,7 @@ The script checks Quay first. If the MinIO pod is in `ImagePullBackOff` because 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 git clone https://github.com/mfosterrox/openshift-security-roadshow.git
-cd openshift-security-roadshow
+cd ocp5-rhacs-showroom
 bash setup/lab-environment.sh \
   --quay-user {quay_admin_username} \
   --quay-password '{quay_admin_password}'
@@ -201,15 +201,15 @@ After making the *frontend* repository public, run the second setup phase:
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-cd ~/openshift-security-roadshow
+cd ~/ocp5-rhacs-showroom
 bash setup/lab-environment.sh --deploy-skupper-only
 ----
 
 [.console-output]
 [source,bash,subs="+macros,+attributes"]
 ----
-[lab-user@bastion openshift-security-roadshow]$ cd ~/openshift-security-roadshow
-[lab-user@bastion openshift-security-roadshow]$ bash setup/lab-environment.sh --deploy-skupper-only
+[lab-user@bastion ocp5-rhacs-showroom]$ cd ~/ocp5-rhacs-showroom
+[lab-user@bastion ocp5-rhacs-showroom]$ bash setup/lab-environment.sh --deploy-skupper-only
 
 ==> Deploying patient-portal application (Skupper demo)
 ------------------------------------------------------------------------

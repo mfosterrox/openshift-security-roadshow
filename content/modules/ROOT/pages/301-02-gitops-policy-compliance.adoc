@@ -65,7 +65,7 @@ YAML lives in this roadshow repo (`setup/gitops-lab/`). The helper rewrites the 
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-cd ~/openshift-security-roadshow/setup/gitops-lab
+cd ~/ocp5-rhacs-showroom/setup/gitops-lab
 chmod +x apply-pinned.sh
 ./apply-pinned.sh
 ----
@@ -106,7 +106,7 @@ TIP: Prints `200`. The process is `python3`; ACS can still see exec in 301-04/05
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
 oc get crd applications.argoproj.io 2>/dev/null && oc get argocd -A || echo "OpenShift GitOps not installed — oc apply -k is the GitOps path for this lab"
-ls ~/openshift-security-roadshow/setup/gitops-lab
+ls ~/ocp5-rhacs-showroom/setup/gitops-lab
 ----
 
 TIP: The kustomize directory *is* the desired state. On a customer cluster you would point an `Application` at this path in Git. You already applied it; skip creating an Application that needs a clone URL.

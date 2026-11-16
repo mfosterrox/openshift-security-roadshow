@@ -41,7 +41,7 @@ Click each step only if you need a hint.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc apply -f ~/openshift-security-roadshow/setup/acs-runtime-lab/pkgmgr-probe.yaml
+oc apply -f ~/ocp5-rhacs-showroom/setup/acs-runtime-lab/pkgmgr-probe.yaml
 oc rollout status deploy/pkgmgr-probe -n 301-04-runtime --timeout=120s
 oc get route central -n stackrox -o jsonpath='https://{.spec.host}{"\n"}'
 ----
