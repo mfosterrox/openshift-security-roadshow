@@ -37,7 +37,7 @@ The installer lives in this roadshow repo. It deploys the HashiCorp Helm chart i
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-cd ~/openshift-security-roadshow/setup/vault-lab
+cd ~/ocp5-rhacs-showroom/setup/vault-lab
 ./install-vault.sh
 ----
 
@@ -303,7 +303,7 @@ The Agent Injector mutates the pod and writes files under `/vault/secrets/`.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc apply -f ~/openshift-security-roadshow/setup/vault-lab/vault-secrets-app.yaml
+oc apply -f ~/ocp5-rhacs-showroom/setup/vault-lab/vault-secrets-app.yaml
 ----
 
 TIP: Deployment and Route are created in namespace `vault`.
@@ -430,7 +430,7 @@ Creates the token Secret, SecretStore, and ExternalSecret that read `my-second-s
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc apply -f ~/openshift-security-roadshow/setup/vault-lab/eso-secretstore.yaml
+oc apply -f ~/ocp5-rhacs-showroom/setup/vault-lab/eso-secretstore.yaml
 ----
 
 TIP: SecretStore and ExternalSecret exist in namespace `vault`.
@@ -476,7 +476,7 @@ This app reads env from the synced Kubernetes Secret, not Agent files.
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-oc apply -f ~/openshift-security-roadshow/setup/vault-lab/eso-vault-test.yaml
+oc apply -f ~/ocp5-rhacs-showroom/setup/vault-lab/eso-vault-test.yaml
 ----
 
 TIP: Deployment is created in namespace `vault`.
@@ -539,6 +539,6 @@ When you finish this module, run the roadshow cleanup script. It uninstalls Exte
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-cd ~/openshift-security-roadshow
+cd ~/ocp5-rhacs-showroom
 bash setup/lab-cleanup.sh --module 201-05
 ----
