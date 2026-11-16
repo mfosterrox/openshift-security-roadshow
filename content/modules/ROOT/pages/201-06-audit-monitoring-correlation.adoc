@@ -42,7 +42,7 @@ Scripts live in this roadshow repo (vendored from https://github.com/mfosterrox/
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-cd ~/openshift-security-roadshow/setup/splunk-lab
+cd ~/ocp5-rhacs-showroom/setup/setup/splunk-lab
 SPLUNK_RUN_CLEAN_FIRST=false ./install.sh
 ----
 
@@ -129,7 +129,7 @@ ClusterLogForwarder collectors can take several minutes. This copies the last li
 
 [source,bash,subs="+macros,+attributes",role=execute]
 ----
-cd ~/openshift-security-roadshow/setup/splunk-lab
+cd ~/ocp5-rhacs-showroom/setup/setup/splunk-lab
 ./push-recent-audit.sh
 ----
 
